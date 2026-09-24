@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -47,8 +47,9 @@ packages/contracts/src/services.test-d.ts
 ```text
 packages/contracts/src/services.ts
 packages/contracts/src/capabilities.ts
-packages/contracts/src/index.ts
 docs/contracts/README.md
+docs/ROADMAP.md
+docs/plans/002-public-contracts/_index.md
 ```
 
 ### Delete
@@ -92,10 +93,10 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `createServiceToken('x').id === createServiceToken('x').id`.
-- [ ] Type test: `registry.get(createServiceToken<number>('n'))` has type `number`.
-- [ ] Type test: a `ServiceToken<string>` is not assignable where a `ServiceToken<number>` is expected.
-- [ ] Capability naming convention documented with examples.
+- [x] `createServiceToken('x').id === createServiceToken('x').id`.
+- [x] Type test: `registry.get(createServiceToken<number>('n'))` has type `number`.
+- [x] Type test: a `ServiceToken<string>` is not assignable where a `ServiceToken<number>` is expected.
+- [x] Capability naming convention documented with examples.
 
 ## Validation
 
@@ -106,15 +107,15 @@ pnpm typecheck
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Scope types marked `@experimental` pending 003.003.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Scope types marked `@experimental` pending 003.003.
 
 ## Completion conditions
 
@@ -131,4 +132,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- `ServiceToken<T>` carries `T` through an optional phantom function field `__service?: (value: T) => T`. A plain `__type?: T` would be covariant, so `ServiceToken<'a'>` would be assignable to `ServiceToken<string>`; the function form makes the parameter **invariant**. Verified with a `@ts-expect-error` type test.
+- `createServiceToken` returns a frozen object; `id = Symbol.for(name)` so duplicated package copies share tokens (tested).
+- `ServiceProvider.provideFactory`, `ServiceScope`, `ServiceResolutionContext`, `ServiceFactoryOptions` are marked `@experimental` until 003.003 finalises the kernel registry (ADR 0005). `get` documents that it throws `ModuleError` (class arrives in 002.004).
+- Added `ServiceOf<TToken>` helper type (useful for module authors typing providers).
+- `CapabilityId` is a template-literal type (`${string}.${string}`) plus a runtime `isCapabilityId` check with the stricter convention (lowercase, kebab-case segments, ≥ 2 segments). `BLIXIS_CAPABILITIES` also lists `blixis.releases` (plan 016) in addition to the task's list.
+- Vitest 4's `expectTypeOf` provides `toExtend` (used for assignability checks).
+- Order: 002.003 implemented before 002.002 because the module contract references these types (all dependencies of both tasks allow this).
