@@ -5,11 +5,11 @@
   "type": "module",
   "description": "Blixis developer documentation (Starlight)",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
+    "dev": "pnpm -w run build && astro dev",
+    "build": "pnpm -w run build && astro build",
     "preview": "astro preview",
-    "deploy": "astro build && wrangler deploy",
-    "deploy:dry": "astro build && wrangler deploy --dry-run"
+    "deploy": "pnpm run build && wrangler deploy",
+    "deploy:dry": "pnpm run build && wrangler deploy --dry-run"
   },
   "dependencies": {
     "@astrojs/starlight": "catalog:",
