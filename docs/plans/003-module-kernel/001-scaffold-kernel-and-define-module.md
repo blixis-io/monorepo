@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -42,6 +42,7 @@ Create the `@blixis/kernel` package and implement `defineModule` supporting both
 ```text
 packages/kernel/package.json
 packages/kernel/tsconfig.json
+packages/kernel/tsconfig.test.json
 packages/kernel/src/index.ts
 packages/kernel/src/define-module.ts
 packages/kernel/src/define-module.test.ts
@@ -53,6 +54,11 @@ packages/kernel/src/define-module.test-d.ts
 ```text
 tsconfig.json
 pnpm-lock.yaml
+apps/docs/astro.config.mjs (kernel API reference)
+apps/docs/src/content/docs/getting-started/introduction.mdx
+apps/docs/src/content/docs/concepts/modules.mdx
+docs/ROADMAP.md
+docs/plans/003-module-kernel/_index.md
 ```
 
 ### Delete
@@ -101,9 +107,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `const seo = defineModule<{ defaultTitle?: string }>((o) => ({ meta: {...} }))` infers `seo({ defaultTitle: 'x' })` correctly and rejects unknown option keys.
-- [ ] Object-form modules are invoked as `content()` consistently.
-- [ ] Only `src/index.ts` exports are reachable.
+- [x] `const seo = defineModule<{ defaultTitle?: string }>((o) => ({ meta: {...} }))` infers `seo({ defaultTitle: 'x' })` correctly and rejects unknown option keys.
+- [x] Object-form modules are invoked as `content()` consistently.
+- [x] Only `src/index.ts` exports are reachable.
 
 ## Validation
 
@@ -114,15 +120,15 @@ pnpm typecheck && pnpm lint
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] API matches §5/§6 examples; deviations (always-factory) documented in `docs/kernel/README.md`.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] API matches §5/§6 examples; deviations (always-factory) documented in `docs/kernel/README.md`.
 
 ## Completion conditions
 
@@ -139,4 +145,7 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- `defineModule` overloads: object form → `ModuleFactory<void, TConfig>` (`() => BlixisModule`, returns the same frozen object each call); factory form → `(options?) => BlixisModule<TConfig>` (fresh frozen module per call, `{}` when called without options). `TConfig` is inferred from `configSchema`, so `ctx.config` in `setup` is typed (type test).
+- **Deviation — no brand on factories:** the task suggested a non-enumerable brand to detect `content` passed instead of `content()`. `createBlixis` (003.004) can detect this with `typeof module === 'function'` and raise a clear `ModuleError`, so no brand is needed.
+- Dependencies: `@blixis/contracts` (workspace) and `hono` (runtime, for the app kernel builds in 003.006); Zod only as devDependency for type tests.
+- Per the definition of done: `@blixis/kernel` added to the generated API reference (second `starlight-typedoc` instance via `createStarlightTypeDocPlugin`; shared TypeDoc options), and the manual's module page now documents `defineModule`.

@@ -1,7 +1,17 @@
 // @ts-check
 import starlight from '@astrojs/starlight'
 import { defineConfig } from 'astro/config'
-import starlightTypeDoc, { typeDocSidebarGroup } from 'starlight-typedoc'
+import { createStarlightTypeDocPlugin } from 'starlight-typedoc'
+
+const [contractsTypeDoc, contractsSidebar] = createStarlightTypeDocPlugin()
+const [kernelTypeDoc, kernelSidebar] = createStarlightTypeDocPlugin()
+
+/** Shared TypeDoc options for all documented packages (ADR 0018). */
+const typeDoc = {
+  excludeInternal: true,
+  excludePrivate: true,
+  sort: /** @type {const} */ (['kind', 'alphabetical']),
+}
 
 export default defineConfig({
   site: 'https://blixis-docs.frosty-hill-6079.workers.dev',
@@ -16,23 +26,25 @@ export default defineConfig({
       plugins: [
         // API reference generated from TSDoc (ADR 0018). TypeDoc runs on the TypeScript 6
         // installed in this app only; library packages are compiled with TypeScript 7.
-        starlightTypeDoc({
+        contractsTypeDoc({
           entryPoints: ['../../packages/contracts/src/index.ts'],
           tsconfig: '../../packages/contracts/tsconfig.json',
           output: 'api/contracts',
-          sidebar: { label: '@blixis/contracts', collapsed: false },
-          typeDoc: {
-            excludeInternal: true,
-            excludePrivate: true,
-            sort: ['kind', 'alphabetical'],
-            treatWarningsAsErrors: false,
-          },
+          sidebar: { label: '@blixis/contracts' },
+          typeDoc,
+        }),
+        kernelTypeDoc({
+          entryPoints: ['../../packages/kernel/src/index.ts'],
+          tsconfig: '../../packages/kernel/tsconfig.json',
+          output: 'api/kernel',
+          sidebar: { label: '@blixis/kernel' },
+          typeDoc,
         }),
       ],
       sidebar: [
         { label: 'Getting started', items: [{ autogenerate: { directory: 'getting-started' } }] },
         { label: 'Concepts', items: [{ autogenerate: { directory: 'concepts' } }] },
-        { label: 'API reference', items: [typeDocSidebarGroup] },
+        { label: 'API reference', items: [contractsSidebar, kernelSidebar] },
       ],
     }),
   ],

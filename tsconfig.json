@@ -18,6 +18,12 @@
     },
     {
       "path": "packages/contracts/tsconfig.test.json"
+    },
+    {
+      "path": "packages/kernel"
+    },
+    {
+      "path": "packages/kernel/tsconfig.test.json"
     }
   ]
 }
