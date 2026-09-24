@@ -80,6 +80,21 @@ export const invalidateCache = subscribe(entryPublished, 'invalidate-delivery-ca
 // module: events: [invalidateCache]
 ```
 
+### Idempotency
+
+Blixis records which subscription processed which event (`events.processed`, kept for 30 days), so a redelivered event skips handlers that already succeeded. Choose the mode per subscription:
+
+```ts
+// Default ('after'): marked after success. A crash between success and marking re-runs the handler.
+subscribe(entryPublished, 'send-notification', handler)
+
+// 'transactional': the marker and your database work commit together, so the effect happens exactly once.
+subscribe(orderPaid, 'book-revenue', async (envelope, ctx) => {
+  const tx = fromTransactionScope(ctx.transaction!)          // from @blixis/database
+  await tx.insert(ledger).values({ orderId: envelope.payload.orderId, amount: envelope.payload.amount })
+}, { idempotency: 'transactional' })
+```
+
 <Aside type="caution" title="Handlers must be idempotent">
 Events are delivered **at least once**. A retry or redelivery must not repeat side effects. The subscription `id` is the key for processed-event records — never rename it casually.
 </Aside>

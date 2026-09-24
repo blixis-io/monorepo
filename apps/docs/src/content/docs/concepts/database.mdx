@@ -106,6 +106,21 @@ Hyperdrive pools connections per transaction. Use `SET LOCAL` inside a transacti
 Drizzle's own error message includes the query **parameters**, which can hold user data. `translateDatabaseError` drops them and redacts connection strings. Don't log or rethrow raw driver errors.
 </Aside>
 
+## Idempotent commands
+
+Command routes (create, publish, pay, …) can accept an `Idempotency-Key` header, so a client can safely retry after a timeout:
+
+```ts
+import { idempotent } from '@blixis/database/idempotency'
+
+routes.post('/entries', idempotent(), async (c) => { /* runs once per key */ })
+```
+
+- **Repeats:** a repeat with the same key and the same request returns the stored response with `Idempotent-Replayed: true`. The same key with a different body is a `409`, and so is a repeat while the first request is still running.
+- **Scope and lifetime:** keys are scoped by tenant, actor, method and route, and remembered for 24 hours.
+- **Server errors:** `5xx` responses aren't stored, so the client can retry.
+- **Setup:** the app needs `idempotencyModule()`.
+
 ## Migrations
 
 Each module owns its Postgres schema and ships SQL migrations in its definition:

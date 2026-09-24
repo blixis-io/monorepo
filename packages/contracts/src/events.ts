@@ -116,7 +116,22 @@ export interface EventHandlerContext {
   readonly logger: Logger
   /** Services resolved in the handler's scope. */
   readonly services: ServiceRegistry
+  /**
+   * Set for subscriptions with `idempotency: 'transactional'`: the transaction in which the
+   * processed-event marker was written. Do the handler's database work in it (via
+   * `fromTransactionScope`) so effects and marker commit together — exactly once.
+   */
+  readonly transaction?: TransactionScope
 }
+
+/**
+ * How a subscription is deduplicated per event id (§33):
+ * - `after` (default): skipped if already processed; marked after the handler succeeds. A crash
+ *   between success and marking re-runs the handler, so it must itself be idempotent.
+ * - `transactional`: the marker is inserted first, in a transaction passed to the handler as
+ *   `context.transaction`; handler effects in that transaction commit with it — exactly once.
+ */
+export type SubscriptionIdempotency = 'after' | 'transactional'
 
 /** A module's subscription to an event (§5 `events`). Handlers must be idempotent (§33). */
 export interface EventSubscription<TType extends string = string, TPayload = unknown> {
@@ -125,6 +140,8 @@ export interface EventSubscription<TType extends string = string, TPayload = unk
   readonly event: EventDefinition<TType, TPayload>
   /** Payload versions this handler accepts; defaults to `[event.version]`. */
   readonly versions?: readonly number[]
+  /** Deduplication mode; default `after`. */
+  readonly idempotency?: SubscriptionIdempotency
   /**
    * Handles one delivery. Declared as a method so subscriptions of different events can be
    * collected in one `readonly EventSubscription[]` (module contract `events`).
@@ -137,9 +154,16 @@ export function subscribe<TType extends string, TPayload>(
   event: EventDefinition<TType, TPayload>,
   id: string,
   handle: EventSubscription<TType, TPayload>['handle'],
-  options: { readonly versions?: readonly number[] } = {},
+  options: {
+    readonly versions?: readonly number[]
+    readonly idempotency?: SubscriptionIdempotency
+  } = {},
 ): EventSubscription<TType, TPayload> {
-  return options.versions === undefined
-    ? { id, event, handle }
-    : { id, event, handle, versions: options.versions }
+  return {
+    id,
+    event,
+    handle,
+    ...(options.versions === undefined ? {} : { versions: options.versions }),
+    ...(options.idempotency === undefined ? {} : { idempotency: options.idempotency }),
+  }
 }

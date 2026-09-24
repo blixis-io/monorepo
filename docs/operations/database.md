@@ -99,6 +99,17 @@ unset DATABASE_URL
 
 `pnpm db:migrate` / `db:status` run as `blixis_migrator` with `DATABASE_URL`, the direct URL, never through Hyperdrive. They record applied migrations in `blixis.migrations`, and a session advisory lock prevents concurrent runs. Conventions: [Migrations](../conventions/migrations.md).
 
+## Platform tables
+
+| Table | Owner module | Purpose | Retention |
+|---|---|---|---|
+| `blixis.migrations` | migration runner | Applied migrations | forever |
+| `events.outbox` | `@blixis/events.outbox` | Transactional events awaiting dispatch (ADR 0008) | dispatched rows: 7 days |
+| `events.processed` | `@blixis/events.outbox` | Which subscription processed which event (§33) | 30 days |
+| `blixis.idempotency_keys` | `@blixis/database.idempotency` | Stored responses of command routes by `Idempotency-Key` | 24 hours (`expires_at`) |
+
+Cleanup runs on the `* * * * *` cron.
+
 ## Transactions on Hyperdrive
 
 Hyperdrive pools connections in **transaction mode**: between transactions, a Worker's connection may be handed to another client. So:

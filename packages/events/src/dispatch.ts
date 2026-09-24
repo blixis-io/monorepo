@@ -1,13 +1,20 @@
-import type { EventEnvelope, EventSubscription, Logger } from '@blixis/contracts'
+import {
+  type EventEnvelope,
+  type EventSubscription,
+  InfrastructureError,
+  type Logger,
+} from '@blixis/contracts'
 import type { Attributed, RunInScope } from '@blixis/kernel'
 import { parseEnvelope } from './envelope.ts'
+import { PROCESSED_EVENTS } from './processed.ts'
 import type { EventRegistry } from './registry.ts'
 
 /** Outcome of one subscription for one envelope. */
 export interface DispatchResult {
   /** `<module>#<subscription id>`, also the idempotency key prefix (006.006). */
   readonly subscription: string
-  readonly status: 'ok' | 'failed'
+  /** `skipped`: already processed by this subscription (a redelivery). */
+  readonly status: 'ok' | 'skipped' | 'failed'
   readonly error?: unknown
 }
 
@@ -38,6 +45,9 @@ export function matches(subscription: EventSubscription, envelope: EventEnvelope
  *   type/version, payload schema.
  * - Each handler runs in its own request scope as a `system` actor acting on behalf of the
  *   original actor, with the envelope's correlation id and tenant.
+ * - Deduplication (§33): with a `PROCESSED_EVENTS` store, a subscription that already
+ *   processed the envelope is `skipped`; `idempotency: 'transactional'` runs the handler in the
+ *   marker's transaction.
  * - Handlers run concurrently and are isolated: one failure never prevents the others; failures
  *   are logged and returned per subscription.
  *
@@ -55,7 +65,7 @@ export async function dispatchEnvelope(
       const subscription = `${module}#${value.id}`
       const onBehalfOf = envelope.metadata?.actorId
       try {
-        await options.runInScope(
+        const status = await options.runInScope(
           {
             actor: {
               type: 'system',
@@ -70,8 +80,8 @@ export async function dispatchEnvelope(
               ...(envelope.spaceId === undefined ? {} : { spaceId: envelope.spaceId }),
             },
           },
-          (context) =>
-            value.handle(envelope, {
+          async (context): Promise<'ok' | 'skipped'> => {
+            const handlerContext = {
               attempt,
               services: context.services,
               logger: context.logger.child({
@@ -80,9 +90,31 @@ export async function dispatchEnvelope(
                 module,
                 subscription: value.id,
               }),
-            }),
+            }
+            const processed = context.services.getOptional(PROCESSED_EVENTS)
+            if ((value.idempotency ?? 'after') === 'transactional') {
+              if (processed === undefined) {
+                throw new InfrastructureError(
+                  `${subscription} uses transactional idempotency, but no processed-events store is configured`,
+                )
+              }
+              const ran = await processed.runOnce(subscription, envelope.id, (transaction) =>
+                value.handle(envelope, { ...handlerContext, transaction }),
+              )
+              return ran ? 'ok' : 'skipped'
+            }
+            if (
+              processed !== undefined &&
+              (await processed.isProcessed(subscription, envelope.id))
+            ) {
+              return 'skipped'
+            }
+            await value.handle(envelope, handlerContext)
+            await processed?.markProcessed(subscription, envelope.id)
+            return 'ok'
+          },
         )
-        return { subscription, status: 'ok' }
+        return { subscription, status }
       } catch (error) {
         options.logger.error('event handler failed', {
           eventId: envelope.id,
