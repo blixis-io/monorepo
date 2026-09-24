@@ -10,7 +10,7 @@ import worker from '../src/index.ts'
 
 describe('API Worker background entry points (workerd)', () => {
   it('retries batches for queues without a consumer', async () => {
-    const batch = createMessageBatch('blixis-events-local', [
+    const batch = createMessageBatch('queue-without-consumer', [
       { id: 'm1', timestamp: new Date(), attempts: 1, body: { hello: 'world' } },
     ])
     const ctx = createExecutionContext()

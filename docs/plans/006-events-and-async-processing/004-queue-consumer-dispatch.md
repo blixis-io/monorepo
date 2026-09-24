@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,17 +37,24 @@ Register a queue handler for the `EVENTS` queue that parses each message into a 
 ### Create
 
 ```text
-packages/events/src/queue-consumer.ts
-packages/events/src/queue-consumer.test.ts
-apps/api/test/events-consumer.worker.test.ts
+apps/api/test/events.worker.test.ts
+packages/events/src/consumer.test.ts
+packages/events/src/consumer.ts
 ```
 
 ### Modify
 
 ```text
-packages/events/src/module.ts
+apps/api/src/blixis.config.ts
+apps/api/test/entry.worker.test.ts
+apps/api/wrangler.jsonc
+apps/docs/src/content/docs/concepts/events.mdx
+docs/ROADMAP.md
+docs/operations/cloudflare.md
+docs/plans/006-events-and-async-processing/004-queue-consumer-dispatch.md
+docs/plans/006-events-and-async-processing/_index.md
 packages/events/src/index.ts
-docs/contracts/events.md
+packages/events/src/module.ts
 ```
 
 ### Delete
@@ -71,9 +78,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Valid messages reach subscriptions and are acked.
-- [ ] A failing subscription causes `retry` with increasing delay.
-- [ ] Invalid messages never reach handlers.
+- [x] Valid messages reach subscriptions and are acked.
+- [x] A failing subscription causes `retry` with increasing delay.
+- [x] Invalid messages never reach handlers.
 
 ## Validation
 
@@ -84,15 +91,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Poison-message decision documented.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Poison-message decision documented.
 
 ## Completion conditions
 
@@ -109,4 +116,20 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **`eventsModule({ queues })`** registers `consumeEventBatch` for each listed queue via `BACKGROUND_HANDLERS`. The API lists `blixis-events-local|staging|production`; a Worker only receives batches of queues it consumes.
+- **Per message (processed concurrently within a batch):**
+  - **unrouted** (no subscription for the type): ack plus a `debug` `event.unrouted` log. Retrying would only fill the DLQ, and events without subscribers are normal (e.g. only webhooks care).
+  - **delivered**: every matching subscription succeeded → ack.
+  - **retrying**: any subscription failed → `retry({ delaySeconds })`.
+  - **invalid** (malformed envelope, unknown version, invalid payload for a subscribed type): `retry`, so it reaches the DLQ after `max_retries` for inspection; logged at `error` as `event.invalid` with the validation issues.
+- **Decision (documented):** invalid messages are retried into the DLQ rather than acked, because the DLQ is the evidence store. Acking would lose them silently.
+- **Backoff:** 5 s × 2^(attempts−1), capped at 600 s (Cloudflare's max retry delay is 12 h; 10 min keeps redelivery timely).
+- **Logging (§35):** `event.consumed` has messageId, eventId, eventType, correlationId, attempt, status, subscriptions, failed (`<module>#<id>`), and durationMs. Per-handler failures are also logged by `dispatchEnvelope` with the module.
+- **Retry scope:** retries are per message, not per subscription, so one failing subscriber re-delivers the envelope to all. 006.006 idempotency records skip subscriptions that already succeeded.
+- **`wrangler.jsonc` consumers:** `max_batch_size` 10, `max_batch_timeout` 5, `max_retries` 5; `dead_letter_queue` = `blixis-events-<env>-dlq` on staging/production (none locally).
+- **Test fix:** the 004.005 entry test for "queue without a consumer" used `blixis-events-local`, which now has a consumer. It now uses an unconsumed queue name.
+- **Tests:**
+  - Node: 5 consumer tests (ack, retry naming the failed subscription, invalid/unknown-version/bad-payload → retry and `event.invalid`, unrouted → ack, backoff curve).
+  - Workers pool on the real entry: unrouted → ack; invalid body → retry.
+  - Total 292 with `pnpm test:db`; bundle 335 KiB gzip.
+- **Deploy note:** the next staging deploy activates the consumer on `blixis-events-staging` (the queues exist since 006.003).

@@ -19,8 +19,18 @@
   },
   // Local Postgres from docker-compose.yml (docs/operations/database.md). The id is unused locally;
   // override the URL with CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE.
-  // Events queue (simulated locally). Consumers are configured with the queue handler (006.004).
-  "queues": { "producers": [{ "binding": "EVENTS", "queue": "blixis-events-local" }] },
+  // Events queue (simulated locally): produced via @blixis/events, consumed by eventsModule.
+  "queues": {
+    "producers": [{ "binding": "EVENTS", "queue": "blixis-events-local" }],
+    "consumers": [
+      {
+        "queue": "blixis-events-local",
+        "max_batch_size": 10,
+        "max_batch_timeout": 5,
+        "max_retries": 5
+      }
+    ]
+  },
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
@@ -45,7 +55,18 @@
       },
       // Hyperdrive blixis-staging → Neon branch staging, role blixis_app (DML only).
       "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "2140b66bf63640059dc89b926d10ca3a" }],
-      "queues": { "producers": [{ "binding": "EVENTS", "queue": "blixis-events-staging" }] }
+      "queues": {
+        "producers": [{ "binding": "EVENTS", "queue": "blixis-events-staging" }],
+        "consumers": [
+          {
+            "queue": "blixis-events-staging",
+            "max_batch_size": 10,
+            "max_batch_timeout": 5,
+            "max_retries": 5,
+            "dead_letter_queue": "blixis-events-staging-dlq"
+          }
+        ]
+      }
     },
     "production": {
       // Worker name: blixis-api-production. No public URL until a custom domain exists.
@@ -59,7 +80,18 @@
       },
       // Hyperdrive blixis-production → Neon branch production, role blixis_app (DML only).
       "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "01eefb16f5004d80addedcfe9e69f430" }],
-      "queues": { "producers": [{ "binding": "EVENTS", "queue": "blixis-events-production" }] }
+      "queues": {
+        "producers": [{ "binding": "EVENTS", "queue": "blixis-events-production" }],
+        "consumers": [
+          {
+            "queue": "blixis-events-production",
+            "max_batch_size": 10,
+            "max_batch_timeout": 5,
+            "max_retries": 5,
+            "dead_letter_queue": "blixis-events-production-dlq"
+          }
+        ]
+      }
     }
   }
 }
