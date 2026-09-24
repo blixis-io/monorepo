@@ -1,0 +1,24 @@
+{
+  "name": "@blixis/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The Blixis API Worker: composition root for all modules (REST, later GraphQL)",
+  "scripts": {
+    "dev": "wrangler dev",
+    "types": "wrangler types && rm -f tsconfig.tsbuildinfo",
+    "types:check": "wrangler types --check",
+    "deploy:dry": "wrangler deploy --dry-run --outdir dist"
+  },
+  "dependencies": {
+    "@blixis/cloudflare": "workspace:*",
+    "@blixis/contracts": "workspace:*",
+    "@blixis/kernel": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@blixis/tsconfig": "workspace:*",
+    "typescript": "catalog:",
+    "wrangler": "catalog:"
+  }
+}
