@@ -69,6 +69,12 @@ test('a third-party module compiles against contracts only', () => {
   expectTypeOf(seo).toBeCallableWith()
 })
 
+test('modules with different config types can be listed together', () => {
+  const content: ModuleFactory = () => ({ meta: { name: '@blixis/content', version: '0.0.0' } })
+  const modules: readonly BlixisModule[] = [content(), seo({ defaultTitle: 'x' })]
+  expectTypeOf(modules).toEqualTypeOf<readonly BlixisModule[]>()
+})
+
 test('meta.name and meta.version are required', () => {
   // @ts-expect-error missing name
   const noName: BlixisModule = { meta: { version: '1.0.0' } }
