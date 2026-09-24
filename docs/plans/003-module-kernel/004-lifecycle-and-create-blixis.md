@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -41,7 +41,7 @@ Implement `createBlixis({ modules, ... })` executing the §43 sequence — valid
 ```text
 packages/kernel/src/create-blixis.ts
 packages/kernel/src/create-blixis.test.ts
-packages/kernel/src/internal/lifecycle.ts
+packages/kernel/src/logger.ts
 docs/kernel/README.md
 ```
 
@@ -49,6 +49,12 @@ docs/kernel/README.md
 
 ```text
 packages/kernel/src/index.ts
+packages/kernel/tsconfig.json (lib webworker)
+packages/kernel/tsconfig.test.json
+apps/docs/src/content/docs/getting-started/introduction.mdx
+apps/docs/src/content/docs/concepts/modules.mdx
+docs/ROADMAP.md
+docs/plans/003-module-kernel/_index.md
 ```
 
 ### Delete
@@ -88,10 +94,10 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Setup hooks run in dependency order; boot hooks run once on the first `fetch`.
-- [ ] A throwing setup hook produces `ModuleError` with module name and phase `setup`.
-- [ ] Calling `provide` after setup throws.
-- [ ] `docs/kernel/README.md` documents the bootstrap sequence from §43 as implemented.
+- [x] Setup hooks run in dependency order; boot hooks run once on the first `fetch`.
+- [x] A throwing setup hook produces `ModuleError` with module name and phase `setup`.
+- [x] Calling `provide` after setup throws.
+- [x] `docs/kernel/README.md` documents the bootstrap sequence from §43 as implemented.
 
 ## Validation
 
@@ -101,15 +107,15 @@ pnpm --filter @blixis/kernel test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Boot retry semantics documented and tested.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Boot retry semantics documented and tested.
 
 ## Completion conditions
 
@@ -126,4 +132,11 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Deviation — lazy setup:** the task placed `setup` inside `createBlixis`. The module contract allows **async** `setup` hooks, and `createBlixis` must stay synchronous (`export default createBlixis(...)`), so `setup` and `boot` both run lazily in `ready()` (first request/event). Graph validation stays synchronous so misconfiguration still fails at startup. REST mounting (003.006) uses static `rest` contributions, so it does not depend on setup having run.
+- **Failure semantics:** setup failure cached (configuration error; retrying would duplicate provider registrations); boot failure retried from the failed module; concurrent `ready()` calls share one in-flight boot. Hook errors wrapped as `ModuleError` "`[module] <phase> failed: <message>`" with `cause`; thrown `ModuleError`s pass through.
+- `BlixisApp`: `hono`, `services` (app scope), `modules` (metadata in bootstrap order), `ready()`, `fetch(request, env?, ctx?)` (awaits `ready()`, then Hono). `ExecutionContextLike` keeps Workers types out of the kernel.
+- **Logger:** `createJsonLogger` (JSON lines, level filter, bound fields, `child`) and `noopLogger` added now, because hooks receive `ctx.logger`; the full platform logger with redaction remains 020.001. One `biome-ignore` for `console` in the default sink.
+- **TypeScript 7.0.2 bug found:** `{@link BlixisApp.ready}` in the JSDoc of a method declared *inside* `BlixisApp` caused `TS2304: Cannot find name 'Request'/'Response'` for that signature; bisected with probe files. Replaced by backticks; recorded in `docs/kernel/README.md` (candidate for an upstream report).
+- Kernel tsconfigs add `lib: ["es2023", "webworker"]` for `Request`/`Response`/`console`; the shared base preset stays ES-only.
+- Tests (9): synchronous graph validation, bootstrap-order metadata, setup/boot order + laziness + once, cross-module services + config + module logger, boot not before first fetch (unknown route → 404), setup error attribution + caching, boot retry without repeating successful boots, sealed registry, JSON logger.
+- Manual: "Composing an application" section and updated package status; `docs/kernel/README.md` holds maintainer notes (bootstrap sequence, failure semantics, gotchas).

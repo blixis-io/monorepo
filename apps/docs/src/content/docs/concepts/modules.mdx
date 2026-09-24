@@ -83,6 +83,23 @@ define → validate → setup (register) → boot (lazy) → ready
 Cloudflare Workers forbid I/O while the Worker script is being initialised. Do not open connections or fetch anything in `setup`; use request-scoped services or `boot`.
 </Aside>
 
+## Composing an application
+
+The app's composition root lists modules explicitly and hands them to [`createBlixis`](/api/kernel/functions/createblixis/):
+
+```ts
+import { createBlixis } from '@blixis/kernel'
+import { modules } from './blixis.config.ts'
+
+const app = createBlixis({ modules })   // validates the module graph immediately
+export default app                      // app.fetch handles requests
+```
+
+`createBlixis` is synchronous and safe at the top level of a Worker. Your `setup` and `boot` hooks run the first time the app handles a request (`app.ready()` runs them explicitly, e.g. in tests):
+
+- `setup` hooks run once, in bootstrap order. If one throws, startup fails with `[your-module] setup failed: …` and stays failed — it is a configuration error.
+- `boot` hooks run once after all setups. If one throws, the next request retries from that module.
+
 ## Configuration
 
 Put the factory's options in `config` and describe them with `configSchema` (any [Standard Schema](/concepts/validation/), e.g. Zod). The kernel validates `config` and passes the **schema output** — defaults applied — to `setup` as `ctx.config`. Invalid configuration stops startup with an error naming your module.
