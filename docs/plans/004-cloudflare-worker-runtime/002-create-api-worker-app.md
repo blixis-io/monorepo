@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -47,7 +47,7 @@ apps/api/.dev.vars.example
 apps/api/src/index.ts
 apps/api/src/blixis.config.ts
 apps/api/src/env.ts
-apps/api/worker-configuration.d.ts (generated)
+apps/api/worker-configuration.d.ts (generated, committed)
 ```
 
 ### Modify
@@ -55,6 +55,10 @@ apps/api/worker-configuration.d.ts (generated)
 ```text
 tsconfig.json
 pnpm-lock.yaml
+.github/workflows/ci.yml (types:check step)
+docs/operations/cloudflare.md
+docs/ROADMAP.md
+docs/plans/004-cloudflare-worker-runtime/_index.md
 ```
 
 ### Delete
@@ -94,9 +98,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `wrangler dev` serves `GET /api/v1/health` → 200 `{ "status": "ok" }`.
-- [ ] `pnpm --filter @blixis/api deploy:dry` succeeds.
-- [ ] Changing a var in `wrangler.jsonc` without updating `ApiEnv` fails `pnpm typecheck` (verified once).
+- [x] `wrangler dev` serves `GET /api/v1/health` → 200 `{ "status": "ok" }`.
+- [x] `pnpm --filter @blixis/api deploy:dry` succeeds.
+- [x] Changing a var in `wrangler.jsonc` without updating `ApiEnv` fails `pnpm typecheck` (verified once).
 
 ## Validation
 
@@ -108,15 +112,15 @@ pnpm --filter @blixis/api deploy:dry
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] `compatibility_date` and every flag justified in Technical notes.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] `compatibility_date` and every flag justified in Technical notes.
 
 ## Completion conditions
 
@@ -133,4 +137,11 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- `@blixis/api` (private) with `wrangler.jsonc` (Worker `blixis-api`, `main: src/index.ts`, `compatibility_date` **2026-08-15** — kept ≤ the Workers test pool's runtime per ADR 0002, `compatibility_flags: []`, observability on, `upload_source_maps: true`, local vars `BLIXIS_ENV=local`, `LOG_LEVEL=debug`). No `nodejs_compat` yet — nothing needs it; the database driver decision (005.001) may add it.
+- `src/index.ts`: `z.config({ jitless: true })` (ADR 0004), `createBlixis({ modules })`, default export `{ fetch }` satisfying `ExportedHandler<Env>`. The full `fetch`/`queue`/`scheduled` adapter comes in 004.003.
+- `src/blixis.config.ts`: explicit, empty `modules` list (§2.3). `src/env.ts`: `ApiEnv extends CloudflareEnvBase`, Zod `apiEnvSchema` (applied in 004.004), and a compile-time assertion that wrangler's generated `Env` satisfies `ApiEnv`.
+- **Types:** `wrangler types` (Wrangler 4.137, workerd 1.20260921.1 runtime types) generates `worker-configuration.d.ts` (~15.7k lines incl. runtime types) — **committed** for reviewability; Biome ignores it. New `types:check` script (`wrangler types --check`) runs in CI `verify`.
+- **Drift guard verified:** removing `BLIXIS_ENV` from `wrangler.jsonc` and regenerating fails typecheck with `TS2344 … 'false' does not satisfy the constraint 'true'` (at `src/env.ts`); restored.
+- **TypeScript 7 incremental gotcha found:** the first drift test passed wrongly because TS 7's incremental build info did not re-check `src/env.ts` after the included global `.d.ts` changed; deleting `tsconfig.tsbuildinfo` made the error appear. The `types` script now deletes the app's build info; CI builds from scratch; documented in `docs/operations/cloudflare.md`.
+- **Validation:** `wrangler dev` served `GET /api/v1/health` → 200 `{"status":"ok"}` and an unknown route → 404 problem details; `deploy:dry` bundle: **865.88 KiB / 143.38 KiB gzip** (baseline; mostly Zod + Hono).
+- The generated `mainModule: typeof import("./src/index")` (extensionless) did not trip `nodenext` resolution in the app tsconfig.

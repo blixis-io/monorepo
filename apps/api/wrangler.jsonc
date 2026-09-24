@@ -1,0 +1,17 @@
+{
+  // Blixis API Worker — docs/operations/cloudflare.md
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "blixis-api",
+  "main": "src/index.ts",
+  // Keep ≤ the runtime bundled with @cloudflare/vitest-pool-workers (ADR 0002).
+  "compatibility_date": "2026-08-15",
+  "compatibility_flags": [],
+  "observability": { "enabled": true },
+  "upload_source_maps": true,
+
+  // Local development (wrangler dev). Staging/production live under "env" (task 004.006).
+  "vars": {
+    "BLIXIS_ENV": "local",
+    "LOG_LEVEL": "debug"
+  }
+}

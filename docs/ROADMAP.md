@@ -57,7 +57,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [002 — Public Contracts](./plans/002-public-contracts/_index.md) | M1 | MVP | `completed` | 8/8 | 001 |
 | [023 — Developer Documentation Site](./plans/023-developer-documentation-site/_index.md) | M1 | MVP | `completed` | 4/4 | 002 |
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `completed` | 8/8 | 002 |
-| [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `in-progress` | 1/7 | 003 |
+| [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `in-progress` | 2/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `not-started` | 0/8 | 004 |
 | [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `not-started` | 0/7 | 005 |
 | [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `not-started` | 0/6 | 006 |
@@ -188,14 +188,14 @@ Builds `@blixis/kernel` — `defineModule`, module graph validation, the typed s
 
 #### 004 — Cloudflare Worker Runtime
 
-Status: `in-progress` · Progress: 1/7 · Scope: MVP  
+Status: `in-progress` · Progress: 2/7 · Scope: MVP  
 Plan: [004-cloudflare-worker-runtime/_index.md](./plans/004-cloudflare-worker-runtime/_index.md)  
 Depends on: [003 — Module Kernel](./plans/003-module-kernel/_index.md)
 
 Creates `@blixis/cloudflare` (binding types, request-context helpers) and `apps/api` — the single modular-monolith Worker with `wrangler.jsonc`, explicit `blixis.config.ts`, typed env validation, `fetch`/`queue`/`scheduled` entry handlers, Workers-runtime tests, and a deployable-but-empty staging Worker.
 
 - [x] [004.001 — Scaffold @blixis/cloudflare with binding types and env validation](./plans/004-cloudflare-worker-runtime/001-scaffold-cloudflare-package-and-env-typing.md)
-- [ ] [004.002 — Create the apps/api Worker application](./plans/004-cloudflare-worker-runtime/002-create-api-worker-app.md)
+- [x] [004.002 — Create the apps/api Worker application](./plans/004-cloudflare-worker-runtime/002-create-api-worker-app.md)
 - [ ] [004.003 — Implement the Worker entry adapter for fetch, queue, and scheduled](./plans/004-cloudflare-worker-runtime/003-worker-entry-adapter.md)
 - [ ] [004.004 — Validate environment configuration at boot](./plans/004-cloudflare-worker-runtime/004-environment-configuration-validation.md)
 - [ ] [004.005 — Add Workers-runtime integration tests for apps/api](./plans/004-cloudflare-worker-runtime/005-workers-runtime-tests.md)

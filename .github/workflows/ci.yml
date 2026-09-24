@@ -24,6 +24,8 @@ jobs:
         run: pnpm format:check
       - name: Lint and boundaries
         run: pnpm lint
+      - name: Generated Worker types are up to date
+        run: pnpm --filter @blixis/api types:check
       - name: Typecheck
         run: pnpm typecheck
       - name: Test

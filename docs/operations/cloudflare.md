@@ -107,7 +107,8 @@ Exact keys and limits must be checked against current Wrangler docs when impleme
 
 ## Type safety
 
-- `wrangler types` generates `worker-configuration.d.ts`; `apps/api/src/env.ts` asserts the generated `Env` satisfies `ApiEnv` (task 004.002), so config and code cannot drift silently.
+- `pnpm --filter @blixis/api types` regenerates `apps/api/worker-configuration.d.ts` (committed) after every `wrangler.jsonc` change; CI runs `types:check` and fails if it is stale. `apps/api/src/env.ts` asserts the generated `Env` satisfies `ApiEnv` (task 004.002), so config and code cannot drift silently.
+- **TypeScript 7 gotcha:** after the generated file changes, TS 7's incremental build info may not re-check `src/env.ts`; the `types` script therefore deletes `apps/api/tsconfig.tsbuildinfo`. CI always builds from scratch.
 - Runtime validation of vars/secrets happens on first invocation (task 004.004).
 
 ## Compatibility date and flags
