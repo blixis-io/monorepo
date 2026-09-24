@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 Milestone: Milestone 2 — Kernel walking skeleton on Cloudflare Workers  
 Roadmap scope: MVP / initial platform  
-Progress: 0/7 tasks completed
+Progress: 1/7 tasks completed
 
 ## Objective
 
@@ -61,7 +61,7 @@ Depends on:
 
 ## Tasks
 
-- [ ] [001 — Scaffold @blixis/cloudflare with binding types and env validation](./001-scaffold-cloudflare-package-and-env-typing.md)
+- [x] [001 — Scaffold @blixis/cloudflare with binding types and env validation](./001-scaffold-cloudflare-package-and-env-typing.md)
 - [ ] [002 — Create the apps/api Worker application](./002-create-api-worker-app.md)
 - [ ] [003 — Implement the Worker entry adapter for fetch, queue, and scheduled](./003-worker-entry-adapter.md)
 - [ ] [004 — Validate environment configuration at boot](./004-environment-configuration-validation.md)

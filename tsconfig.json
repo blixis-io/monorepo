@@ -30,6 +30,12 @@
     },
     {
       "path": "packages/testing/tsconfig.test.json"
+    },
+    {
+      "path": "packages/cloudflare"
+    },
+    {
+      "path": "packages/cloudflare/tsconfig.test.json"
     }
   ]
 }

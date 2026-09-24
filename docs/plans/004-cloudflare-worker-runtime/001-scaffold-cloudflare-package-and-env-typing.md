@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -41,6 +41,7 @@ Create `@blixis/cloudflare` containing the `CloudflareEnv` binding contract (§1
 ```text
 packages/cloudflare/package.json
 packages/cloudflare/tsconfig.json
+packages/cloudflare/tsconfig.test.json
 packages/cloudflare/src/index.ts
 packages/cloudflare/src/env.ts
 packages/cloudflare/src/execution-context.ts
@@ -50,10 +51,11 @@ packages/cloudflare/src/env.test.ts
 ### Modify
 
 ```text
-tooling/tsconfig/worker.json
 tsconfig.json
-tooling/boundaries/ (or lint config — forbid modules/* → @blixis/cloudflare)
+pnpm-workspace.yaml (catalog: @cloudflare/workers-types; minimumReleaseAgeExclude)
 pnpm-lock.yaml
+docs/ROADMAP.md
+docs/plans/004-cloudflare-worker-runtime/_index.md
 ```
 
 ### Delete
@@ -90,8 +92,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `parseEnv` error for a missing secret names the key and does not print any env values.
-- [ ] A module package importing `@blixis/cloudflare` fails `pnpm lint`.
+- [x] `parseEnv` error for a missing secret names the key and does not print any env values.
+- [x] A module package importing `@blixis/cloudflare` fails `pnpm lint`.
 
 ## Validation
 
@@ -102,15 +104,15 @@ pnpm lint
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Types approach consistent with `wrangler types` output (checked in 004.002).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Types approach consistent with `wrangler types` output (checked in 004.002).
 
 ## Completion conditions
 
@@ -127,4 +129,9 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Types:** the library compiles with `@cloudflare/workers-types` 5.20260924.1 (`types` in its tsconfig; also a peer dependency). `tooling/tsconfig/worker.json` was **not** changed: Worker apps get their types from `wrangler types` (004.002), which is the recommended source for app bindings; the library can't use generated types because it has no wrangler config. pnpm added the just-published workers-types version to `minimumReleaseAgeExclude`.
+- `CloudflareEnvBase` (`BLIXIS_ENV`: `local | preview | staging | production`, optional `LOG_LEVEL`) and `BlixisEnvironment`; bindings are added per plan (documented in the TSDoc).
+- `parseEnv(env, schema)` uses the synchronous `validateSync` (env validation happens once per isolate on first invocation) and throws a **non-exposed** `InfrastructureError` listing keys and problems — values never appear (test with a secret-looking value); `details.keys` lists offending keys for logs. `defineEnvSchema` is an identity helper.
+- `waitUntilSafe(ctx, promise, logger, label)` wraps background promises with error logging; only needs `{ waitUntil }` (structural `WaitUntilContext`).
+- Boundary rule `modules/*` → `@blixis/cloudflare` already exists in `tooling/boundaries` (003/001.005, unit-tested); no module packages exist yet to exercise it for real.
+- **Docs:** not added to the developer manual/API reference — module authors must not use this package (architecture §4); it is platform-internal. Operator docs (`docs/operations/cloudflare.md`) are updated when bindings are added.
