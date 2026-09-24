@@ -54,7 +54,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | Plan | Milestone | Scope | Status | Progress | Depends on |
 |---|---|---|---|---|---|
 | [001 — Project Foundation](./plans/001-project-foundation/_index.md) | M1 | MVP | `completed` | 7/7 | — |
-| [002 — Public Contracts](./plans/002-public-contracts/_index.md) | M1 | MVP | `in-progress` | 3/8 | 001 |
+| [002 — Public Contracts](./plans/002-public-contracts/_index.md) | M1 | MVP | `in-progress` | 4/8 | 001 |
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `not-started` | 0/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `not-started` | 0/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `not-started` | 0/8 | 004 |
@@ -138,7 +138,7 @@ Creates the pnpm monorepo, TypeScript 7 baseline, package conventions, linting/b
 
 #### 002 — Public Contracts
 
-Status: `in-progress` · Progress: 3/8 · Scope: MVP  
+Status: `in-progress` · Progress: 4/8 · Scope: MVP  
 Plan: [002-public-contracts/_index.md](./plans/002-public-contracts/_index.md)  
 Depends on: [001 — Project Foundation](./plans/001-project-foundation/_index.md)
 
@@ -148,7 +148,7 @@ Creates `@blixis/contracts`: the small, stable, dependency-light package that ev
 - [ ] [002.002 — Define module, metadata, contribution, and lifecycle contracts](./plans/002-public-contracts/002-define-module-contracts.md)
 - [x] [002.003 — Define typed service tokens and capability identifiers](./plans/002-public-contracts/003-define-service-tokens-and-capabilities.md)
 - [x] [002.004 — Define the public error model](./plans/002-public-contracts/004-define-public-errors.md)
-- [ ] [002.005 — Select the validation library and define the schema contract](./plans/002-public-contracts/005-select-validation-library.md)
+- [x] [002.005 — Select the validation library and define the schema contract](./plans/002-public-contracts/005-select-validation-library.md)
 - [ ] [002.006 — Define event envelope, definition, and subscription contracts](./plans/002-public-contracts/006-define-event-contracts.md)
 - [ ] [002.007 — Define actor, permission, and authorization contracts](./plans/002-public-contracts/007-define-permission-and-actor-contracts.md)
 - [ ] [002.008 — Define request context and migration contracts](./plans/002-public-contracts/008-define-request-context-and-migration-contracts.md)
@@ -549,7 +549,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | D1 | TS7 build & declaration emit, source vs. `dist` consumption, test runner, lint/format and boundary tooling | [001.002](./plans/001-project-foundation/002-record-toolchain-decisions.md) | `tsc -b` if TS7 emit is stable; Vitest + `@cloudflare/vitest-pool-workers`; tooling without compiler-API dependency | **resolved 2026-09-24:** TS 7.0.2 `tsc -b`, `nodenext` + `.ts` imports, `dist` consumption ([ADR 0001](./decisions/0001-typescript-7-build-strategy.md)); Vitest 4.1 + pool-workers 0.22 ([ADR 0002](./decisions/0002-test-runner.md)); Biome 2.5 + custom boundary checker ([ADR 0003](./decisions/0003-lint-format-and-boundaries.md)) |
 | D2 | CI provider | [001.007](./plans/001-project-foundation/007-setup-ci-pipeline.md) | GitHub Actions | **resolved 2026-09-24:** GitHub Actions on `blixis-io/monorepo` ([GitHub Actions](./operations/github-actions.md)) |
 | D3 | Hono types in `@blixis/contracts` (`RestContribution`) | [002.002](./plans/002-public-contracts/002-define-module-contracts.md) | `hono` as type-only peer dependency | open |
-| D4 | Validation library | [002.005](./plans/002-public-contracts/005-select-validation-library.md) | Standard Schema in contracts; one default library for first-party code | open |
+| D4 | Validation library | [002.005](./plans/002-public-contracts/005-select-validation-library.md) | Standard Schema in contracts; one default library for first-party code | **resolved 2026-09-24:** Zod 4 for first-party code; contracts expose vendored Standard Schema v1 ([ADR 0004](./decisions/0004-validation-library.md)) |
 | D5 | Service scopes on Workers (app vs. request) | [003.003](./plans/003-module-kernel/003-service-registry-and-scopes.md) | App singletons + request-scoped factories for I/O-holding services | open |
 | D6 | Postgres driver, query builder/ORM, migration format | [005.001](./plans/005-database-foundation/001-select-database-stack.md) | Decide by spike on Workers + Hyperdrive | open |
 | D7 | Test database strategy | [005.006](./plans/005-database-foundation/006-test-database-strategy.md) | Docker Postgres locally and in CI; Neon branches for staging smoke | open |

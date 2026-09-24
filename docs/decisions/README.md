@@ -39,3 +39,4 @@ What becomes easier or harder; follow-up tasks; risks.
 | [0001](./0001-typescript-7-build-strategy.md) | TypeScript 7 compile and emit strategy | accepted |
 | [0002](./0002-test-runner.md) | Test runner | accepted |
 | [0003](./0003-lint-format-and-boundaries.md) | Lint, format, and package-boundary checks | accepted |
+| [0004](./0004-validation-library.md) | Validation library (Zod 4 + Standard Schema in contracts) | accepted |

@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -39,18 +39,23 @@ Choose the default schema validation library for first-party Blixis code (ADR 00
 
 ```text
 docs/decisions/0004-validation-library.md
+packages/contracts/src/standard-schema.ts
 packages/contracts/src/validation.test.ts
+packages/contracts/src/validation.test-d.ts
 ```
 
 ### Modify
 
 ```text
 packages/contracts/src/validation.ts
-packages/contracts/src/errors.ts
-packages/contracts/src/index.ts
-packages/contracts/package.json
-docs/contracts/README.md
+packages/contracts/package.json (zod as devDependency only)
+pnpm-workspace.yaml (catalog: zod 4.6.5)
 pnpm-lock.yaml
+docs/contracts/README.md
+docs/decisions/README.md
+docs/conventions/code-standards.md
+docs/ROADMAP.md
+docs/plans/002-public-contracts/_index.md
 ```
 
 ### Delete
@@ -92,9 +97,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] ADR 0004 accepted with the evaluation criteria filled in.
-- [ ] `validate` returns the typed output for valid input and throws `ValidationError` with normalised paths for invalid input.
-- [ ] `packages/contracts/package.json` still has no runtime `dependencies`.
+- [x] ADR 0004 accepted with the evaluation criteria filled in.
+- [x] `validate` returns the typed output for valid input and throws `ValidationError` with normalised paths for invalid input.
+- [x] `packages/contracts/package.json` still has no runtime `dependencies`.
 
 ## Validation
 
@@ -105,15 +110,15 @@ pnpm build && node -e "import('@blixis/contracts')"   # or equivalent resolution
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Library choice verified in the Workers runtime (record the check in Technical notes).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Library choice verified in the Workers runtime (record the check in Technical notes).
 
 ## Completion conditions
 
@@ -130,4 +135,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Zod 4.6.5** chosen by the project owner; ADR 0004 records the comparison (Valibot 1.5.0, ArkType 2.2.3) and spike results.
+- **Spike (Workers test pool):** Zod `parse`/`safeParse` and `~standard.validate` work in `workerd`. The Vitest Workers pool **allows `new Function`**, while production Workers forbid code generation — so tests cannot prove eval-free behaviour. Decision: Worker entry points call `z.config({ jitless: true })`; the contracts tests do the same.
+- **Bundle sizes** (minimal Worker, Wrangler dry-run): full `zod` 769 KiB raw / 119 KiB gzip; `zod/mini` 28 KiB / 7 KiB. Full Zod is the default; `zod/mini` is the escape hatch if bundle budgets (004.006) get tight.
+- **Standard Schema types vendored** in `src/standard-schema.ts` (spec v1, ~60 lines, as recommended by the spec) so contracts keep zero dependencies; Zod is only a devDependency for tests. Verified: no `zod` reference in `packages/contracts/dist`, no `dependencies` field.
+- `validate` (async) and `validateSync` (throws `TypeError` for async schemas) throw `ValidationError`; `toValidationIssues` normalises path segments (`{ key }` objects, numbers, symbols → strings) and keeps string `code`s (Zod provides e.g. `too_small`).
+- Also exported: `InferOutput`, `InferInput`, `ValidateOptions`. Type tests confirm Zod schemas satisfy the vendored interface and `validate` infers outputs (including defaults).
+- `declare namespace` in the vendored file did not need a Biome suppression (initial suppression was reported as unused and removed).

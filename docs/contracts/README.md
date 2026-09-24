@@ -33,7 +33,7 @@ Related: [Package conventions](../conventions/packages.md) · [Code standards](.
 | Service tokens and registry interfaces | `src/services.ts` | ✅ 002.003 |
 | Capabilities | `src/capabilities.ts` | ✅ 002.003 |
 | Public errors | `src/errors.ts` | ✅ 002.004 — see [errors.md](./errors.md) |
-| Validation (Standard Schema) | `src/validation.ts` | planned — 002.005 |
+| Validation (Standard Schema) | `src/validation.ts`, `src/standard-schema.ts` | ✅ 002.005 |
 | Events | `src/events.ts` | planned — 002.006 |
 | Actors and permissions | `src/permissions.ts` | planned — 002.007 |
 | Request context, logger, migrations | `src/context.ts`, `src/migrations.ts` | planned — 002.008 |
@@ -59,6 +59,22 @@ export const SEO_SERVICE = createServiceToken<SeoService>('@acme/blixis-seo.serv
 ## Capabilities
 
 Capabilities let a module depend on *behaviour* instead of a package name (§8). IDs follow `<namespace>.<capability>` (lowercase, kebab-case segments); `blixis.*` is reserved for first-party modules (`BLIXIS_CAPABILITIES`). Declare them in `meta.capabilities` (provided) and `meta.requiresCapabilities` (required).
+
+## Validation
+
+Contracts are **library-agnostic**: they use the [Standard Schema](https://standardschema.dev) interface (`StandardSchemaV1`, vendored). First-party code uses **Zod 4** ([ADR 0004](../decisions/0004-validation-library.md)); third-party modules may use any compliant library.
+
+```ts
+import { validate } from '@blixis/contracts'
+import { z } from 'zod'
+
+const CreateEntry = z.object({ title: z.string().min(1) })
+const input = await validate(CreateEntry, await request.json())  // typed; throws ValidationError
+```
+
+- `validate` (async) / `validateSync` throw `ValidationError` with `issues: { path, message, code? }[]`.
+- `InferOutput<S>` / `InferInput<S>` derive types from schemas — do not hand-write duplicates.
+- Worker entry points call `z.config({ jitless: true })` (Workers forbid `eval`).
 
 ## Testing
 
