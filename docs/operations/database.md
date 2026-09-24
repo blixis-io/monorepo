@@ -89,6 +89,14 @@ gh secret set DATABASE_URL --env staging --repo blixis-io/monorepo   # prompts f
 
 ## Migrations
 
+Until the release pipeline runs migrations (plan 021), the owner applies them to staging and production **before deploying**, without putting the URL in shell history:
+
+```bash
+read -rs "DATABASE_URL?blixis_migrator URL (staging): "; export DATABASE_URL; echo
+pnpm db:status && pnpm db:migrate
+unset DATABASE_URL
+```
+
 `pnpm db:migrate` / `db:status` run as `blixis_migrator` with `DATABASE_URL`, the direct URL, never through Hyperdrive. They record applied migrations in `blixis.migrations`, and a session advisory lock prevents concurrent runs. Conventions: [Migrations](../conventions/migrations.md).
 
 ## Transactions on Hyperdrive

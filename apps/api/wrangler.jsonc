@@ -17,6 +17,8 @@
     "BLIXIS_ENV": "local",
     "LOG_LEVEL": "debug"
   },
+  // Outbox sweep and retention (ADR 0008).
+  "triggers": { "crons": ["* * * * *"] },
   // Local Postgres from docker-compose.yml (docs/operations/database.md). The id is unused locally;
   // override the URL with CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE.
   // Events queue (simulated locally): produced via @blixis/events, consumed by eventsModule.
@@ -66,7 +68,8 @@
             "dead_letter_queue": "blixis-events-staging-dlq"
           }
         ]
-      }
+      },
+      "triggers": { "crons": ["* * * * *"] }
     },
     "production": {
       // Worker name: blixis-api-production. No public URL until a custom domain exists.
@@ -91,7 +94,8 @@
             "dead_letter_queue": "blixis-events-production-dlq"
           }
         ]
-      }
+      },
+      "triggers": { "crons": ["* * * * *"] }
     }
   }
 }

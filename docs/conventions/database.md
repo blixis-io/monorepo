@@ -63,6 +63,7 @@ async function getEntry(ctx: RequestContext, id: string) {
 - **Never load, update, or delete by ID alone.** Combine `tenantScope(table, tenant)` with the ID condition, **including on updates and deletes**. `tenantScope` fails closed when the tenant is missing.
 - **A row from another tenant is "not found"** (`404`), not "forbidden". Don't reveal that it exists.
 - **Multi-statement work** uses `withTransaction`. Pass `tx`, or `toTransactionScope(tx)`, down to helpers. See the manual's database page.
+- **Arrays in `sql` templates:** Drizzle expands `${array}` into a parameter list (`$1, $2`), not a Postgres array, so `= any(${ids}::uuid[])` fails. Use `inArray(column, ids)` or `sql.join(ids.map((id) => sql`${id}`), sql`, `)` inside `in (…)`.
 - **Driver errors:** `withTransaction` translates them. Elsewhere, wrap the call in `try/catch` and `throw translateDatabaseError(error)`, so raw Drizzle errors, which contain query parameters, never reach logs.
 
 ## Deleting

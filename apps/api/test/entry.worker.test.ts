@@ -21,7 +21,7 @@ describe('API Worker background entry points (workerd)', () => {
   })
 
   it('runs scheduled triggers without registered jobs', async () => {
-    const controller = createScheduledController({ cron: '* * * * *', scheduledTime: Date.now() })
+    const controller = createScheduledController({ cron: '0 3 * * *', scheduledTime: Date.now() })
     await expect(
       worker.scheduled(controller, env, createExecutionContext()),
     ).resolves.toBeUndefined()

@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -41,20 +41,28 @@ Implement the outbox: an `events_outbox` table owned by `@blixis/events`, an out
 
 ```text
 docs/decisions/0008-outbox-dispatch.md
-packages/events/src/outbox/migrations/0001_create_events_outbox.sql
-packages/events/src/outbox/writer.ts
-packages/events/src/outbox/dispatcher.ts
+packages/events/src/outbox/dispatch.ts
+packages/events/src/outbox/index.ts
+packages/events/src/outbox/module.ts
 packages/events/src/outbox/outbox.test.ts
 ```
 
 ### Modify
 
 ```text
-packages/events/src/composite-bus.ts
-packages/events/src/module.ts
+apps/api/src/blixis.config.ts
+apps/api/test/entry.worker.test.ts
+apps/api/wrangler.jsonc
+apps/docs/src/content/docs/concepts/events.mdx
+docs/ROADMAP.md
+docs/conventions/database.md
+docs/decisions/README.md
+docs/operations/cloudflare.md
+docs/operations/database.md
+docs/plans/006-events-and-async-processing/005-transactional-outbox.md
+docs/plans/006-events-and-async-processing/_index.md
 packages/events/package.json
-apps/api/wrangler.jsonc (cron trigger)
-docs/contracts/events.md
+packages/events/tsconfig.json
 pnpm-lock.yaml
 ```
 
@@ -81,10 +89,10 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] ADR 0008 accepted.
-- [ ] Rollback test: no outbox row, no queue message.
-- [ ] Sweep test: row inserted without post-commit dispatch is delivered by the sweep.
-- [ ] Transactional emit without a transaction throws.
+- [x] ADR 0008 accepted.
+- [x] Rollback test: no outbox row, no queue message.
+- [x] Sweep test: row inserted without post-commit dispatch is delivered by the sweep.
+- [x] Transactional emit without a transaction throws.
 
 ## Validation
 
@@ -95,15 +103,15 @@ pnpm --filter @blixis/events test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] `docs/contracts/events.md` has the per-event-class decision table template that domain plans fill in.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] `docs/contracts/events.md` has the per-event-class decision table template that domain plans fill in.
 
 ## Completion conditions
 
@@ -120,4 +128,31 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Packaging:** the outbox is the subpath `@blixis/events/outbox` (`outboxModule`, `outboxTransport`, `dispatchOutboxBatch`, `sweepOutbox`), so the core `@blixis/events` entry stays free of `pg`. The package gains `@blixis/database` and `drizzle-orm` dependencies and Node types for pg typings.
+- **Table** `events.outbox`, in schema `events` per ADR 0007, instead of `events_outbox`. Migration `@blixis/events.outbox` `0001_create_outbox`, with a partial index on `created_at where dispatched_at is null`.
+- **Writing:** `outboxTransport()` inserts with `fromTransactionScope(options.transaction)` (the caller's transaction) and records the id in the request-scoped `OUTBOX_PENDING`. The bus already rejects transactional emits without a transaction (006.001).
+- **Post-commit dispatch:**
+  - `OUTBOX_PENDING`'s **dispose** runs when the request scope ends, which is after `withTransaction` has committed or rolled back. It dispatches only its ids (rolled-back ids match nothing).
+  - The REST middleware wraps disposal in `waitUntil`; `runInScope` awaits it.
+  - `DATABASE`, `QUEUE_SENDER`, and the logger are resolved in the factory, because the scope is already disposing when dispatch runs. Services are disposed in reverse creation order, so the DB is still open.
+  - Failures are logged (`outbox.post_commit_failed`) and left to the sweep.
+- **`dispatchOutboxBatch`:**
+  - In one transaction: `select … for update skip locked limit N` → one `sendBatch` → `dispatched_at = now()`.
+  - On send failure: `attempts + 1` and `last_error` (≤ 1000 chars), rows stay pending, and the transaction commits.
+  - `outbox.stuck` is logged at error once `attempts ≥ 10`.
+- **Sweep** (cron `* * * * *`, `runInScope` as system actor `@blixis/events.outbox`): batches of 100, at most 10 per run, rows older than 5 s, stopping on failure or a short batch. Then retention deletes rows dispatched more than 7 days ago. All values are configurable.
+- **Finding:** Drizzle expands `${array}` in `sql` into a parameter list, so `= any(${ids}::uuid[])` failed with SQLSTATE 42846. Fixed with an explicit `sql.join` list; the pitfall is documented in `docs/conventions/database.md`.
+- **Tests:** 5 Postgres integration tests.
+  - commit → delivered, correlation kept, row marked;
+  - rollback → no row, nothing sent;
+  - post-commit send failure → pending with `last_error`, then the sweep delivers;
+  - **two concurrent sweeps over 50 rows** → 50 unique sends, both sweeps did work (SKIP LOCKED);
+  - young rows are left alone, and old dispatched rows are deleted.
+  - Total 297 with `pnpm test:db`.
+- **API:**
+  - `outboxModule()` registered; `queueTransport({ transactional: outboxTransport() })`.
+  - Cron `* * * * *` in `triggers` for local/staging/production.
+  - The 004.005 scheduled test uses an unregistered cron (`0 3 * * *`), because the sweep needs Postgres, which the Workers pool can't reach.
+  - Bundle 338 KiB gzip.
+  - `pnpm db:migrate` against local Postgres applied `0001_create_outbox` from the API config.
+- **Deploy prerequisite:** run `db:migrate` on staging (and later production) **before** deploying this. Otherwise the sweep fails every minute (`events.outbox` missing).

@@ -59,7 +59,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `completed` | 8/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `completed` | 7/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `completed` | 8/8 | 004 |
-| [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `in-progress` | 4/7 | 005 |
+| [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `in-progress` | 5/7 | 005 |
 | [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `not-started` | 0/6 | 006 |
 | [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `not-started` | 0/6 | 007 |
 | [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `not-started` | 0/5 | 008 |
@@ -223,7 +223,7 @@ Selects the Postgres driver/query layer/migration tooling (ADR), builds `@blixis
 
 #### 006 — Events & Async Processing
 
-Status: `in-progress` · Progress: 4/7 · Scope: MVP  
+Status: `in-progress` · Progress: 5/7 · Scope: MVP  
 Plan: [006-events-and-async-processing/_index.md](./plans/006-events-and-async-processing/_index.md)  
 Depends on: [005 — Database Foundation](./plans/005-database-foundation/_index.md)
 
@@ -233,7 +233,7 @@ Builds `@blixis/events` (event registry, in-process bus, transactional outbox, i
 - [x] [006.002 — Implement the in-process event bus](./plans/006-events-and-async-processing/002-in-process-event-bus.md)
 - [x] [006.003 — Implement the Cloudflare Queue producer adapter](./plans/006-events-and-async-processing/003-cloudflare-queue-producer-adapter.md)
 - [x] [006.004 — Implement queue consumer dispatch to module subscriptions](./plans/006-events-and-async-processing/004-queue-consumer-dispatch.md)
-- [ ] [006.005 — Implement the transactional outbox and dispatcher](./plans/006-events-and-async-processing/005-transactional-outbox.md)
+- [x] [006.005 — Implement the transactional outbox and dispatcher](./plans/006-events-and-async-processing/005-transactional-outbox.md)
 - [ ] [006.006 — Implement idempotent consumers and command idempotency keys](./plans/006-events-and-async-processing/006-idempotent-consumers-and-command-keys.md)
 - [ ] [006.007 — Verify the event pipeline end to end](./plans/006-events-and-async-processing/007-event-pipeline-end-to-end.md)
 
@@ -569,7 +569,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | D6 | Postgres driver, query builder/ORM, migration format | [005.001](./plans/005-database-foundation/001-select-database-stack.md) | **pg + Drizzle ORM; SQL-file migrations per module** ([ADR 0006](./decisions/0006-database-stack.md)) | decided |
 | D7 | Test database strategy | [005.006](./plans/005-database-foundation/006-test-database-strategy.md) | Docker Postgres locally and in CI; Neon branches for staging smoke | open |
 | D8 | IDs, tenancy columns, module schema namespacing, cross-module foreign keys | [005.007](./plans/005-database-foundation/007-ids-tenancy-and-schema-conventions.md) | **UUIDv7 (plain, app-generated); tenant columns + fail-closed `tenantScope`; schema per module; FKs only toward `meta.requires`; no RLS in MVP** ([ADR 0007](./decisions/0007-ids-and-tenancy-conventions.md)) | decided |
-| D9 | Outbox dispatch trigger & retention | [006.005](./plans/006-events-and-async-processing/005-transactional-outbox.md) | Post-commit `waitUntil` dispatch + 1-minute cron sweep | open |
+| D9 | Outbox dispatch trigger & retention | [006.005](./plans/006-events-and-async-processing/005-transactional-outbox.md) | **Post-commit `waitUntil` dispatch + 1-minute cron sweep; `SKIP LOCKED` batches; at-least-once; 7-day retention** ([ADR 0008](./decisions/0008-outbox-dispatch.md)) | decided |
 | D10 | Authentication approach (library vs. custom, sessions, hashing on Workers, API tokens, CSRF) | [007.001](./plans/007-identity-and-authentication/001-select-authentication-approach.md) | Decide by spike; Postgres-backed opaque sessions | open |
 | D11 | Email delivery for invitations/password reset | [008.002](./plans/008-tenancy-organizations-and-spaces/002-memberships.md) (deferred) | Add existing users only in MVP | open |
 | D12 | Environments beyond the default `main` | [008.004](./plans/008-tenancy-organizations-and-spaces/004-environments-and-locales.md) | One default environment; `environment_id` columns from day one | open |
