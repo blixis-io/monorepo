@@ -27,7 +27,7 @@ Related: [Release & deployment](./deployment.md) · [Cloudflare Workers](./cloud
 | Queues | local simulation | staging or per preview (TBD) | `blixis-events-staging` (+ `-dlq`) | `blixis-events-production` (+ `-dlq`) |
 | KV | local simulation | staging | `blixis-cache-staging` | `blixis-cache-production` |
 | R2 | local simulation | staging | `blixis-assets-staging` | `blixis-assets-production` |
-| Hostname | `localhost:8787` | `*.workers.dev` preview URL | `api.staging.<domain>` | `api.<domain>` |
+| Hostname | `localhost:8787` | `*.workers.dev` preview URL | `api.staging.<domain>` (until then: `blixis-api-staging.frosty-hill-6079.workers.dev`) | `api.<domain>` |
 | GraphiQL / OpenAPI docs | on | on | on | off |
 | Log level | `debug` | `debug` | `debug`/`info` | `info` |
 | Sentry environment | disabled | `preview` (optional) | `staging` | `production` |

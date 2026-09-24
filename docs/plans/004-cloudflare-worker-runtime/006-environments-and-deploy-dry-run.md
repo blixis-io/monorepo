@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -42,10 +42,14 @@ None.
 ### Modify
 
 ```text
-apps/api/wrangler.jsonc
-.github/workflows/ci.yml
-apps/api/package.json
+apps/api/wrangler.jsonc (env.staging, env.production)
+apps/api/worker-configuration.d.ts (regenerated)
+apps/api/package.json (deploy:dry both envs, deploy:staging)
+.github/workflows/ci.yml (dry-run + bundle size gate)
 docs/operations/cloudflare.md
+docs/operations/environments.md
+docs/ROADMAP.md
+docs/plans/004-cloudflare-worker-runtime/_index.md
 ```
 
 ### Delete
@@ -69,8 +73,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] CI runs dry-run deploys for both environments and reports bundle size.
-- [ ] `docs/operations/cloudflare.md` matches the implemented configuration.
+- [x] CI runs dry-run deploys for both environments and reports bundle size.
+- [x] `docs/operations/cloudflare.md` matches the implemented configuration.
 
 ## Validation
 
@@ -81,15 +85,15 @@ pnpm --filter @blixis/api exec wrangler deploy --dry-run --env production
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Bundle size baseline recorded in the plan Technical notes.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Bundle size baseline recorded in the plan Technical notes.
 
 ## Completion conditions
 
@@ -106,4 +110,9 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- `env.staging` (`workers_dev: true`, vars `staging`/`info`) and `env.production` (`workers_dev: false`, vars `production`/`info`), both `preview_urls: false`; Worker names derived by Wrangler (`blixis-api-staging`, `blixis-api-production`). Custom-domain routes wait for the product domain.
+- Regenerated `worker-configuration.d.ts`: `BLIXIS_ENV` is now the union `"staging" | "production" | "local"`, still satisfying `ApiEnv`.
+- **CI gate:** the `verify` job dry-runs both environments, appends `Total Upload` lines to the GitHub job summary, and fails if gzip size exceeds `MAX_GZIP_KIB=1024` (handles KiB/MiB). Verified the parsing and failure path locally with a 100 KiB limit.
+- **Bundle baseline:** 872.24 KiB / **144.90 KiB gzip** for both environments.
+- **Staging deploy (owner-approved):** version `ccaa058b-781f-4f69-be84-6040c65f1a3d` at https://blixis-api-staging.frosty-hill-6079.workers.dev; `/api/v1/health` 200 (TTFB ~0.17–0.21 s), unknown route → 404 problem details. Production is not deployed.
+- The task listed creating `docs/operations/cloudflare.md`; it already existed (target design from the docs phase) and was updated instead.

@@ -8,8 +8,9 @@
     "dev": "wrangler dev",
     "types": "wrangler types && rm -f tsconfig.tsbuildinfo",
     "types:check": "wrangler types --check",
-    "deploy:dry": "wrangler deploy --dry-run --outdir dist",
-    "test": "vitest run --root ../.. --project api"
+    "deploy:dry": "wrangler deploy --dry-run --outdir dist --env staging && wrangler deploy --dry-run --outdir dist --env production",
+    "test": "vitest run --root ../.. --project api",
+    "deploy:staging": "wrangler deploy --env staging"
   },
   "dependencies": {
     "@blixis/cloudflare": "workspace:*",

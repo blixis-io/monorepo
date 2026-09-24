@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 2 — Kernel walking skeleton on Cloudflare Workers  
 Roadmap scope: MVP / initial platform  
-Progress: 5/7 tasks completed
+Progress: 6/7 tasks completed
 
 ## Objective
 
@@ -66,7 +66,7 @@ Depends on:
 - [x] [003 — Implement the Worker entry adapter for fetch, queue, and scheduled](./003-worker-entry-adapter.md)
 - [x] [004 — Validate environment configuration at boot](./004-environment-configuration-validation.md)
 - [x] [005 — Add Workers-runtime integration tests for apps/api](./005-workers-runtime-tests.md)
-- [ ] [006 — Configure wrangler environments and deploy dry-run in CI](./006-environments-and-deploy-dry-run.md)
+- [x] [006 — Configure wrangler environments and deploy dry-run in CI](./006-environments-and-deploy-dry-run.md)
 - [ ] [007 — Integrate Sentry error monitoring for the API Worker](./007-sentry-error-monitoring.md)
 
 ## Completion criteria
