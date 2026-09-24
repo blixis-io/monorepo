@@ -262,6 +262,9 @@ importers:
       '@blixis/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@blixis/events':
+        specifier: workspace:*
+        version: link:../../packages/events
       '@blixis/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
@@ -321,6 +324,9 @@ importers:
       '@blixis/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@blixis/events':
+        specifier: workspace:*
+        version: link:../events
       '@blixis/kernel':
         specifier: workspace:*
         version: link:../kernel

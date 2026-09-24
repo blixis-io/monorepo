@@ -12,6 +12,13 @@ export {
 } from './env.ts'
 export { type WaitUntilContext, waitUntilSafe } from './execution-context.ts'
 export {
+  cloudflareQueueSender,
+  type EventsQueueModuleOptions,
+  eventsQueueModule,
+  QUEUE_LIMITS,
+  type QueueProducerLike,
+} from './queues.ts'
+export {
   createWorkerHandler,
   type WorkerHandler,
   type WorkerHandlerOptions,

@@ -32,6 +32,21 @@ Pattern: `blixis-<resource>-<environment>`.
 | Sentry DSN | `SENTRY_DSN` (var) | project `blixis-api` DSN | same DSN (split by `environment`) | 004.007 |
 | Version metadata | `CF_VERSION_METADATA` | ✓ | ✓ | 004.007 |
 
+### Creating the events queues (once per account, task 006.003)
+
+Queues need the **Workers Paid** plan. The Worker's `EVENTS` producer bindings exist from 006.003; the consumer and dead-letter configuration follow with the queue handler (006.004).
+
+```bash
+cd apps/api
+npx wrangler queues create blixis-events-staging
+npx wrangler queues create blixis-events-staging-dlq
+npx wrangler queues create blixis-events-production
+npx wrangler queues create blixis-events-production-dlq
+npx wrangler queues list
+```
+
+A deploy fails if a bound queue doesn't exist. Locally, `wrangler dev` and the Workers test pool simulate `blixis-events-local`.
+
 Record every created resource ID in the inventory table in this file as plans create them (IDs are not secret, credentials are).
 
 | Resource | Staging ID | Production ID |
