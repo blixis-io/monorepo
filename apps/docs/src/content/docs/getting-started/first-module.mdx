@@ -133,6 +133,17 @@ export const modules = [content(), seo({ defaultTitle: 'My site' })]
 
 Modules are registered **explicitly** — Blixis never scans `node_modules`. At startup the kernel checks that `blixis.content` is provided, validates your config, runs `setup`, and mounts your routes at `/api/v1/seo`.
 
+## 4. Test it
+
+```ts title="test/seo.test.ts"
+import { asUser, createTestBlixis } from '@blixis/testing'
+
+const t = await createTestBlixis({ modules: [content(), seo({ defaultTitle: 'Home' })], actor: asUser('u1') })
+const res = await t.request('/api/v1/seo/entries/42')
+```
+
+See [Testing modules](/concepts/testing/).
+
 ## What to read next
 
 - [Modules](/concepts/modules/) — lifecycle and every contribution type.

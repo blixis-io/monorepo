@@ -12,7 +12,7 @@ Related: [Code standards](./code-standards.md) · [GitHub Actions](../operations
 |---|---|---|---|---|
 | **Unit** | Domain logic, services with fakes, validators, permission rules, event handlers, pure helpers | Node pool | None | next to source: `src/**/*.test.ts` |
 | **Type tests** | Public contract types (inference, assignability) | `tsc` / `expectTypeOf` | None | `src/**/*.test-d.ts` |
-| **Module integration** | A module booted with `createTestBlixis`, real repositories against Postgres | Node pool | Test Postgres | `modules/<m>/test/**/*.test.ts` |
+| **Module integration** | A module booted with `createTestBlixis`, real repositories against Postgres | Node pool | Test Postgres | `modules/<m>/test/**/*.test.ts`, `packages/<p>/test/**/*.test.ts` |
 | **API (Workers runtime)** | The real Worker entry: routing, auth, validation, error mapping, REST/GraphQL formats, queue/scheduled handlers | Workers pool (`workerd`) | Test Postgres via Hyperdrive local connection; local Queues/KV/R2 simulation | `apps/api/test/**/*.worker.test.ts` |
 | **Infrastructure** | Adapters: Hyperdrive/Postgres, Queues, KV, R2, Cache API, Workflows | Workers pool | Local simulations; staging smoke for what cannot be simulated | `packages/cloudflare/src/**/*.test.ts`, `packages/database/**` |
 | **Cross-cutting suites** | Tenant isolation, authorization matrix, event pipeline, cache isolation | Workers pool | Test Postgres | `apps/api/test/*.worker.test.ts` |

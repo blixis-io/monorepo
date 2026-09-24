@@ -1,0 +1,87 @@
+---
+title: Testing modules
+description: Boot your module with createTestBlixis, send requests as any actor, replace services, and assert on logs.
+sidebar:
+  order: 8
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+[`@blixis/testing`](/api/testing/readme/) boots real modules in a real kernel, without a server or Cloudflare account. Use it for module integration tests (architecture §36).
+
+```bash
+pnpm add -D @blixis/testing vitest
+```
+
+<Aside type="caution">
+Import `@blixis/testing` from test files only. Blixis's own repository enforces this with a lint rule.
+</Aside>
+
+## Boot a module
+
+```ts
+import { asUser, createTestBlixis } from '@blixis/testing'
+import { expect, it } from 'vitest'
+import content from '@blixis/content'
+import seo from '../src/index.ts'
+
+it('returns the SEO title', async () => {
+  const t = await createTestBlixis({
+    modules: [content(), seo({ defaultTitle: 'Home' })],
+    actor: asUser('u1'), // default actor for every request
+  })
+
+  const res = await t.request('/api/v1/seo/entries/42')
+
+  expect(res.status).toBe(200)
+  expect(await res.json()).toEqual({ title: 'Home' })
+})
+```
+
+[`createTestBlixis`](/api/testing/functions/createtestblixis/) validates the module graph, validates configuration, and runs every `setup` and `boot` hook before it resolves — so configuration mistakes fail the test with the same message you would see in production.
+
+## Requests and actors
+
+`t.request(path, init)` accepts normal `RequestInit` plus:
+
+| Option | Effect |
+|---|---|
+| `actor` | Actor for this request only — [`asUser`](/api/testing/functions/asuser/), [`asApiToken`](/api/testing/functions/asapitoken/), [`asDeliveryKey`](/api/testing/functions/asdeliverykey/), [`asSystem`](/api/testing/functions/assystem/), [`asAnonymous`](/api/testing/functions/asanonymous/) |
+| `json` | Serialises the body and sets `content-type: application/json` |
+
+```ts
+const denied = await t.request('/api/v1/seo/entries/42', { actor: asAnonymous() })
+expect(denied.status).toBe(401)
+expect(await denied.json()).toMatchObject({ code: 'UNAUTHORIZED' })
+
+await t.request('/api/v1/seo/entries/42', { method: 'PUT', json: { title: 'New' } })
+```
+
+## Replace services
+
+Swap a dependency for a fake with [`serviceOverride`](/api/testing/functions/serviceoverride/). The value is type-checked against the token; the real module still runs, but its registration of that token is skipped.
+
+```ts
+import { CONTENT_SERVICE } from '@blixis/content'
+import { serviceOverride } from '@blixis/testing'
+
+const t = await createTestBlixis({
+  modules: [content(), seo()],
+  overrides: [serviceOverride(CONTENT_SERVICE, fakeContentService)],
+})
+```
+
+## Services and logs
+
+- `t.services` — app-scoped services, e.g. `t.services.get(SEO_SERVICE)`.
+- `t.logs.entries` — everything the platform and your module logged, with bound fields (`module`, `requestId`, `correlationId`, …). `t.logs.clear()` resets it.
+
+```ts
+expect(t.logs.entries).toContainEqual(
+  expect.objectContaining({ message: 'seo updated', fields: expect.objectContaining({ module: '@acme/blixis-seo' }) }),
+)
+```
+
+## What is not covered yet
+
+Database-backed tests (test Postgres per test file) and event assertions (`captureEvents`) arrive with the database and events packages.

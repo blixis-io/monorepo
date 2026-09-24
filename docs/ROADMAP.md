@@ -56,7 +56,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [001 — Project Foundation](./plans/001-project-foundation/_index.md) | M1 | MVP | `completed` | 7/7 | — |
 | [002 — Public Contracts](./plans/002-public-contracts/_index.md) | M1 | MVP | `completed` | 8/8 | 001 |
 | [023 — Developer Documentation Site](./plans/023-developer-documentation-site/_index.md) | M1 | MVP | `in-progress` | 3/4 | 002 |
-| [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `in-progress` | 7/8 | 002 |
+| [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `completed` | 8/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `not-started` | 0/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `not-started` | 0/8 | 004 |
 | [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `not-started` | 0/7 | 005 |
@@ -171,7 +171,7 @@ Adds `apps/docs`: a Starlight (Astro) documentation site with a hand-written dev
 
 #### 003 — Module Kernel
 
-Status: `in-progress` · Progress: 7/8 · Scope: MVP  
+Status: `completed` · Progress: 8/8 · Scope: MVP  
 Plan: [003-module-kernel/_index.md](./plans/003-module-kernel/_index.md)  
 Depends on: [002 — Public Contracts](./plans/002-public-contracts/_index.md)
 
@@ -184,7 +184,7 @@ Builds `@blixis/kernel` — `defineModule`, module graph validation, the typed s
 - [x] [003.005 — Validate module configuration](./plans/003-module-kernel/005-module-configuration-validation.md)
 - [x] [003.006 — Mount module REST apps with request context and error mapping](./plans/003-module-kernel/006-rest-mounting-and-error-mapping.md)
 - [x] [003.007 — Collect event, GraphQL, permission, and migration contributions](./plans/003-module-kernel/007-contribution-registries.md)
-- [ ] [003.008 — Create @blixis/testing with createTestBlixis](./plans/003-module-kernel/008-testing-package-create-test-blixis.md)
+- [x] [003.008 — Create @blixis/testing with createTestBlixis](./plans/003-module-kernel/008-testing-package-create-test-blixis.md)
 
 #### 004 — Cloudflare Worker Runtime
 
@@ -544,7 +544,8 @@ Arrows point from prerequisite to dependent plan. `[CPn]` marks an architectural
 
 Checkpoints are review gates where the architecture is validated against working software. Record the evidence (test names, measurements, links) directly under each checkpoint when it is reached, and create follow-up tasks for any violation.
 
-- [ ] **CP1 — Kernel contract proof** (end of [003](./plans/003-module-kernel/_index.md)). An "external-style" fixture module written with only `@blixis/contracts` + `defineModule` boots, provides/consumes services via capabilities, and serves a route; every §26 validation failure names the offending module. *Evidence:* 003.008 end-to-end kernel suite.
+- [x] **CP1 — Kernel contract proof** (end of [003](./plans/003-module-kernel/_index.md)). An "external-style" fixture module written with only `@blixis/contracts` + `defineModule` boots, provides/consumes services via capabilities, and serves a route; every §26 validation failure names the offending module. *Evidence:* 003.008 end-to-end kernel suite.
+  - **Passed 2026-09-24.** `packages/testing/test/kernel.e2e.test.ts`: `@acme/blixis-external` (contracts + hono + zod only — not even `defineModule`) requires capability `fixture.greeting`, consumes `GREETING_SERVICE` in a REST route, validates its config, and maps a thrown `UnauthorizedError` to a 401 problem response. Missing capability, duplicate module, incompatible version, and duplicate service provider each fail with the module name. Contract gaps found on the way and fixed in contracts: `has()` token invariance (`AnyServiceToken`), `setup`/`boot` variance (methods), `EventSubscription.handle` variance.
 - [ ] **CP2a — Kernel on `workerd`** (end of [004](./plans/004-cloudflare-worker-runtime/_index.md)). Lazy boot, per-request service scopes, `fetch`/`queue`/`scheduled` entry routing verified in the Workers runtime; bundle-size baseline recorded.
 - [ ] **CP2b — Database path** (end of [005](./plans/005-database-foundation/_index.md)). `Worker → Hyperdrive → Neon` readiness verified on staging with latency numbers; request-scoped connections confirmed; module-owned migrations applied in module order.
 - [ ] **CP3 — Event consistency** (end of [006](./plans/006-events-and-async-processing/_index.md)). Rolled-back transactions emit nothing; committed transactional events are delivered via outbox → Queue; redeliveries are processed once (§32, §33).

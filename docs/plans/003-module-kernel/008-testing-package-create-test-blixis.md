@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -42,23 +42,33 @@ Create `@blixis/testing` providing `createTestBlixis` (§36), a capturing test l
 ```text
 packages/testing/package.json
 packages/testing/tsconfig.json
+packages/testing/tsconfig.test.json
 packages/testing/src/index.ts
 packages/testing/src/create-test-blixis.ts
 packages/testing/src/actors.ts
 packages/testing/src/logger.ts
-packages/testing/src/create-test-blixis.test.ts
-packages/kernel/test/fixtures/
-packages/kernel/test/kernel.e2e.test.ts
+packages/testing/test/fixtures/greeting.ts
+packages/testing/test/fixtures/external.ts
+packages/testing/test/kernel.e2e.test.ts
+packages/testing/test/overrides.test-d.ts
+apps/docs/src/content/docs/concepts/testing.mdx
 ```
 
 ### Modify
 
 ```text
+packages/kernel/src/create-blixis.ts (overrides option, serviceOverride)
+packages/kernel/src/internal/services.ts (override)
+packages/kernel/src/index.ts
 tsconfig.json
-docs/conventions/testing.md
-docs/conventions/packages.md
-tooling/boundaries/ (or lint config — rule restricting @blixis/testing imports)
+vitest.config.ts (packages/*/test)
 pnpm-lock.yaml
+apps/docs/astro.config.mjs
+apps/docs/src/content/docs/getting-started/introduction.mdx
+apps/docs/src/content/docs/getting-started/first-module.mdx
+docs/conventions/testing.md
+docs/ROADMAP.md (CP1)
+docs/plans/003-module-kernel/_index.md
 ```
 
 ### Delete
@@ -97,9 +107,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `fixture-external` boots and serves its route using the service from `fixture-greeting` via capability.
-- [ ] Importing `@blixis/testing` from a non-test file fails `pnpm lint`.
-- [ ] All §26 failure fixtures produce module-named errors.
+- [x] `fixture-external` boots and serves its route using the service from `fixture-greeting` via capability.
+- [x] Importing `@blixis/testing` from a non-test file fails `pnpm lint`.
+- [x] All §26 failure fixtures produce module-named errors.
 
 ## Validation
 
@@ -110,15 +120,15 @@ pnpm lint
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Architectural checkpoint CP1 evidence recorded in the plan Technical notes (external-style module works with public API only).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Architectural checkpoint CP1 evidence recorded in the plan Technical notes (external-style module works with public API only).
 
 ## Completion conditions
 
@@ -135,4 +145,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **`@blixis/testing`:** `createTestBlixis({ modules, overrides?, actor? })` boots the app (graph + config validation, `setup`, `boot`) and returns `{ app, services, logs, request(path, { actor?, json?, ...RequestInit }) }`. Actors per request travel in an `x-blixis-test-actor` header read by the test actor resolver (only installed by `createTestBlixis`). Helpers: `asUser`, `asApiToken`, `asDeliveryKey`, `asSystem`, `asAnonymous`; `createCapturingLogger` (entries with merged bound fields).
+- **Kernel hook for overrides:** `createBlixis({ overrides })` + `ServiceContainer.override()` register replacements before setup; a module's own registration of an overridden token is skipped instead of failing as a duplicate. Because tokens are invariant, `ServiceOverride` is type-erased (`{ token: AnyServiceToken; value: unknown }`) and created with the typed helper `serviceOverride(token, value)` (value checked against the token — type test). Exported from kernel and re-exported by testing.
+- **Deviation — e2e suite location:** `packages/testing/test/` instead of `packages/kernel/test/`; the kernel suite needs `@blixis/testing`, which depends on the kernel, so a kernel devDependency on testing would be a workspace cycle (rejected by `tooling/boundaries`). Root Vitest config now includes `packages/*/test/**/*.test.ts`.
+- **Fixtures:** `@fixture/greeting` (defineModule, capability `fixture.greeting`, public `GREETING_SERVICE`) and `@acme/blixis-external` written with **contracts + hono + zod only** (`ModuleFactory`, not `defineModule`) — stricter than the task asked.
+- **CP1 passed** (recorded in ROADMAP): external-style module boots and serves a route using a capability-provided service; config validation; error mapping; §26 failures (missing capability, duplicate module, incompatible version, duplicate service provider) each name the module.
+- Boundary rule verified: importing `@blixis/testing` from `packages/kernel/src` fails with `test-only-import` (+ `undeclared-workspace-import`); reverted.
+- Manual: new *Testing modules* page; `@blixis/testing` added to the API reference; package status and first-module walkthrough updated. Suite: 162 tests.

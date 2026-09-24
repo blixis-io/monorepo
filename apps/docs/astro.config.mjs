@@ -5,6 +5,7 @@ import { createStarlightTypeDocPlugin } from 'starlight-typedoc'
 
 const [contractsTypeDoc, contractsSidebar] = createStarlightTypeDocPlugin()
 const [kernelTypeDoc, kernelSidebar] = createStarlightTypeDocPlugin()
+const [testingTypeDoc, testingSidebar] = createStarlightTypeDocPlugin()
 
 /** Shared TypeDoc options for all documented packages (ADR 0018). */
 const typeDoc = {
@@ -40,11 +41,18 @@ export default defineConfig({
           sidebar: { label: '@blixis/kernel' },
           typeDoc,
         }),
+        testingTypeDoc({
+          entryPoints: ['../../packages/testing/src/index.ts'],
+          tsconfig: '../../packages/testing/tsconfig.json',
+          output: 'api/testing',
+          sidebar: { label: '@blixis/testing' },
+          typeDoc,
+        }),
       ],
       sidebar: [
         { label: 'Getting started', items: [{ autogenerate: { directory: 'getting-started' } }] },
         { label: 'Concepts', items: [{ autogenerate: { directory: 'concepts' } }] },
-        { label: 'API reference', items: [contractsSidebar, kernelSidebar] },
+        { label: 'API reference', items: [contractsSidebar, kernelSidebar, testingSidebar] },
       ],
     }),
   ],

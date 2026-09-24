@@ -15,6 +15,8 @@ export {
   type CreateBlixisOptions,
   createBlixis,
   type ExecutionContextLike,
+  type ServiceOverride,
+  serviceOverride,
 } from './create-blixis.ts'
 export { defineModule } from './define-module.ts'
 export { type ModuleProblem, ModuleValidationError } from './errors.ts'
