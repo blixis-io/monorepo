@@ -19,5 +19,5 @@ Roadmap task: <!-- e.g. docs/plans/003-module-kernel/003-service-registry-and-sc
 
 - [ ] Task status, files-and-folders list, and technical notes updated
 - [ ] `docs/ROADMAP.md` and the plan `_index.md` updated
-- [ ] Docs updated for changed behaviour
+- [ ] Docs updated for changed behaviour (public package API changes: TSDoc + developer manual in `apps/docs`)
 - [ ] No secrets, no AI attribution in commits or this description

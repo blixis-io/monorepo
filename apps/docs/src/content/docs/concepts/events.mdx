@@ -1,0 +1,62 @@
+---
+title: Events
+description: Publish versioned, typed events and handle them idempotently.
+sidebar:
+  order: 5
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+Modules announce what happened with **events** and react to other modules' events with **subscriptions**. Domain code publishes through the event bus — never directly to Cloudflare Queues.
+
+## Defining an event
+
+```ts
+import { defineEvent } from '@blixis/contracts'
+import { z } from 'zod'
+
+export const entryPublished = defineEvent({
+  type: 'entry.published',
+  version: 1,
+  delivery: 'transactional',
+  description: 'An entry version was published.',
+  schema: z.object({ entryId: z.string(), spaceId: z.string(), versionId: z.string() }),
+})
+```
+
+- **Name:** `<aggregate>.<past-tense-verb>`, lowercase; sub-aggregates allowed (`webhook.delivery.failed`).
+- **Payload:** small and JSON-serialisable — IDs, not whole documents. The payload type is inferred from the schema.
+- **Version:** starts at `1`; bump it for incompatible payload changes.
+
+## Delivery classes
+
+| `delivery` | Guarantee | Use when |
+|---|---|---|
+| `transactional` | Written in the same database transaction as your change; delivered at least once if the transaction commits, never if it rolls back. Needs `options.transaction` when emitting. | Losing the event would leave the system wrong (cache invalidation, webhooks). |
+| `best-effort` | Sent after the operation; may be lost. | Pure side effects (analytics). |
+
+## Emitting
+
+```ts
+await events.emit(entryPublished, { entryId, spaceId, versionId }, { transaction })
+```
+
+The payload is type-checked against the schema at compile time and validated at runtime. The bus fills in the [`EventEnvelope`](/api/contracts/interfaces/eventenvelope/): `id`, `type`, `version`, `timestamp`, tenant IDs, and tracing `metadata`.
+
+## Handling
+
+```ts
+import { subscribe } from '@blixis/contracts'
+
+export const invalidateCache = subscribe(entryPublished, 'invalidate-delivery-cache', async (envelope, ctx) => {
+  ctx.logger.info('invalidating', { entryId: envelope.payload.entryId, attempt: ctx.attempt })
+})
+// module: events: [invalidateCache]
+```
+
+<Aside type="caution" title="Handlers must be idempotent">
+Events are delivered **at least once**. A retry or redelivery must not repeat side effects. The subscription `id` is the key for processed-event records — never rename it casually.
+</Aside>
+
+- [`EventHandlerContext`](/api/contracts/interfaces/eventhandlercontext/) gives you `attempt`, `logger`, and request-scoped `services`.
+- Pass `{ versions: [1, 2] }` to `subscribe` when a handler accepts several payload versions.

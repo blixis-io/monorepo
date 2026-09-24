@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -36,7 +36,6 @@ Write the hand-written manual: introduction, installation, "Your first module" w
 ### Create
 
 ```text
-apps/docs/src/content/docs/getting-started/introduction.mdx
 apps/docs/src/content/docs/getting-started/first-module.mdx
 apps/docs/src/content/docs/concepts/modules.mdx
 apps/docs/src/content/docs/concepts/services-and-capabilities.mdx
@@ -50,12 +49,14 @@ apps/docs/src/content/docs/concepts/context-and-migrations.mdx
 ### Modify
 
 ```text
+apps/docs/src/content/docs/getting-started/introduction.mdx
 docs/contracts/README.md
 docs/contracts/errors.md
 docs/contracts/events.md
-docs/ROADMAP.md
-.github/pull_request_template.md
 docs/conventions/packages.md
+.github/pull_request_template.md
+docs/ROADMAP.md (definition of done)
+docs/plans/023-developer-documentation-site/_index.md
 ```
 
 ### Delete
@@ -79,9 +80,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] All listed pages exist, render, and link to the reference.
-- [ ] Code samples match exported APIs (checked by a reviewer against the type tests).
-- [ ] Definition of done mentions the manual.
+- [x] All listed pages exist, render, and link to the reference.
+- [x] Code samples match exported APIs (checked by a reviewer against the type tests).
+- [x] Definition of done mentions the manual.
 
 ## Validation
 
@@ -91,15 +92,15 @@ pnpm --filter @blixis/docs build
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Samples compile in spirit against contracts; nothing aspirational.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Samples compile in spirit against contracts; nothing aspirational.
 
 ## Completion conditions
 
@@ -116,4 +117,8 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- Pages: introduction (principles, package status table, *coming soon* markers for kernel/testing), "Your first module" (the `@acme/blixis-seo` walkthrough mirroring `packages/contracts/src/module.test-d.ts`), and seven concept pages (modules, services & capabilities, errors, validation, events, actors & permissions, request context & migrations). Every concept links to the generated reference pages.
+- **Samples:** taken from the type tests so they match the exported API; APIs from later plans (`createBlixis`, `defineModule`, `createTestBlixis`) are explicitly marked *coming soon*.
+- **Link check:** a script checked every internal link in the MDX pages against the built `dist/`; one typo (`evententelope`) was found and fixed.
+- **`docs/contracts/*` decision:** the manual is the single source for developer guidance. `docs/contracts/README.md` became a map to the manual sources plus maintainer rules; `errors.md` is a pointer; `events.md` keeps the **event register** (a repo-level architecture record per §32, not user documentation). The files stay so existing links keep working.
+- **Definition of done** now includes "developer manual updated when public package APIs change" (ROADMAP), a PR-template checkbox, and the package conventions rule linking TSDoc to the generated reference.

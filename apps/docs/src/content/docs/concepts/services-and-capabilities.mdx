@@ -1,0 +1,59 @@
+---
+title: Services and capabilities
+description: Share behaviour between modules with typed service tokens, and depend on capabilities instead of package names.
+sidebar:
+  order: 2
+---
+
+## Service tokens
+
+Modules share behaviour through **services** registered under typed **tokens** — never through string keys or imports of another module's internals.
+
+```ts
+import { createServiceToken } from '@blixis/contracts'
+
+export interface SeoService {
+  titleFor(entryId: string): Promise<string>
+}
+export const SEO_SERVICE = createServiceToken<SeoService>('@acme/blixis-seo.service')
+```
+
+```ts
+// provide (in setup)
+ctx.services.provide(SEO_SERVICE, new DefaultSeoService())
+
+// consume (anywhere you have a registry)
+const seo = ctx.services.get(SEO_SERVICE) // typed as SeoService
+```
+
+- [`createServiceToken`](/api/contracts/functions/createservicetoken/) uses `Symbol.for(name)`, so two copies of a package still share tokens. Name tokens `<package>.<service>`.
+- Tokens are **invariant**: a `ServiceToken<string>` cannot be used where a `ServiceToken<number>` is expected.
+- [`ServiceRegistry`](/api/contracts/interfaces/serviceregistry/): `get` (throws `ModuleError` if missing), `getOptional`, `has`.
+- [`ServiceProvider`](/api/contracts/interfaces/serviceprovider/): `provide` for app-scoped values; `provideFactory` for lazily created services.
+- Export the token and the service interface from your package root — that is your public API.
+
+## Scopes
+
+| Scope | Lifetime | Use for |
+|---|---|---|
+| `app` | once per Worker isolate | stateless services, configuration, caches of pure data |
+| `request` | once per request, event, or job; disposed afterwards | anything holding I/O objects — database clients, open streams |
+
+Workers cannot reuse I/O objects across requests, so connection-holding services must be request-scoped. The scope API is marked `@experimental` until the kernel's registry ships.
+
+## Capabilities
+
+A **capability** is a named behaviour a module provides, e.g. `blixis.assets`. Depend on capabilities when you need *something that does X*, not a specific package:
+
+```ts
+meta: {
+  name: '@vendor/image-ai',
+  version: '1.0.0',
+  requiresCapabilities: ['blixis.assets', 'blixis.events'],
+}
+```
+
+- Format: `<namespace>.<capability>`, lowercase, kebab-case segments ([`isCapabilityId`](/api/contracts/functions/iscapabilityid/)).
+- `blixis.*` is reserved for first-party modules — see [`BLIXIS_CAPABILITIES`](/api/contracts/variables/blixis_capabilities/).
+- Use your own namespace for capabilities you provide (`acme.seo`).
+- Startup fails, naming your module, if a required capability is missing.

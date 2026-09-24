@@ -1,0 +1,88 @@
+---
+title: Modules
+description: The module contract — metadata, lifecycle, configuration, and contributions.
+sidebar:
+  order: 1
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+A module is a plain object implementing [`BlixisModule`](/api/contracts/interfaces/blixismodule/), usually returned by a **factory** that module packages default-export. The same contract applies to first-party and third-party modules.
+
+## Anatomy
+
+| Field | Purpose |
+|---|---|
+| `meta` | [`ModuleMeta`](/api/contracts/interfaces/modulemeta/): `name` (package name), `version`, optional `requires` (package → semver range), `capabilities`, `requiresCapabilities` |
+| `config` / `configSchema` | Raw options from the factory and the schema that validates them |
+| `setup(ctx)` | Register services; runs once during bootstrap |
+| `boot(ctx)` | Runs once, lazily, before the first request or event |
+| `rest` | A Hono app mounted at `/api/v1${path}` |
+| `graphql` | Schema fragment (`typeDefs`) and resolvers merged into `/graphql` |
+| `permissions` | [Permission definitions](/concepts/permissions/) your services check |
+| `events` | [Event subscriptions](/concepts/events/) |
+| `migrations` | [Module-owned migrations](/concepts/context-and-migrations/#migrations) |
+
+## Factories
+
+```ts
+import type { ModuleFactory } from '@blixis/contracts'
+
+// No options: () => BlixisModule
+const content: ModuleFactory = () => ({ meta: { name: '@blixis/content', version: '0.1.0' } })
+
+// With options: (options?) => BlixisModule<Config>
+const seo: ModuleFactory<{ defaultTitle?: string }, { defaultTitle: string }> = (options = {}) => ({
+  meta: { name: '@acme/blixis-seo', version: '1.0.0' },
+  config: options,
+  configSchema: SeoConfig,
+})
+```
+
+Consumers always call the factory in the composition root: `modules: [content(), seo({ defaultTitle: 'x' })]`. `defineModule` from `@blixis/kernel` (*coming soon*) is a convenience with the same shape.
+
+## Lifecycle
+
+```text
+define → validate → setup (register) → boot (lazy) → ready
+```
+
+- **Validate:** the kernel checks the whole module graph — duplicate names, versions, missing packages or capabilities, route and service conflicts, invalid configuration. Errors name the offending module.
+- **`setup`** receives a [`ModuleSetupContext`](/api/contracts/interfaces/modulesetupcontext/) with `config`, `services` (provide + get), `logger`, and `meta`.
+- **`boot`** receives a [`ModuleBootContext`](/api/contracts/interfaces/modulebootcontext/) with read-only `services`, `logger`, and all registered `modules`.
+
+<Aside type="caution" title="No I/O in setup">
+Cloudflare Workers forbid I/O while the Worker script is being initialised. Do not open connections or fetch anything in `setup`; use request-scoped services or `boot`.
+</Aside>
+
+## Configuration
+
+Put the factory's options in `config` and describe them with `configSchema` (any [Standard Schema](/concepts/validation/), e.g. Zod). The kernel validates `config` and passes the **schema output** — defaults applied — to `setup` as `ctx.config`. Invalid configuration stops startup with an error naming your module.
+
+## REST routes
+
+```ts
+import type { ModuleHonoEnv } from '@blixis/contracts'
+import { Hono } from 'hono'
+
+export const routes = new Hono<ModuleHonoEnv>().get('/:id', (c) => {
+  const ctx = c.var.requestContext // RequestContext: actor, tenant, logger, services…
+  return c.json({ requestId: ctx.requestId })
+})
+// module: rest: { path: '/seo', app: routes }  →  GET /api/v1/seo/:id
+```
+
+- [`ModuleHonoEnv`](/api/contracts/interfaces/modulehonoenv/) exposes `requestContext` and `services` on `c.var`. There are **no bindings**: modules never access Cloudflare `env`.
+- A Hono app declared with a different environment is rejected at compile time.
+- Keep handlers thin: parse and validate input, call a service, map the result. Throw [public errors](/concepts/errors/); the kernel maps them to HTTP responses.
+
+## GraphQL
+
+```ts
+graphql: {
+  typeDefs: 'extend type Entry { seoTitle: String }',
+  resolvers: { Entry: { seoTitle: (entry) => lookupTitle(entry) } },
+}
+```
+
+The platform composes all fragments into one schema at `/graphql`. Modules never create their own GraphQL server. Resolvers call services, like REST handlers.

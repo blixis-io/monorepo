@@ -1,0 +1,140 @@
+---
+title: Your first module
+description: Build a small SEO module with a service, REST routes, a permission, an event handler, and a migration.
+sidebar:
+  order: 2
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components'
+
+This walkthrough builds `@acme/blixis-seo`, a module that stores SEO titles for content entries. It uses every part of the module contract. The code compiles against `@blixis/contracts` today — it mirrors a type test in the Blixis repository.
+
+<Aside type="note">
+Running the module inside Blixis needs `@blixis/kernel` (`createBlixis`), which is **coming soon**. Until then you can write and type-check modules, and the kernel will load them unchanged.
+</Aside>
+
+## 1. Create the package
+
+```json title="package.json"
+{
+  "name": "@acme/blixis-seo",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "peerDependencies": {
+    "@blixis/contracts": "^0.1.0",
+    "hono": "^4.13.0"
+  },
+  "dependencies": {
+    "zod": "^4.6.0"
+  }
+}
+```
+
+`@blixis/contracts` and `hono` are **peer dependencies**: the Blixis app provides exactly one copy of each. Use any [Standard Schema](/concepts/validation/) library; Blixis itself uses Zod.
+
+## 2. Write the module
+
+<Steps>
+
+1. **Define a service and its token.** Other modules find your service through the token, never through your internals.
+
+   ```ts title="src/service.ts"
+   import { createServiceToken } from '@blixis/contracts'
+
+   export interface SeoService {
+     titleFor(entryId: string): Promise<string>
+   }
+
+   export const SEO_SERVICE = createServiceToken<SeoService>('@acme/blixis-seo.service')
+   ```
+
+2. **Add REST routes.** Routes use `ModuleHonoEnv`, which gives you the request context and services on `c.var`.
+
+   ```ts title="src/routes.ts"
+   import type { ModuleHonoEnv } from '@blixis/contracts'
+   import { Hono } from 'hono'
+   import { SEO_SERVICE } from './service.ts'
+
+   export const routes = new Hono<ModuleHonoEnv>().get('/entries/:id', async (c) => {
+     const seo = c.var.services.get(SEO_SERVICE)
+     c.var.requestContext.logger.info('seo lookup', { entryId: c.req.param('id') })
+     return c.json({ title: await seo.titleFor(c.req.param('id')) })
+   })
+   ```
+
+3. **Handle an event.** Keep handlers idempotent — events can be delivered more than once.
+
+   ```ts title="src/events.ts"
+   import { defineEvent, subscribe } from '@blixis/contracts'
+   import { z } from 'zod'
+
+   // Defined by the content module; shown here for completeness.
+   export const entryPublished = defineEvent({
+     type: 'entry.published',
+     version: 1,
+     delivery: 'transactional',
+     schema: z.object({ entryId: z.string(), spaceId: z.string() }),
+   })
+
+   export const refreshSeo = subscribe(entryPublished, 'refresh-seo', async (envelope, ctx) => {
+     ctx.logger.info('refreshing seo', { entryId: envelope.payload.entryId })
+   })
+   ```
+
+4. **Put it together with a factory.** The factory takes typed options; the kernel validates them with `configSchema` and hands the result to `setup` as `ctx.config`.
+
+   ```ts title="src/index.ts"
+   import { defineMigration, definePermission, type ModuleFactory } from '@blixis/contracts'
+   import { z } from 'zod'
+   import { refreshSeo } from './events.ts'
+   import { routes } from './routes.ts'
+   import { SEO_SERVICE } from './service.ts'
+
+   const SeoConfig = z.object({ defaultTitle: z.string().default('Untitled') })
+
+   const seo: ModuleFactory<{ defaultTitle?: string }, z.infer<typeof SeoConfig>> = (
+     options = {},
+   ) => ({
+     meta: {
+       name: '@acme/blixis-seo',
+       version: '1.0.0',
+       requiresCapabilities: ['blixis.content'],
+       capabilities: ['acme.seo'],
+     },
+     config: options,
+     configSchema: SeoConfig,
+     setup(ctx) {
+       ctx.services.provide(SEO_SERVICE, { titleFor: async () => ctx.config.defaultTitle })
+     },
+     rest: { path: '/seo', app: routes },
+     graphql: { typeDefs: 'extend type Entry { seoTitle: String }' },
+     permissions: [definePermission({ id: 'seo.read', description: 'Read SEO metadata' })],
+     events: [refreshSeo],
+     migrations: [
+       defineMigration({ id: '0001_create_seo', up: 'create table seo (entry_id text primary key, title text)' }),
+     ],
+   })
+
+   export default seo
+   export { SEO_SERVICE, type SeoService } from './service.ts'
+   ```
+
+</Steps>
+
+## 3. Register it in an app
+
+```ts title="apps/api/src/blixis.config.ts"
+import content from '@blixis/content'
+import seo from '@acme/blixis-seo'
+
+export const modules = [content(), seo({ defaultTitle: 'My site' })]
+```
+
+Modules are registered **explicitly** — Blixis never scans `node_modules`. At startup the kernel checks that `blixis.content` is provided, validates your config, runs `setup`, and mounts your routes at `/api/v1/seo`.
+
+## What to read next
+
+- [Modules](/concepts/modules/) — lifecycle and every contribution type.
+- [Errors](/concepts/errors/) — what to throw from services.
+- [Validation](/concepts/validation/) — validating input at boundaries.

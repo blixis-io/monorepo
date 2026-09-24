@@ -1,0 +1,52 @@
+---
+title: Actors and permissions
+description: Who is acting (actors) and what they may do (permissions), checked in services.
+sidebar:
+  order: 6
+---
+
+Authentication answers *who is the actor?*; authorization answers *may this actor do this?*. Blixis keeps them apart: requests carry an **actor**, and services ask the **authorization service** before acting.
+
+## Actors
+
+[`Actor`](/api/contracts/type-aliases/actor/) is a union:
+
+| `type` | Who | Notes |
+|---|---|---|
+| `user` | a signed-in user | `userId` |
+| `apiToken` | a personal API token | owner's permissions, limited to `scopes` |
+| `deliveryKey` | a space's delivery or preview key | content delivery only |
+| `system` | platform code (queue consumers, cron, workflows) | denied unless a check sets `allowSystem` |
+| `anonymous` | no credentials | [`ANONYMOUS_ACTOR`](/api/contracts/variables/anonymous_actor/) |
+
+Use [`actorId(actor)`](/api/contracts/functions/actorid/) for logs and metadata — it never contains secrets.
+
+## Declaring permissions
+
+```ts
+import { definePermission } from '@blixis/contracts'
+
+permissions: [
+  definePermission({ id: 'seo.read', description: 'Read SEO metadata' }),
+  definePermission({ id: 'seo.write', description: 'Edit SEO metadata' }),
+]
+```
+
+IDs are `<module>.<action>` or `<module>.<resource>.<action>`, lowercase, with your module's namespace first.
+
+## Checking permissions
+
+```ts
+import { AUTHORIZATION_SERVICE } from '@blixis/contracts'
+
+await ctx.services.get(AUTHORIZATION_SERVICE).require({
+  actor: ctx.actor,
+  action: 'seo.write',
+  resource: { type: 'entry', id: entryId, spaceId },
+})
+```
+
+- `require` throws `UnauthorizedError` for anonymous actors and `ForbiddenError` otherwise; `can` returns a boolean.
+- Check permissions **in services**, not in route handlers, so REST, GraphQL, and background jobs share the same rules.
+- Always pass the tenant (`spaceId` / `organizationId`) in the [`ResourceRef`](/api/contracts/interfaces/resourceref/). Never trust a resource ID alone.
+- Never compare role names in code. Roles are configuration; permissions are the contract.
