@@ -37,11 +37,28 @@ export const entryPublished = defineEvent({
 
 ## Emitting
 
+Resolve the bus from your request's services. It's provided by the `eventsModule()` platform module from `@blixis/events`:
+
 ```ts
-await events.emit(entryPublished, { entryId, spaceId, versionId }, { transaction })
+import { EVENT_BUS } from '@blixis/contracts'
+import { toTransactionScope, withTransaction } from '@blixis/database'
+
+await withTransaction(db, async (tx) => {
+  const [version] = await tx.insert(entryVersions).values(input).returning()
+  await ctx.services.get(EVENT_BUS).emit(
+    entryPublished,
+    { entryId, spaceId, versionId: version.id },
+    { transaction: toTransactionScope(tx) },   // required for transactional events
+  )
+})
 ```
 
-The payload is type-checked against the schema at compile time and validated at runtime. The bus fills in the [`EventEnvelope`](/api/contracts/interfaces/eventenvelope/): `id`, `type`, `version`, `timestamp`, tenant IDs, and tracing `metadata`.
+The payload is type-checked against the schema at compile time and validated at runtime. It must be plain JSON: no `Date`, `Map`, class instances, `undefined`, or `NaN`, so use ISO strings for times. The bus fills in the [`EventEnvelope`](/api/contracts/interfaces/eventenvelope/):
+- `id` (UUIDv7) and `timestamp`;
+- the tenant IDs of the current request;
+- tracing `metadata`: correlation ID and actor.
+
+Emitting a transactional event without `{ transaction }` fails immediately. Two modules that define the same event type and version differently fail at startup, so import the same `defineEvent` result everywhere.
 
 ## Handling
 

@@ -7,6 +7,7 @@ import {
   type ModuleHonoEnv,
   NotFoundError,
   RateLimitError,
+  REQUEST_CONTEXT,
   UnauthorizedError,
   ValidationError,
 } from '@blixis/contracts'
@@ -401,5 +402,34 @@ describe('readiness', () => {
     expect(() => createBlixis({ modules: [clash()], logger: noopLogger })).toThrowError(
       /conflicts with @blixis\/kernel/,
     )
+  })
+})
+
+describe('REQUEST_CONTEXT', () => {
+  it('is available to request-scoped services during HTTP requests and runInScope', async () => {
+    const SEEN = createServiceToken<string>('@test/seen')
+    const module = defineModule({
+      meta: { name: '@test/ctx', version: '1.0.0' },
+      setup(ctx) {
+        ctx.services.provideFactory(
+          SEEN,
+          ({ services }) => services.get(REQUEST_CONTEXT).correlationId,
+          { scope: 'request' },
+        )
+      },
+      rest: {
+        path: '/ctx',
+        app: new Hono<ModuleHonoEnv>().get('/', (c) => c.text(c.var.services.get(SEEN))),
+      },
+    })
+    const app = createBlixis({ modules: [module()], logger: noopLogger })
+    const res = await app.fetch(
+      new Request('http://x/api/v1/ctx', { headers: { 'x-correlation-id': 'corr-7' } }),
+    )
+    expect(await res.text()).toBe('corr-7')
+    const fromScope = await app.runInScope({ correlationId: 'corr-8' }, async ({ services }) =>
+      services.get(SEEN),
+    )
+    expect(fromScope).toBe('corr-8')
   })
 })

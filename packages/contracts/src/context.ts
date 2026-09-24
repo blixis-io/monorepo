@@ -1,5 +1,5 @@
 import type { Actor } from './permissions.ts'
-import type { ServiceRegistry } from './services.ts'
+import { createServiceToken, type ServiceRegistry, type ServiceToken } from './services.ts'
 
 declare const TRANSACTION_SCOPE: unique symbol
 
@@ -64,3 +64,12 @@ export interface CancellationSignal {
   readonly aborted: boolean
   readonly reason?: unknown
 }
+
+/**
+ * The current request's {@link RequestContext}, available in every request scope (HTTP
+ * requests, queue deliveries, cron runs). Lets request-scoped services such as the event bus
+ * read correlation id, actor, and tenant without taking the context as a parameter.
+ */
+export const REQUEST_CONTEXT: ServiceToken<RequestContext> = createServiceToken<RequestContext>(
+  '@blixis/contracts.request-context',
+)

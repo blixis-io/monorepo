@@ -1,0 +1,36 @@
+{
+  "name": "@blixis/events",
+  "version": "0.0.0",
+  "description": "Blixis events: event definition registry, envelopes, and the event bus (transports: in-process, queue, outbox)",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run --root ../.. packages/events"
+  },
+  "dependencies": {
+    "@blixis/contracts": "workspace:*",
+    "@blixis/kernel": "workspace:*",
+    "@blixis/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@blixis/tsconfig": "workspace:*",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "zod": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/events"
+  }
+}

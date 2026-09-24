@@ -12,7 +12,7 @@
 
 The project owner chose the ID format; the rest follows the roadmap's recommendations.
 
-1. **Primary keys are UUIDv7** (RFC 9562), generated **in the application** with Web Crypto: `newId()` in `@blixis/database`.
+1. **Primary keys are UUIDv7** (RFC 9562), generated **in the application** with Web Crypto: `newId()` in `@blixis/shared` (re-exported by `@blixis/database`; moved in 006.001 so packages such as `@blixis/events` don't depend on the database driver).
    - Column: `id uuid primary key` (`idColumn()`).
    - The same value is used everywhere: database, REST/GraphQL, URLs, events. There are **no type prefixes** and no second public ID format.
    - UUIDv7 is time-ordered, so B-tree inserts stay local and IDs sort by creation. `newId()` is strictly monotonic per isolate. Workers freeze `Date.now()` within a request, so a 12-bit counter orders IDs within a millisecond, and a clock that goes backwards never produces a smaller ID.

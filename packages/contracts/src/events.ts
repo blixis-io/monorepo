@@ -1,5 +1,5 @@
 import type { Logger, TransactionScope } from './context.ts'
-import type { ServiceRegistry } from './services.ts'
+import { createServiceToken, type ServiceRegistry, type ServiceToken } from './services.ts'
 import type { StandardSchemaV1 } from './standard-schema.ts'
 import type { InferOutput } from './validation.ts'
 
@@ -101,6 +101,12 @@ export interface EventBus {
     options?: EmitOptions,
   ): Promise<void>
 }
+
+/**
+ * The request-scoped {@link EventBus}, provided by `@blixis/events` (`eventsModule()`).
+ * Modules resolve it from their services: `ctx.services.get(EVENT_BUS).emit(...)`.
+ */
+export const EVENT_BUS: ServiceToken<EventBus> = createServiceToken<EventBus>('@blixis/events.bus')
 
 /** Context available to event handlers. Each handler runs in its own request scope. */
 export interface EventHandlerContext {
