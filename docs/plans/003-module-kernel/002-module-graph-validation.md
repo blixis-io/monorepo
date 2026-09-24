@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -38,16 +38,20 @@ Implement bootstrap validation of the module set per §26 and compute a determin
 ### Create
 
 ```text
+packages/kernel/src/errors.ts
 packages/kernel/src/internal/graph.ts
 packages/kernel/src/internal/graph.test.ts
-packages/kernel/src/internal/semver.ts (only if implemented internally)
+packages/kernel/src/internal/semver.ts
+packages/kernel/src/internal/semver.test.ts
 ```
 
 ### Modify
 
 ```text
-packages/kernel/package.json (if a semver dependency is added)
-pnpm-lock.yaml
+packages/kernel/src/index.ts
+apps/docs/src/content/docs/concepts/modules.mdx
+docs/ROADMAP.md
+docs/plans/003-module-kernel/_index.md
 ```
 
 ### Delete
@@ -72,9 +76,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Duplicate names, bad versions, missing packages, version mismatches, missing capabilities, and cycles each produce a failing bootstrap with a message naming the module.
-- [ ] Multiple problems are reported together.
-- [ ] Ordering places providers before consumers and is stable across runs.
+- [x] Duplicate names, bad versions, missing packages, version mismatches, missing capabilities, and cycles each produce a failing bootstrap with a message naming the module.
+- [x] Multiple problems are reported together.
+- [x] Ordering places providers before consumers and is stable across runs.
 
 ## Validation
 
@@ -84,15 +88,15 @@ pnpm --filter @blixis/kernel test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Semver choice justified; bundle impact noted.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Semver choice justified; bundle impact noted.
 
 ## Completion conditions
 
@@ -109,4 +113,8 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Semver:** internal, dependency-free matcher (`internal/semver.ts`) instead of the `semver` package (CommonJS, Node-oriented, larger than needed). Supports exact, partial (`1.x`), `*`, `^`, `~`, `>=`/`>`/`<=`/`<`, AND (spaces) and `||`, and npm prerelease rules (a prerelease only matches a range that has a prerelease on the same `major.minor.patch`). 24 table-driven tests. Unparsable ranges/versions return `undefined` and become validation problems.
+- **`validateModuleGraph(input)`** accepts `unknown[]` so it can diagnose bad input: factory passed instead of a module (`call it: content()` — replaces the brand idea from 003.001), missing `meta.name`, duplicate names, invalid versions, missing/incompatible `requires`, invalid capability ids, missing required capabilities, and dependency cycles (edges: `requires` + providers of required capabilities).
+- **Aggregated error:** new public `ModuleValidationError extends ModuleError` with `problems: { module, message }[]`; message lists every problem prefixed with `[module]`; `moduleName` = first offending module. Exported from `@blixis/kernel` and documented in the manual.
+- **Ordering:** Kahn's algorithm, choosing the earliest-registered ready module each step → providers before consumers, otherwise registration order; deterministic.
+- A module may require a capability it provides itself; several providers of one capability are allowed (all ordered before the consumer). Whether multiple providers should be an error is left to the service registry (duplicate service providers are rejected in 003.003).

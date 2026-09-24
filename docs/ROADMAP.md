@@ -56,7 +56,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [001 — Project Foundation](./plans/001-project-foundation/_index.md) | M1 | MVP | `completed` | 7/7 | — |
 | [002 — Public Contracts](./plans/002-public-contracts/_index.md) | M1 | MVP | `completed` | 8/8 | 001 |
 | [023 — Developer Documentation Site](./plans/023-developer-documentation-site/_index.md) | M1 | MVP | `in-progress` | 3/4 | 002 |
-| [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `in-progress` | 1/8 | 002 |
+| [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `in-progress` | 2/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `not-started` | 0/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `not-started` | 0/8 | 004 |
 | [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `not-started` | 0/7 | 005 |
@@ -171,14 +171,14 @@ Adds `apps/docs`: a Starlight (Astro) documentation site with a hand-written dev
 
 #### 003 — Module Kernel
 
-Status: `in-progress` · Progress: 1/8 · Scope: MVP  
+Status: `in-progress` · Progress: 2/8 · Scope: MVP  
 Plan: [003-module-kernel/_index.md](./plans/003-module-kernel/_index.md)  
 Depends on: [002 — Public Contracts](./plans/002-public-contracts/_index.md)
 
 Builds `@blixis/kernel` — `defineModule`, module graph validation, the typed service registry with scopes, the setup/boot lifecycle, module config validation, Hono REST mounting with error mapping and request context, contribution collection (events, GraphQL, permissions, migrations) — plus `@blixis/testing` with `createTestBlixis`.
 
 - [x] [003.001 — Scaffold @blixis/kernel and implement defineModule](./plans/003-module-kernel/001-scaffold-kernel-and-define-module.md)
-- [ ] [003.002 — Implement module graph validation and ordering](./plans/003-module-kernel/002-module-graph-validation.md)
+- [x] [003.002 — Implement module graph validation and ordering](./plans/003-module-kernel/002-module-graph-validation.md)
 - [ ] [003.003 — Implement the service registry with app and request scopes](./plans/003-module-kernel/003-service-registry-and-scopes.md)
 - [ ] [003.004 — Implement the setup/boot lifecycle and createBlixis](./plans/003-module-kernel/004-lifecycle-and-create-blixis.md)
 - [ ] [003.005 — Validate module configuration](./plans/003-module-kernel/005-module-configuration-validation.md)

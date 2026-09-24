@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 2 — Kernel walking skeleton on Cloudflare Workers  
 Roadmap scope: MVP / initial platform  
-Progress: 1/8 tasks completed
+Progress: 2/8 tasks completed
 
 ## Objective
 
@@ -68,7 +68,7 @@ Depends on:
 ## Tasks
 
 - [x] [001 — Scaffold @blixis/kernel and implement defineModule](./001-scaffold-kernel-and-define-module.md)
-- [ ] [002 — Implement module graph validation and ordering](./002-module-graph-validation.md)
+- [x] [002 — Implement module graph validation and ordering](./002-module-graph-validation.md)
 - [ ] [003 — Implement the service registry with app and request scopes](./003-service-registry-and-scopes.md)
 - [ ] [004 — Implement the setup/boot lifecycle and createBlixis](./004-lifecycle-and-create-blixis.md)
 - [ ] [005 — Validate module configuration](./005-module-configuration-validation.md)
