@@ -16,7 +16,7 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
 | GitHub CLI | ✅ authenticated |
 | Cloudflare account + Wrangler | ✅ set up (Wrangler 4.x installed); docs site live on workers.dev |
 | Neon project | ✅ created (region `eu-central-1`, Frankfurt) — follow-ups below |
-| Sentry | ✅ project `private-m57/blixis-api`; API Worker reports errors — privacy toggle + auth token pending |
+| Sentry | ✅ project `private-m57/blixis-api`; API Worker reports errors; IP storage off; `SENTRY_AUTH_TOKEN` set |
 | Domain | ❌ not decided |
 | Licence / npm scope | ❌ not decided — more urgent now that the repo is public |
 
@@ -73,6 +73,7 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
 - [ ] Store migration URLs only as GitHub environment secrets (`DATABASE_URL` in `staging` / `production`) and local developer `.env`/`.dev.vars` (git-ignored).
 - [ ] Point-in-time restore retention configured (task 022.002).
 - [ ] Neon API key for preview branches (task 021.002).
+- [x] Neon CLI authenticated locally (`npx neonctl auth`); org `org-odd-thunder-61292824`, project `blixis` (`plain-frost-79494892`), Postgres 18.
 - [ ] Keep Cloudflare Hyperdrive and Workers traffic close to the database (placement/Smart Placement evaluated in task 022.001).
 
 ## Sentry (errors and alerts)
@@ -82,8 +83,8 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
 - [x] Sentry project `blixis-api` created (EU region, environments `staging` / `production` via `BLIXIS_ENV`); later one for the admin UI (plan 019).
 - [x] `SENTRY_DSN` set per Worker environment in `apps/api/wrangler.jsonc` (a DSN is not a secret); GitHub variables `SENTRY_ORG=private-m57`, `SENTRY_PROJECT=blixis-api`.
 - [x] SDK integrated in the Worker (task [004.007](./plans/004-cloudflare-worker-runtime/007-sentry-error-monitoring.md)); verification error received (`BLIXIS-API-1`, resolved).
-- [ ] **(owner)** In Sentry: **Project Settings → Security & Privacy → turn on "Prevent Storing of IP Addresses"**. Sentry otherwise stores the client IP and location for JavaScript events, even though the SDK sends no user data.
-- [ ] **(owner)** Create a Sentry auth token (Settings → Auth Tokens, scope `project:releases`), then store it without pasting it anywhere else:
+- [x] **(owner)** In Sentry: **Project Settings → Security & Privacy → turn on "Prevent Storing of IP Addresses"**. Sentry otherwise stores the client IP and location for JavaScript events, even though the SDK sends no user data.
+- [x] **(owner)** Create a Sentry auth token (Settings → Auth Tokens, scope `project:releases`), then store it without pasting it anywhere else:
   ```bash
   gh secret set SENTRY_AUTH_TOKEN --repo blixis-io/monorepo
   ```

@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -43,7 +43,9 @@ docs/decisions/0006-database-stack.md
 ### Modify
 
 ```text
-None.
+docs/decisions/README.md
+docs/ROADMAP.md
+docs/plans/005-database-foundation/_index.md
 ```
 
 ### Delete
@@ -67,8 +69,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] ADR 0006 accepted, naming driver, query layer, migration format, and compatibility flags.
-- [ ] Spike evidence (numbers) included in the ADR.
+- [x] ADR 0006 accepted, naming driver, query layer, migration format, and compatibility flags.
+- [x] Spike evidence (numbers) included in the ADR.
 
 ## Validation
 
@@ -76,15 +78,15 @@ Requires:
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Decision does not leak the query library into `@blixis/contracts`.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Decision does not leak the query library into `@blixis/contracts`.
 
 ## Completion conditions
 
@@ -101,4 +103,11 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- Spike (2026-09-24) in a throwaway scratch project, not in the repo:
+  - three Workers (pg + Drizzle, postgres.js + Drizzle, pg + Kysely);
+  - Hyperdrive local mode against `postgres:18-alpine`, since Neon runs Postgres 18.
+  - Every combination passed the transaction, rollback, JSONB, and module-schema checks.
+  - Numbers are in ADR 0006.
+- The owner chose **pg + Drizzle**.
+- The migration format is plain SQL files proposed by `drizzle-kit generate --name <snake_case>` and applied by our own runner (005.005). This fits the existing `MigrationDefinition.up: string` contract, so no contract change is needed.
+- Drizzle is 0.x: pin exact versions in the catalog when 005.002 adds the dependencies.
