@@ -2,7 +2,7 @@
   "name": "blixis",
   "private": true,
   "type": "module",
-  "description": "Blixis — modular headless CMS on Cloudflare Workers",
+  "description": "Blixis \u2014 modular headless CMS on Cloudflare Workers",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/blixis-io/monorepo.git"
@@ -13,9 +13,12 @@
   },
   "scripts": {
     "build": "pnpm -r --if-present run build",
-    "typecheck": "pnpm -r --if-present run typecheck",
+    "typecheck": "tsc -b",
     "lint": "pnpm -r --if-present run lint",
     "format": "pnpm -r --if-present run format",
     "test": "pnpm -r --if-present run test"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
   }
 }

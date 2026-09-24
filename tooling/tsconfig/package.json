@@ -1,0 +1,17 @@
+{
+  "name": "@blixis/tsconfig",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared TypeScript 7 configuration presets for the Blixis monorepo",
+  "files": ["base.json", "library.json", "worker.json", "test.json"],
+  "exports": {
+    "./base.json": "./base.json",
+    "./library.json": "./library.json",
+    "./worker.json": "./worker.json",
+    "./test.json": "./test.json"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}
