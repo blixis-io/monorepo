@@ -100,4 +100,4 @@ This applies equally to humans and to coding agents working in this repository.
 ## Enforcement
 
 - **CI:** the PR title is validated by a semantic-PR-title check (see [GitHub Actions](../operations/github-actions.md#pr-titleyml)).
-- **Local (optional):** a `commit-msg` hook with commitlint (`@commitlint/config-conventional`) run via a lightweight hook manager such as lefthook. Added in roadmap task 001.005; hooks must stay fast and must never be the only enforcement.
+- **Local (optional):** `pnpm exec lefthook install` enables a `commit-msg` hook running commitlint ([`commitlint.config.js`](../../commitlint.config.js), same types and scopes as above) and a `pre-commit` hook running `biome check` on staged files ([`lefthook.yml`](../../lefthook.yml)). Hooks are a convenience; CI is authoritative.

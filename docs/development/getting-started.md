@@ -33,13 +33,15 @@ git config user.email "you@example.com"
 
 corepack enable
 pnpm install
+pnpm exec lefthook install   # optional: commit-msg (commitlint) + pre-commit (Biome) hooks
 ```
 
 ## Everyday commands
 
 ```bash
-pnpm lint            # lint + package boundary checks
-pnpm format          # format everything
+pnpm lint            # Biome lint + package boundary checks
+pnpm format          # format everything (Biome)
+pnpm check           # Biome format + lint + import sorting in one pass
 pnpm typecheck       # TypeScript 7 build-mode type check
 pnpm test            # all tests (needs local Postgres from plan 005)
 pnpm build           # build all packages

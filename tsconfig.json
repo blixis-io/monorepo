@@ -1,8 +1,17 @@
 {
   "files": [],
   "references": [
-    { "path": "tooling/tsconfig" },
-    { "path": "packages/shared" },
-    { "path": "packages/shared/tsconfig.test.json" }
+    {
+      "path": "tooling/tsconfig"
+    },
+    {
+      "path": "tooling/boundaries"
+    },
+    {
+      "path": "packages/shared"
+    },
+    {
+      "path": "packages/shared/tsconfig.test.json"
+    }
   ]
 }

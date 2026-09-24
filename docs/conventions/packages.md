@@ -124,7 +124,7 @@ Domain modules and third-party modules peer-depend on `@blixis/contracts`; `auto
 | Default-exported "god objects" / service locators by string | untyped coupling (§7) | review |
 | `paths` aliases in tsconfig | bypass `exports` | review |
 
-The boundary checker and lint rules are added in task 001.005.
+Run `pnpm lint` (Biome + boundary checker) or `pnpm boundaries` (checker only). The checker lives in [`tooling/boundaries`](../../tooling/boundaries); extend its rules there with tests.
 
 ## Creating a package — checklist
 

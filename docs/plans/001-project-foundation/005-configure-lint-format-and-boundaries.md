@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -44,16 +44,36 @@ Architecture rules §2.5, §24, §25, and §48 (no internal imports, no cycles, 
 ### Create
 
 ```text
-biome.json (or eslint.config.js + .prettierrc — per ADR 0003)
-tooling/boundaries/ (only if a custom checker script is chosen; include its files)
+biome.json
+commitlint.config.js
+lefthook.yml
+tooling/tsconfig/node.json
+tooling/boundaries/package.json
+tooling/boundaries/tsconfig.json
+tooling/boundaries/src/cli.ts
+tooling/boundaries/src/imports.ts
+tooling/boundaries/src/imports.test.ts
+tooling/boundaries/src/rules.ts
+tooling/boundaries/src/rules.test.ts
+tooling/boundaries/src/workspace.ts
 ```
 
 ### Modify
 
 ```text
 package.json
+pnpm-workspace.yaml (catalog + allowBuilds)
 pnpm-lock.yaml
+tsconfig.json
+tooling/tsconfig/package.json
+tooling/tsconfig/library.json (Biome formatting)
+vitest.config.ts, packages/shared/** (Biome formatting only)
 docs/conventions/packages.md
+docs/conventions/commit-messages.md
+docs/conventions/code-standards.md
+docs/development/getting-started.md
+docs/ROADMAP.md
+docs/plans/001-project-foundation/_index.md
 ```
 
 ### Delete
@@ -79,11 +99,11 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `pnpm lint` and `pnpm format:check` exit 0 on the clean repository.
-- [ ] A deep import `@blixis/shared/src/assert` causes `pnpm lint` to fail with a message naming the file.
-- [ ] A relative import escaping a package causes `pnpm lint` to fail.
-- [ ] An artificial cycle between two packages causes `pnpm lint` to fail.
-- [ ] An `import 'node:fs'` in `packages/shared` causes `pnpm lint` to fail.
+- [x] `pnpm lint` and `pnpm format:check` exit 0 on the clean repository.
+- [x] A deep import `@blixis/shared/src/assert` causes `pnpm lint` to fail with a message naming the file.
+- [x] A relative import escaping a package causes `pnpm lint` to fail.
+- [x] An artificial cycle between two packages causes `pnpm lint` to fail.
+- [x] An `import 'node:fs'` in `packages/shared` causes `pnpm lint` to fail.
 
 ## Validation
 
@@ -95,15 +115,15 @@ pnpm format:check
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Each of the four violation types was actually demonstrated and reverted (record in Technical notes).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Each of the four violation types was actually demonstrated and reverted (record in Technical notes).
 
 ## Completion conditions
 
@@ -120,4 +140,11 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Biome 2.5.14** (`biome.json`): `preset: "recommended"` (Biome 2.5 deprecated `"recommended": true`; migrated with `biome migrate --write`), plus `noExplicitAny`, `noConsole`, `noImportCycles`, `noNonNullAssertion`, `useImportType`/`useExportType`, `noNodejsModules`, `nursery/noFloatingPromises` (error), and `noRestrictedImports` patterns for `@blixis/*/src|dist`. Overrides: Node built-ins and `console` allowed in `tooling/**` and `*.config.*`; non-null assertions allowed in tests. VCS integration uses `.gitignore`. Formatter: 2 spaces, LF, width 100, single quotes, semicolons as needed, trailing commas.
+- **`tooling/boundaries`** (`@blixis/boundaries`, private, zero runtime deps) runs directly with **Node 24 type stripping** (`node src/cli.ts`) — no build step. Rules: `relative-escape`, `undeclared-workspace-import`, `non-exported-subpath`, `test-only-import` (`@blixis/testing`), `forbidden-edge` (`modules/*` → `@blixis/cloudflare`; `apps/admin` → only `@blixis/sdk`), `workspace-cycle` (package.json graph incl. dev/peer deps), `contracts-runtime-dependency`. 23 unit tests.
+- **Import extraction** is regex-based but anchored: static imports/exports must start a statement, dynamic `import('…')` must not follow a quote. The first version flagged `import` text inside string literals of the checker's own test fixtures; fixed and covered by a test.
+- **New preset `@blixis/tsconfig/node.json`** for Node-only tooling (`types: ["node"]`, `erasableSyntaxOnly` so Node can strip types, `noEmit`). A test project cannot reference a `noEmit` project (`TS6310`), so Node tooling packages type-check `src` including tests in one project.
+- **Violations demonstrated and reverted:** deep import (`noRestrictedImports`), relative escape (checker), `node:fs` in `packages/shared` (`noNodejsModules`), floating promise (`noFloatingPromises`), `console.log` (`noConsole`), workspace cycle `@blixis/boundaries ↔ @blixis/shared` (checker). Biome runs first; the checker runs only if Biome passes.
+- **Commit hooks:** commitlint 21.2 (`commitlint.config.js`, scopes from the commit-message conventions; header ≤ 72, body lines ≤ 100) and lefthook 2.1 (`commit-msg`, `pre-commit` Biome on staged files). Verified: `update stuff` and unknown scopes fail; `feat(kernel)!: …` passes. Hooks are opt-in via `pnpm exec lefthook install` (installed locally for the maintainer).
+- **pnpm 12 `allowBuilds`:** `lefthook: true` (downloads its binary), `@biomejs/biome: false` (binary comes from optional platform packages).
+- Root scripts: `lint` (Biome lint + boundaries), `boundaries`, `format`, `format:check`, `check` (Biome all-in-one).

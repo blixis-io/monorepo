@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Blixis Node-only tooling (type-check only; run with Node type stripping)",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": true,
+    "rewriteRelativeImportExtensions": false,
+    "erasableSyntaxOnly": true,
+    "types": ["node"]
+  },
+  "include": ["${configDir}/src"]
+}
