@@ -126,3 +126,4 @@ Change the status to `completed` only when all of the following hold:
 - **Failure demonstrated:** a deliberately broken assertion in `packages/shared/src/assert.test.ts` made `verify` fail (run 35975046136); reverted with a Conventional Commit `revert:` message (git's default `Revert "…"` message would fail commitlint) and `verify` passed again (run 35975153192).
 - **`pr-title.yml`** uses `pull_request_target` (recommended by the action; runs the base-branch workflow without checking out PR code, safe for fork PRs in this public repo). Consequence: it cannot run on the PR that introduces it — verification happens after merge.
 - No secrets, no deploy steps. Postgres service and Wrangler dry-run are added by 005.006 and 004.006.
+
