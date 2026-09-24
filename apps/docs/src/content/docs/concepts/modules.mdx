@@ -128,7 +128,10 @@ export const routes = new Hono<ModuleHonoEnv>().get('/:id', (c) => {
 
 - [`ModuleHonoEnv`](/api/contracts/interfaces/modulehonoenv/) exposes `requestContext` and `services` on `c.var`. There are **no bindings**: modules never access Cloudflare `env`.
 - A Hono app declared with a different environment is rejected at compile time.
-- Keep handlers thin: parse and validate input, call a service, map the result. Throw [public errors](/concepts/errors/); the kernel maps them to HTTP responses.
+- Keep handlers thin: parse and validate input, call a service, map the result. Throw [public errors](/concepts/errors/); the kernel turns them into [problem details](/concepts/errors/#what-clients-receive-rest) responses.
+- Every request gets a fresh [request scope](/concepts/services-and-capabilities/#scopes) and an `x-request-id` / `x-correlation-id` response header. A valid incoming `x-correlation-id` is kept, so you can trace calls across services.
+- Two modules may share a prefix (e.g. `/spaces`), but registering the **same method and path** twice fails startup, naming both modules.
+- `GET /api/v1/health` is reserved by the kernel: a liveness check that answers even before modules have booted.
 
 ## GraphQL
 

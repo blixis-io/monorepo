@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -44,11 +44,10 @@ Mount module `rest` contributions under `/api/v1`, add kernel middleware that cr
 ### Create
 
 ```text
+packages/kernel/src/hono-env.ts
 packages/kernel/src/internal/rest.ts
 packages/kernel/src/internal/rest.test.ts
 packages/kernel/src/internal/errors-http.ts
-packages/kernel/src/internal/errors-http.test.ts
-packages/kernel/src/hono-env.ts
 ```
 
 ### Modify
@@ -57,7 +56,11 @@ packages/kernel/src/hono-env.ts
 packages/kernel/src/create-blixis.ts
 packages/kernel/src/index.ts
 docs/kernel/README.md
-docs/contracts/errors.md
+apps/docs/src/content/docs/concepts/errors.mdx
+apps/docs/src/content/docs/concepts/modules.mdx
+apps/docs/src/content/docs/getting-started/introduction.mdx
+docs/ROADMAP.md
+docs/plans/003-module-kernel/_index.md
 ```
 
 ### Delete
@@ -98,11 +101,11 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] A fixture module's route is reachable at `/api/v1/<path>`.
-- [ ] Two fixture modules registering `GET /api/v1/spaces/:id` fail bootstrap naming both modules.
-- [ ] Each `ErrorCode` maps to the documented status in tests.
-- [ ] 500 responses never include the thrown error's message.
-- [ ] `GET /api/v1/health` returns 200 without booting I/O-dependent services.
+- [x] A fixture module's route is reachable at `/api/v1/<path>`.
+- [x] Two fixture modules registering `GET /api/v1/spaces/:id` fail bootstrap naming both modules.
+- [x] Each `ErrorCode` maps to the documented status in tests.
+- [x] 500 responses never include the thrown error's message.
+- [x] `GET /api/v1/health` returns 200 without booting I/O-dependent services.
 
 ## Validation
 
@@ -112,15 +115,15 @@ pnpm --filter @blixis/kernel test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Error body format documented in `docs/contracts/errors.md` and stable.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Error body format documented in `docs/contracts/errors.md` and stable.
 
 ## Completion conditions
 
@@ -137,4 +140,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **`BlixisHonoEnv<TBindings>`** = `{ Bindings: TBindings; Variables: ModuleHonoEnv['Variables'] }` — module sub-apps (`Hono<ModuleHonoEnv>`) mount into it (verified in 002.002's probe). Bindings are filled by the Worker adapter in plan 004.
+- **Liveness vs. readiness:** `GET /api/v1/health` is registered before the context middleware and answers `{ status: 'ok' }` without `ready()` — even when a boot hook fails (tested). All other routes await `ready()` in middleware; `BlixisApp.fetch` no longer awaits `ready()` itself. Readiness checks come in 005.008.
+- **Request/correlation ids:** request id is always generated (`crypto.randomUUID()`) unless `trustRequestIdHeader: true`; incoming `x-correlation-id` accepted only if it matches `^[\w.:-]{1,128}$` (prevents header/log injection); otherwise correlation = request id. Both returned as response headers.
+- **Request scope** per request; disposal with `executionCtx.waitUntil` when Hono has an execution context (Workers), else awaited (tests/Node). Actor resolution via `actorResolver` option (default `ANONYMOUS_ACTOR`); plan 007 turns this into a resolver chain.
+- **Error body decided:** RFC 9457 problem details, `application/problem+json`, fields `type` (`urn:blixis:problem:<CODE>`), `title`, `status`, `code`, `detail`, `requestId`, `errors` (validation issues) or `details`. `Retry-After` for `RateLimitError` (rounded up). `InfrastructureError` → 503 if `retryable`, else 500. 5xx logged via the request logger; public body redacted by `toPublicErrorShape`. `httpStatusFor`, `toProblemResponse`, `ProblemDetails` exported for other transports/tests.
+- **Route conflicts:** exact `METHOD path` duplicates across modules (including the kernel's health route) → `ModuleValidationError` naming both; Hono `ALL` entries (middleware) ignored so modules can share prefixes like `/spaces` (tested). Also rejects `rest.path` not starting with `/`. Wildcard-overlap warnings (plan open question) not implemented — exact duplicates only.
+- Tests (21): mounting + services + context, scope per request + disposal, actor resolver, correlation/request id handling (incl. spoofing and injection), conflicts (both directions, shared prefixes, kernel route, invalid path), every error code → status/body/redaction, validation issues, Retry-After, 404 format, health bypass.
