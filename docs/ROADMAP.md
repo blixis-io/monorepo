@@ -53,7 +53,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 
 | Plan | Milestone | Scope | Status | Progress | Depends on |
 |---|---|---|---|---|---|
-| [001 — Project Foundation](./plans/001-project-foundation/_index.md) | M1 | MVP | `not-started` | 0/7 | — |
+| [001 — Project Foundation](./plans/001-project-foundation/_index.md) | M1 | MVP | `in-progress` | 1/7 | — |
 | [002 — Public Contracts](./plans/002-public-contracts/_index.md) | M1 | MVP | `not-started` | 0/8 | 001 |
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `not-started` | 0/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `not-started` | 0/7 | 003 |
@@ -122,13 +122,13 @@ Plans are numbered in a valid dependency order. The critical path is `001 → 00
 
 #### 001 — Project Foundation
 
-Status: `not-started` · Progress: 0/7 · Scope: MVP  
+Status: `in-progress` · Progress: 1/7 · Scope: MVP  
 Plan: [001-project-foundation/_index.md](./plans/001-project-foundation/_index.md)  
 Depends on: None
 
 Creates the pnpm monorepo, TypeScript 7 baseline, package conventions, linting/boundary checks, the test runner, and CI. Ends with one proving package (`@blixis/shared`) that builds, lints, and tests through the same pipeline every later package will use.
 
-- [ ] [001.001 — Initialize pnpm workspace and repository](./plans/001-project-foundation/001-initialize-pnpm-workspace.md)
+- [x] [001.001 — Initialize pnpm workspace and repository](./plans/001-project-foundation/001-initialize-pnpm-workspace.md)
 - [ ] [001.002 — Record toolchain decisions for TypeScript 7, build, test, and lint](./plans/001-project-foundation/002-record-toolchain-decisions.md)
 - [ ] [001.003 — Configure root TypeScript 7 setup](./plans/001-project-foundation/003-configure-typescript.md)
 - [ ] [001.004 — Define package conventions and create @blixis/shared](./plans/001-project-foundation/004-define-package-conventions.md)

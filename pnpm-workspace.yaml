@@ -1,0 +1,21 @@
+# Workspace layout: docs/development/monorepo.md
+packages:
+  - apps/*
+  - packages/*
+  - modules/*
+  - tooling/*
+  # examples/* is intentionally excluded: example plugins are installed from packed tarballs (plan 018)
+
+# Fail install when the Node version does not match package.json#engines
+engineStrict: true
+
+# Peer dependencies must be declared explicitly (§25: modules peer-depend on @blixis/contracts)
+autoInstallPeers: false
+
+# pnpm blocks dependency lifecycle scripts by default; allow-list only what needs them (e.g. esbuild, workerd)
+onlyBuiltDependencies: []
+
+# Shared third-party versions, referenced as "catalog:" in package.json files.
+# Entries are added by the tasks that introduce each dependency (001.002+).
+# catalog:
+#   typescript: 7.0.2
