@@ -20,7 +20,8 @@
   "devDependencies": {
     "@blixis/tsconfig": "workspace:*",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "zod": "catalog:"
   },
   "repository": {
     "type": "git",

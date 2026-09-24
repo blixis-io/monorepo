@@ -71,7 +71,7 @@ No `I` prefix on interfaces, no `Impl` suffix on classes.
 ## 7. Validation
 
 - Validate **all untrusted input at the boundary** — request bodies, params, query strings, GraphQL inputs, queue messages, webhook payloads, env, module config (§29).
-- Use the project's default schema library (ADR 0004) through the Standard Schema interface; derive types from schemas (`InferOutput`) instead of duplicating interfaces.
+- Use **Zod 4** ([ADR 0004](../decisions/0004-validation-library.md)) through the Standard Schema interface (`validate` from `@blixis/contracts`); derive types from schemas (`InferOutput`) instead of duplicating interfaces.
 - Services re-check domain invariants; schemas check shape.
 
 ## 8. Async and Workers runtime
