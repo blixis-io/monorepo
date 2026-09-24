@@ -9,7 +9,7 @@ Related: [Monorepo](../development/monorepo.md) · [Testing](./testing.md) · [C
 ## 1. Language and compiler
 
 - **TypeScript 7 only**, strict mode, ESM only (`"type": "module"`).
-- Required compiler flags (shared base config in `tooling/tsconfig/base.json`): `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `moduleResolution: "Bundler"`, `isolatedModules`, `noImplicitOverride`, `noFallthroughCasesInSwitch`.
+- Required compiler flags (shared base config in `tooling/tsconfig/base.json`): `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `module`/`moduleResolution: "nodenext"` with `.ts` relative import specifiers rewritten on emit ([ADR 0001](../decisions/0001-typescript-7-build-strategy.md)), `isolatedModules`, `noImplicitOverride`, `noFallthroughCasesInSwitch`.
 - Target ES2022 or newer. No DOM types outside `apps/admin` and `apps/example-site`.
 - No `paths` aliases that bypass package `exports`.
 
@@ -23,6 +23,7 @@ Related: [Monorepo](../development/monorepo.md) · [Testing](./testing.md) · [C
 - Public contracts get explicit return types; internal functions may rely on inference.
 - Avoid heavy type-level programming; readable types beat clever types.
 - Use `import type` / `export type` for type-only imports (`verbatimModuleSyntax` enforces it).
+- Relative imports include the `.ts` extension: `import { x } from './x.ts'`.
 
 ## 3. Naming
 
@@ -47,7 +48,7 @@ No `I` prefix on interfaces, no `Impl` suffix on classes.
 - Organise by **domain module**, not technical layer (§2.1). Use the §23 layout (`domain/`, `application/`, `infrastructure/`, `rest/`, `graphql/`, `events/`) and create only the folders you need.
 - **Public API only via `src/index.ts`** and package `exports`. Never import another package's `src/` or internal files (§2.5, §24). Boundary checks enforce this.
 - Cross-module communication only through **service tokens, capabilities, and events** (§2.5).
-- **Named exports everywhere**, except the module factory, which is the package's default export (`export { default } from './module'`) so consumers write `import content from '@blixis/content'`.
+- **Named exports everywhere**, except the module factory, which is the package's default export (`export { default } from './module.ts'`) so consumers write `import content from '@blixis/content'`.
 - No barrel files inside a package other than `src/index.ts`.
 - No circular dependencies between packages or between files within a package.
 - `@blixis/testing` is imported only from test files.
@@ -105,10 +106,10 @@ Before adding a dependency answer (§38): why is it needed, can a platform primi
 
 ## 12. Formatting and linting
 
-- Formatting is fully automated (tool per ADR 0003); never hand-format or argue style in review.
+- Formatting and linting use **Biome** ([ADR 0003](../decisions/0003-lint-format-and-boundaries.md)); never hand-format or argue style in review.
 - 2-space indentation, LF line endings, UTF-8, final newline (`.editorconfig`).
-- Single quotes, no semicolons unless the chosen formatter config says otherwise — the formatter config is the source of truth.
-- `pnpm lint` must pass: lint rules + package boundaries + Node built-in ban + test-only import rules.
+- Single quotes, semicolons only where needed, line width 100 — `biome.json` is the source of truth.
+- `pnpm lint` must pass: Biome rules + the `tooling/boundaries` checker (relative imports escaping a package, workspace cycles, undeclared workspace imports, test-only and forbidden package edges).
 
 ## 13. Comments and documentation
 

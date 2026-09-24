@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -52,7 +52,14 @@ docs/decisions/0003-lint-format-and-boundaries.md
 ### Modify
 
 ```text
-None.
+pnpm-workspace.yaml (onlyBuiltDependencies → allowBuilds, pnpm 12)
+docs/ROADMAP.md
+docs/development/monorepo.md
+docs/conventions/code-standards.md
+docs/plans/001-project-foundation/_index.md
+docs/plans/001-project-foundation/001-initialize-pnpm-workspace.md (technical note)
+docs/plans/001-project-foundation/002-record-toolchain-decisions.md
+docs/plans/001-project-foundation/003-configure-typescript.md (module settings per ADR 0001)
 ```
 
 ### Delete
@@ -79,11 +86,11 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Three ADRs exist, each with status `accepted`, alternatives considered, and the tool versions verified.
-- [ ] ADR 0001 states explicitly: build tool, declaration emit mechanism, and whether workspace consumers resolve `src` or `dist`.
-- [ ] ADR 0002 states how Workers-runtime tests and pure unit tests are separated.
-- [ ] ADR 0003 names the concrete mechanism that blocks deep imports and cycles.
-- [ ] No spike code is committed to the repository.
+- [x] Three ADRs exist, each with status `accepted`, alternatives considered, and the tool versions verified.
+- [x] ADR 0001 states explicitly: build tool, declaration emit mechanism, and whether workspace consumers resolve `src` or `dist`.
+- [x] ADR 0002 states how Workers-runtime tests and pure unit tests are separated.
+- [x] ADR 0003 names the concrete mechanism that blocks deep imports and cycles.
+- [x] No spike code is committed to the repository.
 
 ## Validation
 
@@ -92,16 +99,16 @@ Requires:
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Each decision is justified against architecture §37/§38, not preference alone.
-- [ ] Fallback path documented if TS7 is not yet usable for emit.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Each decision is justified against architecture §37/§38, not preference alone.
+- [x] Fallback path documented if TS7 is not yet usable for emit.
 
 ## Completion conditions
 
@@ -118,4 +125,14 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Spike location:** a throwaway workspace in the session scratch directory (not committed). Two library packages (`a` ← `b`), one Worker app, root Vitest config.
+- **TypeScript 7.0.2** is the stable `latest` release. `tsc -b` with project references and declaration emit works; full spike build ≈ 0.2 s. No JS compiler API → rules out typescript-eslint (peer `typescript <6.1.0`) and API-based d.ts bundlers.
+- **`nodenext` + `.ts` import specifiers** with `allowImportingTsExtensions` + `rewriteRelativeImportExtensions` emit `.js` specifiers; built packages import from plain Node 24 ESM; deep imports fail with `ERR_PACKAGE_PATH_NOT_EXPORTED`. This deliberately replaces the `moduleResolution: "Bundler"` example in architecture §37 (reason in ADR 0001).
+- **Tests inside `src/` leak into `dist/`** unless build tsconfigs exclude them → separate `tsconfig.test.json` per package (ADR 0001 §5).
+- **Vitest 5.0.1 is latest, but `@cloudflare/vitest-pool-workers@0.22.0` peers on `vitest ^4.1.0`** → pin Vitest 4.1.x. The pool's new API is a Vite plugin: `plugins: [cloudflareTest({ wrangler: { configPath } })]`; Worker tests use `import { exports } from 'cloudflare:workers'`.
+- **The pool bundles its own `workerd`** (Miniflare `5.20260815.0-alpha`): a `compatibility_date` of 2026-09-01 failed ("newest date supported … 2026-08-22"); 2026-08-15 passed. Rule: `compatibility_date` ≤ pool runtime; bump Wrangler, pool, and date together (ADR 0002).
+- **Wrangler 4.137** bundled a Worker importing a built workspace package (`--dry-run` OK); `wrangler types` output type-checks under TS 7.
+- **Biome 2.5.14** caught deep imports (`noRestrictedImports`), `node:fs` (`noNodejsModules`), and floating promises (`nursery/noFloatingPromises`). It did **not** catch relative imports escaping a package or cross-package cycles → small custom checker in `tooling/boundaries` (ADR 0003, implemented in 001.005).
+- **dependency-cruiser 18.4** ran but needs a rules config and relies on the `typescript` package API for TS parsing; not adopted.
+- **pnpm 12 changes found during the spike:** `onlyBuiltDependencies` is replaced by the `allowBuilds` map (fixed in `pnpm-workspace.yaml` in this PR; note added to 001.001); `pnpm approve-builds <pkg> -y` writes it. pnpm 12 also applies a minimum release age to freshly published versions and records exceptions in `minimumReleaseAgeExclude` (seen for `wrangler@4.137.0`).
+- ROADMAP decision D1 marked resolved; docs (`monorepo.md`, `code-standards.md`) and task 001.003 updated to the ADRs.

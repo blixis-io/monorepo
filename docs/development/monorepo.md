@@ -61,19 +61,23 @@ packages:
 
 # Shared dependency versions — referenced as "catalog:" in package.json files
 catalog:
-  typescript: <7.x — pinned by ADR 0001>
-  hono: <x.y.z>
-  wrangler: <x.y.z>
-  vitest: <x.y.z>
-  "@cloudflare/vitest-pool-workers": <x.y.z>
+  typescript: 7.0.2                          # ADR 0001
+  vitest: 4.1.11                             # ADR 0002 (capped by the Workers pool peer range)
+  "@cloudflare/vitest-pool-workers": 0.22.0  # ADR 0002
+  "@biomejs/biome": 2.5.14                   # ADR 0003
+  wrangler: <x.y.z>                          # plan 004
+  hono: <x.y.z>                              # plan 003
 
-# pnpm ≥ 10 blocks dependency lifecycle scripts by default; allow-list only what needs them
-onlyBuiltDependencies:
-  - esbuild
-  - workerd
+engineStrict: true
+autoInstallPeers: false
+
+# pnpm 12 blocks dependency lifecycle scripts by default; allow-list what needs them
+allowBuilds:
+  esbuild: true
+  workerd: true
 ```
 
-Exact versions are filled in by task 001.001/001.002. Keep `onlyBuiltDependencies` minimal and justified.
+Versions verified in the 001.002 spike (2026-09-24); entries are added to the real file by the task that first uses each tool. Keep `allowBuilds` minimal and justified. pnpm 12 also enforces a minimum release age for freshly published versions; exceptions appear under `minimumReleaseAgeExclude`.
 
 ## Root `package.json`
 
@@ -86,11 +90,11 @@ Exact versions are filled in by task 001.001/001.002. Keep `onlyBuiltDependencie
   "engines": { "node": ">=<active LTS>" },
   "scripts": {
     "build": "pnpm -r --workspace-concurrency=4 build",
-    "typecheck": "tsc -b",                       // TS7 CLI per ADR 0001
-    "lint": "<linter> && pnpm boundaries",
-    "format": "<formatter> --write .",
-    "format:check": "<formatter> --check .",
-    "test": "vitest run",
+    "typecheck": "tsc -b && pnpm -r --if-present typecheck:tests",  // ADR 0001
+    "lint": "biome lint . && pnpm boundaries",                       // ADR 0003
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "test": "tsc -b && vitest run",                                  // ADR 0002
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "db:migrate": "pnpm --filter @blixis/db-tooling migrate",
@@ -107,7 +111,7 @@ Exact versions are filled in by task 001.001/001.002. Keep `onlyBuiltDependencie
 - Reference workspace packages with `"workspace:*"` in `dependencies` / `peerDependencies`.
 - Reference shared third-party versions with `"catalog:"`.
 - Import other packages only by name (`@blixis/kernel`), never by relative path.
-- Whether workspace consumers resolve package `src` or built `dist` is decided in ADR 0001 (task 001.002).
+- Workspace consumers resolve built `dist/` through the package `exports` map, exactly like external consumers ([ADR 0001](../decisions/0001-typescript-7-build-strategy.md)); `tsc -b` builds dependencies first. Keep `tsc -b --watch` running during development.
 
 ## Dependency versions
 
