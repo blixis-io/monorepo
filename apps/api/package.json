@@ -16,6 +16,7 @@
     "@blixis/cloudflare": "workspace:*",
     "@blixis/contracts": "workspace:*",
     "@blixis/kernel": "workspace:*",
+    "@sentry/cloudflare": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

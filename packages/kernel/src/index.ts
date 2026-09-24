@@ -31,6 +31,7 @@ export {
   serviceOverride,
 } from './create-blixis.ts'
 export { defineModule } from './define-module.ts'
+export type { ErrorReportContext, ErrorReporter } from './error-reporter.ts'
 export { type ModuleProblem, ModuleValidationError } from './errors.ts'
 export type { BlixisHonoEnv } from './hono-env.ts'
 export { httpStatusFor, type ProblemDetails, toProblemResponse } from './internal/errors-http.ts'

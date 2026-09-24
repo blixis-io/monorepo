@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -43,28 +43,36 @@ Sentry is the chosen alerting and error-tracking destination (decided 2026-09-24
 ### Create
 
 ```text
-packages/kernel/src/error-reporter.ts
-packages/kernel/src/error-reporter.test.ts
 apps/api/src/sentry.ts
-apps/api/test/error-reporting.worker.test.ts
+apps/api/test/sentry.worker.test.ts
+packages/kernel/src/error-reporter.ts
 ```
 
 ### Modify
 
 ```text
-packages/kernel/src/internal/rest.ts
-packages/kernel/src/create-blixis.ts
-packages/kernel/src/index.ts
-packages/cloudflare/src/worker-handler.ts
-apps/api/src/index.ts
-apps/api/src/env.ts
-apps/api/wrangler.jsonc
-apps/api/package.json
 apps/api/.dev.vars.example
+apps/api/package.json
+apps/api/src/env.ts
+apps/api/src/index.ts
+apps/api/worker-configuration.d.ts
+apps/api/wrangler.jsonc
+apps/docs/src/content/docs/concepts/errors.mdx
+docs/ROADMAP.md
+docs/kernel/README.md
 docs/operations/cloudflare.md
 docs/operations/configuration.md
 docs/operations/github-actions.md
+docs/plans/004-cloudflare-worker-runtime/007-sentry-error-monitoring.md
+docs/plans/004-cloudflare-worker-runtime/_index.md
+packages/cloudflare/src/worker-handler.test.ts
+packages/cloudflare/src/worker-handler.ts
+packages/kernel/src/create-blixis.ts
+packages/kernel/src/index.ts
+packages/kernel/src/internal/rest.test.ts
+packages/kernel/src/internal/rest.ts
 pnpm-lock.yaml
+pnpm-workspace.yaml
 ```
 
 ### Delete
@@ -90,10 +98,10 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] An unhandled error in a route produces one Sentry event with `environment`, `release`, `requestId`, and readable stack traces (source maps).
-- [ ] `ValidationError`/`NotFoundError` responses produce no Sentry event.
-- [ ] Redaction test proves no `authorization`/`cookie` values reach the reporter.
-- [ ] `modules/*` have no Sentry dependency (boundary check).
+- [x] An unhandled error in a route produces one Sentry event with `environment`, `release`, `requestId`, and readable stack traces (source maps).
+- [x] `ValidationError`/`NotFoundError` responses produce no Sentry event.
+- [x] Redaction test proves no `authorization`/`cookie` values reach the reporter.
+- [x] `modules/*` have no Sentry dependency (boundary check).
 
 ## Validation
 
@@ -105,16 +113,16 @@ pnpm --filter @blixis/api exec wrangler deploy --dry-run --env staging
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Sentry SDK version and required compatibility flag recorded in Technical notes.
-- [ ] Alert rules documented in `docs/operations/cloudflare.md#monitoring`.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Sentry SDK version and required compatibility flag recorded in Technical notes.
+- [x] Alert rules documented in `docs/operations/cloudflare.md#monitoring`.
 
 ## Completion conditions
 
@@ -131,4 +139,30 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **SDK:** `@sentry/cloudflare` 11.0.0. It requires the `nodejs_compat` flag (its only entry point needs `AsyncLocalStorage`). The flag is recorded in `wrangler.jsonc` and `docs/operations/cloudflare.md`. Bundle: ~254 KiB gzip, well under the 1024 KiB gate.
+- **v11 API change:** `sendDefaultPii` was removed and replaced by `dataCollection`. Configuration:
+  - `userInfo: false`, `cookies: false`, `httpBodies: []`;
+  - header deny-list, response headers off, token-like query params denied;
+  - `beforeSend` → `scrubEvent` as a second line of defence (tested).
+- **Two capture paths, no duplicates:**
+  - `withSentry` captures uncaught errors from `fetch`/`queue`/`scheduled` and flushes through `waitUntil`.
+  - The kernel `ErrorReporter` port captures errors that the REST layer turns into 5xx responses; those are handled, so `withSentry` never sees them.
+  - `createWorkerHandler({ errorReporter })` also reports invalid-environment `fetch` failures.
+  - Queue and cron failures rethrow, so `withSentry` reports them.
+- **Deviation from spec:** the port has no `flush()` because `withSentry` already flushes in the background.
+- **`release`:** the SDK reads `SENTRY_RELEASE` first, then the `CF_VERSION_METADATA` binding (added to every environment). Every deploy therefore has a release: the version id on staging, and `blixis-api@vX.Y.Z` once the release job sets `SENTRY_RELEASE` (021.001). The `BLIXIS_VERSION` var is not needed for Sentry.
+- **Verification (2026-09-24):**
+  - Ran `wrangler dev` locally with the DSN passed via `--var` and a temporary module whose `boot` throws (reverted before commit).
+  - Result: issue `BLIXIS-API-1` with `environment=local`, tags `requestId`/`method`/`status`/`route`, the cause chain, and one event (no duplicate).
+  - The issue was then resolved.
+- **Finding:** Sentry's server infers the client IP for JavaScript-platform events even when the SDK sends no user data. The event stored the IP and geo. Fix: the project setting *Prevent Storing of IP Addresses* (owner action in the Sentry UI; the MCP has no tool for it). The setting is documented in the setup checklist and `cloudflare.md`.
+- **Source maps:**
+  - `upload_source_maps: true` sends maps to Cloudflare.
+  - The bundle is unminified, so Sentry frames are readable (bundle file and line).
+  - Mapping to `src/` requires `sentry-cli sourcemaps upload` in the release job with `SENTRY_AUTH_TOKEN`. The step is documented in `github-actions.md`/`cloudflare.md` and wired by 021.001.
+- **Alert rules:**
+  - Sentry's default "high priority issues" rule is active and fired for the verification error.
+  - The environment-specific rules (new production issue; staging spike) are documented and are created in the UI when production goes live (020.002). The MCP can read alert rules but not create them.
+- **Files that differ from the plan:**
+  - Tests went into existing files (`rest.test.ts`, `worker-handler.test.ts`) plus `apps/api/test/sentry.worker.test.ts`, instead of `error-reporter.test.ts` / `error-reporting.worker.test.ts`.
+  - `pnpm-workspace.yaml` gained the catalog entry.

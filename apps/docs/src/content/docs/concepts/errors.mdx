@@ -42,7 +42,7 @@ Every error response uses [RFC 9457 problem details](https://www.rfc-editor.org/
 - `code` is the stable, machine-readable value — branch on it, not on `title` or `detail`.
 - `requestId` matches the `x-request-id` response header; include it in bug reports.
 - `RateLimitError` adds a `Retry-After` header.
-- Server errors (500/503) always carry a generic `detail`; the real cause is only in the logs.
+- Server errors (500/503) always carry a generic `detail`. The real cause goes only to the logs and to the app's [`ErrorReporter`](/api/kernel/interfaces/errorreporter/) (Sentry in the API Worker). The report is tagged with request id, correlation id, route, actor type, space, and module. 4xx errors are never reported.
 
 ## Throwing
 

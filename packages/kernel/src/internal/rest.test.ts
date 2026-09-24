@@ -268,3 +268,55 @@ describe('health', () => {
     })
   })
 })
+
+describe('error reporting', () => {
+  it('reports unexpected 5xx errors with trace context, never 4xx', async () => {
+    const reports: { error: unknown; context: Record<string, unknown> }[] = []
+    const routes = new Hono<ModuleHonoEnv>()
+      .get('/boom', () => {
+        throw new Error('database exploded')
+      })
+      .get('/missing', () => {
+        throw new NotFoundError('nope')
+      })
+      .get('/module', () => {
+        throw new ModuleError('@acme/x', 'broken')
+      })
+    const { app } = appWith(routes, {
+      errorReporter: {
+        captureException: (error: unknown, context: Record<string, unknown>) =>
+          void reports.push({ error, context }),
+      },
+    })
+    await app.fetch(new Request('http://x/api/v1/things/missing'))
+    const res = await app.fetch(
+      new Request('http://x/api/v1/things/boom', { headers: { 'x-correlation-id': 'c-9' } }),
+    )
+    expect(res.status).toBe(500)
+    expect(reports).toHaveLength(1)
+    expect(reports[0]?.error).toEqual(new Error('database exploded'))
+    expect(reports[0]?.context).toMatchObject({
+      correlationId: 'c-9',
+      method: 'GET',
+      route: '/api/v1/things/boom',
+      status: 500,
+      actorType: 'anonymous',
+    })
+    await app.fetch(new Request('http://x/api/v1/things/module'))
+    expect(reports[1]?.context).toMatchObject({ module: '@acme/x', status: 500 })
+  })
+
+  it('never lets a failing reporter break the response', async () => {
+    const routes = new Hono<ModuleHonoEnv>().get('/boom', () => {
+      throw new Error('x')
+    })
+    const { app } = appWith(routes, {
+      errorReporter: {
+        captureException: () => {
+          throw new Error('reporter down')
+        },
+      },
+    })
+    expect((await app.fetch(new Request('http://x/api/v1/things/boom'))).status).toBe(500)
+  })
+})

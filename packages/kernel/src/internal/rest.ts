@@ -3,11 +3,13 @@ import {
   ANONYMOUS_ACTOR,
   type BlixisModule,
   type Logger,
+  ModuleError,
   NotFoundError,
   type RequestContext,
   type ServiceRegistry,
 } from '@blixis/contracts'
 import type { Hono } from 'hono'
+import type { ErrorReporter } from '../error-reporter.ts'
 import { type ModuleProblem, ModuleValidationError } from '../errors.ts'
 import type { BlixisHonoEnv } from '../hono-env.ts'
 import { toProblemResponse } from './errors-http.ts'
@@ -32,6 +34,8 @@ export interface RestOptions {
   readonly actorResolver?: ActorResolver
   /** Accept an incoming `x-request-id` header (only behind a trusted proxy). Default `false`. */
   readonly trustRequestIdHeader?: boolean
+  /** Receives unexpected (5xx) errors, e.g. for Sentry. */
+  readonly errorReporter?: ErrorReporter
 }
 
 function joinPath(prefix: string, path: string): string {
@@ -157,6 +161,21 @@ export function installRest(
     const response = toProblemResponse(error, requestId)
     if (response.status >= 500) {
       const context = c.get('requestContext') as RequestContext | undefined
+      try {
+        options.errorReporter?.captureException(error, {
+          requestId,
+          ...(context === undefined
+            ? {}
+            : { correlationId: context.correlationId, actorType: context.actor.type }),
+          ...(context?.tenant.spaceId === undefined ? {} : { spaceId: context.tenant.spaceId }),
+          ...(error instanceof ModuleError ? { module: error.moduleName } : {}),
+          method: c.req.method,
+          route: c.req.routePath,
+          status: response.status,
+        })
+      } catch {
+        // Error reporting must never break the response.
+      }
       ;(context?.logger ?? options.logger).error('request failed', {
         requestId,
         status: response.status,

@@ -149,10 +149,17 @@ jobs:
       - run: pnpm build
       - run: pnpm db:migrate
         env: { DATABASE_URL: '${{ secrets.DATABASE_URL }}' }
-      - run: pnpm --filter @blixis/api exec wrangler deploy --env production --var BLIXIS_VERSION:${{ env.TAG }}
+      - run: >-
+          pnpm --filter @blixis/api exec wrangler deploy --env production --outdir dist
+          --var BLIXIS_VERSION:${{ env.TAG }} --var SENTRY_RELEASE:blixis-api@${{ env.TAG }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      - run: >-
+          pnpm dlx @sentry/cli sourcemaps upload --org ${{ vars.SENTRY_ORG }}
+          --project ${{ vars.SENTRY_PROJECT }} --release blixis-api@${{ env.TAG }}
+          --strip-prefix apps/api/dist apps/api/dist
+        env: { SENTRY_AUTH_TOKEN: '${{ secrets.SENTRY_AUTH_TOKEN }}', SENTRY_URL: https://de.sentry.io }
       - run: pnpm smoke --base-url ${{ vars.API_URL }} --read-only
 ```
 
@@ -172,7 +179,7 @@ Configured per GitHub **environment** so staging jobs can never read production 
 | `NEON_API_KEY` | secret (repo) | — | — | preview branches (021.002) |
 | `SENTRY_AUTH_TOKEN` | secret (repo) | — | — | source-map upload + release creation (004.007, 021.001) |
 | `SENTRY_ORG` | variable (repo) | `private-m57` | `private-m57` | Sentry CLI |
-| `SENTRY_PROJECT` | variable (repo) | API project slug | API project slug | Sentry CLI |
+| `SENTRY_PROJECT` | variable (repo) | `blixis-api` | `blixis-api` | Sentry CLI |
 
 Pull-request workflows use no secrets (forks and Dependabot PRs cannot access them anyway). The repository is public, so this rule is essential.
 

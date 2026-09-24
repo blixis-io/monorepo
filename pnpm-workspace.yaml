@@ -38,6 +38,7 @@ catalog:
   "@astrojs/starlight": 0.42.3
   wrangler: 4.137.0
   "@cloudflare/workers-types": 5.20260924.1
+  "@sentry/cloudflare": 11.0.0
 
 minimumReleaseAgeExclude:
   - hono@4.13.9

@@ -20,6 +20,7 @@ import {
   KERNEL_CONTRIBUTIONS,
   type KernelContributions,
 } from './contributions.ts'
+import type { ErrorReporter } from './error-reporter.ts'
 import { ModuleValidationError } from './errors.ts'
 import type { BlixisHonoEnv } from './hono-env.ts'
 import { validateModuleConfigs } from './internal/config.ts'
@@ -49,6 +50,8 @@ export interface CreateBlixisOptions {
    * registration of that token is skipped.
    */
   readonly overrides?: readonly ServiceOverride[]
+  /** Receives unexpected (5xx) errors of HTTP requests, e.g. for Sentry. */
+  readonly errorReporter?: ErrorReporter
 }
 
 /**
@@ -210,6 +213,7 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
     ...(options.trustRequestIdHeader === undefined
       ? {}
       : { trustRequestIdHeader: options.trustRequestIdHeader }),
+    ...(options.errorReporter === undefined ? {} : { errorReporter: options.errorReporter }),
   })
 
   const runInScope = async <T>(
