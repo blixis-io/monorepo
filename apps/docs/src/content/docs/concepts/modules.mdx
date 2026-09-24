@@ -67,7 +67,15 @@ It freezes the returned module and registers nothing globally. Third-party modul
 define → validate → setup (register) → boot (lazy) → ready
 ```
 
-- **Validate:** the kernel checks the whole module graph — duplicate names, versions, missing packages or capabilities, route and service conflicts, invalid configuration. Errors name the offending module.
+- **Validate:** the kernel checks the whole module graph — duplicate names, versions, missing packages or capabilities, route and service conflicts, invalid configuration. It throws one [`ModuleValidationError`](/api/kernel/classes/modulevalidationerror/) listing **every** problem, each prefixed with the module name:
+
+  ```text
+  Invalid module configuration (2 problem(s)):
+    - [@acme/blixis-seo] requires capability blixis.content, which no registered module provides
+    - [@acme/blixis-seo] requires @blixis/kernel@^2.0.0, but 1.4.0 is registered
+  ```
+
+  Modules are then set up in dependency order: required packages and capability providers first, otherwise in the order you registered them.
 - **`setup`** receives a [`ModuleSetupContext`](/api/contracts/interfaces/modulesetupcontext/) with `config`, `services` (provide + get), `logger`, and `meta`.
 - **`boot`** receives a [`ModuleBootContext`](/api/contracts/interfaces/modulebootcontext/) with read-only `services`, `logger`, and all registered `modules`.
 
