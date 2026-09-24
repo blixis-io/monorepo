@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -43,12 +43,13 @@ docs/decisions/0018-api-reference-generator.md
 ### Modify
 
 ```text
-apps/docs/package.json
+apps/docs/package.json (typedoc, typedoc-plugin-markdown, starlight-typedoc, typescript 6.0.3)
 apps/docs/astro.config.mjs
-.gitignore
-biome.json
+.gitignore (generated reference)
 docs/decisions/README.md
 pnpm-lock.yaml
+docs/ROADMAP.md
+docs/plans/023-developer-documentation-site/_index.md
 ```
 
 ### Delete
@@ -72,9 +73,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] The built site contains reference pages for every public export of `@blixis/contracts`.
-- [ ] `pnpm typecheck` at the root still uses TypeScript 7 (`tsc --version`).
-- [ ] Removing an export's TSDoc changes the generated page (verified once, reverted).
+- [x] The built site contains reference pages for every public export of `@blixis/contracts`.
+- [x] `pnpm typecheck` at the root still uses TypeScript 7 (`tsc --version`).
+- [x] Removing an export's TSDoc changes the generated page (verified once, reverted).
 
 ## Validation
 
@@ -85,15 +86,15 @@ pnpm exec tsc --version
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] ADR 0018 lists the fallback if TypeDoc cannot parse future sources.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] ADR 0018 lists the fallback if TypeDoc cannot parse future sources.
 
 ## Completion conditions
 
@@ -110,4 +111,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Generator:** TypeDoc 0.28.20 + typedoc-plugin-markdown 4.13.1 via starlight-typedoc 0.23.1, configured in `astro.config.mjs` (`entryPoints: packages/contracts/src/index.ts`, package tsconfig, output `api/contracts`, `excludeInternal`/`excludePrivate`, sort by kind then name). Sidebar: *API reference → @blixis/contracts* via `typeDocSidebarGroup`.
+- **TypeScript isolation verified:** TypeDoc resolves `typescript` 6.0.3 from `apps/docs`; the root still uses 7.0.2 (`tsc --version`). TS 6 parsed the TS 7-configured sources without warnings.
+- **Coverage:** 9 classes, 15 functions, 3 variables, 40 interfaces, 18 type aliases, plus the `StandardSchemaV1` namespace — matches the 27 runtime exports and all type exports.
+- **Drift check:** removing the TSDoc of `isCapabilityId` removed the text from the generated page on the next build; restoring it brought it back.
+- `@internal` members (e.g. the service token phantom field) are excluded via `excludeInternal`.
+- Generated Markdown (`apps/docs/src/content/docs/api/`) is git-ignored; Biome does not lint Markdown, so no Biome change was needed (task listed `biome.json`).
+- ADR numbered **0018** because 0005–0017 are reserved by roadmap tasks; the decisions index notes the reservation.

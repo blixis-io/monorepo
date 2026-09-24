@@ -40,3 +40,4 @@ Thumbs.db
 
 # Astro / Starlight
 .astro/
+apps/docs/src/content/docs/api/
