@@ -84,7 +84,7 @@ tsconfig.json
 ### Delete
 
 ```text
-None.
+packages/database/src/ids.test.ts (moved to packages/shared/src/ids.test.ts)
 ```
 
 ## Implementation steps

@@ -11,7 +11,18 @@ export {
   type EventTransport,
   type PublishContext,
 } from './bus.ts'
+export {
+  type DispatchOptions,
+  type DispatchResult,
+  dispatchEnvelope,
+  matches,
+} from './dispatch.ts'
 export { actorIdOf, createEnvelope, type EnvelopeContext, parseEnvelope } from './envelope.ts'
+export {
+  type InProcessMode,
+  type InProcessTransport,
+  inProcessTransport,
+} from './in-process.ts'
 export { assertJsonValue } from './json.ts'
 export { EVENT_REGISTRY, type EventsModuleOptions, eventsModule } from './module.ts'
 export { EventRegistry } from './registry.ts'

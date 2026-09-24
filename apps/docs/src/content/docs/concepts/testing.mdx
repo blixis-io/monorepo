@@ -105,6 +105,17 @@ describe.skipIf(!databaseTestsEnabled())('notes', () => {
 
 Database tests run when `BLIXIS_TEST_DATABASE_URL` points at a Postgres server. Locally, run `docker compose up -d postgres` and then `pnpm test:db`. In CI they always run.
 
-## What is not covered yet
+## Events
 
-Event assertions (`captureEvents`) arrive with the events package.
+[`captureEvents()`](/api/testing/functions/captureevents/) records every emitted event and delivers it to subscribers in-process, through the same dispatch path as the queue consumer: payload re-validation, one scope per handler, and isolated failures.
+
+```ts
+import { captureEvents, createTestBlixis } from '@blixis/testing'
+
+const events = captureEvents({ mode: 'deferred' })   // or 'immediate' (default)
+const t = await createTestBlixis({ modules: [events.module(), notesModule(), searchModule()] })
+
+await t.request('/api/v1/notes', { method: 'POST', json: { body: 'hi' } })
+events.expectEvent('note.created', (e) => e.payload.body === 'hi')
+await events.flush()   // deferred: deliver now, as after commit — including events handlers emit
+```

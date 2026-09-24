@@ -78,3 +78,6 @@ Events are delivered **at least once**. A retry or redelivery must not repeat si
 - [`EventHandlerContext`](/api/contracts/interfaces/eventhandlercontext/) gives you `attempt`, `logger`, and request-scoped `services`.
 - Subscription `id`s must be unique within your module; duplicates fail startup.
 - Pass `{ versions: [1, 2] }` to `subscribe` when a handler accepts several payload versions.
+- **Each handler runs in its own request scope.** The actor is `system` (on behalf of the original actor), and the scope carries the event's correlation ID and tenant. Handlers never share a database connection or transaction with the emitter or with each other.
+- **Failures are isolated:** a failing handler is logged and retried, and never blocks other subscribers of the same event.
+- **The payload is validated again on receipt**, because queue messages are untrusted. An envelope with an unknown type or version, or an invalid payload, reaches no handler.

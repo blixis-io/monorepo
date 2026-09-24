@@ -460,6 +460,9 @@ importers:
       '@blixis/database':
         specifier: workspace:*
         version: link:../database
+      '@blixis/events':
+        specifier: workspace:*
+        version: link:../events
       '@blixis/kernel':
         specifier: workspace:*
         version: link:../kernel

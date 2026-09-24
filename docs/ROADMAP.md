@@ -59,7 +59,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `completed` | 8/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `completed` | 7/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `completed` | 8/8 | 004 |
-| [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `in-progress` | 1/7 | 005 |
+| [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `in-progress` | 2/7 | 005 |
 | [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `not-started` | 0/6 | 006 |
 | [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `not-started` | 0/6 | 007 |
 | [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `not-started` | 0/5 | 008 |
@@ -223,14 +223,14 @@ Selects the Postgres driver/query layer/migration tooling (ADR), builds `@blixis
 
 #### 006 — Events & Async Processing
 
-Status: `in-progress` · Progress: 1/7 · Scope: MVP  
+Status: `in-progress` · Progress: 2/7 · Scope: MVP  
 Plan: [006-events-and-async-processing/_index.md](./plans/006-events-and-async-processing/_index.md)  
 Depends on: [005 — Database Foundation](./plans/005-database-foundation/_index.md)
 
 Builds `@blixis/events` (event registry, in-process bus, transactional outbox, idempotent consumer wrapper, command idempotency keys) and the Cloudflare Queue producer/consumer adapters in `@blixis/cloudflare`, ending with an end-to-end test proving at-least-once delivery is processed exactly once.
 
 - [x] [006.001 — Scaffold @blixis/events with the event definition registry](./plans/006-events-and-async-processing/001-scaffold-events-package-and-registry.md)
-- [ ] [006.002 — Implement the in-process event bus](./plans/006-events-and-async-processing/002-in-process-event-bus.md)
+- [x] [006.002 — Implement the in-process event bus](./plans/006-events-and-async-processing/002-in-process-event-bus.md)
 - [ ] [006.003 — Implement the Cloudflare Queue producer adapter](./plans/006-events-and-async-processing/003-cloudflare-queue-producer-adapter.md)
 - [ ] [006.004 — Implement queue consumer dispatch to module subscriptions](./plans/006-events-and-async-processing/004-queue-consumer-dispatch.md)
 - [ ] [006.005 — Implement the transactional outbox and dispatcher](./plans/006-events-and-async-processing/005-transactional-outbox.md)
