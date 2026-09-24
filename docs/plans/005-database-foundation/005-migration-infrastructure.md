@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -43,25 +43,33 @@ Implement migration execution for migrations contributed by modules (via the ker
 ### Create
 
 ```text
-packages/database/src/migrations/plan.ts
-packages/database/src/migrations/apply.ts
-packages/database/src/migrations/tracking.sql (or equivalent in code)
-packages/database/src/migrations/migrations.test.ts
-tooling/db/package.json
-tooling/db/tsconfig.json
-tooling/db/src/cli.ts
 docs/conventions/migrations.md
+packages/database/src/migrations/index.ts
+packages/database/src/migrations/plan.test.ts
+packages/database/src/migrations/plan.ts
+packages/database/src/migrations/run.test.ts
+packages/database/src/migrations/run.ts
+tooling/db/package.json
+tooling/db/src/cli.ts
+tooling/db/src/load.ts
+tooling/db/src/scaffold.test.ts
+tooling/db/src/scaffold.ts
+tooling/db/tsconfig.json
 ```
 
 ### Modify
 
 ```text
-packages/database/src/index.ts
-packages/database/package.json
-packages/kernel/src/create-blixis.ts (contributions-only mode, if needed)
+README.md
+apps/docs/src/content/docs/concepts/database.mdx
+docs/ROADMAP.md
+docs/operations/database.md
+docs/plans/005-database-foundation/005-migration-infrastructure.md
+docs/plans/005-database-foundation/_index.md
 package.json
-tsconfig.json
+packages/database/package.json
 pnpm-lock.yaml
+tsconfig.json
 ```
 
 ### Delete
@@ -86,9 +94,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `pnpm db:migrate` applies fixture migrations in module order; second run applies nothing.
-- [ ] Editing an applied migration causes `db:status`/`db:migrate` to fail with the module and migration ID.
-- [ ] Two concurrent `db:migrate` runs do not both apply migrations.
+- [x] `pnpm db:migrate` applies fixture migrations in module order; second run applies nothing.
+- [x] Editing an applied migration causes `db:status`/`db:migrate` to fail with the module and migration ID.
+- [x] Two concurrent `db:migrate` runs do not both apply migrations.
 
 ## Validation
 
@@ -101,15 +109,15 @@ pnpm --filter @blixis/database test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Expand/contract policy documented for zero-downtime deploys.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Expand/contract policy documented for zero-downtime deploys.
 
 ## Completion conditions
 
@@ -126,4 +134,25 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **No kernel change needed:** `createBlixis({ modules }).contributions.migrations` already returns module-attributed migrations in bootstrap order, synchronously, after graph validation and contribution checks (id format, duplicates). No `setup`/`boot` runs, and no bindings are needed. So there is no "contributions-only" mode.
+- **Runner on raw `pg.Client` (not Drizzle):**
+  - one dedicated direct connection, holding a session `pg_try_advisory_lock(0x626c786d)` (fails fast rather than waits);
+  - `begin`/`commit` per migration with the tracking insert in the same transaction;
+  - `transactional: false` writes the tracking row after success;
+  - SQL scripts run through the simple query protocol (multi-statement allowed).
+- **Tracking table is `blixis.migrations`**, in its own schema, rather than `public.blixis_migrations`. The migrator role has `CREATE` on the database but not on `public` (005.003 revokes it), and a dedicated schema keeps it out of module schemas.
+  - Known gap: `blixis_app` receives default DML privileges on it too (from the migrator's default privileges). This is harmless for now; revisit in 008 (authz hardening) if needed.
+- **Checksums:** SHA-256 of SQL `up` via Web Crypto. Function migrations are recorded as `function` and not verified, because their compiled source isn't stable across builds.
+- **Blocking problems:** a changed applied SQL migration; a pending id lower than the module's latest applied id (append-only). Applied-but-undeclared migrations are reported as `unknown` (warning only).
+- **Error handling:** errors are translated (`translateDatabaseError`), and the CLI prints `message` plus the sanitized cause (driver message and SQLSTATE). Verified that a wrong password prints `28P01` without the URL.
+- **CLI (`tooling/db`):**
+  - runs with Node type stripping, like `tooling/boundaries`;
+  - loads the config through dynamic `import()` of a path (`--config`, default `apps/api/src/blixis.config.ts`), so there is no cross-package static import;
+  - resolves paths against `INIT_CWD`, because pnpm runs scripts from the root;
+  - `pnpm db:*` scripts are at the root (use `pnpm db:status`, not `pnpm -s`: pnpm 12 has no `-s`).
+- **Tests:**
+  - 6 `planMigrations` unit tests;
+  - 2 scaffold tests;
+  - 6 Postgres integration tests (module order, idempotent re-run, rollback of a failing migration including its tracking row, checksum block, non-transactional plus function migrations, lock contention), gated on `BLIXIS_TEST_DATABASE_URL`. They pass locally against Docker Postgres 18, and CI enables them in 005.006.
+  - Manual end-to-end: a fixture module with 2 migrations, then `db:migrate`, `db:status`, and a re-run → "up to date".
+- **Docs:** `docs/conventions/migrations.md` (rules, workflow with drizzle-kit, commands, runner internals), the manual's Migrations section, `database.md`, and the README.

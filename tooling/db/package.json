@@ -1,0 +1,24 @@
+{
+  "name": "@blixis/db-tooling",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Database CLI for Blixis: apply and inspect module migrations, scaffold new ones (Node, CI)",
+  "type": "module",
+  "bin": {
+    "blixis-db": "./src/cli.ts"
+  },
+  "scripts": {
+    "test": "vitest run --root ../.. tooling/db"
+  },
+  "dependencies": {
+    "@blixis/contracts": "workspace:*",
+    "@blixis/database": "workspace:*",
+    "@blixis/kernel": "workspace:*"
+  },
+  "devDependencies": {
+    "@blixis/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

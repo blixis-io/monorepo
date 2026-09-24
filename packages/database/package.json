@@ -1,13 +1,17 @@
 {
   "name": "@blixis/database",
   "version": "0.0.0",
-  "description": "Postgres access for Blixis on Workers + Hyperdrive: per-request Drizzle database service, error translation, and (later) transactions and migrations",
+  "description": "Postgres access for Blixis on Workers + Hyperdrive: per-request Drizzle database service, error translation, transactions, and module migrations",
   "type": "module",
   "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./migrations": {
+      "types": "./dist/migrations/index.d.ts",
+      "default": "./dist/migrations/index.js"
     }
   },
   "files": [

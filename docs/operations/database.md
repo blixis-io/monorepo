@@ -87,6 +87,10 @@ unset PW
 gh secret set DATABASE_URL --env staging --repo blixis-io/monorepo   # prompts for the value
 ```
 
+## Migrations
+
+`pnpm db:migrate` / `db:status` run as `blixis_migrator` with `DATABASE_URL`, the direct URL, never through Hyperdrive. They record applied migrations in `blixis.migrations`, and a session advisory lock prevents concurrent runs. Conventions: [Migrations](../conventions/migrations.md).
+
 ## Transactions on Hyperdrive
 
 Hyperdrive pools connections in **transaction mode**: between transactions, a Worker's connection may be handed to another client. So:
