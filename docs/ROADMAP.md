@@ -58,7 +58,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [023 — Developer Documentation Site](./plans/023-developer-documentation-site/_index.md) | M1 | MVP | `completed` | 4/4 | 002 |
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `completed` | 8/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `completed` | 7/7 | 003 |
-| [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `in-progress` | 6/8 | 004 |
+| [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `in-progress` | 7/8 | 004 |
 | [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `not-started` | 0/7 | 005 |
 | [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `not-started` | 0/6 | 006 |
 | [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `not-started` | 0/6 | 007 |
@@ -206,7 +206,7 @@ Creates `@blixis/cloudflare` (binding types, request-context helpers) and `apps/
 
 #### 005 — Database Foundation
 
-Status: `in-progress` · Progress: 6/8 · Scope: MVP  
+Status: `in-progress` · Progress: 7/8 · Scope: MVP  
 Plan: [005-database-foundation/_index.md](./plans/005-database-foundation/_index.md)  
 Depends on: [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md)
 
@@ -218,7 +218,7 @@ Selects the Postgres driver/query layer/migration tooling (ADR), builds `@blixis
 - [x] [005.004 — Implement transaction helpers](./plans/005-database-foundation/004-transactions-and-unit-of-work.md)
 - [x] [005.005 — Build the migration runner for module-owned migrations](./plans/005-database-foundation/005-migration-infrastructure.md)
 - [x] [005.006 — Implement the test database strategy](./plans/005-database-foundation/006-test-database-strategy.md)
-- [ ] [005.007 — Define ID, timestamp, tenancy, and cross-module schema conventions](./plans/005-database-foundation/007-ids-tenancy-and-schema-conventions.md)
+- [x] [005.007 — Define ID, timestamp, tenancy, and cross-module schema conventions](./plans/005-database-foundation/007-ids-tenancy-and-schema-conventions.md)
 - [ ] [005.008 — Add the database readiness vertical slice](./plans/005-database-foundation/008-database-readiness-vertical-slice.md)
 
 #### 006 — Events & Async Processing
@@ -568,7 +568,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | D5 | Service scopes on Workers (app vs. request) | [003.003](./plans/003-module-kernel/003-service-registry-and-scopes.md) | App singletons + request-scoped factories for I/O-holding services | **resolved 2026-09-24:** app + request scopes, synchronous factories, scopes created by transports ([ADR 0005](./decisions/0005-service-scopes.md)) |
 | D6 | Postgres driver, query builder/ORM, migration format | [005.001](./plans/005-database-foundation/001-select-database-stack.md) | **pg + Drizzle ORM; SQL-file migrations per module** ([ADR 0006](./decisions/0006-database-stack.md)) | decided |
 | D7 | Test database strategy | [005.006](./plans/005-database-foundation/006-test-database-strategy.md) | Docker Postgres locally and in CI; Neon branches for staging smoke | open |
-| D8 | IDs, tenancy columns, module schema namespacing, cross-module foreign keys | [005.007](./plans/005-database-foundation/007-ids-tenancy-and-schema-conventions.md) | UUIDv7; FKs only toward modules in `meta.requires` | open |
+| D8 | IDs, tenancy columns, module schema namespacing, cross-module foreign keys | [005.007](./plans/005-database-foundation/007-ids-tenancy-and-schema-conventions.md) | **UUIDv7 (plain, app-generated); tenant columns + fail-closed `tenantScope`; schema per module; FKs only toward `meta.requires`; no RLS in MVP** ([ADR 0007](./decisions/0007-ids-and-tenancy-conventions.md)) | decided |
 | D9 | Outbox dispatch trigger & retention | [006.005](./plans/006-events-and-async-processing/005-transactional-outbox.md) | Post-commit `waitUntil` dispatch + 1-minute cron sweep | open |
 | D10 | Authentication approach (library vs. custom, sessions, hashing on Workers, API tokens, CSRF) | [007.001](./plans/007-identity-and-authentication/001-select-authentication-approach.md) | Decide by spike; Postgres-backed opaque sessions | open |
 | D11 | Email delivery for invitations/password reset | [008.002](./plans/008-tenancy-organizations-and-spaces/002-memberships.md) (deferred) | Add existing users only in MVP | open |

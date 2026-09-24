@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -43,17 +43,23 @@ Record ADR 0007 defining primary key strategy, public ID format, timestamps, sof
 ### Create
 
 ```text
-docs/decisions/0007-ids-and-tenancy-conventions.md
 docs/conventions/database.md
-packages/database/src/ids.ts
+docs/decisions/0007-ids-and-tenancy-conventions.md
 packages/database/src/ids.test.ts
-packages/database/src/tenancy.ts
+packages/database/src/ids.ts
 packages/database/src/tenancy.test.ts
+packages/database/src/tenancy.ts
 ```
 
 ### Modify
 
 ```text
+README.md
+apps/docs/src/content/docs/concepts/database.mdx
+docs/ROADMAP.md
+docs/decisions/README.md
+docs/plans/005-database-foundation/007-ids-tenancy-and-schema-conventions.md
+docs/plans/005-database-foundation/_index.md
 packages/database/src/index.ts
 ```
 
@@ -77,9 +83,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] ADR 0007 accepted and answers every bullet.
-- [ ] `newId()` produces valid UUIDv7 values in Workers runtime (Workers-pool test or documented check).
-- [ ] Conventions doc includes a canonical tenant-scoped table example.
+- [x] ADR 0007 accepted and answers every bullet.
+- [x] `newId()` produces valid UUIDv7 values in Workers runtime (Workers-pool test or documented check).
+- [x] Conventions doc includes a canonical tenant-scoped table example.
 
 ## Validation
 
@@ -89,15 +95,15 @@ pnpm --filter @blixis/database test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Rules are enforceable in code review and tests (plan 008 adds isolation tests).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Rules are enforceable in code review and tests (plan 008 adds isolation tests).
 
 ## Completion conditions
 
@@ -114,4 +120,24 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **The owner chose plain UUIDv7** (no typed prefixes). Everything else follows the roadmap recommendations and is recorded in ADR 0007.
+- **`newId()`:** RFC 9562 method 1.
+  - 48-bit milliseconds, a 12-bit counter in `rand_a`, and 62 random bits from Web Crypto.
+  - When the millisecond changes, the counter restarts at a random value from 0 to 511, leaving room for 3.5k IDs in the same millisecond. On overflow, the timestamp is bumped by one.
+  - The clock never goes backwards (`lastMs` is kept).
+  - Tests cover 10,000 IDs under a frozen clock (as in Workers) and a clock moved backwards.
+  - No Web Crypto calls at module scope (Workers forbid them in global scope).
+- **Column helpers:**
+  - `idColumn()` is `uuid primary key` with `$defaultFn(newId)`: the app generates IDs, with no DB default.
+  - `timestamps()` gives `timestamptz` with `defaultNow()`; `updated_at` adds `$onUpdate`, which only applies through the query builder.
+  - `tenantColumns({ environment? })` gives `uuid not null` columns.
+- **`tenantScope`:**
+  - Its type (`TenantTable`, with all tenant keys optional) rejects tables without tenant columns at compile time (TS weak-type check), and it also throws at runtime.
+  - It throws `ForbiddenError` for any tenant column the tenant has no value for (fails closed).
+  - The SQL output is asserted with `PgDialect.sqlToQuery`.
+- **`requireTenant`** returns a narrowed type (`Required<Pick<TenantContext, K>>`) or throws `ForbiddenError` naming the missing keys.
+- **Docs:**
+  - ADR 0007 (and decision D8 in the ROADMAP marked as decided);
+  - `docs/conventions/database.md`: table declaration rules, always-scoped queries, deletes, cross-module rules, RLS;
+  - the manual section "IDs and tenancy";
+  - the README link.

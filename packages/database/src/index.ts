@@ -12,7 +12,9 @@ export {
   type Database,
 } from './create-database.ts'
 export { databaseErrorCode, isDatabaseError, translateDatabaseError } from './errors.ts'
+export { idColumn, idTimestamp, isId, newId, timestamps } from './ids.ts'
 export { DATABASE, type DatabaseModuleOptions, databaseModule } from './module.ts'
+export { requireTenant, type TenantTable, tenantColumns, tenantScope } from './tenancy.ts'
 export {
   fromTransactionScope,
   type RetryableTransactionOptions,

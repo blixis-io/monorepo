@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 3 — Persistence & event infrastructure  
 Roadmap scope: MVP / initial platform  
-Progress: 6/8 tasks completed
+Progress: 7/8 tasks completed
 
 ## Objective
 
@@ -68,7 +68,7 @@ Depends on:
 - [x] [004 — Implement transaction helpers](./004-transactions-and-unit-of-work.md)
 - [x] [005 — Build the migration runner for module-owned migrations](./005-migration-infrastructure.md)
 - [x] [006 — Implement the test database strategy](./006-test-database-strategy.md)
-- [ ] [007 — Define ID, timestamp, tenancy, and cross-module schema conventions](./007-ids-tenancy-and-schema-conventions.md)
+- [x] [007 — Define ID, timestamp, tenancy, and cross-module schema conventions](./007-ids-tenancy-and-schema-conventions.md)
 - [ ] [008 — Add the database readiness vertical slice](./008-database-readiness-vertical-slice.md)
 
 ## Completion criteria
