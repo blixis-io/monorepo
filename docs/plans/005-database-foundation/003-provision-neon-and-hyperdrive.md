@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -41,18 +41,27 @@ Create the Neon project and branches, Hyperdrive configurations for staging and 
 ```text
 docker-compose.yml
 docs/operations/database.md
+patches/pg-protocol@1.16.0.patch
 ```
 
 ### Modify
 
 ```text
-apps/api/wrangler.jsonc
-apps/api/src/env.ts
-apps/api/src/blixis.config.ts
-apps/api/.dev.vars.example
+README.md
 apps/api/package.json
-docs/operations/configuration.md
+apps/api/src/blixis.config.ts
+apps/api/src/env.ts
+apps/api/tsconfig.json
+apps/api/worker-configuration.d.ts
+apps/api/wrangler.jsonc
+docs/ROADMAP.md
 docs/operations/cloudflare.md
+docs/operations/configuration.md
+docs/plans/005-database-foundation/003-provision-neon-and-hyperdrive.md
+docs/plans/005-database-foundation/_index.md
+docs/setup-checklist.md
+pnpm-lock.yaml
+pnpm-workspace.yaml
 ```
 
 ### Delete
@@ -78,9 +87,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `wrangler dev` connects to local Postgres through the Hyperdrive binding (verified by a temporary query or by 005.008 once available).
-- [ ] Staging and production Hyperdrive IDs are configured in `wrangler.jsonc`.
-- [ ] `docs/operations/database.md` documents branches, roles, and secret locations.
+- [x] `wrangler dev` connects to local Postgres through the Hyperdrive binding (verified by a temporary query or by 005.008 once available).
+- [x] Staging and production Hyperdrive IDs are configured in `wrangler.jsonc`.
+- [x] `docs/operations/database.md` documents branches, roles, and secret locations.
 
 ## Validation
 
@@ -92,16 +101,16 @@ pnpm --filter @blixis/api exec wrangler hyperdrive list
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Least-privilege roles verified.
-- [ ] If account access is missing, set this task to `blocked` with a Blocker section instead of faking IDs.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Least-privilege roles verified.
+- [x] If account access is missing, set this task to `blocked` with a Blocker section instead of faking IDs.
 
 ## Completion conditions
 
@@ -118,4 +127,21 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Provisioned on 2026-09-24 by the owner, guided step by step** (credentials never passed through chat or the repo):
+  - Neon branches `production` (default) and `staging`.
+  - Roles `blixis_app` (DML) and `blixis_migrator` (DDL) on each branch.
+  - Hyperdrive `blixis-staging` / `blixis-production` (the app role on the direct host).
+  - GitHub environments `staging` / `production`, each with the secret `DATABASE_URL` (migrator).
+  - IDs and hosts are recorded in `docs/operations/database.md`.
+- **Pitfall found:** roles created in the Neon console are members of `neon_superuser`. The first attempt showed `superuser = t`. The roles were deleted and recreated with SQL, and the documented check query now returns `f`. The Neon SQL Editor's *Explain* button wraps statements in `EXPLAIN` and fails on DDL; use *Run*.
+- `wrangler hyperdrive create` offers to write the binding into `wrangler.jsonc`. It rewrote the whole file with tabs and put the binding at the top level (local scope). Answer "No" and add bindings per environment by hand.
+- **Direct host with `sslmode=require` only.** `channel_binding=require` (in Neon's default strings) was left out because Hyperdrive support is unconfirmed.
+- **Local development:** top-level `hyperdrive` has a placeholder id and a `localConnectionString` pointing at `docker-compose.yml` (`postgres:18-alpine`, blixis/blixis/blixis). `apiEnvSchema` checks that `HYPERDRIVE.connectionString` is present, shape only (no value in logs).
+- **`pg-protocol` 1.16.0 packaging bug:** `esm/index.js` is ESM without `"type": "module"`. The Vitest Workers pool resolves `require('pg-protocol')` with the `import` condition, so the file loads as CommonJS and throws a SyntaxError.
+  - Vite aliases, plugins, and `deps.optimizer` don't help: the pool's require fallback bypasses them, and optimizing `pg` fails on Node built-ins.
+  - The fix is a pnpm patch that adds `esm/package.json` `{"type":"module"}`, documented in `database.md`.
+- **Bundle:** the API Worker grew from 254 to 329 KiB gzip with `pg` and Drizzle, well under the 1024 KiB gate.
+- **Not yet verified:**
+  - A real query from staging through Hyperdrive. There is no DB route yet; the readiness endpoint 005.008 does this.
+  - Production role `superuser = f`. The owner ran the SQL script there too; a re-check is part of the 005.008 staging/production verification.
+  - Rotation of the `neondb_owner` password (still open on the checklist).

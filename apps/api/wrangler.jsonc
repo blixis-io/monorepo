@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   // Keep ≤ the runtime bundled with @cloudflare/vitest-pool-workers (ADR 0002).
   "compatibility_date": "2026-08-15",
-  // nodejs_compat: required by @sentry/cloudflare (AsyncLocalStorage); ADR 0004 / task 004.007.
+  // nodejs_compat: required by @sentry/cloudflare (AsyncLocalStorage, 004.007) and pg (ADR 0006).
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
   "upload_source_maps": true,
@@ -17,6 +17,15 @@
     "BLIXIS_ENV": "local",
     "LOG_LEVEL": "debug"
   },
+  // Local Postgres from docker-compose.yml (docs/operations/database.md). The id is unused locally;
+  // override the URL with CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE.
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "00000000000000000000000000000000",
+      "localConnectionString": "postgres://blixis:blixis@localhost:5432/blixis"
+    }
+  ],
 
   // Deployed environments. Vars and bindings are NOT inherited: declare everything per env.
   // Custom domains (api.staging.<domain>, api.<domain>) are added once the domain is decided.
@@ -31,7 +40,9 @@
         "LOG_LEVEL": "info",
         // Sentry project private-m57/blixis-api (a DSN is not a secret).
         "SENTRY_DSN": "https://ade334947d3608d7b3e28b18f68f0431@o4512140257918976.ingest.de.sentry.io/4512141485408336"
-      }
+      },
+      // Hyperdrive blixis-staging → Neon branch staging, role blixis_app (DML only).
+      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "2140b66bf63640059dc89b926d10ca3a" }]
     },
     "production": {
       // Worker name: blixis-api-production. No public URL until a custom domain exists.
@@ -42,7 +53,9 @@
         "BLIXIS_ENV": "production",
         "LOG_LEVEL": "info",
         "SENTRY_DSN": "https://ade334947d3608d7b3e28b18f68f0431@o4512140257918976.ingest.de.sentry.io/4512141485408336"
-      }
+      },
+      // Hyperdrive blixis-production → Neon branch production, role blixis_app (DML only).
+      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "01eefb16f5004d80addedcfe9e69f430" }]
     }
   }
 }

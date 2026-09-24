@@ -84,6 +84,12 @@ Covers resource naming, the `wrangler.jsonc` structure per environment, secrets,
 
 → [docs/operations/cloudflare.md](docs/operations/cloudflare.md)
 
+## Database
+
+Neon branches and roles, Hyperdrive, where connection strings live, local Postgres, rotation.
+
+→ [docs/operations/database.md](docs/operations/database.md)
+
 ## GitHub Actions
 
 Covers the workflows, shared setup, CI, release and deploy sketches, secrets and variables per environment, and workflow conventions.
