@@ -39,7 +39,27 @@ const seo: ModuleFactory<{ defaultTitle?: string }, { defaultTitle: string }> = 
 })
 ```
 
-Consumers always call the factory in the composition root: `modules: [content(), seo({ defaultTitle: 'x' })]`. `defineModule` from `@blixis/kernel` (*coming soon*) is a convenience with the same shape.
+Consumers always call the factory in the composition root: `modules: [content(), seo({ defaultTitle: 'x' })]`.
+
+### `defineModule`
+
+[`defineModule`](/api/kernel/functions/definemodule/) from `@blixis/kernel` is a convenience that always returns a factory and infers the types for you:
+
+```ts
+import { defineModule } from '@blixis/kernel'
+
+// Without options → content()
+export default defineModule({ meta: { name: '@blixis/content', version: '1.0.0' } })
+
+// With options → seo({ defaultTitle: 'Home' }); ctx.config is typed from configSchema
+export default defineModule((options: { defaultTitle?: string }) => ({
+  meta: { name: '@acme/blixis-seo', version: '1.0.0' },
+  config: options,
+  configSchema: SeoConfig,
+}))
+```
+
+It freezes the returned module and registers nothing globally. Third-party modules may use it (add `@blixis/kernel` as a peer dependency) or write the factory by hand against `@blixis/contracts` only.
 
 ## Lifecycle
 

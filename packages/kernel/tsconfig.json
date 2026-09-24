@@ -1,0 +1,4 @@
+{
+  "extends": "@blixis/tsconfig/library.json",
+  "references": [{ "path": "../contracts" }]
+}

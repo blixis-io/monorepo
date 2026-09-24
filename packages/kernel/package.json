@@ -1,0 +1,35 @@
+{
+  "name": "@blixis/kernel",
+  "version": "0.0.0",
+  "description": "Blixis module kernel: composes modules, validates the module graph, registers services, and mounts routes",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run --root ../.. packages/kernel"
+  },
+  "dependencies": {
+    "@blixis/contracts": "workspace:*",
+    "hono": "catalog:"
+  },
+  "devDependencies": {
+    "@blixis/tsconfig": "workspace:*",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "zod": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/kernel"
+  }
+}
