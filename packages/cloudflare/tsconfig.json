@@ -4,5 +4,5 @@
     // Cloudflare Workers runtime globals (Request, ExecutionContext, Queue, …).
     "types": ["@cloudflare/workers-types"]
   },
-  "references": [{ "path": "../contracts" }, { "path": "../kernel" }]
+  "references": [{ "path": "../contracts" }, { "path": "../kernel" }, { "path": "../events" }]
 }

@@ -231,7 +231,7 @@ Builds `@blixis/events` (event registry, in-process bus, transactional outbox, i
 
 - [x] [006.001 — Scaffold @blixis/events with the event definition registry](./plans/006-events-and-async-processing/001-scaffold-events-package-and-registry.md)
 - [x] [006.002 — Implement the in-process event bus](./plans/006-events-and-async-processing/002-in-process-event-bus.md)
-- [ ] [006.003 — Implement the Cloudflare Queue producer adapter](./plans/006-events-and-async-processing/003-cloudflare-queue-producer-adapter.md)
+- [~] [006.003 — Implement the Cloudflare Queue producer adapter](./plans/006-events-and-async-processing/003-cloudflare-queue-producer-adapter.md)
 - [ ] [006.004 — Implement queue consumer dispatch to module subscriptions](./plans/006-events-and-async-processing/004-queue-consumer-dispatch.md)
 - [ ] [006.005 — Implement the transactional outbox and dispatcher](./plans/006-events-and-async-processing/005-transactional-outbox.md)
 - [ ] [006.006 — Implement idempotent consumers and command idempotency keys](./plans/006-events-and-async-processing/006-idempotent-consumers-and-command-keys.md)

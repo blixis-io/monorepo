@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 ## Parent plan

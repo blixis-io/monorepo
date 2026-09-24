@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@blixis/contracts": "workspace:*",
+    "@blixis/events": "workspace:*",
     "@blixis/kernel": "workspace:*"
   },
   "peerDependencies": {

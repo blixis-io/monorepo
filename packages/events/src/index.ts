@@ -25,4 +25,10 @@ export {
 } from './in-process.ts'
 export { assertJsonValue } from './json.ts'
 export { EVENT_REGISTRY, type EventsModuleOptions, eventsModule } from './module.ts'
+export {
+  QUEUE_SENDER,
+  type QueueSender,
+  type QueueTransportOptions,
+  queueTransport,
+} from './queue.ts'
 export { EventRegistry } from './registry.ts'

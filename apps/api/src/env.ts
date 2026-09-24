@@ -7,6 +7,8 @@ export interface ApiEnv extends CloudflareEnvBase {
   readonly SENTRY_DSN?: string
   /** Hyperdrive binding to Neon (local: Docker Postgres). Read by `databaseModule()`. */
   readonly HYPERDRIVE: { readonly connectionString: string }
+  /** Events queue producer, used only through `@blixis/events` (§15). */
+  readonly EVENTS: { sendBatch(messages: Iterable<unknown>): Promise<unknown> }
 }
 
 /** Runtime validation of {@link ApiEnv}, applied on the first invocation by `createWorkerHandler`. */
@@ -17,6 +19,10 @@ export const apiEnvSchema = defineEnvSchema(
     SENTRY_DSN: z.url().optional(),
     // Shape check only; the connection string is never logged.
     HYPERDRIVE: z.looseObject({ connectionString: z.string().min(1) }),
+    EVENTS: z.custom<unknown>(
+      (value) => typeof (value as { sendBatch?: unknown } | null)?.sendBatch === 'function',
+      'must be a Queue producer binding',
+    ),
   }),
 )
 

@@ -21,11 +21,12 @@ Related: [Environments](./environments.md) · [Cloudflare Workers](./cloudflare.
 | `SENTRY_DSN` | var | no | unset (Sentry off) | project DSN | project DSN | Sentry ingest URL for `private-m57/blixis-api`. Not a secret. Unset = no events |
 | `SENTRY_RELEASE` | var | no | unset | unset | `blixis-api@<version>` (set by the deploy job) | Sentry release. Unset = the `CF_VERSION_METADATA` version id |
 | `HYPERDRIVE` | binding (Hyperdrive) | yes | Docker Postgres (`localConnectionString`) | `blixis-staging` | `blixis-production` | Postgres via Hyperdrive, read by `databaseModule()`. See [Database](./database.md) |
+| `EVENTS` | binding (Queue producer) | yes | `blixis-events-local` (simulated) | `blixis-events-staging` | `blixis-events-production` | Events queue. Used only through `@blixis/events` (`eventsQueueModule()` → `QUEUE_SENDER`), never directly (§15) |
 | `CF_VERSION_METADATA` | binding (version metadata) | — | ✓ | ✓ | ✓ | Id/tag of the running Worker version; the release fallback |
 
 Staging and production values are set in `env.staging` / `env.production` of `wrangler.jsonc` (task 004.006). Secrets are set with `wrangler secret put <NAME> --env <env>` and locally in `apps/api/.dev.vars` (git-ignored).
 
-Planned additions: `EVENTS` queue (006), `CACHE_KV` (013), `ASSETS` R2 bucket (014), workflow bindings (016).
+Planned additions: `CACHE_KV` (013), `ASSETS` R2 bucket (014), workflow bindings (016).
 
 ## Docs Worker (`apps/docs`)
 
