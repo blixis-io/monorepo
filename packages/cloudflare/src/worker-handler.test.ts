@@ -44,3 +44,50 @@ describe('createWorkerHandler', () => {
     expect(seen).toEqual(['queue:1', 'cron:* * * * *'])
   })
 })
+
+describe('createWorkerHandler env validation', () => {
+  it('rejects invalid env with a redacted 500, retries queue batches, and validates once per env', async () => {
+    const { z } = await import('zod')
+    z.config({ jitless: true })
+    const lines: string[] = []
+    const { createJsonLogger } = await import('@blixis/kernel')
+    let parses = 0
+    const schema = z
+      .object({ BLIXIS_ENV: z.enum(['local', 'staging']), SECRET: z.string().min(20) })
+      .transform((v) => {
+        parses++
+        return v
+      })
+    const app = createBlixis({
+      modules: [],
+      logger: createJsonLogger({ write: (_l, line) => void lines.push(line) }),
+    })
+    const handler = createWorkerHandler<Record<string, unknown>>(app, { envSchema: schema })
+
+    const badEnv = { BLIXIS_ENV: 'prod', SECRET: 'too-short-secret' }
+    const res = await handler.fetch?.(new Request('http://x/api/v1/health') as never, badEnv, ctx)
+    expect(res?.status).toBe(500)
+    const body = (await res?.json()) as { code: string; detail: string }
+    expect(body.code).toBe('INFRASTRUCTURE_ERROR')
+    expect(JSON.stringify(body)).not.toContain('BLIXIS_ENV')
+    expect(lines.join('\n')).toContain('BLIXIS_ENV')
+    expect(lines.join('\n')).not.toContain('too-short-secret')
+
+    const calls: string[] = []
+    const batch = {
+      queue: 'q',
+      messages: [],
+      ackAll() {},
+      retryAll: () => void calls.push('retryAll'),
+    } as unknown as MessageBatch
+    await expect(handler.queue?.(batch, badEnv, ctx)).rejects.toThrowError(
+      /Invalid Worker environment/,
+    )
+    expect(calls).toEqual(['retryAll'])
+
+    const goodEnv = { BLIXIS_ENV: 'local', SECRET: 'x'.repeat(20) }
+    await handler.fetch?.(new Request('http://x/api/v1/health') as never, goodEnv, ctx)
+    await handler.fetch?.(new Request('http://x/api/v1/health') as never, goodEnv, ctx)
+    expect(parses).toBe(1)
+  })
+})

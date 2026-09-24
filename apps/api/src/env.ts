@@ -4,7 +4,7 @@ import { z } from 'zod'
 /** Bindings and variables of the API Worker. Extended by later plans (Hyperdrive, Queues, …). */
 export interface ApiEnv extends CloudflareEnvBase {}
 
-/** Runtime validation of {@link ApiEnv} (applied on first invocation, task 004.004). */
+/** Runtime validation of {@link ApiEnv}, applied on the first invocation by `createWorkerHandler`. */
 export const apiEnvSchema = defineEnvSchema(
   z.object({
     BLIXIS_ENV: z.enum(['local', 'preview', 'staging', 'production']),

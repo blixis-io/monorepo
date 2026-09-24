@@ -1,0 +1,32 @@
+# Configuration
+
+Every variable, secret, and binding of the Blixis Workers. **Update this page in the same PR that adds or changes one** (and `apps/api/src/env.ts`, `wrangler.jsonc`, `.dev.vars.example`).
+
+Related: [Environments](./environments.md) · [Cloudflare Workers](./cloudflare.md) · [GitHub Actions](./github-actions.md)
+
+---
+
+## How configuration is validated
+
+- `apps/api/src/env.ts` declares `ApiEnv` (TypeScript) and `apiEnvSchema` (Zod).
+- **Compile time:** `wrangler types` generates `Env` from `wrangler.jsonc`; `env.ts` asserts `Env` satisfies `ApiEnv`, and CI checks the generated file is current.
+- **Runtime:** `createWorkerHandler(app, { envSchema })` validates the environment on the first invocation of each isolate. If it is invalid, every invocation fails: HTTP returns `500` with a generic `INFRASTRUCTURE_ERROR` problem, queue batches are retried, and cron runs fail. The log line `invalid Worker environment` names the invalid **keys** — never their values.
+
+## API Worker (`apps/api`)
+
+| Name | Kind | Required | local | staging | production | Description |
+|---|---|---|---|---|---|---|
+| `BLIXIS_ENV` | var | yes | `local` | `staging` | `production` | Deployment environment (`local` · `preview` · `staging` · `production`) |
+| `LOG_LEVEL` | var | no | `debug` | `info` | `info` | Minimum log level (`debug` · `info` · `warn` · `error`) |
+
+Staging and production values are set in `env.staging` / `env.production` of `wrangler.jsonc` (task 004.006). Secrets are set with `wrangler secret put <NAME> --env <env>` and locally in `apps/api/.dev.vars` (git-ignored).
+
+Planned additions: `HYPERDRIVE` (005), `EVENTS` queue (006), `SENTRY_DSN` (004.007), `CACHE_KV` (013), `ASSETS` R2 bucket (014), workflow bindings (016).
+
+## Docs Worker (`apps/docs`)
+
+Static assets only — no variables or secrets.
+
+## CI (GitHub)
+
+See [GitHub Actions → Secrets and variables](./github-actions.md#secrets-and-variables).

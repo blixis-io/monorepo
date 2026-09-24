@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -42,10 +42,15 @@ docs/operations/configuration.md
 ### Modify
 
 ```text
+packages/cloudflare/src/worker-handler.ts (envSchema option)
+packages/cloudflare/src/worker-handler.test.ts
+packages/cloudflare/src/index.ts
+packages/kernel/src/create-blixis.ts (app.logger)
+apps/api/src/index.ts
 apps/api/src/env.ts
-packages/cloudflare/src/worker-handler.ts
-packages/cloudflare/src/env.ts
 apps/api/.dev.vars.example
+docs/ROADMAP.md
+docs/plans/004-cloudflare-worker-runtime/_index.md
 ```
 
 ### Delete
@@ -69,8 +74,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Missing `BLIXIS_ENV` yields a logged error naming the key and a 500 response without internal details.
-- [ ] `docs/operations/configuration.md` lists all current variables.
+- [x] Missing `BLIXIS_ENV` yields a logged error naming the key and a 500 response without internal details.
+- [x] `docs/operations/configuration.md` lists all current variables.
 
 ## Validation
 
@@ -80,15 +85,15 @@ pnpm --filter @blixis/cloudflare test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Redaction verified by test.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Redaction verified by test.
 
 ## Completion conditions
 
@@ -105,4 +110,9 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- Validation lives in `createWorkerHandler(app, { envSchema })` (`@blixis/cloudflare`), not in the kernel — the kernel stays platform-neutral. `apps/api` passes `apiEnvSchema`.
+- Validated once per `env` object (a `WeakMap`), i.e. once per isolate in practice; a different `env` object is re-validated.
+- On failure: `fetch` → 500 problem details with generic `INFRASTRUCTURE_ERROR` (no key names in the response); `queue` → `retryAll()` then reject; `scheduled` → reject. The app logger records `invalid Worker environment` with the offending keys and problems, never values (test with a secret-looking value). Liveness (`/api/v1/health`) also fails when the environment is invalid — intentional: a misconfigured deployment should look unhealthy.
+- **`PLATFORM_CONFIG` token not added:** modules must not read platform configuration, and platform packages already get the raw bindings via `ServiceResolutionContext.bindings` (004.003). Revisit if a platform service needs parsed config.
+- `BlixisApp.logger` added (additive) so runtime adapters can log with the platform logger. Applying `LOG_LEVEL` to the logger is deferred to 020.001 (the logger is created before `env` is known).
+- `docs/operations/configuration.md` created: validation flow and the variable table; the definition of done for config changes is stated at the top.

@@ -11,4 +11,4 @@ export {
   parseEnv,
 } from './env.ts'
 export { type WaitUntilContext, waitUntilSafe } from './execution-context.ts'
-export { createWorkerHandler } from './worker-handler.ts'
+export { createWorkerHandler, type WorkerHandlerOptions } from './worker-handler.ts'
