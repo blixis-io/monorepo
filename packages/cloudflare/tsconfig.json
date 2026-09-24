@@ -1,0 +1,8 @@
+{
+  "extends": "@blixis/tsconfig/library.json",
+  "compilerOptions": {
+    // Cloudflare Workers runtime globals (Request, ExecutionContext, Queue, …).
+    "types": ["@cloudflare/workers-types"]
+  },
+  "references": [{ "path": "../contracts" }]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "@blixis/cloudflare",
+  "version": "0.0.0",
+  "description": "Cloudflare Workers adapters for Blixis: environment typing and validation, execution-context helpers, and (later) Queue, KV, R2, and Workflow adapters",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run --root ../.. packages/cloudflare"
+  },
+  "dependencies": {
+    "@blixis/contracts": "workspace:*"
+  },
+  "peerDependencies": {
+    "@cloudflare/workers-types": "^5.0.0"
+  },
+  "devDependencies": {
+    "@blixis/tsconfig": "workspace:*",
+    "@cloudflare/workers-types": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "zod": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/cloudflare"
+  }
+}

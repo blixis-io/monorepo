@@ -36,8 +36,10 @@ catalog:
   astro: 7.3.5
   "@astrojs/starlight": 0.42.3
   wrangler: 4.137.0
+  "@cloudflare/workers-types": 5.20260924.1
 
 minimumReleaseAgeExclude:
   - hono@4.13.9
   - astro@7.3.5
   - wrangler@4.137.0
+  - '@cloudflare/workers-types@5.20260924.1'
