@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 1 — Workspace & public contracts  
 Roadmap scope: MVP / initial platform  
-Progress: 1/8 tasks completed
+Progress: 2/8 tasks completed
 
 ## Objective
 
@@ -65,7 +65,7 @@ Depends on:
 
 - [x] [001 — Scaffold the @blixis/contracts package](./001-scaffold-contracts-package.md)
 - [ ] [002 — Define module, metadata, contribution, and lifecycle contracts](./002-define-module-contracts.md)
-- [ ] [003 — Define typed service tokens and capability identifiers](./003-define-service-tokens-and-capabilities.md)
+- [x] [003 — Define typed service tokens and capability identifiers](./003-define-service-tokens-and-capabilities.md)
 - [ ] [004 — Define the public error model](./004-define-public-errors.md)
 - [ ] [005 — Select the validation library and define the schema contract](./005-select-validation-library.md)
 - [ ] [006 — Define event envelope, definition, and subscription contracts](./006-define-event-contracts.md)

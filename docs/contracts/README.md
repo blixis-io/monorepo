@@ -30,13 +30,35 @@ Related: [Package conventions](../conventions/packages.md) · [Code standards](.
 | Area | Source | Status |
 |---|---|---|
 | Module contract, lifecycle contexts, contributions | `src/module.ts` | planned — 002.002 |
-| Service tokens and registry interfaces | `src/services.ts` | planned — 002.003 |
-| Capabilities | `src/capabilities.ts` | planned — 002.003 |
+| Service tokens and registry interfaces | `src/services.ts` | ✅ 002.003 |
+| Capabilities | `src/capabilities.ts` | ✅ 002.003 |
 | Public errors | `src/errors.ts` | planned — 002.004 |
 | Validation (Standard Schema) | `src/validation.ts` | planned — 002.005 |
 | Events | `src/events.ts` | planned — 002.006 |
 | Actors and permissions | `src/permissions.ts` | planned — 002.007 |
 | Request context, logger, migrations | `src/context.ts`, `src/migrations.ts` | planned — 002.008 |
+
+## Services
+
+Services are looked up by **typed tokens**, never by strings (§7):
+
+```ts
+import { createServiceToken } from '@blixis/contracts'
+
+export interface SeoService { titleFor(entryId: string): Promise<string> }
+export const SEO_SERVICE = createServiceToken<SeoService>('@acme/blixis-seo.service')
+
+// in setup(ctx):  ctx.services.provide(SEO_SERVICE, seoService)
+// elsewhere:      const seo = ctx.services.get(SEO_SERVICE)   // typed as SeoService
+```
+
+- Token identity is `Symbol.for(name)`, so two copies of a package still share tokens. Name tokens `<package>.<service>`.
+- `ServiceRegistry` (`get`, `getOptional`, `has`) is the read side; `ServiceProvider` (`provide`, `provideFactory`) is available during `setup`.
+- Scopes: `app` (per isolate, no I/O objects) and `request` (per request/event, disposable — e.g. DB clients). The scope API is `@experimental` until the kernel registry (003.003) finalises it.
+
+## Capabilities
+
+Capabilities let a module depend on *behaviour* instead of a package name (§8). IDs follow `<namespace>.<capability>` (lowercase, kebab-case segments); `blixis.*` is reserved for first-party modules (`BLIXIS_CAPABILITIES`). Declare them in `meta.capabilities` (provided) and `meta.requiresCapabilities` (required).
 
 ## Testing
 
