@@ -22,6 +22,7 @@ import {
 } from './contributions.ts'
 import type { ErrorReporter } from './error-reporter.ts'
 import { ModuleValidationError } from './errors.ts'
+import { HEALTH_CHECKS, HealthRegistry } from './health.ts'
 import type { BlixisHonoEnv } from './hono-env.ts'
 import { validateModuleConfigs } from './internal/config.ts'
 import { validateModuleGraph } from './internal/graph.ts'
@@ -148,8 +149,10 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
   const container = new ServiceContainer()
   const hono = new Hono<BlixisHonoEnv>()
   const background = new BackgroundRegistry()
+  const health = new HealthRegistry()
   container.forModule('@blixis/kernel').provide(KERNEL_CONTRIBUTIONS, contributions)
   container.forModule('@blixis/kernel').provide(BACKGROUND_HANDLERS, background)
+  container.forModule('@blixis/kernel').provide(HEALTH_CHECKS, health)
   for (const { token, value } of options.overrides ?? []) container.override(token, value)
 
   let setupResult: Promise<void> | undefined
@@ -173,6 +176,7 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
     }
     container.seal()
     background.lock()
+    health.lock()
   }
 
   const runBoot = async (): Promise<void> => {
@@ -214,6 +218,7 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
       ? {}
       : { trustRequestIdHeader: options.trustRequestIdHeader }),
     ...(options.errorReporter === undefined ? {} : { errorReporter: options.errorReporter }),
+    healthChecks: health.checks,
   })
 
   const runInScope = async <T>(

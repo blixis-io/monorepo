@@ -11,6 +11,7 @@ import {
 import type { Hono } from 'hono'
 import type { ErrorReporter } from '../error-reporter.ts'
 import { type ModuleProblem, ModuleValidationError } from '../errors.ts'
+import { type HealthCheck, runHealthChecks } from '../health.ts'
 import type { BlixisHonoEnv } from '../hono-env.ts'
 import { toProblemResponse } from './errors-http.ts'
 import type { ServiceContainer } from './services.ts'
@@ -19,6 +20,8 @@ import type { ServiceContainer } from './services.ts'
 export const API_PREFIX = '/api/v1'
 /** Liveness endpoint; answered without waiting for module setup/boot. */
 export const HEALTH_PATH = `${API_PREFIX}/health`
+/** Readiness endpoint: runs the registered health checks (e.g. the database). */
+export const READY_PATH = `${HEALTH_PATH}/ready`
 
 const KERNEL = '@blixis/kernel'
 const TRACE_ID = /^[\w.:-]{1,128}$/
@@ -36,6 +39,8 @@ export interface RestOptions {
   readonly trustRequestIdHeader?: boolean
   /** Receives unexpected (5xx) errors, e.g. for Sentry. */
   readonly errorReporter?: ErrorReporter
+  /** Checks run by the readiness endpoint. */
+  readonly healthChecks?: readonly HealthCheck[]
 }
 
 function joinPath(prefix: string, path: string): string {
@@ -48,7 +53,10 @@ function joinPath(prefix: string, path: string): string {
  * are ignored — several modules may legitimately share a prefix such as `/spaces/:spaceId`.
  */
 export function findRouteConflicts(modules: readonly BlixisModule[]): ModuleProblem[] {
-  const owners = new Map<string, string>([[`GET ${HEALTH_PATH}`, KERNEL]])
+  const owners = new Map<string, string>([
+    [`GET ${HEALTH_PATH}`, KERNEL],
+    [`GET ${READY_PATH}`, KERNEL],
+  ])
   const problems: ModuleProblem[] = []
   for (const module of modules) {
     const rest = module.rest
@@ -83,6 +91,46 @@ export function installRest(
   if (conflicts.length > 0) throw new ModuleValidationError(conflicts)
 
   app.get(HEALTH_PATH, (c) => c.json({ status: 'ok' }))
+
+  // Readiness: boot must have succeeded and every registered check must pass. Answers 503
+  // (never 500) otherwise, and never includes error messages, hosts, or connection details.
+  app.get(READY_PATH, async (c) => {
+    const noStore = { 'cache-control': 'no-store' }
+    try {
+      await options.ready()
+    } catch (error) {
+      options.logger.warn('readiness: boot failed', { error: String(error) })
+      return c.json(
+        { status: 'unavailable', checks: { boot: { status: 'fail', latencyMs: 0 } } },
+        503,
+        noStore,
+      )
+    }
+    const scope = options.container.createRequestScope(
+      (c.env ?? {}) as Readonly<Record<string, unknown>>,
+    )
+    try {
+      const report = await runHealthChecks(
+        options.healthChecks ?? [],
+        scope.services,
+        (name, error) =>
+          options.logger.warn('readiness: check failed', { check: name, error: String(error) }),
+      )
+      return c.json(report, report.status === 'ok' ? 200 : 503, noStore)
+    } finally {
+      const disposal = scope.dispose().catch((error: unknown) => {
+        options.logger.error('request scope disposal failed', { error: String(error) })
+      })
+      let executionCtx: { waitUntil(p: Promise<unknown>): void } | undefined
+      try {
+        executionCtx = c.executionCtx
+      } catch {
+        executionCtx = undefined
+      }
+      if (executionCtx === undefined) await disposal
+      else executionCtx.waitUntil(disposal)
+    }
+  })
 
   app.use('*', async (c, next) => {
     const incomingRequestId = c.req.header('x-request-id')

@@ -15,8 +15,10 @@ import { describe, expect, it } from 'vitest'
 import { createBlixis } from '../create-blixis.ts'
 import { defineModule } from '../define-module.ts'
 import { ModuleValidationError } from '../errors.ts'
+import { HEALTH_CHECKS, type HealthCheck } from '../health.ts'
 import { noopLogger } from '../logger.ts'
 import type { ProblemDetails } from './errors-http.ts'
+import { READY_PATH } from './rest.ts'
 
 const GREETING = createServiceToken<string>('@test/greeting')
 const CONNECTION = createServiceToken<{ id: number }>('@test/connection')
@@ -318,5 +320,86 @@ describe('error reporting', () => {
       },
     })
     expect((await app.fetch(new Request('http://x/api/v1/things/boom'))).status).toBe(500)
+  })
+})
+
+describe('readiness', () => {
+  const withChecks = (...checks: HealthCheck[]) =>
+    createBlixis({
+      modules: [
+        defineModule({
+          meta: { name: '@test/deps', version: '1.0.0' },
+          setup(ctx) {
+            for (const check of checks) ctx.services.get(HEALTH_CHECKS).register(check)
+          },
+        })(),
+      ],
+      logger: noopLogger,
+    })
+  const ready = (app: ReturnType<typeof createBlixis>) =>
+    app.fetch(new Request(`http://x${READY_PATH}`))
+
+  it('returns 200 when all checks pass, with per-check status and latency', async () => {
+    const res = await ready(withChecks({ name: 'db', check: async () => undefined }))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ status: 'ok', checks: { db: { status: 'ok' } } })
+  })
+
+  it('returns 503 on failure or timeout without error details', async () => {
+    const res = await ready(
+      withChecks(
+        {
+          name: 'db',
+          check: () => Promise.reject(new Error('connect ECONNREFUSED db.internal:5432')),
+        },
+        { name: 'slow', timeoutMs: 10, check: () => new Promise(() => undefined) },
+      ),
+    )
+    expect(res.status).toBe(503)
+    const text = await res.text()
+    expect(JSON.parse(text)).toMatchObject({
+      status: 'unavailable',
+      checks: { db: { status: 'fail' }, slow: { status: 'timeout' } },
+    })
+    expect(text).not.toMatch(/ECONNREFUSED|db\.internal/)
+  })
+
+  it('returns 503 (not 500) when boot failed, while liveness stays 200', async () => {
+    const app = createBlixis({
+      modules: [
+        defineModule({
+          meta: { name: '@test/broken', version: '1.0.0' },
+          boot: () => {
+            throw new Error('boom')
+          },
+        })(),
+      ],
+      logger: noopLogger,
+    })
+    expect((await ready(app)).status).toBe(503)
+    expect((await app.fetch(new Request('http://x/api/v1/health'))).status).toBe(200)
+  })
+
+  it('rejects duplicate names and registrations after setup', async () => {
+    const dup = withChecks(
+      { name: 'db', check: async () => undefined },
+      { name: 'db', check: async () => undefined },
+    )
+    expect((await ready(dup)).status).toBe(503)
+    const app = withChecks()
+    await app.ready()
+    expect(() =>
+      app.services.get(HEALTH_CHECKS).register({ name: 'late', check: async () => undefined }),
+    ).toThrow(/after setup/)
+  })
+
+  it('reserves the readiness route', () => {
+    const clash = defineModule({
+      meta: { name: '@acme/h', version: '1.0.0' },
+      rest: { path: '/health', app: new Hono<ModuleHonoEnv>().get('/ready', (c) => c.text('x')) },
+    })
+    expect(() => createBlixis({ modules: [clash()], logger: noopLogger })).toThrowError(
+      /conflicts with @blixis\/kernel/,
+    )
   })
 })

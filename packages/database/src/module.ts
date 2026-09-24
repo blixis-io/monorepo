@@ -4,7 +4,8 @@ import {
   InfrastructureError,
   type ServiceToken,
 } from '@blixis/contracts'
-import { defineModule } from '@blixis/kernel'
+import { defineModule, HEALTH_CHECKS } from '@blixis/kernel'
+import { sql } from 'drizzle-orm'
 import { createDatabase, type Database } from './create-database.ts'
 
 /**
@@ -20,6 +21,11 @@ export interface DatabaseModuleOptions {
   readonly binding?: string
   /** Maximum connections per request scope. See {@link CreateDatabaseOptions.maxConnections}. */
   readonly maxConnections?: number
+  /**
+   * Register the `database` readiness check (`select 1`, 2 s timeout) for
+   * `GET /api/v1/health/ready`. Default `true`.
+   */
+  readonly healthCheck?: boolean
 }
 
 function connectionStringOf(bindings: Readonly<Record<string, unknown>>, name: string): string {
@@ -38,7 +44,7 @@ function connectionStringOf(bindings: Readonly<Record<string, unknown>>, name: s
 
 /**
  * Platform module that provides {@link DATABASE} per request scope (architecture §13, ADR 0005)
- * and the `blixis.database` capability. The connection string is read from the invocation's
+ * and the `blixis.database` capability, and registers the `database` readiness check. The connection string is read from the invocation's
  * bindings (`env.HYPERDRIVE` by default); the connection opens on the first query and is closed
  * when the scope ends (via `waitUntil` on Workers).
  *
@@ -64,5 +70,14 @@ export const databaseModule = defineModule((options: DatabaseModuleOptions) => (
         }),
       { scope: 'request', dispose: (db) => db.close() },
     )
+    if (options.healthCheck !== false) {
+      ctx.services.get(HEALTH_CHECKS).register({
+        name: 'database',
+        timeoutMs: 2000,
+        async check(services) {
+          await services.get(DATABASE).execute(sql`select 1`)
+        },
+      })
+    }
   },
 }))
