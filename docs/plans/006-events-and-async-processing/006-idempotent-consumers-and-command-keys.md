@@ -147,5 +147,5 @@ Change the status to `completed` only when all of the following hold:
   - service: replay, hash conflict, per-scope keys, concurrent 409, release on error / not stored, abandoned takeover;
   - middleware over HTTP: replay header, 409 on a different body, per-actor scoping, 5xx not stored, header validation;
   - total 311 with `pnpm test:db`.
-- **API:** `idempotencyModule()` registered. `pnpm db:migrate` locally applied `0002_create_processed` and `0001_create_idempotency_keys`. Bundle 342 KiB gzip.
+- **API:** `idempotencyModule()` registered. `pnpm db:migrate` locally applied `0002_create_processed` and `0001_create_idempotency_keys`. Bundle 339 KiB gzip.
 - **Docs:** manual Events → Idempotency, manual Database → Idempotent commands, and the platform-tables table in `docs/operations/database.md`.

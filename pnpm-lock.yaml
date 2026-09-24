@@ -429,6 +429,9 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.23.0
+      hono:
+        specifier: 'catalog:'
+        version: 4.13.9
       pg:
         specifier: 'catalog:'
         version: 8.23.0
