@@ -96,7 +96,7 @@ Requires:
 docker compose up -d postgres
 DATABASE_URL=postgres://... pnpm db:migrate
 DATABASE_URL=postgres://... pnpm db:status
-pnpm test --filter @blixis/database
+pnpm --filter @blixis/database test
 ```
 
 ## Review checklist

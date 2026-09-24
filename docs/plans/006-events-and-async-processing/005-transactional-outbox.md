@@ -90,7 +90,7 @@ Requires:
 
 ```bash
 docker compose up -d postgres
-pnpm test --filter @blixis/events
+pnpm --filter @blixis/events test
 ```
 
 ## Review checklist

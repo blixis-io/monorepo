@@ -99,7 +99,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/auth
+pnpm --filter @blixis/auth test
 pnpm --filter @blixis/api test
 ```
 

@@ -84,7 +84,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/database
+pnpm --filter @blixis/database test
 ```
 
 ## Review checklist

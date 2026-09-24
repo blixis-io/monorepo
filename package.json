@@ -16,9 +16,13 @@
     "typecheck": "tsc -b",
     "lint": "pnpm -r --if-present run lint",
     "format": "pnpm -r --if-present run format",
-    "test": "pnpm -r --if-present run test"
+    "test": "tsc -b && vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "tsc -b && vitest run --coverage"
   },
   "devDependencies": {
-    "typescript": "catalog:"
+    "@vitest/coverage-v8": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

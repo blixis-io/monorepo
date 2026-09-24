@@ -87,7 +87,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/cloudflare --filter @blixis/events
+pnpm --filter @blixis/cloudflare --filter @blixis/events test
 pnpm --filter @blixis/api exec wrangler deploy --dry-run --env staging
 ```
 

@@ -1,6 +1,6 @@
 # Testing
 
-How Blixis is tested, where tests live, and what CI runs. Implements architecture §36. The test runner is fixed by ADR 0002 (roadmap task [001.002](../plans/001-project-foundation/002-record-toolchain-decisions.md)); the expected choice is **Vitest** with **`@cloudflare/vitest-pool-workers`** for tests that must run inside `workerd`.
+How Blixis is tested, where tests live, and what CI runs. Implements architecture §36. The runner is **Vitest 4.1** with **`@cloudflare/vitest-pool-workers`** for tests that must run inside `workerd` ([ADR 0002](../decisions/0002-test-runner.md)). Configuration: root [`vitest.config.ts`](../../vitest.config.ts) with one `node` project; each Worker package adds its own Workers project.
 
 Related: [Code standards](./code-standards.md) · [GitHub Actions](../operations/github-actions.md) · [Monorepo](../development/monorepo.md)
 
@@ -22,6 +22,13 @@ Related: [Code standards](./code-standards.md) · [GitHub Actions](../operations
 | **Load** | Performance targets | k6 | Staging only | `tooling/load/` |
 
 Keep infrastructure-specific tests separate from domain tests (§36).
+
+## How it is wired
+
+- `pnpm test` runs `tsc -b` first: workspace packages are consumed through their built `dist/` ([ADR 0001](../decisions/0001-typescript-7-build-strategy.md)).
+- Vitest only transpiles; **type checking** of tests happens in `pnpm typecheck` via each package's `tsconfig.test.json` (extends `@blixis/tsconfig/test.json`). `expectTypeOf` assertions in `*.test.ts` / `*.test-d.ts` are therefore enforced by `tsc`.
+- Each package has `"test": "vitest run --root ../.. <dir>/<name>"` so `pnpm --filter <pkg> test` works.
+- **Opting a package into the Workers runtime:** add `<pkg>/vitest.config.ts` with `plugins: [cloudflareTest({ wrangler: { configPath: './wrangler.jsonc' } })]` and `include: ['src/**/*.worker.test.ts']`, then list that config in the root `test.projects`. Keep `compatibility_date` ≤ the pool's bundled `workerd` (ADR 0002). First user: `apps/api` (task 004.005).
 
 ## Rules
 
@@ -46,10 +53,11 @@ Keep infrastructure-specific tests separate from domain tests (§36).
 ## Commands
 
 ```bash
-pnpm test                          # all unit + integration + Workers-pool tests
-pnpm test --filter @blixis/kernel  # one package
-pnpm test:watch                    # watch mode
-pnpm test:coverage                 # coverage report
+pnpm test                          # tsc -b, then all Vitest projects
+pnpm test packages/kernel          # only tests under a path (args go to `vitest run`)
+pnpm --filter @blixis/kernel test  # same, via the package's own script
+pnpm test:watch                    # watch mode (run `tsc -b --watch` alongside for cross-package changes)
+pnpm test:coverage                 # coverage report (text + html in coverage/)
 pnpm --filter @blixis/api test     # Worker/API suites only
 pnpm --filter @blixis/admin e2e    # Playwright (needs local API)
 pnpm typecheck                     # type tests and all packages (authoritative type check)

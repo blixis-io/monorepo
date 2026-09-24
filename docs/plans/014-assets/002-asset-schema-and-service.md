@@ -87,7 +87,7 @@ Requires:
 
 ```bash
 pnpm db:migrate
-pnpm test --filter @blixis/assets
+pnpm --filter @blixis/assets test
 ```
 
 ## Review checklist

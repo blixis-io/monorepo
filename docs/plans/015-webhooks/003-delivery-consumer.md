@@ -81,7 +81,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/webhooks
+pnpm --filter @blixis/webhooks test
 ```
 
 ## Review checklist

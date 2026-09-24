@@ -79,7 +79,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/auth --filter @blixis/kernel
+pnpm --filter @blixis/auth --filter @blixis/kernel test
 pnpm --filter @blixis/api test
 ```
 

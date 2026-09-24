@@ -78,7 +78,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/kernel --filter @blixis/cloudflare
+pnpm --filter @blixis/kernel --filter @blixis/cloudflare test
 pnpm --filter @blixis/api test
 ```
 

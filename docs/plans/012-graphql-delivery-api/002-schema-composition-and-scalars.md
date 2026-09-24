@@ -75,7 +75,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/graphql
+pnpm --filter @blixis/graphql test
 ```
 
 ## Review checklist

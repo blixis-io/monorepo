@@ -96,7 +96,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/webhooks
+pnpm --filter @blixis/webhooks test
 pnpm --filter @blixis/api test
 ```
 

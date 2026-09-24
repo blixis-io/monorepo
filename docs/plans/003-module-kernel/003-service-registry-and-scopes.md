@@ -103,8 +103,8 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/kernel
-pnpm test --filter @blixis/contracts
+pnpm --filter @blixis/kernel test
+pnpm --filter @blixis/contracts test
 ```
 
 ## Review checklist

@@ -101,7 +101,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/contracts
+pnpm --filter @blixis/contracts test
 pnpm typecheck
 ```
 

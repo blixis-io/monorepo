@@ -108,7 +108,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/kernel
+pnpm --filter @blixis/kernel test
 pnpm typecheck && pnpm lint
 ```
 

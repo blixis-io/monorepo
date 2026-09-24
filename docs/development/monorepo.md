@@ -123,7 +123,7 @@ Versions verified in the 001.002 spike (2026-09-24); entries are added to the re
 ## Filtering cheat sheet
 
 ```bash
-pnpm --filter @blixis/kernel test          # one package
+pnpm --filter @blixis/kernel test          # one package (or: pnpm test packages/kernel)
 pnpm --filter "./modules/**" test          # all modules
 pnpm --filter "...@blixis/contracts" build # contracts and everything depending on it
 pnpm --filter "@blixis/api..." build       # api and all its dependencies

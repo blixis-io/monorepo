@@ -75,7 +75,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/assets
+pnpm --filter @blixis/assets test
 pnpm --filter @blixis/api test
 ```
 

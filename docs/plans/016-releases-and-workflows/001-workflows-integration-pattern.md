@@ -82,7 +82,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/cloudflare --filter @blixis/contracts
+pnpm --filter @blixis/cloudflare --filter @blixis/contracts test
 ```
 
 ## Review checklist

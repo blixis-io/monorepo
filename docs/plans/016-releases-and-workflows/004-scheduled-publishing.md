@@ -74,7 +74,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/releases
+pnpm --filter @blixis/releases test
 ```
 
 ## Review checklist

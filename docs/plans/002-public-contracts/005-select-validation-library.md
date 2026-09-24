@@ -99,7 +99,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/contracts
+pnpm --filter @blixis/contracts test
 pnpm build && node -e "import('@blixis/contracts')"   # or equivalent resolution check from a workspace consumer
 ```
 

@@ -89,7 +89,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/releases
+pnpm --filter @blixis/releases test
 pnpm --filter @blixis/api test
 ```
 

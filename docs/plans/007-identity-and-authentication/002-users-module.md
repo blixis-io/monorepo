@@ -111,7 +111,7 @@ Requires:
 
 ```bash
 pnpm db:migrate
-pnpm test --filter @blixis/users
+pnpm --filter @blixis/users test
 pnpm --filter @blixis/api test
 ```
 

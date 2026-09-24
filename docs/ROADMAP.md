@@ -53,7 +53,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 
 | Plan | Milestone | Scope | Status | Progress | Depends on |
 |---|---|---|---|---|---|
-| [001 — Project Foundation](./plans/001-project-foundation/_index.md) | M1 | MVP | `in-progress` | 4/7 | — |
+| [001 — Project Foundation](./plans/001-project-foundation/_index.md) | M1 | MVP | `in-progress` | 5/7 | — |
 | [002 — Public Contracts](./plans/002-public-contracts/_index.md) | M1 | MVP | `not-started` | 0/8 | 001 |
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `not-started` | 0/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `not-started` | 0/7 | 003 |
@@ -122,7 +122,7 @@ Plans are numbered in a valid dependency order. The critical path is `001 → 00
 
 #### 001 — Project Foundation
 
-Status: `in-progress` · Progress: 4/7 · Scope: MVP  
+Status: `in-progress` · Progress: 5/7 · Scope: MVP  
 Plan: [001-project-foundation/_index.md](./plans/001-project-foundation/_index.md)  
 Depends on: None
 
@@ -133,7 +133,7 @@ Creates the pnpm monorepo, TypeScript 7 baseline, package conventions, linting/b
 - [x] [001.003 — Configure root TypeScript 7 setup](./plans/001-project-foundation/003-configure-typescript.md)
 - [x] [001.004 — Define package conventions and create @blixis/shared](./plans/001-project-foundation/004-define-package-conventions.md)
 - [ ] [001.005 — Configure linting, formatting, and package-boundary checks](./plans/001-project-foundation/005-configure-lint-format-and-boundaries.md)
-- [ ] [001.006 — Configure the test runner for unit and Workers-runtime tests](./plans/001-project-foundation/006-configure-test-runner.md)
+- [x] [001.006 — Configure the test runner for unit and Workers-runtime tests](./plans/001-project-foundation/006-configure-test-runner.md)
 - [ ] [001.007 — Set up the continuous integration pipeline](./plans/001-project-foundation/007-setup-ci-pipeline.md)
 
 #### 002 — Public Contracts

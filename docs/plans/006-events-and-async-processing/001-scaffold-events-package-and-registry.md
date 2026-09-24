@@ -85,7 +85,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/events
+pnpm --filter @blixis/events test
 ```
 
 ## Review checklist

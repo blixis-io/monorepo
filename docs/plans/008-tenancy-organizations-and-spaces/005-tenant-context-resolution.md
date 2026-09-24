@@ -81,7 +81,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/spaces
+pnpm --filter @blixis/spaces test
 pnpm --filter @blixis/api test
 ```
 

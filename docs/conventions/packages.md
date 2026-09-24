@@ -22,7 +22,7 @@ Related: [Monorepo](../development/monorepo.md) · [Code standards](./code-stand
 packages/<name>/
 ├── package.json
 ├── tsconfig.json          # build: extends @blixis/tsconfig/library.json
-├── tsconfig.test.json     # tests: extends @blixis/tsconfig/test.json (added once tests exist)
+├── tsconfig.test.json     # tests: extends @blixis/tsconfig/test.json (TS7 errors if it matches no files)
 ├── README.md              # optional; required for published packages
 └── src/
     ├── index.ts           # the ONLY public entry
@@ -49,13 +49,15 @@ Domain modules use the §23 layout inside `src/` (`domain/`, `application/`, `in
   },
   "files": ["dist"],
   "scripts": {
-    "build": "tsc -b"
+    "build": "tsc -b",
+    "test": "vitest run --root ../.. packages/<name>"
   },
   "dependencies": {},
   "peerDependencies": {},
   "devDependencies": {
     "@blixis/tsconfig": "workspace:*",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "repository": {
     "type": "git",
