@@ -8,6 +8,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./database": {
+      "types": "./dist/database.d.ts",
+      "default": "./dist/database.js"
     }
   },
   "files": [
@@ -19,10 +23,15 @@
   },
   "dependencies": {
     "@blixis/contracts": "workspace:*",
-    "@blixis/kernel": "workspace:*"
+    "@blixis/database": "workspace:*",
+    "@blixis/kernel": "workspace:*",
+    "pg": "catalog:"
   },
   "devDependencies": {
     "@blixis/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "drizzle-orm": "catalog:",
     "hono": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",

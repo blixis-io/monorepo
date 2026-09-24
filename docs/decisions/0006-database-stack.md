@@ -65,6 +65,7 @@ The project owner chose this option.
 - Module authors write Drizzle table definitions and repositories. `@blixis/database` exposes the Drizzle instance and transaction helpers (005.002, 005.004). Only the database package imports `pg`.
 - The Drizzle core adds about 80 KiB gzip to the API Worker.
 - Migration SQL stays readable in PR review, and the runner does not depend on Drizzle's migration journal.
+- Tests (005.006) use Docker Postgres 18 locally and in CI, with one migrated database per test file (`@blixis/testing/database`). The Vitest Workers pool cannot load `pg`'s Cloudflare socket (`pg-cloudflare` is resolved without the `workerd` condition). Database behaviour is therefore tested in the Node pool, and the deployed path is verified on staging. See the testing conventions for known issues.
 - Risks:
   - Drizzle is pre-1.0, and breaking changes between minor versions are possible. Pinned versions and the test database suite (005.006) contain this.
   - `drizzle-kit` may lag behind new Postgres features. Hand-edited SQL is allowed.

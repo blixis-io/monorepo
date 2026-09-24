@@ -23,6 +23,7 @@
     "format:check": "biome format .",
     "check": "biome check --write .",
     "test": "tsc -b && vitest run",
+    "test:db": "BLIXIS_TEST_DATABASE_URL=${BLIXIS_TEST_DATABASE_URL:-postgres://blixis:blixis@localhost:5432/blixis} pnpm test",
     "test:watch": "vitest",
     "test:coverage": "tsc -b && vitest run --coverage"
   },

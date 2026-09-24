@@ -1,5 +1,6 @@
 import type { Actor, BlixisModule, ServiceRegistry } from '@blixis/contracts'
-import { type BlixisApp, createBlixis, type ServiceOverride } from '@blixis/kernel'
+import { DATABASE, type Database } from '@blixis/database'
+import { type BlixisApp, createBlixis, type ServiceOverride, serviceOverride } from '@blixis/kernel'
 import { asAnonymous, encodeTestActor, TEST_ACTOR_HEADER } from './actors.ts'
 import { type CapturingLogger, createCapturingLogger } from './logger.ts'
 
@@ -10,6 +11,11 @@ export interface CreateTestBlixisOptions {
   readonly overrides?: readonly ServiceOverride[]
   /** Default actor of every request. Defaults to anonymous. */
   readonly actor?: Actor
+  /**
+   * Serve `DATABASE` from this database (usually `createTestDatabase(...)` from
+   * `@blixis/testing/database`). It is shared by all requests and not closed per request.
+   */
+  readonly database?: { readonly db: Database }
 }
 
 /** Request options of {@link TestBlixis.request}. */
@@ -45,7 +51,10 @@ export async function createTestBlixis(options: CreateTestBlixisOptions): Promis
   const app = createBlixis({
     modules: options.modules,
     logger: logs,
-    ...(options.overrides === undefined ? {} : { overrides: options.overrides }),
+    overrides: [
+      ...(options.overrides ?? []),
+      ...(options.database === undefined ? [] : [serviceOverride(DATABASE, options.database.db)]),
+    ],
     actorResolver: (request) => {
       const header = request.headers.get(TEST_ACTOR_HEADER)
       return header === null ? defaultActor : (JSON.parse(header) as Actor)
