@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -41,6 +41,8 @@ Implement `createWorkerHandler(app)` in `@blixis/cloudflare` producing an `Expor
 ### Create
 
 ```text
+packages/kernel/src/background.ts
+packages/kernel/src/background.test.ts
 packages/cloudflare/src/worker-handler.ts
 packages/cloudflare/src/worker-handler.test.ts
 ```
@@ -48,12 +50,21 @@ packages/cloudflare/src/worker-handler.test.ts
 ### Modify
 
 ```text
-packages/kernel/src/create-blixis.ts
+packages/contracts/src/services.ts (ServiceResolutionContext.bindings)
+packages/kernel/src/create-blixis.ts (runInScope, queue, scheduled)
 packages/kernel/src/internal/services.ts
+packages/kernel/src/internal/rest.ts
 packages/kernel/src/index.ts
+packages/cloudflare/package.json
+packages/cloudflare/tsconfig.json
 packages/cloudflare/src/index.ts
 apps/api/src/index.ts
+biome.json (useLiteralKeys off)
+pnpm-lock.yaml
 docs/kernel/README.md
+apps/docs/src/content/docs/concepts/services-and-capabilities.mdx
+docs/ROADMAP.md
+docs/plans/004-cloudflare-worker-runtime/_index.md
 ```
 
 ### Delete
@@ -92,9 +103,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Queue batches for an unregistered queue are retried and logged.
-- [ ] Request-scoped services are disposed after `fetch`, `queue`, and `scheduled` invocations.
-- [ ] `apps/api` still serves health via `wrangler dev`.
+- [x] Queue batches for an unregistered queue are retried and logged.
+- [x] Request-scoped services are disposed after `fetch`, `queue`, and `scheduled` invocations.
+- [x] `apps/api` still serves health via `wrangler dev`.
 
 ## Validation
 
@@ -105,15 +116,15 @@ pnpm --filter @blixis/api dev
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Kernel remains free of Cloudflare types (adapter holds all Cloudflare specifics).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Kernel remains free of Cloudflare types (adapter holds all Cloudflare specifics).
 
 ## Completion conditions
 
@@ -130,4 +141,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Kernel API:** `app.runInScope(seed, fn)`, `app.queue(batch, env, ctx)`, `app.scheduled(event, env, ctx)`, and the `BACKGROUND_HANDLERS` service (`onQueue`, `onScheduled`) — registration only during setup, then locked; one consumer per queue; several jobs per cron. Structural `QueueBatchLike` / `ScheduledEventLike` keep Cloudflare types out of the kernel (Cloudflare's `MessageBatch` and `ScheduledController` fit them).
+- **Decisions:** unknown queue → error log + `retryAll()` (never silent ack); unknown cron → warning; failing jobs → all jobs still run, then `AggregateError` so the invocation shows as failed. Background handlers get `{ logger, runInScope }` and create one scope per unit of work; default actor `system:@blixis/kernel`; `correlationId` seedable (events will pass it from envelope metadata).
+- **Env access without global state:** contracts `ServiceResolutionContext.bindings` (additive) carries the invocation's platform bindings (Worker `env`) into request-scoped factories; `{}` for app scope. HTTP passes `c.env`, background passes the Worker `env`. Documented as platform-only (TSDoc + manual).
+- `@blixis/cloudflare` `createWorkerHandler<Env>(app)` → `ExportedHandler` with `fetch`/`queue`/`scheduled`; `apps/api` now `export default createWorkerHandler<Env>(app)`. `@blixis/cloudflare` depends on `@blixis/kernel` (types + app).
+- **Biome vs. TypeScript conflict:** Biome's `complexity/useLiteralKeys` demands `bindings.DB_URL`, while our `noPropertyAccessFromIndexSignature` requires `bindings['DB_URL']`; the rule is off in `biome.json` (compiler flag wins).
+- Tests: 7 kernel background tests (per-unit scopes with bindings + disposal, unknown queue retry, cron fan-out + failure aggregation, locking, duplicate consumer, `runInScope` actor/tenant, HTTP bindings) and a Worker-handler test (fetch/queue/scheduled routing). Suite 174 tests. Bundle after change: 869.55 KiB / 144.29 KiB gzip.
+- Deviation: the task put request-scope disposal on `ctx.waitUntil` for all entry types; background handlers **await** disposal instead (the invocation is already asynchronous, so no response is delayed). HTTP still uses `waitUntil` (003.006).

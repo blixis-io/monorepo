@@ -51,6 +51,7 @@ ctx.services.provideFactory(SEO_REPOSITORY, ({ services }) => new SeoRepository(
 ```
 
 - Workers cannot reuse I/O objects across requests, so connection-holding services **must** be request-scoped.
+- Factories also receive `bindings` (the platform's environment). That is for Blixis's own infrastructure packages; **your module should never read bindings** — ask for a service instead.
 - **Factories are synchronous.** If a service needs async setup, connect lazily on first use or prepare app-level state in `boot`.
 - App-scoped factories may only use app-scoped services; asking for a request-scoped service there throws `ModuleError`.
 - Blixis creates and disposes request scopes for you — around every HTTP request, event delivery, cron run, and workflow step. Disposers run in reverse creation order.

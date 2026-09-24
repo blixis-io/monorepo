@@ -60,6 +60,12 @@ export interface ServiceResolutionContext {
   readonly services: ServiceRegistry
   /** Scope the service is being created in. */
   readonly scope: ServiceScope
+  /**
+   * Platform bindings of the current invocation (on Cloudflare: the Worker `env`). Empty for
+   * app-scoped services. **Platform packages only** — domain modules never read bindings
+   * (architecture §19); they receive infrastructure through services.
+   */
+  readonly bindings: Readonly<Record<string, unknown>>
 }
 
 /** Options for factory-based providers. */

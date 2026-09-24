@@ -95,7 +95,9 @@ export function installRest(
         : requestId
 
     await options.ready()
-    const scope = options.container.createRequestScope()
+    const scope = options.container.createRequestScope(
+      (c.env ?? {}) as Readonly<Record<string, unknown>>,
+    )
     const logger = options.logger.child({ requestId, correlationId })
     try {
       const actor = options.actorResolver

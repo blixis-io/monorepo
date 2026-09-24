@@ -102,7 +102,7 @@ export class ServiceContainer implements ServiceRegistry {
   }
 
   /** Creates a scope for one request, event delivery, cron run, or workflow step. */
-  createRequestScope(): RequestServiceScope {
+  createRequestScope(bindings: Readonly<Record<string, unknown>> = {}): RequestServiceScope {
     const instances = new Map<symbol, unknown>()
     const created: { entry: Entry & { kind: 'factory' }; value: unknown }[] = []
     const resolving = new Set<symbol>()
@@ -123,7 +123,7 @@ export class ServiceContainer implements ServiceRegistry {
         }
         resolving.add(token.id)
         try {
-          const value = entry.factory({ services: registry, scope: 'request' })
+          const value = entry.factory({ services: registry, scope: 'request', bindings })
           instances.set(token.id, value)
           created.push({ entry, value })
           return value as T
@@ -205,7 +205,7 @@ export class ServiceContainer implements ServiceRegistry {
         getOptional: (t) => (this.has(t) ? this.#getApp(t, entry.module) : undefined),
         has: (t) => this.has(t),
       }
-      const value = entry.factory({ services: appRegistry, scope: 'app' })
+      const value = entry.factory({ services: appRegistry, scope: 'app', bindings: {} })
       this.#appInstances.set(token.id, value)
       return value as T
     } finally {

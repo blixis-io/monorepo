@@ -18,7 +18,8 @@
     "test": "vitest run --root ../.. packages/cloudflare"
   },
   "dependencies": {
-    "@blixis/contracts": "workspace:*"
+    "@blixis/contracts": "workspace:*",
+    "@blixis/kernel": "workspace:*"
   },
   "peerDependencies": {
     "@cloudflare/workers-types": "^5.0.0"
