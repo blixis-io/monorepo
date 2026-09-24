@@ -57,7 +57,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [002 — Public Contracts](./plans/002-public-contracts/_index.md) | M1 | MVP | `completed` | 8/8 | 001 |
 | [023 — Developer Documentation Site](./plans/023-developer-documentation-site/_index.md) | M1 | MVP | `completed` | 4/4 | 002 |
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `completed` | 8/8 | 002 |
-| [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `in-progress` | 6/7 | 003 |
+| [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `completed` | 7/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `not-started` | 0/8 | 004 |
 | [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `not-started` | 0/7 | 005 |
 | [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `not-started` | 0/6 | 006 |
@@ -188,7 +188,7 @@ Builds `@blixis/kernel` — `defineModule`, module graph validation, the typed s
 
 #### 004 — Cloudflare Worker Runtime
 
-Status: `in-progress` · Progress: 6/7 · Scope: MVP  
+Status: `completed` · Progress: 7/7 · Scope: MVP  
 Plan: [004-cloudflare-worker-runtime/_index.md](./plans/004-cloudflare-worker-runtime/_index.md)  
 Depends on: [003 — Module Kernel](./plans/003-module-kernel/_index.md)
 
@@ -200,7 +200,7 @@ Creates `@blixis/cloudflare` (binding types, request-context helpers) and `apps/
 - [x] [004.004 — Validate environment configuration at boot](./plans/004-cloudflare-worker-runtime/004-environment-configuration-validation.md)
 - [x] [004.005 — Add Workers-runtime integration tests for apps/api](./plans/004-cloudflare-worker-runtime/005-workers-runtime-tests.md)
 - [x] [004.006 — Configure wrangler environments and deploy dry-run in CI](./plans/004-cloudflare-worker-runtime/006-environments-and-deploy-dry-run.md)
-- [ ] [004.007 — Integrate Sentry error monitoring for the API Worker](./plans/004-cloudflare-worker-runtime/007-sentry-error-monitoring.md)
+- [x] [004.007 — Integrate Sentry error monitoring for the API Worker](./plans/004-cloudflare-worker-runtime/007-sentry-error-monitoring.md)
 
 ### Milestone 3 — Persistence & event infrastructure
 
@@ -546,7 +546,7 @@ Checkpoints are review gates where the architecture is validated against working
 
 - [x] **CP1 — Kernel contract proof** (end of [003](./plans/003-module-kernel/_index.md)). An "external-style" fixture module written with only `@blixis/contracts` + `defineModule` boots, provides/consumes services via capabilities, and serves a route; every §26 validation failure names the offending module. *Evidence:* 003.008 end-to-end kernel suite.
   - **Passed 2026-09-24.** `packages/testing/test/kernel.e2e.test.ts`: `@acme/blixis-external` (contracts + hono + zod only — not even `defineModule`) requires capability `fixture.greeting`, consumes `GREETING_SERVICE` in a REST route, validates its config, and maps a thrown `UnauthorizedError` to a 401 problem response. Missing capability, duplicate module, incompatible version, and duplicate service provider each fail with the module name. Contract gaps found on the way and fixed in contracts: `has()` token invariance (`AnyServiceToken`), `setup`/`boot` variance (methods), `EventSubscription.handle` variance.
-- [ ] **CP2a — Kernel on `workerd`** (end of [004](./plans/004-cloudflare-worker-runtime/_index.md)). Lazy boot, per-request service scopes, `fetch`/`queue`/`scheduled` entry routing verified in the Workers runtime; bundle-size baseline recorded.
+- [x] **CP2a — Kernel on `workerd`** (end of [004](./plans/004-cloudflare-worker-runtime/_index.md)). Lazy boot, per-request service scopes, `fetch`/`queue`/`scheduled` entry routing verified in the Workers runtime; bundle-size baseline recorded. Passed 2026-09-24: `apps/api/test/*.worker.test.ts` run the entry in `workerd`. Bundle baseline: ~254 KiB gzip with Sentry (gate 1024 KiB).
 - [ ] **CP2b — Database path** (end of [005](./plans/005-database-foundation/_index.md)). `Worker → Hyperdrive → Neon` readiness verified on staging with latency numbers; request-scoped connections confirmed; module-owned migrations applied in module order.
 - [ ] **CP3 — Event consistency** (end of [006](./plans/006-events-and-async-processing/_index.md)). Rolled-back transactions emit nothing; committed transactional events are delivered via outbox → Queue; redeliveries are processed once (§32, §33).
 - [ ] **CP4 — Tenancy & authorization** (end of [009](./plans/009-authorization-and-permissions/_index.md)). Isolation suite and authz matrix cover every tenant-scoped route; no role-name checks outside `@blixis/permissions` (§30, §31).

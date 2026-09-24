@@ -1,5 +1,5 @@
 import { InfrastructureError, type StandardSchemaV1 } from '@blixis/contracts'
-import { type BlixisApp, toProblemResponse } from '@blixis/kernel'
+import { type BlixisApp, type ErrorReporter, toProblemResponse } from '@blixis/kernel'
 import { parseEnv } from './env.ts'
 
 /** The Worker default export produced by {@link createWorkerHandler} (all handlers present). */
@@ -18,6 +18,12 @@ export interface WorkerHandlerOptions {
    * queue batches are retried, cron runs fail. Logs name the invalid keys, never values.
    */
   readonly envSchema?: StandardSchemaV1
+  /**
+   * Receives invalid-environment failures of `fetch` (they become a 500 response and never
+   * reach the kernel). Queue and cron failures are thrown, so the runtime and an outer
+   * instrumentation wrapper such as Sentry's `withSentry` see them.
+   */
+  readonly errorReporter?: ErrorReporter
 }
 
 /**
@@ -61,7 +67,17 @@ export function createWorkerHandler<TEnv = unknown>(
           error instanceof InfrastructureError
             ? error
             : new InfrastructureError('Invalid environment')
-        return toProblemResponse(problem, crypto.randomUUID())
+        const requestId = crypto.randomUUID()
+        try {
+          options.errorReporter?.captureException(problem, {
+            requestId,
+            method: request.method,
+            status: 500,
+          })
+        } catch {
+          // Error reporting must never break the response.
+        }
+        return toProblemResponse(problem, requestId)
       }
       return app.fetch(request as unknown as Request, env, ctx)
     },

@@ -90,4 +90,31 @@ describe('createWorkerHandler env validation', () => {
     await handler.fetch?.(new Request('http://x/api/v1/health') as never, goodEnv, ctx)
     expect(parses).toBe(1)
   })
+
+  it('reports invalid-env fetch failures to the error reporter without values', async () => {
+    const { z } = await import('zod')
+    z.config({ jitless: true })
+    const reports: { error: unknown; context: object }[] = []
+    const handler = createWorkerHandler<Record<string, unknown>>(
+      createBlixis({ modules: [], logger: noopLogger }),
+      {
+        envSchema: z.object({ SECRET: z.string().min(20) }),
+        errorReporter: {
+          captureException: (error, context) => void reports.push({ error, context }),
+        },
+      },
+    )
+    const res = await handler.fetch(
+      new Request('http://x/api/v1/health') as never,
+      { SECRET: 'short-secret' },
+      ctx,
+    )
+    expect(reports).toHaveLength(1)
+    expect(reports[0]?.context).toEqual({
+      requestId: ((await res.json()) as { requestId: string }).requestId,
+      method: 'GET',
+      status: 500,
+    })
+    expect(JSON.stringify(String(reports[0]?.error))).not.toContain('short-secret')
+  })
 })

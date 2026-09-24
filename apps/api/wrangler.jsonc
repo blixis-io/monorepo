@@ -5,9 +5,12 @@
   "main": "src/index.ts",
   // Keep ≤ the runtime bundled with @cloudflare/vitest-pool-workers (ADR 0002).
   "compatibility_date": "2026-08-15",
-  "compatibility_flags": [],
+  // nodejs_compat: required by @sentry/cloudflare (AsyncLocalStorage); ADR 0004 / task 004.007.
+  "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
   "upload_source_maps": true,
+  // Version id of each deploy; @sentry/cloudflare uses it as the release (unless SENTRY_RELEASE).
+  "version_metadata": { "binding": "CF_VERSION_METADATA" },
 
   // Local development (wrangler dev).
   "vars": {
@@ -22,18 +25,23 @@
       // Worker name: blixis-api-staging
       "workers_dev": true,
       "preview_urls": false,
+      "version_metadata": { "binding": "CF_VERSION_METADATA" },
       "vars": {
         "BLIXIS_ENV": "staging",
-        "LOG_LEVEL": "info"
+        "LOG_LEVEL": "info",
+        // Sentry project private-m57/blixis-api (a DSN is not a secret).
+        "SENTRY_DSN": "https://ade334947d3608d7b3e28b18f68f0431@o4512140257918976.ingest.de.sentry.io/4512141485408336"
       }
     },
     "production": {
       // Worker name: blixis-api-production. No public URL until a custom domain exists.
       "workers_dev": false,
       "preview_urls": false,
+      "version_metadata": { "binding": "CF_VERSION_METADATA" },
       "vars": {
         "BLIXIS_ENV": "production",
-        "LOG_LEVEL": "info"
+        "LOG_LEVEL": "info",
+        "SENTRY_DSN": "https://ade334947d3608d7b3e28b18f68f0431@o4512140257918976.ingest.de.sentry.io/4512141485408336"
       }
     }
   }

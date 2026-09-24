@@ -2,13 +2,17 @@ import { type CloudflareEnvBase, defineEnvSchema } from '@blixis/cloudflare'
 import { z } from 'zod'
 
 /** Bindings and variables of the API Worker. Extended by later plans (Hyperdrive, Queues, …). */
-export interface ApiEnv extends CloudflareEnvBase {}
+export interface ApiEnv extends CloudflareEnvBase {
+  /** Sentry project DSN; Sentry is disabled when absent (local, tests). */
+  readonly SENTRY_DSN?: string
+}
 
 /** Runtime validation of {@link ApiEnv}, applied on the first invocation by `createWorkerHandler`. */
 export const apiEnvSchema = defineEnvSchema(
   z.object({
     BLIXIS_ENV: z.enum(['local', 'preview', 'staging', 'production']),
     LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).optional(),
+    SENTRY_DSN: z.url().optional(),
   }),
 )
 

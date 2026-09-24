@@ -40,7 +40,10 @@ app.ready()   (first request/event, memoised)
 
 - Order: `GET /api/v1/health` (liveness, no `ready()`), then `use('*')` middleware: request id (random; incoming `x-request-id` only with `trustRequestIdHeader`), correlation id (incoming `x-correlation-id` if it matches `[\w.:-]{1,128}`), `await ready()`, request scope, actor resolution, `RequestContext` → `c.var`, then module routes; response headers `x-request-id`/`x-correlation-id`; scope disposed via `executionCtx.waitUntil` when available, otherwise awaited.
 - Mount path: `/api/v1` + `rest.path` (normalised). Conflicts: identical `METHOD path` across modules (Hono `ALL` middleware entries ignored); checked synchronously in `createBlixis`.
-- Errors: `onError`/`notFound` return RFC 9457 problem details via `toProblemResponse` (`toPublicErrorShape` redaction); 5xx are logged with the request logger.
+- Errors: `onError`/`notFound` return RFC 9457 problem details via `toProblemResponse` (`toPublicErrorShape` redaction). 5xx are logged with the request logger and passed to the optional `errorReporter`:
+  - context: `requestId`, `correlationId`, `method`, `route` pattern, `status`, `actorType`, `spaceId`, `module` for `ModuleError`;
+  - a throwing reporter is ignored;
+  - 4xx are never reported.
 
 ## Gotchas
 

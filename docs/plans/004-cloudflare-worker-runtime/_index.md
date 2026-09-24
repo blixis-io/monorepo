@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 2 — Kernel walking skeleton on Cloudflare Workers  
 Roadmap scope: MVP / initial platform  
-Progress: 6/7 tasks completed
+Progress: 7/7 tasks completed
 
 ## Objective
 
@@ -67,16 +67,16 @@ Depends on:
 - [x] [004 — Validate environment configuration at boot](./004-environment-configuration-validation.md)
 - [x] [005 — Add Workers-runtime integration tests for apps/api](./005-workers-runtime-tests.md)
 - [x] [006 — Configure wrangler environments and deploy dry-run in CI](./006-environments-and-deploy-dry-run.md)
-- [ ] [007 — Integrate Sentry error monitoring for the API Worker](./007-sentry-error-monitoring.md)
+- [x] [007 — Integrate Sentry error monitoring for the API Worker](./007-sentry-error-monitoring.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] Health endpoint works under `wrangler dev` and in the Workers test pool.
-- [ ] Invalid/missing required env vars cause a clear boot error naming the variable (never its value).
-- [ ] Architectural checkpoint CP2a: kernel boots inside `workerd` with lazy boot and per-request scopes verified.
+- [x] All tasks `completed`.
+- [x] Health endpoint works under `wrangler dev` and in the Workers test pool.
+- [x] Invalid/missing required env vars cause a clear boot error naming the variable (never its value).
+- [x] Architectural checkpoint CP2a: kernel boots inside `workerd` with lazy boot and per-request scopes verified.
 
 ## Risks
 

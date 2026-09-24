@@ -2,7 +2,7 @@
 
 Things the project needs beyond code — accounts, settings, decisions, and files — collected in one place. Items marked **(owner)** need a decision or action by the project owner; the rest are done by the implementing tasks referenced.
 
-Last updated: 2026-09-24 (after plan 001).
+Last updated: 2026-09-24 (after plan 004).
 
 Related: [Repository settings](./operations/repository.md) · [Cloudflare Workers](./operations/cloudflare.md) · [Environments](./operations/environments.md) · [ROADMAP](./ROADMAP.md#open-architectural-decisions)
 
@@ -16,7 +16,7 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
 | GitHub CLI | ✅ authenticated |
 | Cloudflare account + Wrangler | ✅ set up (Wrangler 4.x installed); docs site live on workers.dev |
 | Neon project | ✅ created (region `eu-central-1`, Frankfurt) — follow-ups below |
-| Sentry | 🟡 org `private-m57` chosen for alerts; agent plugin + project setup pending |
+| Sentry | ✅ project `private-m57/blixis-api`; API Worker reports errors — privacy toggle + auth token pending |
 | Domain | ❌ not decided |
 | Licence / npm scope | ❌ not decided — more urgent now that the repo is public |
 
@@ -78,15 +78,19 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
 ## Sentry (errors and alerts)
 
 - [x] **(owner)** Alert destination decided: **Sentry**, org `private-m57`.
-- [ ] **(owner)** Install the Sentry agent plugin for your coding assistant — run it yourself in the terminal (it installs external code, so the assistant does not run it for you):
+- [x] Sentry agent plugin installed for the coding assistant.
+- [x] Sentry project `blixis-api` created (EU region, environments `staging` / `production` via `BLIXIS_ENV`); later one for the admin UI (plan 019).
+- [x] `SENTRY_DSN` set per Worker environment in `apps/api/wrangler.jsonc` (a DSN is not a secret); GitHub variables `SENTRY_ORG=private-m57`, `SENTRY_PROJECT=blixis-api`.
+- [x] SDK integrated in the Worker (task [004.007](./plans/004-cloudflare-worker-runtime/007-sentry-error-monitoring.md)); verification error received (`BLIXIS-API-1`, resolved).
+- [ ] **(owner)** In Sentry: **Project Settings → Security & Privacy → turn on "Prevent Storing of IP Addresses"**. Sentry otherwise stores the client IP and location for JavaScript events, even though the SDK sends no user data.
+- [ ] **(owner)** Create a Sentry auth token (Settings → Auth Tokens, scope `project:releases`), then store it without pasting it anywhere else:
   ```bash
-  npx @sentry/agent-plugin install private-m57#e6f8917e3a
+  gh secret set SENTRY_AUTH_TOKEN --repo blixis-io/monorepo
   ```
-- [ ] Create the Sentry project for the API (environments `staging`, `production`), and later one for the admin UI (plan 019).
-- [ ] Store `SENTRY_DSN` per Worker environment; GitHub variables `SENTRY_ORG=private-m57`, `SENTRY_PROJECT`; secret `SENTRY_AUTH_TOKEN` for source-map uploads and release tracking.
-- [ ] Integrate the SDK in the Worker (task [004.007](./plans/004-cloudflare-worker-runtime/007-sentry-error-monitoring.md)).
+  The release job uses it to upload source maps (021.001).
+- [x] Default alert "Send a notification for high priority issues" active (email).
 - [ ] Alert rules: new production issue, staging error spike, cron/uptime monitors (task 020.002).
-- [ ] Route Sentry notifications to email or Slack.
+- [ ] Route Sentry notifications to Slack (optional; email works today).
 
 ## Packages and licensing
 

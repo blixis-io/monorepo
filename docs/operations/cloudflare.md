@@ -29,7 +29,8 @@ Pattern: `blixis-<resource>-<environment>`.
 | Rate limiter | `RATE_LIMITER_*` | per env | per env | 007 / 020 |
 | Custom domain | — | `api.staging.<domain>` | `api.<domain>` | 004 / 021 |
 | Docs Worker (static assets, single environment) | — | — | `blixis-docs` → https://blixis-docs.frosty-hill-6079.workers.dev | 023.004 |
-| Sentry DSN | `SENTRY_DSN` (var) | staging DSN | production DSN | 004.007 |
+| Sentry DSN | `SENTRY_DSN` (var) | project `blixis-api` DSN | same DSN (split by `environment`) | 004.007 |
+| Version metadata | `CF_VERSION_METADATA` | ✓ | ✓ | 004.007 |
 
 Record every created resource ID in the inventory table in this file as plans create them (IDs are not secret, credentials are).
 
@@ -123,6 +124,7 @@ Exact keys and limits must be checked against current Wrangler docs when impleme
 
 - Pin `compatibility_date`; bump it deliberately in its own PR (`build(api): bump compatibility date`) after running the Workers-pool tests.
 - Each compatibility flag is justified in the PR and in `docs/decisions/` when architectural.
+- `nodejs_compat` (API Worker): required by `@sentry/cloudflare` (`AsyncLocalStorage` for per-request scopes; task 004.007).
 
 ## Secrets
 
@@ -159,8 +161,32 @@ Resource creation (queues, buckets, Hyperdrive configs) is done once, manually o
 
 ## Monitoring
 
-- **Errors and alerts: Sentry** (org `private-m57`). The Worker reports unexpected errors (5xx, failed queue/cron/Workflow invocations) via `@sentry/cloudflare` with `environment` = `BLIXIS_ENV` and `release` = `BLIXIS_VERSION`; expected 4xx errors are not reported. `SENTRY_DSN` is configured per environment. Setup: task [004.007](../plans/004-cloudflare-worker-runtime/007-sentry-error-monitoring.md).
-- Source maps are uploaded to Sentry on every deploy so stack traces are readable.
+- **Errors and alerts: Sentry**: org `private-m57`, project `blixis-api` (EU region). Setup: task [004.007](../plans/004-cloudflare-worker-runtime/007-sentry-error-monitoring.md).
+  - `apps/api` wraps the Worker in `withSentry` (`@sentry/cloudflare`). It captures uncaught errors of `fetch`/`queue`/`scheduled` and flushes in the background through `waitUntil`.
+  - The kernel `ErrorReporter` reports errors the REST layer turns into 5xx problem responses, plus invalid-environment failures. Tags: `requestId`, `correlationId`, `method`, `route`, `status`, `actorType`, `spaceId`, `module`.
+  - Expected client errors (4xx) are never reported.
+  - `environment` = `BLIXIS_ENV`. `release` = `SENTRY_RELEASE` when the deploy sets it, else the Worker version id (`CF_VERSION_METADATA`).
+  - Local development and tests send nothing: no `SENTRY_DSN`.
+  - Privacy (§35):
+    - no user info, cookies, or bodies;
+    - `authorization`/`cookie`/`set-cookie`/`x-api-key` headers and token-like query strings are removed (`dataCollection` + `beforeSend`).
+    - Sentry's server also infers the sender's IP for JavaScript events. Keep **Project Settings → Security & Privacy → Prevent Storing of IP Addresses** on.
+- **Alert rules:**
+  - Sentry's default *"Send a notification for high priority issues"* is active (all environments; email).
+  - Add in the Sentry UI when production goes live (fine-tuned in 020.002):
+    - *new issue in `production`* → notify;
+    - *more than 10 events in 1 h in `staging`* → notify.
+- **Source maps:**
+  - `upload_source_maps: true` uploads maps to Cloudflare (dashboard stack traces).
+  - The bundle is not minified, so Sentry frames are readable without maps (bundle file and line).
+  - Mapping frames to `src/` needs the release deploy job (021.001) to upload maps, using the same release name as `SENTRY_RELEASE`:
+    ```bash
+    pnpm --filter @blixis/api exec wrangler deploy --env production --outdir dist \
+      --var SENTRY_RELEASE:blixis-api@$VERSION
+    pnpm dlx @sentry/cli sourcemaps upload --org private-m57 --project blixis-api \
+      --release blixis-api@$VERSION --strip-prefix apps/api/dist apps/api/dist
+    ```
+    This needs `SENTRY_AUTH_TOKEN` (GitHub secret, scope `project:releases`).
 
 - Workers Logs/Traces enabled via `observability` (sampling per environment set in task 020.002).
 - Also watch (Workers dashboard / Sentry alerts): 5xx rate, CPU time, queue backlog and DLQ depth, outbox backlog age, Hyperdrive errors. Runbook: `docs/operations/observability.md` (020.002).
