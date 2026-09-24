@@ -1,8 +1,10 @@
 import type { BlixisModule, Logger, ModuleMeta, ServiceRegistry } from '@blixis/contracts'
 import { ModuleError } from '@blixis/contracts'
 import { Hono } from 'hono'
+import type { BlixisHonoEnv } from './hono-env.ts'
 import { validateModuleConfigs } from './internal/config.ts'
 import { validateModuleGraph } from './internal/graph.ts'
+import { type ActorResolver, installRest } from './internal/rest.ts'
 import { ServiceContainer } from './internal/services.ts'
 import { createJsonLogger } from './logger.ts'
 
@@ -17,19 +19,26 @@ export interface CreateBlixisOptions {
   readonly modules: readonly BlixisModule[]
   /** Platform logger. Defaults to a JSON logger at level `info`. */
   readonly logger?: Logger
+  /** Resolves the actor of each request (authentication). Defaults to the anonymous actor. */
+  readonly actorResolver?: ActorResolver
+  /** Accept an incoming `x-request-id` header (only behind a trusted proxy). Default `false`. */
+  readonly trustRequestIdHeader?: boolean
 }
 
 /** A composed Blixis application (architecture §43). */
 export interface BlixisApp {
-  /** Root Hono application. */
-  readonly hono: Hono
+  /** Root Hono application (module routes mounted under `/api/v1`). */
+  readonly hono: Hono<BlixisHonoEnv>
   /** App-scoped services (populated once {@link BlixisApp.ready} has resolved). */
   readonly services: ServiceRegistry
   /** Metadata of the registered modules in bootstrap order. */
   readonly modules: readonly ModuleMeta[]
   /** Runs `setup` and `boot` hooks once; subsequent calls return the same result. */
   ready(): Promise<void>
-  /** Handles a request (Fetch API / Workers compatible). Waits for `ready()`. */
+  /**
+   * Handles a request (Fetch API / Workers compatible). Every route except the liveness check
+   * `GET /api/v1/health` waits for `ready()`.
+   */
   fetch(request: Request, env?: unknown, executionContext?: ExecutionContextLike): Promise<Response>
 }
 
@@ -61,7 +70,7 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
   const metas = Object.freeze(ordered.map((m) => m.meta))
   const logger = options.logger ?? createJsonLogger()
   const container = new ServiceContainer()
-  const hono = new Hono()
+  const hono = new Hono<BlixisHonoEnv>()
 
   let setupResult: Promise<void> | undefined
   let bootedCount = 0
@@ -115,14 +124,23 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
     await bootInFlight
   }
 
+  installRest(hono, ordered, {
+    container,
+    ready,
+    logger,
+    ...(options.actorResolver === undefined ? {} : { actorResolver: options.actorResolver }),
+    ...(options.trustRequestIdHeader === undefined
+      ? {}
+      : { trustRequestIdHeader: options.trustRequestIdHeader }),
+  })
+
   return {
     hono,
     services: container,
     modules: metas,
     ready,
     async fetch(request, env, executionContext) {
-      await ready()
-      return hono.fetch(request, env, executionContext as never)
+      return hono.fetch(request, env as Record<string, unknown>, executionContext as never)
     },
   }
 }

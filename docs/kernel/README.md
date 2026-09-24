@@ -8,7 +8,8 @@ User-facing documentation is in the developer manual ([concepts/modules](../../a
 createBlixis({ modules })            ← synchronous (safe at Worker top level)
   ├─ validateModuleGraph()           names, versions, requires, capabilities, cycles → order
   ├─ new ServiceContainer()
-  ├─ new Hono()                      routes mounted in 003.006
+  ├─ new Hono<BlixisHonoEnv>()
+  ├─ installRest()                   route-conflict check, health, context middleware, module routes, error handlers
   └─ return BlixisApp
 
 app.ready()   (first request/event, memoised)
@@ -22,6 +23,12 @@ app.ready()   (first request/event, memoised)
 - **Errors:** hook errors are wrapped as `ModuleError` (`[module] setup failed: …` / `boot failed: …`) with the original as `cause`; `ModuleError`s thrown by hooks pass through unchanged.
 - **Services:** see [ADR 0005](../decisions/0005-service-scopes.md). The container is sealed after setup.
 - **Logger:** `createJsonLogger` (JSON lines to the console) is the default until the platform logger with redaction lands (020.001).
+
+## REST layer
+
+- Order: `GET /api/v1/health` (liveness, no `ready()`), then `use('*')` middleware: request id (random; incoming `x-request-id` only with `trustRequestIdHeader`), correlation id (incoming `x-correlation-id` if it matches `[\w.:-]{1,128}`), `await ready()`, request scope, actor resolution, `RequestContext` → `c.var`, then module routes; response headers `x-request-id`/`x-correlation-id`; scope disposed via `executionCtx.waitUntil` when available, otherwise awaited.
+- Mount path: `/api/v1` + `rest.path` (normalised). Conflicts: identical `METHOD path` across modules (Hono `ALL` middleware entries ignored); checked synchronously in `createBlixis`.
+- Errors: `onError`/`notFound` return RFC 9457 problem details via `toProblemResponse` (`toPublicErrorShape` redaction); 5xx are logged with the request logger.
 
 ## Gotchas
 
