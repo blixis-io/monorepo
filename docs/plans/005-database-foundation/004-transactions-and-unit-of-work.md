@@ -143,6 +143,6 @@ Change the status to `completed` only when all of the following hold:
   - Manual run against local Postgres 18: commit (v=1) and rollback; a real serialisation conflict between two connections was retried once (runs=2, final v=12); a stale scope was rejected.
   - Integration tests come in 005.006.
 - **Local Postgres fix (from 005.003):**
-  - Port 5432 was taken by another project's container on the owner's machine. Compose now maps `${BLIXIS_POSTGRES_PORT:-55432}:5432` (`wrangler.jsonc` `localConnectionString` and docs updated).
+  - Port 5432 was taken by another project's container on the owner's machine. Compose now maps `${BLIXIS_POSTGRES_PORT:-55432}:5432` (`wrangler.jsonc` `localConnectionString` and docs updated). Later reverted at the owner's request: the default is 5432 again (the conflicting container was stopped), and `BLIXIS_POSTGRES_PORT` remains as an override.
   - The compose volume `blixis_postgres-data` already existed from the pre-rebuild codebase, initialised with other credentials (auth failed). It was left untouched, and the volume is renamed `postgres18-data`.
 - **Docs:** "Transactions on Hyperdrive" (transaction pooling mode; `SET LOCAL`; no session state; keep transactions short) in `docs/operations/database.md`, plus a Transactions section on the manual page.

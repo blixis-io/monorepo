@@ -74,7 +74,7 @@ Account ID: `7c871756de2f3f7dfa1445d5a88ca0fb` (GitHub variable `CLOUDFLARE_ACCO
   // ── local development (wrangler dev) ─────────────────────────────
   "vars": { "BLIXIS_ENV": "local", "LOG_LEVEL": "debug" },
   "hyperdrive": [
-    { "binding": "HYPERDRIVE", "id": "00000000000000000000000000000000", "localConnectionString": "postgres://blixis:blixis@localhost:55432/blixis" }
+    { "binding": "HYPERDRIVE", "id": "00000000000000000000000000000000", "localConnectionString": "postgres://blixis:blixis@localhost:5432/blixis" }
   ],
   "queues": {
     "producers": [{ "binding": "EVENTS", "queue": "blixis-events-local" }],
