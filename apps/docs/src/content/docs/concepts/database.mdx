@@ -1,0 +1,66 @@
+---
+title: Database
+description: Query Postgres from modules through the request-scoped Drizzle database.
+sidebar:
+  order: 9
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+Blixis stores relational data in **Neon Postgres**, reached from Workers through **Cloudflare Hyperdrive**. `@blixis/database` owns connections. Modules never open connections or read bindings themselves: they get the database as a service. The query layer is [Drizzle ORM](https://orm.drizzle.team) on the `pg` driver (ADR 0006).
+
+## Enabling the database
+
+Add the platform module to your app. It provides the [`DATABASE`](/api/database/variables/database/) service and the `blixis.database` capability.
+
+```ts
+import { databaseModule } from '@blixis/database'
+
+const app = createBlixis({ modules: [databaseModule(), contentModule()] })
+```
+
+By default, it reads the connection string from the `HYPERDRIVE` binding. Pass `databaseModule({ binding: 'OTHER' })` to use another binding.
+
+## Using it in a module
+
+Declare your tables in your module's own Postgres schema. Then resolve `DATABASE` from the request's services:
+
+```ts
+import { DATABASE } from '@blixis/database'
+import { eq } from 'drizzle-orm'
+import { pgSchema, text, uuid } from 'drizzle-orm/pg-core'
+
+const content = pgSchema('content')
+export const entries = content.table('entries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: text('title').notNull(),
+})
+
+routes.get('/:id', async (c) => {
+  const db = c.var.services.get(DATABASE)
+  const [entry] = await db.select().from(entries).where(eq(entries.id, c.req.param('id')))
+  return c.json(entry)
+})
+```
+
+- **One database per request.** The service is request-scoped (ADR 0005). It connects on the first query and is closed automatically when the request, queue message, or cron job ends. Never keep it in module-level variables.
+- **Full Drizzle API.** `DATABASE` is Drizzle's own database type, not a Blixis wrapper, so the whole typed query builder and `sql` template are available.
+
+## Errors
+
+Pass driver errors through [`translateDatabaseError`](/api/database/functions/translatedatabaseerror/) before rethrowing:
+
+| Postgres error | Blixis error |
+|---|---|
+| Unique violation (`23505`) | `ConflictError` with `details.constraint` |
+| Foreign-key violation (`23503`) | `ConflictError` |
+| Serialisation failure, deadlock, timeouts, lost connection | `InfrastructureError` with `retryable: true` |
+| Anything else | `InfrastructureError` |
+
+<Aside type="caution">
+Drizzle's own error message includes the query **parameters**, which can hold user data. `translateDatabaseError` drops them and redacts connection strings. Don't log or rethrow raw driver errors.
+</Aside>
+
+## Migrations
+
+Each module owns SQL migration files. `drizzle-kit generate` proposes them from your schema, you review and commit them, and the Blixis migration runner applies them. This is covered by roadmap task 005.005.

@@ -38,6 +38,12 @@
       "path": "packages/cloudflare/tsconfig.test.json"
     },
     {
+      "path": "packages/database"
+    },
+    {
+      "path": "packages/database/tsconfig.test.json"
+    },
+    {
       "path": "apps/api"
     }
   ]

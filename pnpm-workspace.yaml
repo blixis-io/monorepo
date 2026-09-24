@@ -39,6 +39,11 @@ catalog:
   wrangler: 4.137.0
   "@cloudflare/workers-types": 5.20260924.1
   "@sentry/cloudflare": 11.0.0
+  # Database stack (ADR 0006). Drizzle is 0.x: pin exactly, upgrade in dedicated PRs.
+  pg: 8.23.0
+  "@types/pg": 8.23.0
+  drizzle-orm: 0.45.3
+  drizzle-kit: 0.31.11
 
 minimumReleaseAgeExclude:
   - hono@4.13.9
