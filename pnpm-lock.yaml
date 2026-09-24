@@ -222,6 +222,9 @@ catalogs:
       specifier: 4.6.5
       version: 4.6.5
 
+patchedDependencies:
+  pg-protocol@1.16.0: c74c50031b7db7b0e1b0ef2d3045bcdafa6f26f64aafb0371d3878b5010e054a
+
 importers:
 
   .:
@@ -256,6 +259,9 @@ importers:
       '@blixis/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@blixis/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       '@blixis/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
@@ -4738,7 +4744,7 @@ snapshots:
   '@types/pg@8.23.0':
     dependencies:
       '@types/node': 24.13.6
-      pg-protocol: 1.16.0
+      pg-protocol: 1.16.0(patch_hash=c74c50031b7db7b0e1b0ef2d3045bcdafa6f26f64aafb0371d3878b5010e054a)
       pg-types: 2.2.0
 
   '@types/sax@1.2.7':
@@ -5984,7 +5990,7 @@ snapshots:
     dependencies:
       pg: 8.23.0
 
-  pg-protocol@1.16.0: {}
+  pg-protocol@1.16.0(patch_hash=c74c50031b7db7b0e1b0ef2d3045bcdafa6f26f64aafb0371d3878b5010e054a): {}
 
   pg-types@2.2.0:
     dependencies:
@@ -5998,7 +6004,7 @@ snapshots:
     dependencies:
       pg-connection-string: 2.14.0
       pg-pool: 3.14.0(pg@8.23.0)
-      pg-protocol: 1.16.0
+      pg-protocol: 1.16.0(patch_hash=c74c50031b7db7b0e1b0ef2d3045bcdafa6f26f64aafb0371d3878b5010e054a)
       pg-types: 2.2.0
       pgpass: 1.0.5
     optionalDependencies:

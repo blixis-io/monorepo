@@ -15,7 +15,7 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
 | GitHub repository | ✅ `blixis-io/monorepo`, **public** |
 | GitHub CLI | ✅ authenticated |
 | Cloudflare account + Wrangler | ✅ set up (Wrangler 4.x installed); docs site live on workers.dev |
-| Neon project | ✅ created (region `eu-central-1`, Frankfurt) — follow-ups below |
+| Neon project | ✅ branches `production` + `staging`, least-privilege roles, Hyperdrive per env ([Database](./operations/database.md)) |
 | Sentry | ✅ project `private-m57/blixis-api`; API Worker reports errors; IP storage off; `SENTRY_AUTH_TOKEN` set |
 | Domain | ❌ not decided |
 | Licence / npm scope | ❌ not decided — more urgent now that the repo is public |
@@ -67,12 +67,13 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
 
 - [x] Neon project created in `eu-central-1` (AWS Frankfurt); default database `neondb`.
 - [ ] **(owner) Rotate the `neondb_owner` password.** The connection string was shared in plain text in a chat session. Never paste it into files in this public repository.
-- [ ] Create branches `production` (primary) and `staging` (task 005.003).
-- [ ] Create least-privilege roles per branch: an **application role** (DML only, used by Hyperdrive) and a **migration role** (DDL, used only by CI `db:migrate`). The owner role is not used by the application or CI.
-- [ ] Use the **direct** host (without `-pooler`) for Hyperdrive configurations and migrations; Hyperdrive does its own pooling. Keep `sslmode=require`.
-- [ ] Store migration URLs only as GitHub environment secrets (`DATABASE_URL` in `staging` / `production`) and local developer `.env`/`.dev.vars` (git-ignored).
+- [x] Branches `production` (primary) and `staging` (task 005.003).
+- [x] Least-privilege roles per branch, created with SQL (not `neon_superuser` members): an **application role** (DML only, used by Hyperdrive) and a **migration role** (DDL, used only by CI `db:migrate`). The owner role is not used by the application or CI.
+- [x] Use the **direct** host (without `-pooler`) for Hyperdrive configurations and migrations; Hyperdrive does its own pooling. Keep `sslmode=require`.
+- [x] Store migration URLs only as GitHub environment secrets (`DATABASE_URL` in `staging` / `production`) and local developer `.env`/`.dev.vars` (git-ignored).
 - [ ] Point-in-time restore retention configured (task 022.002).
 - [ ] Neon API key for preview branches (task 021.002).
+- [x] Hyperdrive configs `blixis-staging` / `blixis-production` bound as `HYPERDRIVE` ([Database](./operations/database.md)).
 - [x] Neon CLI authenticated locally (`npx neonctl auth`); org `org-odd-thunder-61292824`, project `blixis` (`plain-frost-79494892`), Postgres 18.
 - [ ] Keep Cloudflare Hyperdrive and Workers traffic close to the database (placement/Smart Placement evaluated in task 022.001).
 

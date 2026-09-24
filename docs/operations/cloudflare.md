@@ -36,7 +36,7 @@ Record every created resource ID in the inventory table in this file as plans cr
 
 | Resource | Staging ID | Production ID |
 |---|---|---|
-| Hyperdrive | _tbd (005.003)_ | _tbd (005.003)_ |
+| Hyperdrive | `blixis-staging` `2140b66bf63640059dc89b926d10ca3a` | `blixis-production` `01eefb16f5004d80addedcfe9e69f430` |
 | KV `CACHE_KV` | _tbd (013.002)_ | _tbd (013.002)_ |
 
 Account ID: `7c871756de2f3f7dfa1445d5a88ca0fb` (GitHub variable `CLOUDFLARE_ACCOUNT_ID`). workers.dev subdomain: `frosty-hill-6079`.
@@ -67,14 +67,14 @@ Account ID: `7c871756de2f3f7dfa1445d5a88ca0fb` (GitHub variable `CLOUDFLARE_ACCO
   "name": "blixis-api",
   "main": "src/index.ts",
   "compatibility_date": "<pinned date>",
-  "compatibility_flags": [],            // add "nodejs_compat" only if ADR 0006 requires it
+  "compatibility_flags": ["nodejs_compat"],   // Sentry (004.007) and pg (ADR 0006)
   "observability": { "enabled": true },
   "upload_source_maps": true,
 
   // ── local development (wrangler dev) ─────────────────────────────
   "vars": { "BLIXIS_ENV": "local", "LOG_LEVEL": "debug" },
   "hyperdrive": [
-    { "binding": "HYPERDRIVE", "id": "<any id>", "localConnectionString": "postgres://blixis:blixis@localhost:5432/blixis" }
+    { "binding": "HYPERDRIVE", "id": "00000000000000000000000000000000", "localConnectionString": "postgres://blixis:blixis@localhost:5432/blixis" }
   ],
   "queues": {
     "producers": [{ "binding": "EVENTS", "queue": "blixis-events-local" }],
@@ -124,7 +124,7 @@ Exact keys and limits must be checked against current Wrangler docs when impleme
 
 - Pin `compatibility_date`; bump it deliberately in its own PR (`build(api): bump compatibility date`) after running the Workers-pool tests.
 - Each compatibility flag is justified in the PR and in `docs/decisions/` when architectural.
-- `nodejs_compat` (API Worker): required by `@sentry/cloudflare` (`AsyncLocalStorage` for per-request scopes; task 004.007).
+- `nodejs_compat` (API Worker): required by `@sentry/cloudflare` (`AsyncLocalStorage` for per-request scopes; task 004.007) and by `pg` (Node `net`/`tls`/`crypto` APIs; ADR 0006).
 
 ## Secrets
 
@@ -141,7 +141,7 @@ pnpm --filter @blixis/api exec wrangler secret list --env production
 ## Local development
 
 - `pnpm dev` runs `wrangler dev` for `apps/api` with local simulations of Queues, KV, R2, Cache, and Workflows (Miniflare).
-- Hyperdrive locally uses `localConnectionString` (or the env var `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`) pointing at Docker Postgres.
+- Hyperdrive locally uses `localConnectionString` (or the env var `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`) pointing at Docker Postgres (`docker compose up -d postgres`). Details: [Database](./database.md).
 - `wrangler dev --remote` is not used for day-to-day work (it touches real resources).
 
 ## CI access (API token)

@@ -50,3 +50,8 @@ minimumReleaseAgeExclude:
   - astro@7.3.5
   - wrangler@4.137.0
   - '@cloudflare/workers-types@5.20260924.1'
+
+# pg-protocol 1.16.0 ships ESM in esm/index.js without "type": "module" (breaks the Vitest
+# Workers pool). See docs/operations/database.md#known-workaround-pg-protocol-patch.
+patchedDependencies:
+  pg-protocol@1.16.0: patches/pg-protocol@1.16.0.patch
