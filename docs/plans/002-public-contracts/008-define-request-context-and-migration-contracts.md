@@ -107,7 +107,7 @@ Requires:
 
 ```bash
 pnpm typecheck
-pnpm test --filter @blixis/contracts
+pnpm --filter @blixis/contracts test
 pnpm build
 ```
 

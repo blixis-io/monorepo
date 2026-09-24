@@ -93,7 +93,7 @@ Requires:
 
 ```bash
 pnpm db:migrate
-pnpm test --filter @blixis/spaces
+pnpm --filter @blixis/spaces test
 ```
 
 ## Review checklist

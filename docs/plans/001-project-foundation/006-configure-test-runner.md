@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -39,17 +39,25 @@ Set up the test runner chosen in ADR 0002 so that `pnpm test` runs pure unit tes
 ### Create
 
 ```text
-vitest.config.ts (or vitest.workspace.ts — per ADR 0002)
+vitest.config.ts
 packages/shared/src/assert.test.ts
+packages/shared/tsconfig.test.json
 ```
 
 ### Modify
 
 ```text
-docs/conventions/testing.md
 package.json
-packages/shared/package.json
+pnpm-workspace.yaml (catalog: vitest, @vitest/coverage-v8)
 pnpm-lock.yaml
+tsconfig.json (references shared test project)
+packages/shared/package.json
+docs/conventions/testing.md
+docs/conventions/packages.md
+docs/development/monorepo.md
+docs/plans/**/*.md (validation commands: `pnpm test --filter X` → `pnpm --filter X test`)
+docs/ROADMAP.md
+docs/plans/001-project-foundation/_index.md
 ```
 
 ### Delete
@@ -75,10 +83,10 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `pnpm test` runs and passes the `@blixis/shared` tests.
-- [ ] `pnpm test:coverage` produces a coverage report without errors.
-- [ ] `docs/conventions/testing.md` describes unit, module integration, API, and infrastructure test levels and their locations.
-- [ ] The opt-in procedure for Workers-pool tests is documented.
+- [x] `pnpm test` runs and passes the `@blixis/shared` tests.
+- [x] `pnpm test:coverage` produces a coverage report without errors.
+- [x] `docs/conventions/testing.md` describes unit, module integration, API, and infrastructure test levels and their locations.
+- [x] The opt-in procedure for Workers-pool tests is documented.
 
 ## Validation
 
@@ -89,15 +97,15 @@ pnpm test:coverage
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Tests assert behavior, not implementation details.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Tests assert behavior, not implementation details.
 
 ## Completion conditions
 
@@ -114,4 +122,9 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Vitest 4.1.11** + `@vitest/coverage-v8` 4.1.11 via the catalog (Vitest 5 blocked by the Workers pool, ADR 0002). Root `vitest.config.ts` defines a single `node` project (`packages|modules|tooling/*/src/**/*.test.ts`, `modules/*/test/**`), excluding `*.worker.test.ts`. Workers projects are added per Worker package (first: `apps/api`, 004.005); the opt-in steps are documented in `docs/conventions/testing.md#how-it-is-wired`.
+- **Root scripts:** `test` = `tsc -b && vitest run` (dist consumption, ADR 0001); `test:watch`; `test:coverage` = `tsc -b && vitest run --coverage` (v8; text/html/lcov into git-ignored `coverage/`). `@blixis/shared` coverage: 100%.
+- **Type tests** run through `tsc`, not Vitest: `packages/shared/tsconfig.test.json` (extends `@blixis/tsconfig/test.json`) is referenced from the root solution. Verified that changing `expectTypeOf(value).toEqualTypeOf<string>()` to `<number>` fails `pnpm typecheck` with `TS2344`; test files do not appear in `dist/`.
+- **Per-package runs:** packages get `"test": "vitest run --root ../.. <dir>/<name>"` so `pnpm --filter @blixis/shared test` uses the root config. `pnpm test --filter X` (as written in many task validation sections) would pass `--filter` to Vitest and fail, so all task files were normalized to `pnpm --filter X test` (72 occurrences).
+- `vitest` is declared as a devDependency of `@blixis/shared` (explicit per package, not relying on root hoisting).
+- No peer warnings with `autoInstallPeers: false` (`@vitest/browser` is an optional peer of the coverage package).

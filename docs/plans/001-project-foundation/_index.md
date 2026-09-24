@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 1 — Workspace & public contracts  
 Roadmap scope: MVP / initial platform  
-Progress: 4/7 tasks completed
+Progress: 5/7 tasks completed
 
 ## Objective
 
@@ -78,7 +78,7 @@ Depends on:
 - [x] [003 — Configure root TypeScript 7 setup](./003-configure-typescript.md)
 - [x] [004 — Define package conventions and create @blixis/shared](./004-define-package-conventions.md)
 - [ ] [005 — Configure linting, formatting, and package-boundary checks](./005-configure-lint-format-and-boundaries.md)
-- [ ] [006 — Configure the test runner for unit and Workers-runtime tests](./006-configure-test-runner.md)
+- [x] [006 — Configure the test runner for unit and Workers-runtime tests](./006-configure-test-runner.md)
 - [ ] [007 — Set up the continuous integration pipeline](./007-setup-ci-pipeline.md)
 
 ## Completion criteria

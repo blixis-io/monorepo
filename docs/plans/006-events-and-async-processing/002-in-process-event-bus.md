@@ -79,7 +79,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/events --filter @blixis/testing
+pnpm --filter @blixis/events --filter @blixis/testing test
 ```
 
 ## Review checklist

@@ -113,7 +113,7 @@ Requires:
 
 ```bash
 pnpm typecheck
-pnpm test --filter @blixis/contracts
+pnpm --filter @blixis/contracts test
 grep -R "from 'hono'" packages/contracts/dist || echo "no runtime hono import"
 ```
 

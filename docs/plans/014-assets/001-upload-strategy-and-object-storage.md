@@ -81,7 +81,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/cloudflare
+pnpm --filter @blixis/cloudflare test
 ```
 
 ## Review checklist

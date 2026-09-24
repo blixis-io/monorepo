@@ -86,7 +86,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/permissions --filter @blixis/users
+pnpm --filter @blixis/permissions --filter @blixis/users test
 ```
 
 ## Review checklist

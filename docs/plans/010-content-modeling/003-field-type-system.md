@@ -95,7 +95,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/content
+pnpm --filter @blixis/content test
 ```
 
 ## Review checklist

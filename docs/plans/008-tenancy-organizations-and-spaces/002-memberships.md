@@ -82,7 +82,7 @@ Requires:
 ## Validation
 
 ```bash
-pnpm test --filter @blixis/users --filter @blixis/spaces
+pnpm --filter @blixis/users --filter @blixis/spaces test
 pnpm lint
 ```
 
