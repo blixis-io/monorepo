@@ -73,7 +73,7 @@ These default privileges apply only to objects **created by `blixis_migrator`**.
 | App → Neon (`blixis_app`) | Inside the Hyperdrive configuration. The Worker only receives `env.HYPERDRIVE.connectionString`, a Hyperdrive-local URL | `wrangler.jsonc`, the repo, logs |
 | Migrations (`blixis_migrator`) | GitHub environment secret `DATABASE_URL` (`staging` / `production`); a developer's git-ignored `.env` when needed | the repo, chat, CI logs |
 | Owner (`neondb_owner`) | The owner's password manager | anywhere else |
-| Local | `postgres://blixis:blixis@localhost:5432/blixis` (Docker, local only) | — |
+| Local | `postgres://blixis:blixis@localhost:55432/blixis` (Docker, local only) | — |
 
 Create or update values without passing them through shell history:
 
@@ -87,13 +87,24 @@ unset PW
 gh secret set DATABASE_URL --env staging --repo blixis-io/monorepo   # prompts for the value
 ```
 
+## Transactions on Hyperdrive
+
+Hyperdrive pools connections in **transaction mode**: between transactions, a Worker's connection may be handed to another client. So:
+
+- **Session state does not survive a transaction.** Inside a transaction use `SET LOCAL` (for example `SET LOCAL statement_timeout = '5s'`), never `SET`. Don't rely on session-level advisory locks, `LISTEN`/`NOTIFY`, temporary tables, or named prepared statements (`pg` uses unnamed ones by default).
+- **Keep transactions short** and never wait on outside I/O (`fetch`, queues) inside one. `blixis_app` aborts transactions that are idle for more than 60 s.
+- **Use `withTransaction(db, fn)`** from `@blixis/database`. It defaults to `read committed`, translates driver errors, and does not nest; explicit savepoints are available through `tx.transaction(...)`.
+- **Use `withRetryableTransaction`** for `serializable` work. It reruns `fn` (up to three times by default) only after a serialisation failure (`40001`) or deadlock (`40P01`). It never retries a lost connection, because the commit outcome is unknown.
+- **Pass `toTransactionScope(tx)`** to other packages (for example the outbox in plan 006), and turn it back into a transaction with `fromTransactionScope`. A scope is rejected once its transaction has ended.
+
 ## Local development
 
 ```bash
-docker compose up -d postgres     # Postgres 18 on localhost:5432 (blixis/blixis/blixis)
+docker compose up -d postgres     # Postgres 18 on localhost:55432 (blixis/blixis/blixis)
 pnpm --filter @blixis/api dev     # HYPERDRIVE → localConnectionString in wrangler.jsonc
 ```
 
+- The host port defaults to **55432** so it doesn't clash with other Postgres instances on 5432. Change it with `BLIXIS_POSTGRES_PORT`, and point the Worker at the new port with `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`.
 - To use a different local database, set `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`.
 - The Docker user is a superuser. Least-privilege behaviour is verified on staging and in the migration tests (005.005 and 005.006).
 

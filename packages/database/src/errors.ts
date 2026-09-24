@@ -63,6 +63,26 @@ function sanitizedCause(error: unknown): Error & PostgresErrorFields {
   return copy
 }
 
+const SQLSTATE = /^[0-9A-Z]{5}$/
+
+/**
+ * Whether `error` comes from the database driver or query layer (a SQLSTATE error, a
+ * `DrizzleQueryError`, or a network/connection failure) rather than from application code.
+ */
+export function isDatabaseError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  if (error.name === 'DrizzleQueryError') return true
+  const code = (driverError(error) as { code?: unknown }).code
+  if (typeof code === 'string') return SQLSTATE.test(code) || RETRYABLE_NETWORK_CODES.has(code)
+  return /connection terminated|timeout exceeded when trying to connect/i.test(error.message)
+}
+
+/** SQLSTATE of a translated database error (from its sanitized cause), if any. */
+export function databaseErrorCode(error: unknown): string | undefined {
+  const cause = error instanceof Error ? (error.cause as { code?: unknown } | undefined) : undefined
+  return typeof cause?.code === 'string' ? cause.code : undefined
+}
+
 /**
  * Translates a driver/query-layer error into a Blixis error (architecture §28). `BlixisError`s
  * pass through unchanged.

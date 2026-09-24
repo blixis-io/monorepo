@@ -23,7 +23,7 @@
     {
       "binding": "HYPERDRIVE",
       "id": "00000000000000000000000000000000",
-      "localConnectionString": "postgres://blixis:blixis@localhost:5432/blixis"
+      "localConnectionString": "postgres://blixis:blixis@localhost:55432/blixis"
     }
   ],
 

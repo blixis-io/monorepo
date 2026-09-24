@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 3 — Persistence & event infrastructure  
 Roadmap scope: MVP / initial platform  
-Progress: 3/8 tasks completed
+Progress: 4/8 tasks completed
 
 ## Objective
 
@@ -65,7 +65,7 @@ Depends on:
 - [x] [001 — Select the Postgres driver, query layer, and migration tooling](./001-select-database-stack.md)
 - [x] [002 — Scaffold @blixis/database with per-request connections](./002-scaffold-database-package-and-connection.md)
 - [x] [003 — Provision Neon and Hyperdrive and bind them to the API Worker](./003-provision-neon-and-hyperdrive.md)
-- [ ] [004 — Implement transaction helpers](./004-transactions-and-unit-of-work.md)
+- [x] [004 — Implement transaction helpers](./004-transactions-and-unit-of-work.md)
 - [ ] [005 — Build the migration runner for module-owned migrations](./005-migration-infrastructure.md)
 - [ ] [006 — Implement the test database strategy](./006-test-database-strategy.md)
 - [ ] [007 — Define ID, timestamp, tenancy, and cross-module schema conventions](./007-ids-tenancy-and-schema-conventions.md)

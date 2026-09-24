@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,15 +37,23 @@ Implement `withTransaction(db, fn)` and a `TransactionScope` bridge so domain se
 ### Create
 
 ```text
-packages/database/src/transactions.ts
 packages/database/src/transactions.test.ts
+packages/database/src/transactions.ts
 ```
 
 ### Modify
 
 ```text
-packages/database/src/index.ts
+apps/api/wrangler.jsonc
+apps/docs/src/content/docs/concepts/database.mdx
+docker-compose.yml
+docs/ROADMAP.md
+docs/operations/cloudflare.md
 docs/operations/database.md
+docs/plans/005-database-foundation/004-transactions-and-unit-of-work.md
+docs/plans/005-database-foundation/_index.md
+packages/database/src/errors.ts
+packages/database/src/index.ts
 ```
 
 ### Delete
@@ -82,8 +90,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Throwing inside `fn` rolls back (verified against real Postgres in 005.006).
-- [ ] Passing a non-database `TransactionScope` to `fromTransactionScope` throws `InfrastructureError`.
+- [x] Throwing inside `fn` rolls back (verified against real Postgres in 005.006).
+- [x] Passing a non-database `TransactionScope` to `fromTransactionScope` throws `InfrastructureError`.
 
 ## Validation
 
@@ -93,15 +101,15 @@ pnpm --filter @blixis/database test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Hyperdrive constraints documented.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Hyperdrive constraints documented.
 
 ## Completion conditions
 
@@ -118,4 +126,23 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **`Transaction` type:** derived from `Database['transaction']`'s callback parameter. `NodePgTransaction<…>` is not assignable under `exactOptionalPropertyTypes`.
+- **`withTransaction` translates only real driver errors** (new `isDatabaseError`: `DrizzleQueryError`, a SQLSTATE or network code, or connection-lost messages). Application errors such as `NotFoundError` or a `TypeError` from domain code are rethrown unchanged instead of being disguised as `InfrastructureError`. This also closes the 005.002 risk of raw `DrizzleQueryError` params leaking from transactional code.
+- **No nesting by type:** `withTransaction` takes a `Database` (which has `close`), not a `Transaction`. Explicit savepoints stay available via Drizzle `tx.transaction()` (documented).
+- **`withRetryableTransaction` was implemented** because it was simple with Drizzle:
+  - defaults to `serializable` isolation and 3 attempts;
+  - reruns only on `40001`/`40P01`, read from the translated error's sanitized cause (new `databaseErrorCode`);
+  - never retries lost connections (the commit outcome is unknown);
+  - reruns immediately with no backoff (Workers have no reason to sleep, and tests stay deterministic).
+- **`TransactionScope` bridge:**
+  - `WeakMap` tx↔scope with a frozen empty object as the brand;
+  - `withTransaction` marks the tx as ended in `finally`;
+  - `fromTransactionScope` throws `InfrastructureError` for foreign/forged scopes and for scopes whose transaction has ended.
+- **Verification:**
+  - 9 unit tests with a fake driver.
+  - Manual run against local Postgres 18: commit (v=1) and rollback; a real serialisation conflict between two connections was retried once (runs=2, final v=12); a stale scope was rejected.
+  - Integration tests come in 005.006.
+- **Local Postgres fix (from 005.003):**
+  - Port 5432 was taken by another project's container on the owner's machine. Compose now maps `${BLIXIS_POSTGRES_PORT:-55432}:5432` (`wrangler.jsonc` `localConnectionString` and docs updated).
+  - The compose volume `blixis_postgres-data` already existed from the pre-rebuild codebase, initialised with other credentials (auth failed). It was left untouched, and the volume is renamed `postgres18-data`.
+- **Docs:** "Transactions on Hyperdrive" (transaction pooling mode; `SET LOCAL`; no session state; keep transactions short) in `docs/operations/database.md`, plus a Transactions section on the manual page.
