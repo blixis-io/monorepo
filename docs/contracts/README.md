@@ -36,7 +36,7 @@ Related: [Package conventions](../conventions/packages.md) · [Code standards](.
 | Validation (Standard Schema) | `src/validation.ts`, `src/standard-schema.ts` | ✅ 002.005 |
 | Events | `src/events.ts` | ✅ 002.006 — see [events.md](./events.md) |
 | Actors and permissions | `src/permissions.ts` | ✅ 002.007 |
-| Request context, logger, migrations | `src/context.ts`, `src/migrations.ts` | planned — 002.008 |
+| Request context, logger, migrations | `src/context.ts`, `src/migrations.ts` | ✅ 002.008 |
 
 ## Services
 
@@ -97,6 +97,13 @@ await ctx.services.get(AUTHORIZATION_SERVICE).require({
 ```
 
 `ResourceRef` must carry `organizationId`/`spaceId` for tenant-scoped resources (§31). Roles never appear in contracts — they are an implementation detail of `@blixis/permissions` (plan 009). No role-name checks anywhere.
+
+## Request context, logging, and migrations
+
+- **`RequestContext`** — what every service call receives, regardless of transport (§2.4): `requestId`, `correlationId`, `actor`, `tenant` (`organizationId`/`spaceId`/`environmentId`), `logger`, request-scoped `services`, `now()`, optional cancellation `signal`.
+- **`Logger`** — `debug/info/warn/error(message, fields)` + `child(fields)`. Use §35 field names (`requestId`, `correlationId`, `tenantId`, `spaceId`, `actorId`, `module`, `eventType`, `eventId`, `duration`, `status`). Never log secrets.
+- **`TransactionScope`** — opaque handle created by `@blixis/database`; pass it to `events.emit(…, { transaction })` for transactional events.
+- **`MigrationDefinition`** / **`defineMigration`** — module-owned migrations with ids `NNNN_snake_case`; steps are SQL or functions receiving a minimal `MigrationExecutor`. They run from tooling/CI, never in the Worker.
 
 ## Testing
 

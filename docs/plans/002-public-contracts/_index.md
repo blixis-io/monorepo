@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 1 — Workspace & public contracts  
 Roadmap scope: MVP / initial platform  
-Progress: 6/8 tasks completed
+Progress: 7/8 tasks completed
 
 ## Objective
 
@@ -70,7 +70,7 @@ Depends on:
 - [x] [005 — Select the validation library and define the schema contract](./005-select-validation-library.md)
 - [x] [006 — Define event envelope, definition, and subscription contracts](./006-define-event-contracts.md)
 - [x] [007 — Define actor, permission, and authorization contracts](./007-define-permission-and-actor-contracts.md)
-- [ ] [008 — Define request context and migration contracts](./008-define-request-context-and-migration-contracts.md)
+- [x] [008 — Define request context and migration contracts](./008-define-request-context-and-migration-contracts.md)
 
 ## Completion criteria
 

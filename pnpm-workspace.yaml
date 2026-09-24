@@ -30,3 +30,7 @@ catalog:
   "@commitlint/config-conventional": 21.2.3
   lefthook: 2.1.14
   zod: 4.6.5
+  hono: 4.13.9
+
+minimumReleaseAgeExclude:
+  - hono@4.13.9

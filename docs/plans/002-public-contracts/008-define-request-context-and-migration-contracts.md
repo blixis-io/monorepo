@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -39,6 +39,7 @@ Define `RequestContext` (request/correlation IDs, actor, tenant, logger, clock),
 ### Create
 
 ```text
+packages/contracts/src/context.test.ts
 packages/contracts/src/context.test-d.ts
 ```
 
@@ -47,9 +48,14 @@ packages/contracts/src/context.test-d.ts
 ```text
 packages/contracts/src/context.ts
 packages/contracts/src/migrations.ts
-packages/contracts/src/events.ts
-packages/contracts/src/index.ts
+packages/contracts/src/events.ts (logger in EventHandlerContext)
+packages/contracts/src/events.test.ts
+packages/contracts/package.json (hono peer + devDependency, used by 002.002)
+pnpm-workspace.yaml (catalog: hono 4.13.9)
+pnpm-lock.yaml
 docs/contracts/README.md
+docs/ROADMAP.md
+docs/plans/002-public-contracts/_index.md
 ```
 
 ### Delete
@@ -98,10 +104,10 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] All §35 structured log fields can be expressed through `Logger.child` fields.
-- [ ] `MigrationDefinition` contains no database-client-specific types.
-- [ ] Every exported contracts symbol has TSDoc (checked by review or a lint rule).
-- [ ] `docs/contracts/README.md` lists the complete surface.
+- [x] All §35 structured log fields can be expressed through `Logger.child` fields.
+- [x] `MigrationDefinition` contains no database-client-specific types.
+- [x] Every exported contracts symbol has TSDoc (checked by review or a lint rule).
+- [x] `docs/contracts/README.md` lists the complete surface.
 
 ## Validation
 
@@ -113,15 +119,15 @@ pnpm build
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Whole-package review: surface is minimal, nothing speculative, no runtime deps.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Whole-package review: surface is minimal, nothing speculative, no runtime deps.
 
 ## Completion conditions
 
@@ -138,4 +144,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Order deviation:** implemented before 002.002 because the module contract (setup context logger, `ModuleHonoEnv` request context, `migrations`) depends on these types. The task's final step — reviewing the whole contracts surface — moves to 002.002, which is now the last task of the plan.
+- `Logger` + `LogFields`, `TenantContext`, `RequestContext` (fields per task; `signal` typed as a new structural `CancellationSignal` because `AbortSignal` is not in the ES libs — contracts stay free of DOM/Workers type libraries; a platform `AbortSignal` satisfies it).
+- `TransactionScope` (added in 002.006) now lives next to the other context types.
+- `MigrationExecutor` is a one-method interface (`execute(sql, params?)`) — enough for SQL and function migrations without exposing a client. Added `defineMigration` with id format `NNNN_snake_case` (frozen, runtime-checked), matching the runner rules planned in 005.005.
+- `EventHandlerContext` gained `logger` (planned in 002.006 notes).
+- `hono` added as catalog entry, contracts devDependency, and `peerDependencies` (`^4.13.0`) in this PR because the 002.002 probe needed it; it is type-only (no runtime import).
+- Type tests: opaque transaction scope, §35 log fields accepted, `RequestContext` key set, migrations free of client types.
