@@ -1,0 +1,36 @@
+{
+  "name": "@blixis/testing",
+  "version": "0.0.0",
+  "description": "Test utilities for Blixis modules: createTestBlixis, test actors, and a capturing logger",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run --root ../.. packages/testing"
+  },
+  "dependencies": {
+    "@blixis/contracts": "workspace:*",
+    "@blixis/kernel": "workspace:*"
+  },
+  "devDependencies": {
+    "@blixis/tsconfig": "workspace:*",
+    "hono": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "zod": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/testing"
+  }
+}

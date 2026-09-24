@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 2 — Kernel walking skeleton on Cloudflare Workers  
 Roadmap scope: MVP / initial platform  
-Progress: 7/8 tasks completed
+Progress: 8/8 tasks completed
 
 ## Objective
 
@@ -74,16 +74,16 @@ Depends on:
 - [x] [005 — Validate module configuration](./005-module-configuration-validation.md)
 - [x] [006 — Mount module REST apps with request context and error mapping](./006-rest-mounting-and-error-mapping.md)
 - [x] [007 — Collect event, GraphQL, permission, and migration contributions](./007-contribution-registries.md)
-- [ ] [008 — Create @blixis/testing with createTestBlixis](./008-testing-package-create-test-blixis.md)
+- [x] [008 — Create @blixis/testing with createTestBlixis](./008-testing-package-create-test-blixis.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] A fixture "external" module (defined only with contracts + `defineModule`) boots in `createTestBlixis`, provides a service consumed by a second fixture module, and serves a REST route.
-- [ ] Every §26 validation case has a test asserting the error names the offending module.
-- [ ] Kernel bundle contains no Cloudflare or Node-only imports (boundary lint passes).
+- [x] All tasks `completed`.
+- [x] A fixture "external" module (defined only with contracts + `defineModule`) boots in `createTestBlixis`, provides a service consumed by a second fixture module, and serves a REST route.
+- [x] Every §26 validation case has a test asserting the error names the offending module.
+- [x] Kernel bundle contains no Cloudflare or Node-only imports (boundary lint passes).
 
 ## Risks
 
@@ -99,4 +99,8 @@ The plan may be marked `completed` when:
 
 ## Technical notes
 
-No technical notes yet.
+- Completed 2026-09-24 in PRs #23–#30. CP1 passed (see ROADMAP).
+- Key decisions: [ADR 0005](../../decisions/0005-service-scopes.md) (app/request scopes, **synchronous factories**); `createBlixis` is synchronous but runs `setup`/`boot` lazily in `ready()` (async hooks, Workers global-scope rules); liveness `/api/v1/health` bypasses `ready()`; RFC 9457 problem details; route conflicts on exact method+path; permission namespace ownership; overrides via `serviceOverride`.
+- Contract fixes discovered while building the kernel (all additive or variance-only): `AnyServiceToken` for `has()`; `setup`/`boot` and `EventSubscription.handle` as methods so heterogeneous modules/subscriptions fit one array.
+- Tooling gotchas: TS 7.0.2 `{@link Interface.member}` inside the same interface breaks name resolution; kernel/testing compile with `lib: ["es2023", "webworker"]`.
+- Deviations: no factory brand (typeof check); e2e suite in `packages/testing/test` to avoid a workspace cycle; internal semver matcher instead of the `semver` package; minimal JSON logger ahead of 020.001.

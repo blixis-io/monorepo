@@ -1,4 +1,11 @@
-import type { BlixisModule, Logger, ModuleMeta, ServiceRegistry } from '@blixis/contracts'
+import type {
+  AnyServiceToken,
+  BlixisModule,
+  Logger,
+  ModuleMeta,
+  ServiceRegistry,
+  ServiceToken,
+} from '@blixis/contracts'
 import { ModuleError } from '@blixis/contracts'
 import { Hono } from 'hono'
 import {
@@ -29,6 +36,26 @@ export interface CreateBlixisOptions {
   readonly actorResolver?: ActorResolver
   /** Accept an incoming `x-request-id` header (only behind a trusted proxy). Default `false`. */
   readonly trustRequestIdHeader?: boolean
+  /**
+   * Service replacements registered before any `setup` (intended for tests, see
+   * `@blixis/testing`). Modules that provide an overridden token keep running; their
+   * registration of that token is skipped.
+   */
+  readonly overrides?: readonly ServiceOverride[]
+}
+
+/**
+ * A service replacement (see `CreateBlixisOptions.overrides`). Create it with
+ * {@link serviceOverride} so the value is checked against the token's type.
+ */
+export interface ServiceOverride {
+  readonly token: AnyServiceToken
+  readonly value: unknown
+}
+
+/** Creates a type-checked {@link ServiceOverride}. */
+export function serviceOverride<T>(token: ServiceToken<T>, value: T): ServiceOverride {
+  return { token, value }
 }
 
 /** A composed Blixis application (architecture §43). */
@@ -82,6 +109,7 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
   const container = new ServiceContainer()
   const hono = new Hono<BlixisHonoEnv>()
   container.forModule('@blixis/kernel').provide(KERNEL_CONTRIBUTIONS, contributions)
+  for (const { token, value } of options.overrides ?? []) container.override(token, value)
 
   let setupResult: Promise<void> | undefined
   let bootedCount = 0

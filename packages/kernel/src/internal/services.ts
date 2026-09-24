@@ -46,6 +46,7 @@ export class ServiceContainer implements ServiceRegistry {
   readonly #entries = new Map<symbol, Entry>()
   readonly #appInstances = new Map<symbol, unknown>()
   readonly #resolvingApp = new Set<symbol>()
+  readonly #overridden = new Set<symbol>()
   #sealed = false
 
   /** Registration view attributed to `module` (used as its `ctx.services` during setup). */
@@ -72,6 +73,15 @@ export class ServiceContainer implements ServiceRegistry {
       getOptional: (token) => (this.has(token) ? this.#getApp(token, module) : undefined),
       has: (token) => this.has(token),
     }
+  }
+
+  /**
+   * Registers an app-scoped replacement for `token` before setup (tests). Module registrations
+   * of an overridden token are ignored instead of failing as duplicates.
+   */
+  override(token: AnyServiceToken, value: unknown): void {
+    this.#entries.set(token.id, { kind: 'value', module: 'override', name: token.name, value })
+    this.#overridden.add(token.id)
   }
 
   /** Prevents further registrations (called after all setup hooks ran). */
@@ -156,6 +166,7 @@ export class ServiceContainer implements ServiceRegistry {
         `cannot provide ${token.name} after setup; register services in setup()`,
       )
     }
+    if (this.#overridden.has(token.id)) return
     const existing = this.#entries.get(token.id)
     if (existing !== undefined) {
       throw new ModuleError(
