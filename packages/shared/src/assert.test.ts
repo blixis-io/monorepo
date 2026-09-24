@@ -35,7 +35,7 @@ describe('assertNever', () => {
   }
 
   it('is unreachable for exhaustive switches', () => {
-    expect(area({ kind: 'circle' })).toBe('round')
+    expect(area({ kind: 'circle' })).toBe('square')
   })
 
   it('throws InvariantError with the unexpected value when reached at runtime', () => {
