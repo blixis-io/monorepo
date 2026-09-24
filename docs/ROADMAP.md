@@ -58,7 +58,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [023 — Developer Documentation Site](./plans/023-developer-documentation-site/_index.md) | M1 | MVP | `completed` | 4/4 | 002 |
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `completed` | 8/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `completed` | 7/7 | 003 |
-| [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `in-progress` | 1/8 | 004 |
+| [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `in-progress` | 2/8 | 004 |
 | [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `not-started` | 0/7 | 005 |
 | [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `not-started` | 0/6 | 006 |
 | [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `not-started` | 0/6 | 007 |
@@ -206,14 +206,14 @@ Creates `@blixis/cloudflare` (binding types, request-context helpers) and `apps/
 
 #### 005 — Database Foundation
 
-Status: `in-progress` · Progress: 1/8 · Scope: MVP  
+Status: `in-progress` · Progress: 2/8 · Scope: MVP  
 Plan: [005-database-foundation/_index.md](./plans/005-database-foundation/_index.md)  
 Depends on: [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md)
 
 Selects the Postgres driver/query layer/migration tooling (ADR), builds `@blixis/database` (per-request Hyperdrive connections, transactions, migration runner for module-owned migrations, health check), provisions Neon + Hyperdrive per environment, defines the test-database strategy, ID and tenancy conventions, and ends with a deployed DB readiness vertical slice.
 
 - [x] [005.001 — Select the Postgres driver, query layer, and migration tooling](./plans/005-database-foundation/001-select-database-stack.md)
-- [ ] [005.002 — Scaffold @blixis/database with per-request connections](./plans/005-database-foundation/002-scaffold-database-package-and-connection.md)
+- [x] [005.002 — Scaffold @blixis/database with per-request connections](./plans/005-database-foundation/002-scaffold-database-package-and-connection.md)
 - [ ] [005.003 — Provision Neon and Hyperdrive and bind them to the API Worker](./plans/005-database-foundation/003-provision-neon-and-hyperdrive.md)
 - [ ] [005.004 — Implement transaction helpers](./plans/005-database-foundation/004-transactions-and-unit-of-work.md)
 - [ ] [005.005 — Build the migration runner for module-owned migrations](./plans/005-database-foundation/005-migration-infrastructure.md)

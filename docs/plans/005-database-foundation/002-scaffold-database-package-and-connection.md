@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -40,20 +40,28 @@ Create `@blixis/database` exposing `createDatabase({ connectionString })`, a req
 ### Create
 
 ```text
+apps/docs/src/content/docs/concepts/database.mdx
 packages/database/package.json
-packages/database/tsconfig.json
-packages/database/src/index.ts
 packages/database/src/create-database.ts
-packages/database/src/module.ts
-packages/database/src/errors.ts
 packages/database/src/errors.test.ts
+packages/database/src/errors.ts
+packages/database/src/index.ts
+packages/database/src/module.test.ts
+packages/database/src/module.ts
+packages/database/tsconfig.json
+packages/database/tsconfig.test.json
 ```
 
 ### Modify
 
 ```text
-tsconfig.json
+apps/docs/astro.config.mjs
+docs/ROADMAP.md
+docs/plans/005-database-foundation/002-scaffold-database-package-and-connection.md
+docs/plans/005-database-foundation/_index.md
 pnpm-lock.yaml
+pnpm-workspace.yaml
+tsconfig.json
 ```
 
 ### Delete
@@ -100,9 +108,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `DATABASE` resolves to a new client per request scope and is closed afterwards (unit test with fake driver).
-- [ ] Error translation tests pass for unique/FK/connection errors.
-- [ ] No connection string appears in any error message.
+- [x] `DATABASE` resolves to a new client per request scope and is closed afterwards (unit test with fake driver).
+- [x] Error translation tests pass for unique/FK/connection errors.
+- [x] No connection string appears in any error message.
 
 ## Validation
 
@@ -113,15 +121,15 @@ pnpm lint
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Package exposes no content/user-specific code.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Package exposes no content/user-specific code.
 
 ## Completion conditions
 
@@ -138,4 +146,25 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Connection: a per-scope `pg.Pool`, not a `pg.Client`.**
+  - `Client.connect()` is async, but service factories must be synchronous (ADR 0005). A `Pool` is created synchronously and connects on the first query.
+  - `close()` calls `pool.end()` and is idempotent. The `DATABASE` factory disposes the database when the scope ends (`waitUntil` on Workers).
+- **Default `maxConnections: 4`.**
+  - Workers allow six simultaneous open connections per invocation.
+  - With `max: 1`, a query issued through `db` while a transaction holds the only connection would hang forever.
+  - Hyperdrive does the real pooling to Neon.
+- **`DATABASE` is Drizzle's own type** (`NodePgDatabase` plus `close()`), not a wrapper. Repositories need the full typed builder, and a wrapper would leak Drizzle types anyway. Modules add `drizzle-orm` (catalog) for `pgSchema`, operators, and `sql`.
+- **Binding access:** the binding is read from `ServiceResolutionContext.bindings` as a structural `{ connectionString }`, so there is no Workers type dependency. A missing binding throws an `InfrastructureError` that names the binding, never a value.
+- **Error translation:**
+  - Unique → `ConflictError` (`details.constraint`).
+  - FK → `ConflictError`, documented as a state conflict.
+  - 40001/40P01/55P03/57014/57P0x, classes 08/53, ECONN*/ETIMEDOUT/EPIPE, and "Connection terminated" → retryable `InfrastructureError`.
+  - Everything else → non-retryable `InfrastructureError`.
+  - `DrizzleQueryError` is unwrapped. Its message contains the query **params** (possible PII), so the `cause` is a sanitized copy: code/constraint/table/schema/column, a redacted message, and no `detail` (it holds row values).
+- **Follow-up risk:** an untranslated `DrizzleQueryError` reaching the kernel's 5xx logging or Sentry would include params. 005.004's transaction/query helpers should translate automatically. Consider an extra Sentry `beforeSend` filter in 020.002.
+- **`types: ["node"]`:** `@types/pg` references Node built-ins, so the package's tsconfig adds `types: ["node"]` (`@types/node` is a dev dependency). At runtime, Workers provide them via `nodejs_compat`.
+- **Verification:**
+  - Unit tests: 11 error-translation cases and 4 module/scope cases.
+  - Manual check against `postgres:18-alpine`: transaction, unique violation → `ConflictError { constraint: t_pkey }`, wrong password → non-retryable `InfrastructureError` with no credentials in the message, double `close()`.
+  - Integration tests against Postgres come in 005.006.
+- **Docs:** manual concept page `concepts/database.mdx` plus the TypeDoc reference for `@blixis/database`.

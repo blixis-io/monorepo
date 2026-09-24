@@ -1,0 +1,38 @@
+{
+  "name": "@blixis/database",
+  "version": "0.0.0",
+  "description": "Postgres access for Blixis on Workers + Hyperdrive: per-request Drizzle database service, error translation, and (later) transactions and migrations",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run --root ../.. packages/database"
+  },
+  "dependencies": {
+    "@blixis/contracts": "workspace:*",
+    "@blixis/kernel": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "pg": "catalog:"
+  },
+  "devDependencies": {
+    "@blixis/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/database"
+  }
+}
