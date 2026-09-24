@@ -1,6 +1,7 @@
 import { eventsQueueModule } from '@blixis/cloudflare'
 import type { BlixisModule } from '@blixis/contracts'
 import { databaseModule } from '@blixis/database'
+import { idempotencyModule } from '@blixis/database/idempotency'
 import { eventsModule, queueTransport } from '@blixis/events'
 import { outboxModule, outboxTransport } from '@blixis/events/outbox'
 
@@ -16,6 +17,8 @@ export const modules: readonly BlixisModule[] = [
     queues: ['blixis-events-local', 'blixis-events-staging', 'blixis-events-production'],
   }),
   eventsQueueModule(),
-  // Owns events.outbox (migration); post-commit dispatch + sweep on the `* * * * *` cron.
+  // Owns events.outbox + events.processed; post-commit dispatch + sweep on the `* * * * *` cron.
   outboxModule(),
+  // Idempotency-Key support for command routes (blixis.idempotency_keys).
+  idempotencyModule(),
 ]

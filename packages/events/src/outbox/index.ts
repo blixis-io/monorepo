@@ -13,9 +13,11 @@ export {
 } from './dispatch.ts'
 export {
   createOutbox,
+  createProcessed,
   OUTBOX_PENDING,
   type OutboxModuleOptions,
   type OutboxPending,
   outboxModule,
   outboxTransport,
 } from './module.ts'
+export { postgresProcessedEvents } from './processed.ts'

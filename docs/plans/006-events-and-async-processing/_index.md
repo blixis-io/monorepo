@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 3 — Persistence & event infrastructure  
 Roadmap scope: MVP / initial platform  
-Progress: 5/7 tasks completed
+Progress: 6/7 tasks completed
 
 ## Objective
 
@@ -66,7 +66,7 @@ Depends on:
 - [x] [003 — Implement the Cloudflare Queue producer adapter](./003-cloudflare-queue-producer-adapter.md)
 - [x] [004 — Implement queue consumer dispatch to module subscriptions](./004-queue-consumer-dispatch.md)
 - [x] [005 — Implement the transactional outbox and dispatcher](./005-transactional-outbox.md)
-- [ ] [006 — Implement idempotent consumers and command idempotency keys](./006-idempotent-consumers-and-command-keys.md)
+- [x] [006 — Implement idempotent consumers and command idempotency keys](./006-idempotent-consumers-and-command-keys.md)
 - [ ] [007 — Verify the event pipeline end to end](./007-event-pipeline-end-to-end.md)
 
 ## Completion criteria

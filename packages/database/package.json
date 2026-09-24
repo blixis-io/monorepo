@@ -12,6 +12,10 @@
     "./migrations": {
       "types": "./dist/migrations/index.d.ts",
       "default": "./dist/migrations/index.js"
+    },
+    "./idempotency": {
+      "types": "./dist/idempotency/index.d.ts",
+      "default": "./dist/idempotency/index.js"
     }
   },
   "files": [
@@ -32,6 +36,7 @@
     "@blixis/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
+    "hono": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
@@ -39,5 +44,8 @@
     "type": "git",
     "url": "git+https://github.com/blixis-io/monorepo.git",
     "directory": "packages/database"
+  },
+  "peerDependencies": {
+    "hono": "^4.0.0"
   }
 }

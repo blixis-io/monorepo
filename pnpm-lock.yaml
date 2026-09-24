@@ -392,6 +392,9 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.23.0
+      hono:
+        specifier: 'catalog:'
+        version: 4.13.9
       typescript:
         specifier: 'catalog:'
         version: 7.0.2

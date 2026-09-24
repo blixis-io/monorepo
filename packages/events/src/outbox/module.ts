@@ -9,8 +9,10 @@ import { DATABASE, fromTransactionScope, translateDatabaseError } from '@blixis/
 import { BACKGROUND_HANDLERS, defineModule } from '@blixis/kernel'
 import { sql } from 'drizzle-orm'
 import type { EventTransport } from '../bus.ts'
+import { PROCESSED_EVENTS } from '../processed.ts'
 import { QUEUE_SENDER } from '../queue.ts'
 import { dispatchOutboxBatch, sweepOutbox } from './dispatch.ts'
+import { postgresProcessedEvents } from './processed.ts'
 
 /** Collects the outbox rows written in the current request scope for post-commit dispatch. */
 export interface OutboxPending {
@@ -38,6 +40,20 @@ export const createOutbox = defineMigration({
       last_error text
     );
     create index outbox_pending_idx on events.outbox (created_at) where dispatched_at is null;
+  `,
+})
+
+/** Processed-event markers for idempotent consumers (§33, 006.006). */
+export const createProcessed = defineMigration({
+  id: '0002_create_processed',
+  up: /* sql */ `
+    create table events.processed (
+      subscription text not null,
+      event_id uuid not null,
+      processed_at timestamptz not null default now(),
+      primary key (subscription, event_id)
+    );
+    create index processed_at_idx on events.processed (processed_at);
   `,
 })
 
@@ -78,16 +94,22 @@ export interface OutboxModuleOptions {
   readonly minAgeSeconds?: number
   /** Days to keep dispatched rows. Default 7. */
   readonly retentionDays?: number
+  /**
+   * Days to keep processed-event markers. Must exceed the longest possible redelivery window
+   * (queue retries + DLQ replays). Default 30.
+   */
+  readonly processedRetentionDays?: number
 }
 
 /**
- * Platform module for the transactional outbox (ADR 0008): owns the `events.outbox` migration,
+ * Platform module for the transactional outbox (ADR 0008) and processed-event markers (§33):
+ * owns the `events.outbox` and `events.processed` migrations, provides `PROCESSED_EVENTS`,
  * dispatches rows written by a request after its scope ends (post-commit, via `waitUntil`), and
  * sweeps pending rows on a cron. Needs `databaseModule()` and a `QUEUE_SENDER` provider.
  */
 export const outboxModule = defineModule((options: OutboxModuleOptions) => ({
   meta: { name: '@blixis/events.outbox', version: '0.0.0' },
-  migrations: [createOutbox],
+  migrations: [createOutbox, createProcessed],
   setup(ctx) {
     const batchSize = options.batchSize ?? 100
     ctx.services.provideFactory(
@@ -134,6 +156,11 @@ export const outboxModule = defineModule((options: OutboxModuleOptions) => ({
         },
       },
     )
+    ctx.services.provideFactory(
+      PROCESSED_EVENTS,
+      ({ services }) => postgresProcessedEvents(services.get(DATABASE)),
+      { scope: 'request' },
+    )
     ctx.services
       .get(BACKGROUND_HANDLERS)
       .onScheduled(options.cron ?? '* * * * *', (_event, background) =>
@@ -148,6 +175,9 @@ export const outboxModule = defineModule((options: OutboxModuleOptions) => ({
                 retentionDays: options.retentionDays ?? 7,
                 logger: background.logger,
               })
+              await services.get(DATABASE).execute(sql`
+                delete from events.processed
+                where processed_at < now() - make_interval(days => ${options.processedRetentionDays ?? 30})`)
             },
           )
           .then(() => undefined),
