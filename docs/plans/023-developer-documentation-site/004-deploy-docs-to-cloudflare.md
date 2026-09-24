@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-review
+completed
 ```
 
 ## Parent plan
@@ -78,7 +78,7 @@ Requires:
 
 - [x] `wrangler deploy --dry-run` succeeds for the docs app.
 - [x] The site is reachable on its URL after deploy.
-- [ ] The workflow deploys on `main` and never on pull requests. *(never on PRs: yes; deploy on `main`: pending the `docs` API token)*
+- [x] The workflow deploys on `main` and never on pull requests.
 
 ## Validation
 
@@ -119,4 +119,4 @@ Change the status to `completed` only when all of the following hold:
 - **pnpm 12:** Wrangler's `workerd` needs its install script → `allowBuilds: workerd: true` (placeholder line written by pnpm on the failed install removed again). pnpm also added `minimumReleaseAgeExclude` entries for recently published `hono`, `astro`, `wrangler` versions.
 - **GitHub:** repository variable `CLOUDFLARE_ACCOUNT_ID`; environment `docs` (deployment branch policy: `main` only) with variable `DOCS_URL`.
 - **Workflow `docs.yml`:** runs on pushes to `main` touching docs/packages (+ manual dispatch), never on PRs; builds the site, then deploys only if `CLOUDFLARE_API_TOKEN` exists in the `docs` environment, otherwise emits a notice and skips.
-- **Open (why the task is in `review`):** the automatic deploy path cannot be verified until the owner creates a Cloudflare API token (Account · Workers Scripts · Edit) and stores it as `CLOUDFLARE_API_TOKEN` in the `docs` environment. Then: run the workflow once, confirm the deploy, tick the last acceptance criterion, and complete the task and plan 023.
+- **Automatic deploy verified (2026-09-24):** the owner added `CLOUDFLARE_API_TOKEN` to the `docs` environment. The first workflow run failed on a clean checkout — TypeDoc could not resolve `@blixis/contracts` from `@blixis/kernel` because workspace packages are consumed from `dist/` and the docs workflow did not build them (CI `verify` hid it by running `pnpm build` first). Fixed in PR #31: `apps/docs` scripts run the root build (`pnpm -w run build`) first. The push-triggered run after the merge built and deployed (version `aa9f5c33…`).
