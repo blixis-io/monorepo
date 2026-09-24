@@ -66,6 +66,12 @@ Covers the test levels (unit to end-to-end), Workers-runtime tests, the test dat
 
 → [docs/conventions/testing.md](docs/conventions/testing.md)
 
+## Database conventions
+
+Tables, IDs (UUIDv7), timestamps, tenancy columns, always-scoped queries, cross-module references.
+
+→ [docs/conventions/database.md](docs/conventions/database.md)
+
 ## Migrations
 
 Module-owned SQL migrations: ids, checksums, expand/contract, `db:migrate` / `db:status` / `db:new`.
