@@ -35,6 +35,15 @@ export const entryPublished = defineEvent({
 | `transactional` | Written in the same database transaction as your change; delivered at least once if the transaction commits, never if it rolls back. Needs `options.transaction` when emitting. | Losing the event would leave the system wrong (cache invalidation, webhooks). |
 | `best-effort` | Sent after the operation; may be lost. | Pure side effects (analytics). |
 
+## How transactional events are delivered
+
+Transactional events go through an **outbox** (ADR 0008):
+1. `emit` inserts the envelope into `events.outbox` using **your** transaction. If the transaction rolls back, the event is gone as well.
+2. When your request ends, rows that committed are sent to the queue immediately.
+3. A cron sweep sends anything that was missed, every minute.
+
+Delivery is **at least once**, and there is **no ordering guarantee**, so handlers must tolerate duplicates and reordering. Apps register `outboxModule()` from `@blixis/events/outbox` and route transactional events to it with `queueTransport({ transactional: outboxTransport() })`.
+
 ## Emitting
 
 Resolve the bus from your request's services. It's provided by the `eventsModule()` platform module from `@blixis/events`:

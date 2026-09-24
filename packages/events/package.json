@@ -8,6 +8,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./outbox": {
+      "types": "./dist/outbox/index.d.ts",
+      "default": "./dist/outbox/index.js"
     }
   },
   "files": [
@@ -19,11 +23,16 @@
   },
   "dependencies": {
     "@blixis/contracts": "workspace:*",
+    "@blixis/database": "workspace:*",
     "@blixis/kernel": "workspace:*",
-    "@blixis/shared": "workspace:*"
+    "@blixis/shared": "workspace:*",
+    "drizzle-orm": "catalog:"
   },
   "devDependencies": {
     "@blixis/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/pg": "catalog:",
+    "pg": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "zod": "catalog:"

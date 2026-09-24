@@ -1,5 +1,11 @@
 {
   "extends": "@blixis/tsconfig/library.json",
-  "compilerOptions": { "lib": ["es2023", "webworker"] },
-  "references": [{ "path": "../contracts" }, { "path": "../kernel" }, { "path": "../shared" }]
+  // The outbox entry point uses @blixis/database, whose pg typings need Node types.
+  "compilerOptions": { "lib": ["es2023", "webworker"], "types": ["node"] },
+  "references": [
+    { "path": "../contracts" },
+    { "path": "../kernel" },
+    { "path": "../shared" },
+    { "path": "../database" }
+  ]
 }
