@@ -4,7 +4,7 @@
 
 This roadmap turns [`BLIXIS_ARCHITECTURE.md`](./BLIXIS_ARCHITECTURE.md) into an ordered, executable implementation plan for the Blixis headless CMS: a modular monolith on Cloudflare Workers (Hono, REST + GraphQL Yoga), Neon Postgres through Hyperdrive, Queues, KV, R2, Workflows, and an explicit module kernel that loads first-party and third-party modules through one contract.
 
-- **Plans:** 22 · **Tasks:** 128 · **Milestones:** 9
+- **Plans:** 23 · **Tasks:** 132 · **Milestones:** 9
 - **Architecture** (`BLIXIS_ARCHITECTURE.md`) is the source of truth for *what* to build.
 - **This roadmap** is the source of truth for *order*, *dependencies*, and *progress*.
 - **Plans** (`plans/XXX-*/_index.md`) specify each subsystem; **tasks** (`plans/XXX-*/YYY-*.md`) are the executable units.
@@ -55,6 +55,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 |---|---|---|---|---|---|
 | [001 — Project Foundation](./plans/001-project-foundation/_index.md) | M1 | MVP | `completed` | 7/7 | — |
 | [002 — Public Contracts](./plans/002-public-contracts/_index.md) | M1 | MVP | `completed` | 8/8 | 001 |
+| [023 — Developer Documentation Site](./plans/023-developer-documentation-site/_index.md) | M1 | MVP | `not-started` | 0/4 | 002 |
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `not-started` | 0/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `not-started` | 0/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `not-started` | 0/8 | 004 |
@@ -80,7 +81,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 
 | Milestone | Plans | Exit criteria |
 |---|---|---|
-| **M1 — Workspace & public contracts** | 001, 002 | Monorepo with TS7, lint/boundary checks, tests, CI; `@blixis/contracts` complete with a type-checked sample third-party module. |
+| **M1 — Workspace & public contracts** | 001, 002, 023 | Monorepo with TS7, lint/boundary checks, tests, CI; `@blixis/contracts` complete with a type-checked sample third-party module. |
 | **M2 — Kernel walking skeleton on Cloudflare Workers** | 003, 004 | `@blixis/kernel` composes modules; `apps/api` Worker serves `/api/v1/health` in `workerd`; deploy dry-run in CI. Checkpoints CP1, CP2a. |
 | **M3 — Persistence & event infrastructure** | 005, 006 | Worker → Hyperdrive → Neon readiness slice; module-owned migrations; outbox → Queue → idempotent consumers proven. Checkpoints CP2b, CP3. |
 | **M4 — Identity, tenancy & authorization** | 007, 008, 009 | Sessions/API tokens, organizations/spaces/memberships, permission-based authorization; isolation and authz matrices in CI. Checkpoint CP4. |
@@ -100,7 +101,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 
 ### Recommended execution order and parallelism
 
-Plans are numbered in a valid dependency order. The critical path is `001 → 002 → 003 → 004 → 005 → 006 → 007 → 008 → 009 → 010 → 011 → 012 → 013/014 → 017 → 018/019 → 022`. After plan 011, several plans can run in parallel:
+Plans are numbered in a valid dependency order, except **023** (developer documentation site), which was added on 2026-09-24 and runs right after 002, before 003. The critical path is `001 → 002 → 003 → 004 → 005 → 006 → 007 → 008 → 009 → 010 → 011 → 012 → 013/014 → 017 → 018/019 → 022`. After plan 011, several plans can run in parallel:
 
 - **012** GraphQL delivery, **015** webhooks, and **021** CI/CD all depend only on 011.
 - **013** caching and **014** assets can run in parallel after 012.
@@ -152,6 +153,19 @@ Creates `@blixis/contracts`: the small, stable, dependency-light package that ev
 - [x] [002.006 — Define event envelope, definition, and subscription contracts](./plans/002-public-contracts/006-define-event-contracts.md)
 - [x] [002.007 — Define actor, permission, and authorization contracts](./plans/002-public-contracts/007-define-permission-and-actor-contracts.md)
 - [x] [002.008 — Define request context and migration contracts](./plans/002-public-contracts/008-define-request-context-and-migration-contracts.md)
+
+#### 023 — Developer Documentation Site
+
+Status: `not-started` · Progress: 0/4 · Scope: MVP  
+Plan: [023-developer-documentation-site/_index.md](./plans/023-developer-documentation-site/_index.md)  
+Depends on: [002 — Public Contracts](./plans/002-public-contracts/_index.md)
+
+Adds `apps/docs`: a Starlight (Astro) documentation site with a hand-written developer manual for module authors and an API reference generated from TSDoc, built in CI and deployed to Cloudflare. Starts with `@blixis/contracts`; every later plan that changes a public package extends it. Added on request of the project owner; executed before plan 003.
+
+- [ ] [023.001 — Scaffold the Starlight documentation site](./plans/023-developer-documentation-site/001-scaffold-docs-site.md)
+- [ ] [023.002 — Generate the API reference from TSDoc](./plans/023-developer-documentation-site/002-generate-api-reference.md)
+- [ ] [023.003 — Write the developer manual for module authors](./plans/023-developer-documentation-site/003-write-developer-manual.md)
+- [ ] [023.004 — Deploy the documentation site to Cloudflare](./plans/023-developer-documentation-site/004-deploy-docs-to-cloudflare.md)
 
 ### Milestone 2 — Kernel walking skeleton on Cloudflare Workers
 
@@ -470,7 +484,7 @@ Arrows point from prerequisite to dependent plan. `[CPn]` marks an architectural
 001 Project Foundation
  │
  ▼
-002 Public Contracts
+002 Public Contracts ──────▶ 023 Developer Documentation Site
  │
  ▼
 003 Module Kernel ............................................ [CP1]
