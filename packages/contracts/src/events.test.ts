@@ -1,8 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
+import type { Logger } from './context.ts'
 import { defineEvent, type EventEnvelope, subscribe } from './events.ts'
 
 z.config({ jitless: true })
+
+const noopLogger: Logger = {
+  debug() {},
+  info() {},
+  warn() {},
+  error() {},
+  child: () => noopLogger,
+}
 
 const entryPublished = defineEvent({
   type: 'entry.published',
@@ -78,6 +87,7 @@ describe('subscribe', () => {
       },
       {
         attempt: 1,
+        logger: noopLogger,
         services: { get: () => undefined as never, getOptional: () => undefined, has: () => false },
       },
     )

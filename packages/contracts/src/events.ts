@@ -1,4 +1,4 @@
-import type { TransactionScope } from './context.ts'
+import type { Logger, TransactionScope } from './context.ts'
 import type { ServiceRegistry } from './services.ts'
 import type { StandardSchemaV1 } from './standard-schema.ts'
 import type { InferOutput } from './validation.ts'
@@ -106,6 +106,8 @@ export interface EventBus {
 export interface EventHandlerContext {
   /** Delivery attempt, starting at 1 (retries increase it). */
   readonly attempt: number
+  /** Logger bound to `eventId`, `eventType`, `correlationId`, and the subscribing module. */
+  readonly logger: Logger
   /** Services resolved in the handler's scope. */
   readonly services: ServiceRegistry
 }

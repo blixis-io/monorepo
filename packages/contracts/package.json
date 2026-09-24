@@ -17,8 +17,12 @@
     "build": "tsc -b",
     "test": "vitest run --root ../.. packages/contracts"
   },
+  "peerDependencies": {
+    "hono": "^4.13.0"
+  },
   "devDependencies": {
     "@blixis/tsconfig": "workspace:*",
+    "hono": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "zod": "catalog:"
