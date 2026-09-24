@@ -67,7 +67,7 @@ Depends on:
 - [x] [004 — Implement queue consumer dispatch to module subscriptions](./004-queue-consumer-dispatch.md)
 - [x] [005 — Implement the transactional outbox and dispatcher](./005-transactional-outbox.md)
 - [x] [006 — Implement idempotent consumers and command idempotency keys](./006-idempotent-consumers-and-command-keys.md)
-- [ ] [007 — Verify the event pipeline end to end](./007-event-pipeline-end-to-end.md)
+- [~] [007 — Verify the event pipeline end to end](./007-event-pipeline-end-to-end.md)
 
 ## Completion criteria
 

@@ -102,6 +102,12 @@ Neon branches and roles, Hyperdrive, where connection strings live, local Postgr
 
 → [docs/operations/database.md](docs/operations/database.md)
 
+## Events operations
+
+The event pipeline in staging and production: outbox backlog, queue, DLQ, processed markers, troubleshooting.
+
+→ [docs/operations/events.md](docs/operations/events.md)
+
 ## GitHub Actions
 
 Covers the workflows, shared setup, CI, release and deploy sketches, secrets and variables per environment, and workflow conventions.

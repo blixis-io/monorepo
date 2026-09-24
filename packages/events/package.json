@@ -32,6 +32,7 @@
     "@blixis/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
+    "hono": "catalog:",
     "pg": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",

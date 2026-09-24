@@ -235,7 +235,7 @@ Builds `@blixis/events` (event registry, in-process bus, transactional outbox, i
 - [x] [006.004 — Implement queue consumer dispatch to module subscriptions](./plans/006-events-and-async-processing/004-queue-consumer-dispatch.md)
 - [x] [006.005 — Implement the transactional outbox and dispatcher](./plans/006-events-and-async-processing/005-transactional-outbox.md)
 - [x] [006.006 — Implement idempotent consumers and command idempotency keys](./plans/006-events-and-async-processing/006-idempotent-consumers-and-command-keys.md)
-- [ ] [006.007 — Verify the event pipeline end to end](./plans/006-events-and-async-processing/007-event-pipeline-end-to-end.md)
+- [~] [006.007 — Verify the event pipeline end to end](./plans/006-events-and-async-processing/007-event-pipeline-end-to-end.md)
 
 ### Milestone 4 — Identity, tenancy & authorization
 
