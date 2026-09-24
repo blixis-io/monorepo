@@ -14,7 +14,7 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
 |---|---|
 | GitHub repository | ✅ `blixis-io/monorepo`, **public** |
 | GitHub CLI | ✅ authenticated |
-| Cloudflare account + Wrangler | ✅ set up (Wrangler 4.x installed) |
+| Cloudflare account + Wrangler | ✅ set up (Wrangler 4.x installed); docs site live on workers.dev |
 | Neon project | ✅ created (region `eu-central-1`, Frankfurt) — follow-ups below |
 | Sentry | 🟡 org `private-m57` chosen for alerts; agent plugin + project setup pending |
 | Domain | ❌ not decided |
@@ -47,7 +47,12 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
 
 - [x] Cloudflare account set up; Wrangler installed and logged in locally.
 - [ ] **(owner)** Confirm the **Workers Paid** plan is active (required for Queues, Workflows, higher CPU limits).
-- [ ] **(owner)** Add the account ID as GitHub variable `CLOUDFLARE_ACCOUNT_ID`.
+- [x] Account ID added as GitHub variable `CLOUDFLARE_ACCOUNT_ID`.
+- [x] Developer docs deployed: https://blixis-docs.frosty-hill-6079.workers.dev (Worker `blixis-docs`).
+- [ ] **(owner)** Create a Cloudflare API token (Account · Workers Scripts · Edit) and add it as secret `CLOUDFLARE_API_TOKEN` in the GitHub **`docs`** environment, so docs deploy automatically from `main`:
+  ```bash
+  gh secret set CLOUDFLARE_API_TOKEN --env docs --repo blixis-io/monorepo
+  ```
 - [ ] API tokens per environment with the permissions listed in [Cloudflare Workers](./operations/cloudflare.md#ci-access-api-token), stored as GitHub environment secrets.
 - [ ] Resources created per environment (Hyperdrive, Queues + DLQ, KV, R2) as their plans arrive; IDs recorded in the inventory.
 - [ ] Workers observability (logs/traces) enabled (task 020.002).

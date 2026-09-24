@@ -28,6 +28,7 @@ Pattern: `blixis-<resource>-<environment>`.
 | Workflow (release publish) | `PUBLISH_RELEASE` | `blixis-publish-release-staging` | `blixis-publish-release-production` | 016 |
 | Rate limiter | `RATE_LIMITER_*` | per env | per env | 007 / 020 |
 | Custom domain | — | `api.staging.<domain>` | `api.<domain>` | 004 / 021 |
+| Docs Worker (static assets, single environment) | — | — | `blixis-docs` → https://blixis-docs.frosty-hill-6079.workers.dev | 023.004 |
 | Sentry DSN | `SENTRY_DSN` (var) | staging DSN | production DSN | 004.007 |
 
 Record every created resource ID in the inventory table in this file as plans create them (IDs are not secret, credentials are).
@@ -36,6 +37,14 @@ Record every created resource ID in the inventory table in this file as plans cr
 |---|---|---|
 | Hyperdrive | _tbd (005.003)_ | _tbd (005.003)_ |
 | KV `CACHE_KV` | _tbd (013.002)_ | _tbd (013.002)_ |
+
+Account ID: `7c871756de2f3f7dfa1445d5a88ca0fb` (GitHub variable `CLOUDFLARE_ACCOUNT_ID`). workers.dev subdomain: `frosty-hill-6079`.
+
+### Developer docs Worker
+
+- `apps/docs/wrangler.jsonc`: assets-only Worker `blixis-docs` serving `apps/docs/dist` (`404-page` not-found handling, trailing-slash HTML).
+- Deploys from `.github/workflows/docs.yml` on pushes to `main` that touch the docs or packages, using the `docs` GitHub environment (branch policy: `main`). Secret `CLOUDFLARE_API_TOKEN` (scope: Account · Workers Scripts · Edit) must be added to that environment; until then the workflow builds and skips the deploy.
+- Manual deploy: `pnpm --filter @blixis/docs deploy` (uses your local Wrangler login). Rollback: `pnpm --filter @blixis/docs exec wrangler rollback`.
 
 ## `wrangler.jsonc` structure
 

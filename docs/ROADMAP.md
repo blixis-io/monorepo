@@ -165,7 +165,7 @@ Adds `apps/docs`: a Starlight (Astro) documentation site with a hand-written dev
 - [x] [023.001 — Scaffold the Starlight documentation site](./plans/023-developer-documentation-site/001-scaffold-docs-site.md)
 - [x] [023.002 — Generate the API reference from TSDoc](./plans/023-developer-documentation-site/002-generate-api-reference.md)
 - [x] [023.003 — Write the developer manual for module authors](./plans/023-developer-documentation-site/003-write-developer-manual.md)
-- [ ] [023.004 — Deploy the documentation site to Cloudflare](./plans/023-developer-documentation-site/004-deploy-docs-to-cloudflare.md)
+- [R] [023.004 — Deploy the documentation site to Cloudflare](./plans/023-developer-documentation-site/004-deploy-docs-to-cloudflare.md)
 
 ### Milestone 2 — Kernel walking skeleton on Cloudflare Workers
 

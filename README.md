@@ -10,7 +10,7 @@ Blixis is a modular, extensible **headless CMS** built for **Cloudflare Workers*
 
 ## Developer documentation
 
-The manual and API reference for module authors are a Starlight site in `apps/docs` (`pnpm --filter @blixis/docs dev`). A public URL follows once the site is deployed (task 023.004).
+The manual and API reference for module authors: **[blixis-docs.frosty-hill-6079.workers.dev](https://blixis-docs.frosty-hill-6079.workers.dev)** — a Starlight site in `apps/docs` (`pnpm --filter @blixis/docs dev` locally), deployed from `main`.
 
 ## Architecture
 
