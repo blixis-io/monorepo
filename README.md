@@ -1,0 +1,95 @@
+# Blixis
+
+Blixis is a modular, extensible **headless CMS** built for **Cloudflare Workers**. It is written in **TypeScript 7** with **Hono**, and exposes **REST** (management) and **GraphQL Yoga** (delivery) APIs. **Neon Postgres**, reached through **Hyperdrive**, is the source of truth. Queues, KV, R2, and Workflows provide the platform infrastructure. First-party and third-party modules implement the same public contract.
+
+> **Status:** planning phase. The architecture and the full implementation roadmap are written; implementation starts with roadmap task [001.001](docs/plans/001-project-foundation/001-initialize-pnpm-workspace.md).
+
+---
+
+## Architecture
+
+The architecture covers the design principles, module contract, kernel, and Cloudflare platform usage. It also defines data ownership, events, security boundaries, and the rules every contributor and coding agent must follow.
+
+→ [docs/BLIXIS_ARCHITECTURE.md](docs/BLIXIS_ARCHITECTURE.md)
+
+## Roadmap
+
+The roadmap contains 22 plans and 127 tasks across 9 milestones. It also includes the dependency graph, architectural checkpoints, the register of open decisions, and deferred work. Each plan has its own specification and task files.
+
+→ [docs/ROADMAP.md](docs/ROADMAP.md) · plans in [docs/plans/](docs/plans/)
+
+## Getting started
+
+Covers prerequisites, first-time setup, running the API locally, and working on a roadmap task.
+
+→ [docs/development/getting-started.md](docs/development/getting-started.md)
+
+## Monorepo
+
+Describes the pnpm workspace layout (`apps/`, `packages/`, `modules/`, `tooling/`), dependency rules, catalogs, and root scripts.
+
+→ [docs/development/monorepo.md](docs/development/monorepo.md)
+
+## Code standards
+
+Covers TypeScript rules, naming, module boundaries, layering, errors, validation, async on Workers, logging, and dependencies.
+
+→ [docs/conventions/code-standards.md](docs/conventions/code-standards.md)
+
+## Git workflow
+
+Blixis uses GitHub Flow: short-lived branches, pull requests, squash merges, and `main` as the always-deployable staging branch.
+
+→ [docs/conventions/git-workflow.md](docs/conventions/git-workflow.md)
+
+## Commit messages
+
+Commits follow Conventional Commits, with the project's types and scopes. Commits carry no AI attribution.
+
+→ [docs/conventions/commit-messages.md](docs/conventions/commit-messages.md)
+
+## Testing
+
+Covers the test levels (unit to end-to-end), Workers-runtime tests, the test database, coverage, and what CI runs.
+
+→ [docs/conventions/testing.md](docs/conventions/testing.md)
+
+## Environments
+
+Blixis runs in local, preview, **staging** (tracks `main`), and **production** (receives released versions). The page covers resources and configuration per environment.
+
+→ [docs/operations/environments.md](docs/operations/environments.md)
+
+## Release & deployment
+
+Covers semantic versioning, release-please, the staging and production pipelines, migrations, rollback, and hotfixes.
+
+→ [docs/operations/deployment.md](docs/operations/deployment.md)
+
+## Cloudflare Workers
+
+Covers resource naming, the `wrangler.jsonc` structure per environment, secrets, local development, CI API tokens, and monitoring.
+
+→ [docs/operations/cloudflare.md](docs/operations/cloudflare.md)
+
+## GitHub Actions
+
+Covers the workflows, shared setup, CI, release and deploy sketches, secrets and variables per environment, and workflow conventions.
+
+→ [docs/operations/github-actions.md](docs/operations/github-actions.md)
+
+## Repository settings
+
+Covers merge settings, rulesets, environments, Actions permissions, security features, and secrets rotation.
+
+→ [docs/operations/repository.md](docs/operations/repository.md)
+
+## Setup checklist
+
+Lists the accounts, decisions, and settings the project still needs, such as Cloudflare, Neon, domains, licence, and alerts.
+
+→ [docs/setup-checklist.md](docs/setup-checklist.md)
+
+---
+
+Repository: [github.com/blixis-io/monorepo](https://github.com/blixis-io/monorepo)
