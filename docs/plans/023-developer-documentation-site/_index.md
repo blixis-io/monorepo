@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 1 — Workspace & public contracts  
 Roadmap scope: MVP / initial platform  
-Progress: 3/4 tasks completed
+Progress: 4/4 tasks completed
 
 ## Objective
 
@@ -61,15 +61,15 @@ Depends on:
 - [x] [001 — Scaffold the Starlight documentation site](./001-scaffold-docs-site.md)
 - [x] [002 — Generate the API reference from TSDoc](./002-generate-api-reference.md)
 - [x] [003 — Write the developer manual for module authors](./003-write-developer-manual.md)
-- [R] [004 — Deploy the documentation site to Cloudflare](./004-deploy-docs-to-cloudflare.md)
+- [x] [004 — Deploy the documentation site to Cloudflare](./004-deploy-docs-to-cloudflare.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] The site is reachable on its Cloudflare URL and shows the manual and the generated `@blixis/contracts` reference.
-- [ ] Removing a TSDoc comment or export changes the generated reference in the next build (verified once).
+- [x] All tasks `completed`.
+- [x] The site is reachable on its Cloudflare URL and shows the manual and the generated `@blixis/contracts` reference.
+- [x] Removing a TSDoc comment or export changes the generated reference in the next build (verified once).
 
 ## Risks
 
@@ -83,4 +83,6 @@ The plan may be marked `completed` when:
 
 ## Technical notes
 
-No technical notes yet.
+- Completed 2026-09-24 (PRs #18–#22, #31). Site: https://blixis-docs.frosty-hill-6079.workers.dev, deployed automatically from `main` by `.github/workflows/docs.yml` (`docs` environment).
+- TypeDoc runs on an isolated TypeScript 6.0.3 ([ADR 0018](../../decisions/0018-api-reference-generator.md)); documented packages so far: contracts, kernel, testing. Add one `createStarlightTypeDocPlugin()` instance per new public package.
+- The docs build depends on built workspace packages (`dist/`), so its scripts run the root `tsc -b` first.

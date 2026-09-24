@@ -49,7 +49,7 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
 - [ ] **(owner)** Confirm the **Workers Paid** plan is active (required for Queues, Workflows, higher CPU limits).
 - [x] Account ID added as GitHub variable `CLOUDFLARE_ACCOUNT_ID`.
 - [x] Developer docs deployed: https://blixis-docs.frosty-hill-6079.workers.dev (Worker `blixis-docs`).
-- [ ] **(owner)** Create a Cloudflare API token (Account · Workers Scripts · Edit) and add it as secret `CLOUDFLARE_API_TOKEN` in the GitHub **`docs`** environment, so docs deploy automatically from `main`:
+- [x] Cloudflare API token added as secret `CLOUDFLARE_API_TOKEN` in the GitHub **`docs`** environment — docs deploy automatically from `main`:
   ```bash
   gh secret set CLOUDFLARE_API_TOKEN --env docs --repo blixis-io/monorepo
   ```
