@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -46,7 +46,7 @@ The architecture (§3) prescribes a workspace-based monorepo, preferably pnpm, w
 ```text
 package.json
 pnpm-workspace.yaml
-.npmrc
+pnpm-lock.yaml
 .nvmrc
 .gitignore
 .editorconfig
@@ -56,6 +56,9 @@ pnpm-workspace.yaml
 
 ```text
 README.md
+docs/ROADMAP.md
+docs/plans/001-project-foundation/_index.md
+docs/plans/001-project-foundation/001-initialize-pnpm-workspace.md
 ```
 
 ### Delete
@@ -96,11 +99,11 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `docs/` and `README.md` are not ignored by `.gitignore`.
-- [ ] `pnpm install` completes without errors and produces `pnpm-lock.yaml`.
-- [ ] `pnpm -r ls` runs without error (zero packages is acceptable).
-- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm format` each exit 0.
-- [ ] `.gitignore` ignores `.dev.vars` and `node_modules`.
+- [x] `docs/` and `README.md` are not ignored by `.gitignore`.
+- [x] `pnpm install` completes without errors and produces `pnpm-lock.yaml`.
+- [x] `pnpm -r ls` runs without error (zero packages is acceptable).
+- [x] `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm format` each exit 0.
+- [x] `.gitignore` ignores `.dev.vars` and `node_modules`.
 
 ## Validation
 
@@ -113,16 +116,16 @@ git check-ignore .dev.vars node_modules   # both paths must be printed
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Pinned pnpm and Node versions are current stable/LTS and recorded in Technical notes.
-- [ ] No packages or source code were created.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Pinned pnpm and Node versions are current stable/LTS and recorded in Technical notes.
+- [x] No packages or source code were created.
 
 ## Completion conditions
 
@@ -139,4 +142,12 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Versions pinned (2026-09-24):** pnpm `12.6.0` (`packageManager`, via Corepack), Node `24` LTS (`.nvmrc`, `engines.node >=24`). TypeScript 7.0.2 is the current stable release; it is added in 001.002/001.003, not here.
+- **Deviation — no `.npmrc`:** pnpm ≥ 10 reads workspace settings from `pnpm-workspace.yaml`, so `engineStrict: true`, `autoInstallPeers: false`, and `onlyBuiltDependencies: []` live there. `.npmrc` stays reserved for registry auth if ever needed. Verified with pnpm 12: `pnpm config get engine-strict` → `true`, `auto-install-peers` → `false`.
+- **`autoInstallPeers: false`** enforces explicit peer dependencies (§25). If a third-party tool later fails because of missing peers, add the peer explicitly rather than re-enabling auto-install.
+- **`onlyBuiltDependencies`** starts empty; tasks that add `esbuild`/`workerd` (via Wrangler/Vitest) must allow-list them explicitly.
+- **Catalog** is present as a commented template only; the first catalog entries arrive with TypeScript in 001.002/001.003.
+- **Root scripts** use `pnpm -r --if-present run <script>`; with zero packages pnpm reports `Scope: 0 of 1 workspace projects` and exits 0. Later tasks replace `typecheck` with the TS7 build-mode command and `lint`/`format` with the ADR 0003 tools.
+- `pnpm -r ls` lists only the root project; empty `apps/`, `packages/`, `modules/` directories are not tracked by Git.
+- Repository already existed on GitHub (`blixis-io/monorepo`, public) with a docs bootstrap commit, so no `git init` was needed in this task.
+- Corepack is enabled locally; `pnpm` now resolves to the pinned 12.6.0 inside this repository.

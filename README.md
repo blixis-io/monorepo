@@ -2,7 +2,7 @@
 
 Blixis is a modular, extensible **headless CMS** built for **Cloudflare Workers**. It is written in **TypeScript 7** with **Hono**, and exposes **REST** (management) and **GraphQL Yoga** (delivery) APIs. **Neon Postgres**, reached through **Hyperdrive**, is the source of truth. Queues, KV, R2, and Workflows provide the platform infrastructure. First-party and third-party modules implement the same public contract.
 
-> **Status:** planning phase. The architecture and the full implementation roadmap are written; implementation starts with roadmap task [001.001](docs/plans/001-project-foundation/001-initialize-pnpm-workspace.md).
+> **Status:** early implementation — Milestone 1 (workspace & public contracts). Progress is tracked in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ---
 

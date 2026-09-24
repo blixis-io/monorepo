@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 Milestone: Milestone 1 — Workspace & public contracts  
 Roadmap scope: MVP / initial platform  
-Progress: 0/7 tasks completed
+Progress: 1/7 tasks completed
 
 ## Objective
 
@@ -73,7 +73,7 @@ Depends on:
 
 ## Tasks
 
-- [ ] [001 — Initialize pnpm workspace and repository](./001-initialize-pnpm-workspace.md)
+- [x] [001 — Initialize pnpm workspace and repository](./001-initialize-pnpm-workspace.md)
 - [ ] [002 — Record toolchain decisions for TypeScript 7, build, test, and lint](./002-record-toolchain-decisions.md)
 - [ ] [003 — Configure root TypeScript 7 setup](./003-configure-typescript.md)
 - [ ] [004 — Define package conventions and create @blixis/shared](./004-define-package-conventions.md)
