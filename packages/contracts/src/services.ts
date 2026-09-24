@@ -21,6 +21,12 @@ export function createServiceToken<T>(name: string): ServiceToken<T> {
   return Object.freeze({ id: Symbol.for(name), name })
 }
 
+/**
+ * A service token of any service type. Tokens are invariant in `T`, so use this for APIs that
+ * accept tokens without caring about the service type (e.g. `has`).
+ */
+export type AnyServiceToken = Pick<ServiceToken<unknown>, 'id' | 'name'>
+
 /** Extracts the service type from a token. */
 export type ServiceOf<TToken> = TToken extends ServiceToken<infer T> ? T : never
 
@@ -34,35 +40,35 @@ export interface ServiceRegistry {
   /** Returns the service for `token`, or `undefined` when none is registered. */
   getOptional<T>(token: ServiceToken<T>): T | undefined
   /** Whether a provider is registered for `token`. */
-  has(token: ServiceToken<unknown>): boolean
+  has(token: AnyServiceToken): boolean
 }
 
 /**
- * Lifetime of a service instance.
+ * Lifetime of a service instance (ADR 0005):
  * - `app`: created once per isolate; must not hold per-request I/O objects.
- * - `request`: created at most once per request/event scope and disposed afterwards
+ * - `request`: created at most once per request/event scope and disposed when the scope ends
  *   (e.g. database clients — Workers cannot share I/O objects across requests).
- *
- * @experimental Finalised by the kernel's service registry (roadmap 003.003).
  */
 export type ServiceScope = 'app' | 'request'
 
-/**
- * Context passed to service factories.
- * @experimental Finalised by roadmap 003.003.
- */
+/** Context passed to service factories. */
 export interface ServiceResolutionContext {
+  /**
+   * Registry of the scope the service is created in. App-scoped factories may only resolve
+   * app-scoped services; resolving a request-scoped one throws `ModuleError`.
+   */
   readonly services: ServiceRegistry
+  /** Scope the service is being created in. */
   readonly scope: ServiceScope
 }
 
-/**
- * Options for factory-based providers.
- * @experimental Finalised by roadmap 003.003.
- */
+/** Options for factory-based providers. */
 export interface ServiceFactoryOptions<T> {
   readonly scope: ServiceScope
-  /** Called when the owning scope ends (request scope) — close connections here. */
+  /**
+   * Called when the owning scope ends (request scopes, in reverse creation order) —
+   * close connections here. Not called for app-scoped services.
+   */
   readonly dispose?: (value: T) => void | Promise<void>
 }
 
@@ -71,12 +77,15 @@ export interface ServiceProvider {
   /** Registers an app-scoped service instance. */
   provide<T>(token: ServiceToken<T>, value: T): void
   /**
-   * Registers a lazily created service.
-   * @experimental Finalised by roadmap 003.003.
+   * Registers a lazily created service. The factory runs on first `get` in the given scope.
+   *
+   * Factories are **synchronous** so `get` stays synchronous. Services needing asynchronous
+   * setup initialise lazily on first use (e.g. a client that connects on its first query) or
+   * prepare app-scoped state in the module's `boot` hook.
    */
   provideFactory<T>(
     token: ServiceToken<T>,
-    factory: (context: ServiceResolutionContext) => T | Promise<T>,
+    factory: (context: ServiceResolutionContext) => T,
     options: ServiceFactoryOptions<T>,
   ): void
 }

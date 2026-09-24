@@ -4,7 +4,7 @@
 - Date: 2026-09-24
 - Roadmap task: [023.002](../plans/023-developer-documentation-site/002-generate-api-reference.md)
 
-> Numbering: ADRs 0005–0017 are reserved by earlier roadmap tasks (see the ROADMAP decision register), so this decision takes the next free number.
+> Numbering: ADRs 0006–0017 are reserved by earlier roadmap tasks (see the ROADMAP decision register), so this decision takes the next free number.
 
 ## Context
 

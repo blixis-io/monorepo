@@ -23,6 +23,11 @@ test('tokens of different service types are not assignable to each other', () =>
   expectTypeOf(wrong).toBeObject()
 })
 
+test('has() accepts tokens of any service type', () => {
+  registry.has(createServiceToken<string>('s'))
+  registry.has(createServiceToken<{ ping(): void }>('p'))
+})
+
 test('ServiceOf extracts the service type', () => {
   const token = createServiceToken<{ ping(): string }>('p')
   expectTypeOf<ServiceOf<typeof token>>().toEqualTypeOf<{ ping(): string }>()
