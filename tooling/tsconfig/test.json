@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Blixis test files (type-check only, ADR 0001)",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": true,
+    "rewriteRelativeImportExtensions": false
+  },
+  "include": [
+    "${configDir}/src/**/*.test.ts",
+    "${configDir}/src/**/*.test-d.ts",
+    "${configDir}/src/**/*.worker.test.ts",
+    "${configDir}/test"
+  ]
+}

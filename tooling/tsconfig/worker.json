@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Blixis Cloudflare Worker app (type-check only; bundled by Wrangler, ADR 0001)",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": true,
+    "lib": ["es2023"]
+  },
+  "include": ["${configDir}/src"]
+}

@@ -17,6 +17,6 @@ autoInstallPeers: false
 allowBuilds: {}
 
 # Shared third-party versions, referenced as "catalog:" in package.json files.
-# Entries are added by the tasks that introduce each dependency (001.002+).
-# catalog:
-#   typescript: 7.0.2
+# Entries are added by the tasks that introduce each dependency (versions verified in ADRs 0001–0003).
+catalog:
+  typescript: 7.0.2
