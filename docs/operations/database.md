@@ -73,7 +73,7 @@ These default privileges apply only to objects **created by `blixis_migrator`**.
 | App → Neon (`blixis_app`) | Inside the Hyperdrive configuration. The Worker only receives `env.HYPERDRIVE.connectionString`, a Hyperdrive-local URL | `wrangler.jsonc`, the repo, logs |
 | Migrations (`blixis_migrator`) | GitHub environment secret `DATABASE_URL` (`staging` / `production`); a developer's git-ignored `.env` when needed | the repo, chat, CI logs |
 | Owner (`neondb_owner`) | The owner's password manager | anywhere else |
-| Local | `postgres://blixis:blixis@localhost:55432/blixis` (Docker, local only) | — |
+| Local | `postgres://blixis:blixis@localhost:5432/blixis` (Docker, local only) | — |
 
 Create or update values without passing them through shell history:
 
@@ -100,11 +100,11 @@ Hyperdrive pools connections in **transaction mode**: between transactions, a Wo
 ## Local development
 
 ```bash
-docker compose up -d postgres     # Postgres 18 on localhost:55432 (blixis/blixis/blixis)
+docker compose up -d postgres     # Postgres 18 on localhost:5432 (blixis/blixis/blixis)
 pnpm --filter @blixis/api dev     # HYPERDRIVE → localConnectionString in wrangler.jsonc
 ```
 
-- The host port defaults to **55432** so it doesn't clash with other Postgres instances on 5432. Change it with `BLIXIS_POSTGRES_PORT`, and point the Worker at the new port with `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`.
+- The host port is **5432**. If another Postgres already uses it, stop that one or set `BLIXIS_POSTGRES_PORT` (for example `55432`) and point the Worker at the new port with `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`.
 - To use a different local database, set `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`.
 - The Docker user is a superuser. Least-privilege behaviour is verified on staging and in the migration tests (005.005 and 005.006).
 

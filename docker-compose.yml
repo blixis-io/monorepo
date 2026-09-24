@@ -8,8 +8,8 @@ services:
       POSTGRES_PASSWORD: blixis
       POSTGRES_DB: blixis
     ports:
-      # 55432 avoids clashing with other local Postgres instances on 5432.
-      - "${BLIXIS_POSTGRES_PORT:-55432}:5432"
+      # Override with BLIXIS_POSTGRES_PORT if another Postgres already uses 5432.
+      - "${BLIXIS_POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres18-data:/var/lib/postgresql
     healthcheck:
