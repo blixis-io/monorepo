@@ -6,8 +6,9 @@ import {
   REQUEST_CONTEXT,
   type ServiceToken,
 } from '@blixis/contracts'
-import { defineModule, KERNEL_CONTRIBUTIONS } from '@blixis/kernel'
+import { BACKGROUND_HANDLERS, defineModule, KERNEL_CONTRIBUTIONS } from '@blixis/kernel'
 import { createEventBus, type EventTransport } from './bus.ts'
+import { consumeEventBatch } from './consumer.ts'
 import { EventRegistry } from './registry.ts'
 
 /** The app's {@link EventRegistry} (app scope). */
@@ -21,6 +22,12 @@ export interface EventsModuleOptions {
    * rather than dropping events silently.
    */
   readonly transport?: EventTransport
+  /**
+   * Queues whose messages are event envelopes to dispatch to module subscriptions, e.g.
+   * `['blixis-events-staging']`. List every environment's queue name; the Worker only receives
+   * batches of queues it consumes (`wrangler.jsonc`).
+   */
+  readonly queues?: readonly string[]
 }
 
 const noTransport: EventTransport = {
@@ -53,6 +60,14 @@ export const eventsModule = defineModule((options: EventsModuleOptions) => ({
     }
     const transport = options.transport ?? noTransport
     ctx.services.provide(EVENT_REGISTRY, registry)
+    const { subscriptions } = ctx.services.get(KERNEL_CONTRIBUTIONS)
+    for (const queue of options.queues ?? []) {
+      ctx.services
+        .get(BACKGROUND_HANDLERS)
+        .onQueue(queue, (batch, background) =>
+          consumeEventBatch(batch, { subscriptions, registry, ...background }),
+        )
+    }
     ctx.services.provideFactory(
       EVENT_BUS,
       ({ services }) =>

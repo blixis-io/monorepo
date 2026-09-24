@@ -205,6 +205,7 @@ Resource creation (queues, buckets, Hyperdrive configs) is done once, manually o
     ```
     This needs `SENTRY_AUTH_TOKEN` (GitHub secret, scope `project:releases`).
 
+- **Events queue:** the API Worker consumes `blixis-events-<env>` (batch 10, timeout 5 s, 5 retries), with exponential per-message backoff, into `blixis-events-<env>-dlq`. Log lines: `event.consumed` (status, failed subscriptions, duration), `event.invalid`, and `event.unrouted` (debug). Anything in the DLQ means a handler kept failing or an envelope was invalid. Alerting on DLQ depth follows in 020.002.
 - **Health endpoints:** `GET /api/v1/health` is liveness (no I/O). `GET /api/v1/health/ready` is readiness: it runs `select 1` through Hyperdrive and returns 503 with per-check status when the database is unreachable, without hosts or error messages. Point uptime monitors (020.002) at readiness.
 - Workers Logs/Traces enabled via `observability` (sampling per environment set in task 020.002).
 - Also watch (Workers dashboard / Sentry alerts): 5xx rate, CPU time, queue backlog and DLQ depth, outbox backlog age, Hyperdrive errors. Runbook: `docs/operations/observability.md` (020.002).

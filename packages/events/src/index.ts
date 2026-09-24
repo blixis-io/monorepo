@@ -11,6 +11,7 @@ export {
   type EventTransport,
   type PublishContext,
 } from './bus.ts'
+export { type ConsumeOptions, consumeEventBatch, retryDelaySeconds } from './consumer.ts'
 export {
   type DispatchOptions,
   type DispatchResult,
