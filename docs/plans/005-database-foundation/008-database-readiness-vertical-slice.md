@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 ## Parent plan
@@ -39,18 +39,25 @@ This is the first end-to-end slice through the real infrastructure path from §1
 
 ```text
 apps/api/test/readiness.worker.test.ts
-packages/database/src/health.ts
+packages/kernel/src/health.ts
+packages/testing/src/readiness.test.ts
 ```
 
 ### Modify
 
 ```text
 packages/kernel/src/internal/rest.ts
+packages/kernel/src/internal/rest.test.ts
 packages/kernel/src/create-blixis.ts
+packages/kernel/src/index.ts
 packages/database/src/module.ts
-packages/database/src/index.ts
+packages/database/src/module.test.ts
 docs/kernel/README.md
 docs/operations/cloudflare.md
+docs/operations/database.md
+docs/ROADMAP.md
+docs/setup-checklist.md
+docs/plans/005-database-foundation/_index.md
 ```
 
 ### Delete
@@ -76,9 +83,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Readiness returns 200 locally and in the Workers test pool with the test DB.
-- [ ] Readiness returns 503 when the DB is unreachable, without leaking details.
-- [ ] Staging readiness verified (or task blocked with a documented Blocker).
+- [x] Readiness returns 200 locally and in the Workers test pool with the test DB.
+- [x] Readiness returns 503 when the DB is unreachable, without leaking details.
+- [x] Staging readiness verified (or task blocked with a documented Blocker).
 
 ## Validation
 
@@ -89,15 +96,15 @@ curl -s https://<staging-host>/api/v1/health/ready
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] CP2b evidence (latency numbers, driver behaviour) recorded in plan Technical notes.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] CP2b evidence (latency numbers, driver behaviour) recorded in plan Technical notes.
 
 ## Completion conditions
 
@@ -114,4 +121,23 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Health-check registry:** a kernel service `HEALTH_CHECKS`, like `BACKGROUND_HANDLERS`, not a new field in the module contract. Checks need request-scoped services (the database), so they are registered in `setup` and run in a fresh request scope. Names are unique and the registry is locked after setup. Implemented in PR #48.
+- **Readiness route `GET /api/v1/health/ready`:**
+  - registered before the kernel middleware and reserved in route-conflict detection;
+  - a failed `ready()` returns 503 `checks.boot` (never 500);
+  - checks run concurrently with per-check timeouts (default 2 s) via `Promise.race`;
+  - the response carries only status and `latencyMs`, plus `cache-control: no-store`;
+  - error messages go to `warn` logs only.
+- **`databaseModule()`** registers `database` (`select 1` via `DATABASE`). Opt out with `healthCheck: false`.
+- **Tests:**
+  - Kernel: 200, fail/timeout → 503 without details, boot failure → 503 with liveness still 200, duplicate/late registration, reserved route.
+  - Database module: an unreachable binding gives 503 with no host, password, or database name in the body.
+  - Node pool against Postgres: 200.
+  - Workers pool on the real API entry: 503 without leaks, liveness stays I/O-free.
+  - The Workers-pool success path is not testable yet (pg-cloudflare resolution, see 005.006).
+- **Staging verification (2026-09-24, version `634cbd63`, Worker `blixis-api-staging`, Hyperdrive `blixis-staging` → Neon `eu-central-1`):**
+  - First call: `database.latencyMs` = **89 ms** (connection set-up through Hyperdrive).
+  - Warm calls: **7–15 ms** (12 calls); total HTTP time from the client 0.11–0.36 s.
+  - One 404 during propagation right after deploy (edge still on the previous version); stable afterwards.
+- **Result:** request → Hono → kernel → request scope → `DATABASE` (pg Pool, lazy connect) → Hyperdrive → Neon works in production conditions, which confirms ADR 0005 scopes and ADR 0006 under real `workerd`.
+- The readiness endpoint is public and runs `select 1` per call. Rate limiting and uptime monitors are handled in 020.002.

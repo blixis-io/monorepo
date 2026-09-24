@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 3 — Persistence & event infrastructure  
 Roadmap scope: MVP / initial platform  
-Progress: 7/8 tasks completed
+Progress: 8/8 tasks completed
 
 ## Objective
 
@@ -69,16 +69,16 @@ Depends on:
 - [x] [005 — Build the migration runner for module-owned migrations](./005-migration-infrastructure.md)
 - [x] [006 — Implement the test database strategy](./006-test-database-strategy.md)
 - [x] [007 — Define ID, timestamp, tenancy, and cross-module schema conventions](./007-ids-tenancy-and-schema-conventions.md)
-- [~] [008 — Add the database readiness vertical slice](./008-database-readiness-vertical-slice.md)
+- [x] [008 — Add the database readiness vertical slice](./008-database-readiness-vertical-slice.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] Staging readiness endpoint returns healthy with DB latency measured through Hyperdrive (recorded in Technical notes), or — if account access is unavailable — the same check passes locally through a Hyperdrive local connection string and the staging verification is tracked as a follow-up blocker.
-- [ ] Migration runner applies fixture-module migrations in module order and is idempotent on re-run.
-- [ ] Architectural checkpoint CP2b recorded.
+- [x] All tasks `completed`.
+- [x] Staging readiness endpoint returns healthy with DB latency measured through Hyperdrive (recorded in Technical notes), or — if account access is unavailable — the same check passes locally through a Hyperdrive local connection string and the staging verification is tracked as a follow-up blocker.
+- [x] Migration runner applies fixture-module migrations in module order and is idempotent on re-run.
+- [x] Architectural checkpoint CP2b recorded.
 
 ## Risks
 
