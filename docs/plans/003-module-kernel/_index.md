@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 2 — Kernel walking skeleton on Cloudflare Workers  
 Roadmap scope: MVP / initial platform  
-Progress: 6/8 tasks completed
+Progress: 7/8 tasks completed
 
 ## Objective
 
@@ -73,7 +73,7 @@ Depends on:
 - [x] [004 — Implement the setup/boot lifecycle and createBlixis](./004-lifecycle-and-create-blixis.md)
 - [x] [005 — Validate module configuration](./005-module-configuration-validation.md)
 - [x] [006 — Mount module REST apps with request context and error mapping](./006-rest-mounting-and-error-mapping.md)
-- [ ] [007 — Collect event, GraphQL, permission, and migration contributions](./007-contribution-registries.md)
+- [x] [007 — Collect event, GraphQL, permission, and migration contributions](./007-contribution-registries.md)
 - [ ] [008 — Create @blixis/testing with createTestBlixis](./008-testing-package-create-test-blixis.md)
 
 ## Completion criteria

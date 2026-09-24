@@ -50,7 +50,7 @@ migrations: [
 ]
 ```
 
-- IDs: `NNNN_snake_case_name` ([`defineMigration`](/api/contracts/functions/definemigration/) checks this).
+- IDs: `NNNN_snake_case_name` ([`defineMigration`](/api/contracts/functions/definemigration/) checks this), unique within your module. The kernel also checks this at startup.
 - Steps are SQL strings or functions using a minimal [`MigrationExecutor`](/api/contracts/interfaces/migrationexecutor/).
 - Migrations run from tooling and CI in module dependency order — **never** inside the Worker.
 - Never edit an applied migration. Make changes **backward compatible** (expand, then contract in a later release), because the previous version keeps running while migrations apply.

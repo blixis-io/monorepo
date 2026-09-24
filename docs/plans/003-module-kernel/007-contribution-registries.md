@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -39,8 +39,8 @@ Collect non-REST contributions from modules into read-only registries exposed by
 ### Create
 
 ```text
-packages/kernel/src/internal/contributions.ts
-packages/kernel/src/internal/contributions.test.ts
+packages/kernel/src/contributions.ts
+packages/kernel/src/contributions.test.ts
 ```
 
 ### Modify
@@ -48,8 +48,12 @@ packages/kernel/src/internal/contributions.test.ts
 ```text
 packages/kernel/src/create-blixis.ts
 packages/kernel/src/index.ts
-packages/contracts/src/module.ts (if namespace ownership needs a field)
 docs/kernel/README.md
+apps/docs/src/content/docs/concepts/permissions.mdx
+apps/docs/src/content/docs/concepts/events.mdx
+apps/docs/src/content/docs/concepts/context-and-migrations.mdx
+docs/ROADMAP.md
+docs/plans/003-module-kernel/_index.md
 ```
 
 ### Delete
@@ -73,9 +77,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Duplicate permission IDs across two modules fail bootstrap naming both.
-- [ ] Contributions are readable via `KERNEL_CONTRIBUTIONS` in a fixture module's boot hook.
-- [ ] Migrations carry the owning module name.
+- [x] Duplicate permission IDs across two modules fail bootstrap naming both.
+- [x] Contributions are readable via `KERNEL_CONTRIBUTIONS` in a fixture module's boot hook.
+- [x] Migrations carry the owning module name.
 
 ## Validation
 
@@ -85,15 +89,15 @@ pnpm --filter @blixis/kernel test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Namespace-ownership rule documented and simple.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Namespace-ownership rule documented and simple.
 
 ## Completion conditions
 
@@ -110,4 +114,9 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- `collectContributions(modules)` → `{ contributions, problems }`; `createBlixis` runs it synchronously after graph validation and throws `ModuleValidationError` on problems. Contributions are attributed (`{ module, value }`), in bootstrap order, frozen; exposed as `app.contributions` and via the app-scoped `KERNEL_CONTRIBUTIONS` token (provided by `@blixis/kernel` before module setup so boot hooks and platform packages can read it).
+- **Namespace-ownership rule** (decided here, no contract change needed): the first segment of a permission id (`seo` in `seo.read`) belongs to the first module in bootstrap order that declares it; another module using it fails. Plus: valid ids, no duplicates (within or across modules, naming both).
+- Subscriptions: ids unique per module (they key processed-event records, §33). Migrations: `NNNN_snake_case` ids (same rule as `defineMigration`, re-checked because modules may build migration objects by hand) and unique per module.
+- GraphQL contributions are only collected; parsing and type conflict detection belong to `@blixis/graphql` (012.002). The kernel imports no GraphQL or database library.
+- Exported publicly: `collectContributions`, `KERNEL_CONTRIBUTIONS`, `KernelContributions`, `Attributed`. Manual updated (permissions namespaces, subscription ids, migration ids); maintainer notes in `docs/kernel/README.md`.
+- Tests (4 groups): collection/ordering/freezing, every conflict type, cross-module duplicate naming both modules, end-to-end via `createBlixis` (startup failure + token access in `boot`). Suite: 153 tests.
