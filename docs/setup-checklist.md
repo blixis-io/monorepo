@@ -66,7 +66,7 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
 ## Database (Neon)
 
 - [x] Neon project created in `eu-central-1` (AWS Frankfurt); default database `neondb`.
-- [ ] **(owner) Rotate the `neondb_owner` password.** The connection string was shared in plain text in a chat session. Never paste it into files in this public repository.
+- [x] **(owner) Rotate the `neondb_owner` password** (done 2026-09-24, after it was shared in a chat session). Never paste connection strings into files in this public repository.
 - [x] Branches `production` (primary) and `staging` (task 005.003).
 - [x] Least-privilege roles per branch, created with SQL (not `neon_superuser` members): an **application role** (DML only, used by Hyperdrive) and a **migration role** (DDL, used only by CI `db:migrate`). The owner role is not used by the application or CI.
 - [x] Use the **direct** host (without `-pooler`) for Hyperdrive configurations and migrations; Hyperdrive does its own pooling. Keep `sslmode=require`.

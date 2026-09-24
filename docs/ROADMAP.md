@@ -58,7 +58,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [023 — Developer Documentation Site](./plans/023-developer-documentation-site/_index.md) | M1 | MVP | `completed` | 4/4 | 002 |
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `completed` | 8/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `completed` | 7/7 | 003 |
-| [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `in-progress` | 7/8 | 004 |
+| [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `completed` | 8/8 | 004 |
 | [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `not-started` | 0/7 | 005 |
 | [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `not-started` | 0/6 | 006 |
 | [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `not-started` | 0/6 | 007 |
@@ -206,7 +206,7 @@ Creates `@blixis/cloudflare` (binding types, request-context helpers) and `apps/
 
 #### 005 — Database Foundation
 
-Status: `in-progress` · Progress: 7/8 · Scope: MVP  
+Status: `completed` · Progress: 8/8 · Scope: MVP  
 Plan: [005-database-foundation/_index.md](./plans/005-database-foundation/_index.md)  
 Depends on: [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md)
 
@@ -219,7 +219,7 @@ Selects the Postgres driver/query layer/migration tooling (ADR), builds `@blixis
 - [x] [005.005 — Build the migration runner for module-owned migrations](./plans/005-database-foundation/005-migration-infrastructure.md)
 - [x] [005.006 — Implement the test database strategy](./plans/005-database-foundation/006-test-database-strategy.md)
 - [x] [005.007 — Define ID, timestamp, tenancy, and cross-module schema conventions](./plans/005-database-foundation/007-ids-tenancy-and-schema-conventions.md)
-- [~] [005.008 — Add the database readiness vertical slice](./plans/005-database-foundation/008-database-readiness-vertical-slice.md)
+- [x] [005.008 — Add the database readiness vertical slice](./plans/005-database-foundation/008-database-readiness-vertical-slice.md)
 
 #### 006 — Events & Async Processing
 
@@ -547,7 +547,7 @@ Checkpoints are review gates where the architecture is validated against working
 - [x] **CP1 — Kernel contract proof** (end of [003](./plans/003-module-kernel/_index.md)). An "external-style" fixture module written with only `@blixis/contracts` + `defineModule` boots, provides/consumes services via capabilities, and serves a route; every §26 validation failure names the offending module. *Evidence:* 003.008 end-to-end kernel suite.
   - **Passed 2026-09-24.** `packages/testing/test/kernel.e2e.test.ts`: `@acme/blixis-external` (contracts + hono + zod only — not even `defineModule`) requires capability `fixture.greeting`, consumes `GREETING_SERVICE` in a REST route, validates its config, and maps a thrown `UnauthorizedError` to a 401 problem response. Missing capability, duplicate module, incompatible version, and duplicate service provider each fail with the module name. Contract gaps found on the way and fixed in contracts: `has()` token invariance (`AnyServiceToken`), `setup`/`boot` variance (methods), `EventSubscription.handle` variance.
 - [x] **CP2a — Kernel on `workerd`** (end of [004](./plans/004-cloudflare-worker-runtime/_index.md)). Lazy boot, per-request service scopes, `fetch`/`queue`/`scheduled` entry routing verified in the Workers runtime; bundle-size baseline recorded. Passed 2026-09-24: `apps/api/test/*.worker.test.ts` run the entry in `workerd`. Bundle baseline: ~254 KiB gzip with Sentry (gate 1024 KiB).
-- [ ] **CP2b — Database path** (end of [005](./plans/005-database-foundation/_index.md)). `Worker → Hyperdrive → Neon` readiness verified on staging with latency numbers; request-scoped connections confirmed; module-owned migrations applied in module order.
+- [x] **CP2b — Database path** (end of [005](./plans/005-database-foundation/_index.md)). `Worker → Hyperdrive → Neon` readiness verified on staging with latency numbers; request-scoped connections confirmed; module-owned migrations applied in module order. Passed 2026-09-24: staging `/api/v1/health/ready` through Hyperdrive → Neon (eu-central-1): first database check 89 ms, warm 7–15 ms (13 calls); request scopes close connections via `waitUntil`; runner applies module migrations in bootstrap order (integration tests in CI).
 - [ ] **CP3 — Event consistency** (end of [006](./plans/006-events-and-async-processing/_index.md)). Rolled-back transactions emit nothing; committed transactional events are delivered via outbox → Queue; redeliveries are processed once (§32, §33).
 - [ ] **CP4 — Tenancy & authorization** (end of [009](./plans/009-authorization-and-permissions/_index.md)). Isolation suite and authz matrix cover every tenant-scoped route; no role-name checks outside `@blixis/permissions` (§30, §31).
 - [ ] **CP5 — Content vertical slice** (end of [011](./plans/011-entries-and-publishing/_index.md)). request → Hono route → `ContentService` → repository → Hyperdrive → Neon, plus publish → outbox → Queue → subscriber, on staging; review against §48 rules.
