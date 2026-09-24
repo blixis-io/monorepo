@@ -36,8 +36,9 @@ push to main
           1. pnpm install --frozen-lockfile && pnpm build
           2. pnpm db:migrate               (DATABASE_URL = staging migration role)
           3. wrangler deploy --env staging --var BLIXIS_VERSION:<sha>
-          4. smoke: /api/v1/health/ready + content smoke (tooling/smoke)
-          5. on smoke failure: wrangler rollback --env staging; job fails
+          4. upload source maps + create Sentry release <sha> (environment staging)
+          5. smoke: /api/v1/health/ready + content smoke (tooling/smoke)
+          6. on smoke failure: wrangler rollback --env staging; job fails
 ```
 
 ## Production deployment (every version)
@@ -51,8 +52,9 @@ merge release PR
           2. pnpm install --frozen-lockfile && pnpm build
           3. pnpm db:migrate               (DATABASE_URL = production migration role)
           4. wrangler deploy --env production --var BLIXIS_VERSION:vX.Y.Z
-          5. smoke against production (read-only checks + dedicated smoke space)
-          6. on failure: roll back Worker, mark release as failed (comment on release), alert
+          5. upload source maps + create/finalise Sentry release vX.Y.Z (environment production)
+          6. smoke against production (read-only checks + dedicated smoke space)
+          7. on failure: roll back Worker, mark release as failed (comment on release), alert
 ```
 
 - **Approval (optional):** configure required reviewers on the `production` GitHub environment to pause before step 3. Availability for private repositories depends on the GitHub plan — see [Repository settings](./repository.md#environments).

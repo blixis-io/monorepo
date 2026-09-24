@@ -8,7 +8,7 @@ not-started
 
 Milestone: Milestone 2 — Kernel walking skeleton on Cloudflare Workers  
 Roadmap scope: MVP / initial platform  
-Progress: 0/6 tasks completed
+Progress: 0/7 tasks completed
 
 ## Objective
 
@@ -28,6 +28,7 @@ In scope:
 - environment/secret validation at boot
 - Workers-runtime tests with `@cloudflare/vitest-pool-workers`
 - wrangler environments (local, staging, production) and deploy dry-run in CI
+- Sentry error monitoring for the Worker (kernel `ErrorReporter` port + Sentry adapter)
 
 Out of scope:
 
@@ -55,6 +56,7 @@ Depends on:
 - `apps/api` runs locally with `wrangler dev` and answers `GET /api/v1/health`.
 - Workers-runtime test suite passes in CI.
 - `wrangler deploy --dry-run` passes in CI and reports bundle size.
+- Unexpected errors reported to Sentry (org `private-m57`) with environment, release, and request IDs.
 - Staging Worker deployed manually once (if Cloudflare account access is available) and documented in `docs/operations/cloudflare.md`.
 
 ## Tasks
@@ -65,6 +67,7 @@ Depends on:
 - [ ] [004 — Validate environment configuration at boot](./004-environment-configuration-validation.md)
 - [ ] [005 — Add Workers-runtime integration tests for apps/api](./005-workers-runtime-tests.md)
 - [ ] [006 — Configure wrangler environments and deploy dry-run in CI](./006-environments-and-deploy-dry-run.md)
+- [ ] [007 — Integrate Sentry error monitoring for the API Worker](./007-sentry-error-monitoring.md)
 
 ## Completion criteria
 
@@ -84,8 +87,8 @@ The plan may be marked `completed` when:
 
 ## Open questions
 
-- Which Cloudflare account/zone and Worker names are used for staging and production, and will the API run on a custom domain or `workers.dev` initially?
-- Is Workers Paid plan available? (Needed for Queues and higher CPU limits; affects plan 006.)
+- Custom domain or `workers.dev` initially? (Cloudflare account is set up as of 2026-09-24; domain still open — see `docs/setup-checklist.md`.)
+- Is the Workers Paid plan active? (Needed for Queues and higher CPU limits; affects plan 006.)
 
 ## Technical notes
 

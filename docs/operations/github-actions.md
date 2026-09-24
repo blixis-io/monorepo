@@ -170,8 +170,11 @@ Configured per GitHub **environment** so staging jobs can never read production 
 | `SMOKE_API_TOKEN` | secret | staging smoke token | production smoke token (read-only scope) | smoke tests |
 | `API_URL` | variable | `https://api.staging.<domain>` | `https://api.<domain>` | smoke tests |
 | `NEON_API_KEY` | secret (repo) | — | — | preview branches (021.002) |
+| `SENTRY_AUTH_TOKEN` | secret (repo) | — | — | source-map upload + release creation (004.007, 021.001) |
+| `SENTRY_ORG` | variable (repo) | `private-m57` | `private-m57` | Sentry CLI |
+| `SENTRY_PROJECT` | variable (repo) | API project slug | API project slug | Sentry CLI |
 
-Pull-request workflows use no secrets (forks and Dependabot PRs cannot access them anyway).
+Pull-request workflows use no secrets (forks and Dependabot PRs cannot access them anyway). The repository is public, so this rule is essential.
 
 ## Conventions
 

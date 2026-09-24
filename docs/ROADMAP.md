@@ -4,7 +4,7 @@
 
 This roadmap turns [`BLIXIS_ARCHITECTURE.md`](./BLIXIS_ARCHITECTURE.md) into an ordered, executable implementation plan for the Blixis headless CMS: a modular monolith on Cloudflare Workers (Hono, REST + GraphQL Yoga), Neon Postgres through Hyperdrive, Queues, KV, R2, Workflows, and an explicit module kernel that loads first-party and third-party modules through one contract.
 
-- **Plans:** 22 · **Tasks:** 127 · **Milestones:** 9
+- **Plans:** 22 · **Tasks:** 128 · **Milestones:** 9
 - **Architecture** (`BLIXIS_ARCHITECTURE.md`) is the source of truth for *what* to build.
 - **This roadmap** is the source of truth for *order*, *dependencies*, and *progress*.
 - **Plans** (`plans/XXX-*/_index.md`) specify each subsystem; **tasks** (`plans/XXX-*/YYY-*.md`) are the executable units.
@@ -56,7 +56,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [001 — Project Foundation](./plans/001-project-foundation/_index.md) | M1 | MVP | `not-started` | 0/7 | — |
 | [002 — Public Contracts](./plans/002-public-contracts/_index.md) | M1 | MVP | `not-started` | 0/8 | 001 |
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `not-started` | 0/8 | 002 |
-| [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `not-started` | 0/6 | 003 |
+| [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `not-started` | 0/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `not-started` | 0/8 | 004 |
 | [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `not-started` | 0/7 | 005 |
 | [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `not-started` | 0/6 | 006 |
@@ -174,7 +174,7 @@ Builds `@blixis/kernel` — `defineModule`, module graph validation, the typed s
 
 #### 004 — Cloudflare Worker Runtime
 
-Status: `not-started` · Progress: 0/6 · Scope: MVP  
+Status: `not-started` · Progress: 0/7 · Scope: MVP  
 Plan: [004-cloudflare-worker-runtime/_index.md](./plans/004-cloudflare-worker-runtime/_index.md)  
 Depends on: [003 — Module Kernel](./plans/003-module-kernel/_index.md)
 
@@ -186,6 +186,7 @@ Creates `@blixis/cloudflare` (binding types, request-context helpers) and `apps/
 - [ ] [004.004 — Validate environment configuration at boot](./plans/004-cloudflare-worker-runtime/004-environment-configuration-validation.md)
 - [ ] [004.005 — Add Workers-runtime integration tests for apps/api](./plans/004-cloudflare-worker-runtime/005-workers-runtime-tests.md)
 - [ ] [004.006 — Configure wrangler environments and deploy dry-run in CI](./plans/004-cloudflare-worker-runtime/006-environments-and-deploy-dry-run.md)
+- [ ] [004.007 — Integrate Sentry error monitoring for the API Worker](./plans/004-cloudflare-worker-runtime/007-sentry-error-monitoring.md)
 
 ### Milestone 3 — Persistence & event infrastructure
 
@@ -570,6 +571,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | D23 | SLOs, RPO/RTO | [022.001](./plans/022-production-readiness/001-performance-and-load-testing.md) | Proposed defaults in 022; owner confirms | open |
 | D24 | Environments and release model | [021.001](./plans/021-ci-cd-and-release-engineering/001-staging-and-production-deploy-pipelines.md) | — | **resolved 2026-09-24:** `main` → staging; versions `vX.Y.Z` (release-please) → production ([Environments](./operations/environments.md), [Release & deployment](./operations/deployment.md)) |
 | D25 | Git workflow and commit convention | — | — | **resolved 2026-09-24:** GitHub Flow, squash merges, Conventional Commits, no AI attribution ([Git workflow](./conventions/git-workflow.md), [Commit messages](./conventions/commit-messages.md)) |
+| D26 | Error tracking and alert destination | [004.007](./plans/004-cloudflare-worker-runtime/007-sentry-error-monitoring.md) | — | **resolved 2026-09-24:** Sentry (org `private-m57`) |
 
 ## Cloudflare platform coverage
 
@@ -586,6 +588,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | Workflows | 016 (Extended) | Release publishing, scheduled publishing (§16). |
 | Service Bindings | 020 | Adapter and extraction playbook only; no split (§18, §46). |
 | Rate Limiting | 007, 020 | Login throttling; API rate limits. |
+| *Sentry (external)* | 004.007, 020.002 | Error tracking, releases, alerts. |
 | Durable Objects, Workers for Platforms, Vectorize, Analytics Engine | — | Deferred (§11 "optional later"). |
 
 ## Deferred / future work

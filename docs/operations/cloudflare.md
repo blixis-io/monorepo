@@ -28,6 +28,7 @@ Pattern: `blixis-<resource>-<environment>`.
 | Workflow (release publish) | `PUBLISH_RELEASE` | `blixis-publish-release-staging` | `blixis-publish-release-production` | 016 |
 | Rate limiter | `RATE_LIMITER_*` | per env | per env | 007 / 020 |
 | Custom domain | — | `api.staging.<domain>` | `api.<domain>` | 004 / 021 |
+| Sentry DSN | `SENTRY_DSN` (var) | staging DSN | production DSN | 004.007 |
 
 Record every created resource ID in the inventory table in this file as plans create them (IDs are not secret, credentials are).
 
@@ -114,7 +115,7 @@ pnpm --filter @blixis/api exec wrangler secret list --env production
 
 - Local secrets in `apps/api/.dev.vars` (git-ignored); keep `.dev.vars.example` updated.
 - Never put secrets in `wrangler.jsonc` `vars`.
-- Hyperdrive stores the database credentials inside its configuration; the Worker never receives the Neon password directly.
+- Hyperdrive stores the database credentials inside its configuration; the Worker never receives the Neon password directly. Create Hyperdrive configs from the Neon **direct** host (no `-pooler`), region `eu-central-1`, using the application role — never the owner role.
 - Rotation procedures: `docs/operations/repository.md#secrets-rotation`.
 
 ## Local development
@@ -140,8 +141,11 @@ Resource creation (queues, buckets, Hyperdrive configs) is done once, manually o
 
 ## Monitoring
 
+- **Errors and alerts: Sentry** (org `private-m57`). The Worker reports unexpected errors (5xx, failed queue/cron/Workflow invocations) via `@sentry/cloudflare` with `environment` = `BLIXIS_ENV` and `release` = `BLIXIS_VERSION`; expected 4xx errors are not reported. `SENTRY_DSN` is configured per environment. Setup: task [004.007](../plans/004-cloudflare-worker-runtime/007-sentry-error-monitoring.md).
+- Source maps are uploaded to Sentry on every deploy so stack traces are readable.
+
 - Workers Logs/Traces enabled via `observability` (sampling per environment set in task 020.002).
-- Watch: 5xx rate, CPU time, queue backlog and DLQ depth, outbox backlog age, Hyperdrive errors. Runbook: `docs/operations/observability.md` (020.002).
+- Also watch (Workers dashboard / Sentry alerts): 5xx rate, CPU time, queue backlog and DLQ depth, outbox backlog age, Hyperdrive errors. Runbook: `docs/operations/observability.md` (020.002).
 
 ## Rollback
 

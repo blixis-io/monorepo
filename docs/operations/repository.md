@@ -1,12 +1,12 @@
 # Repository Settings
 
-GitHub configuration for [`blixis-io/monorepo`](https://github.com/blixis-io/monorepo) (private). Roadmap task 021.003 finalises and verifies these settings; most can be applied as soon as the first CI workflow exists (task 001.007).
+GitHub configuration for [`blixis-io/monorepo`](https://github.com/blixis-io/monorepo) (**public**). Roadmap task 021.003 finalises and verifies these settings; most can be applied as soon as the first CI workflow exists (task 001.007).
 
 Related: [Git workflow](../conventions/git-workflow.md) · [GitHub Actions](./github-actions.md) · [Environments](./environments.md) · [Setup checklist](../setup-checklist.md)
 
 ---
 
-> **Plan note:** for **private** repositories in an organization, rulesets/branch protection and environments with secrets require a paid GitHub plan (Team or higher), and some deployment protection rules (e.g. required reviewers) may require Enterprise. Verify the `blixis-io` org plan before relying on them.
+> **Public repository:** rulesets, environments, environment secrets, required reviewers, secret scanning, and GitHub-hosted Actions minutes are available on the free plan. Public also means: never commit secrets, require approval for workflows from first-time contributors, and never expose secrets to pull-request workflows.
 
 ## General
 
@@ -51,7 +51,7 @@ gh repo edit blixis-io/monorepo \
 | Environment | Deployment branches/tags | Protection | Secrets / variables |
 |---|---|---|---|
 | `staging` | `main` only | none (auto-deploy) | see [GitHub Actions](./github-actions.md#secrets-and-variables) |
-| `production` | tags `v*` (and `main` for the release job if required by the workflow ref) | optional required reviewer (you), if the plan allows | see [GitHub Actions](./github-actions.md#secrets-and-variables) |
+| `production` | tags `v*` (and `main` for the release job if required by the workflow ref) | optional required reviewer (you) | see [GitHub Actions](./github-actions.md#secrets-and-variables) |
 | `preview` *(021.002)* | all branches | none | Neon API key, preview Cloudflare token |
 
 ```bash
@@ -67,6 +67,7 @@ gh variable set CLOUDFLARE_ACCOUNT_ID --repo blixis-io/monorepo --body "<account
 - Workflow permissions: **read repository contents** by default.
 - Allow GitHub Actions to **create and approve pull requests**: ✅ (needed by release-please to open the release PR).
 - Allowed actions: GitHub-owned + selected verified creators, or "all actions" with SHA pinning enforced by review.
+- Fork pull request workflows: **require approval for all outside collaborators**; fork PRs never receive secrets.
 
 ## Security
 
@@ -83,7 +84,7 @@ gh variable set CLOUDFLARE_ACCOUNT_ID --repo blixis-io/monorepo --body "<account
 | `.github/ISSUE_TEMPLATE/` | bug report, feature request, task |
 | `.github/CODEOWNERS` | `* @EmVeeNL` initially |
 | `.github/dependabot.yml` or `renovate.json` | dependency updates (021.003) |
-| `SECURITY.md` | how to report vulnerabilities |
+| `SECURITY.md` | how to report vulnerabilities (required for a public repo) |
 | `CONTRIBUTING.md` | short pointer to the docs in `docs/conventions/` |
 | `LICENSE` | once the licence is decided (018.005) |
 
@@ -96,3 +97,5 @@ gh variable set CLOUDFLARE_ACCOUNT_ID --repo blixis-io/monorepo --body "<account
 | Neon app role password | Hyperdrive config | yearly or on exposure | reset in Neon → `wrangler hyperdrive update` → verify readiness |
 | Worker secrets (`WEBHOOK_SECRET_KEY`, auth) | `wrangler secret` | per ADR (key versioning required for encryption keys) | documented in the owning task |
 | Smoke tokens | GitHub environment secrets | yearly | re-issue via API, update secret |
+| `SENTRY_AUTH_TOKEN` | GitHub repository secret | yearly or on exposure | create org token in Sentry → update secret → revoke old |
+| Neon owner password | Neon console only | **now** (was shared in chat), then on exposure | reset in Neon; owner role is never used by app or CI |
