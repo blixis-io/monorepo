@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 Milestone: Milestone 1 — Workspace & public contracts  
 Roadmap scope: MVP / initial platform  
-Progress: 0/8 tasks completed
+Progress: 1/8 tasks completed
 
 ## Objective
 
@@ -63,7 +63,7 @@ Depends on:
 
 ## Tasks
 
-- [ ] [001 — Scaffold the @blixis/contracts package](./001-scaffold-contracts-package.md)
+- [x] [001 — Scaffold the @blixis/contracts package](./001-scaffold-contracts-package.md)
 - [ ] [002 — Define module, metadata, contribution, and lifecycle contracts](./002-define-module-contracts.md)
 - [ ] [003 — Define typed service tokens and capability identifiers](./003-define-service-tokens-and-capabilities.md)
 - [ ] [004 — Define the public error model](./004-define-public-errors.md)
