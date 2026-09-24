@@ -2,6 +2,13 @@ import { InfrastructureError, type StandardSchemaV1 } from '@blixis/contracts'
 import { type BlixisApp, toProblemResponse } from '@blixis/kernel'
 import { parseEnv } from './env.ts'
 
+/** The Worker default export produced by {@link createWorkerHandler} (all handlers present). */
+export interface WorkerHandler<TEnv> extends ExportedHandler<TEnv> {
+  fetch: ExportedHandlerFetchHandler<TEnv>
+  queue: ExportedHandlerQueueHandler<TEnv>
+  scheduled: ExportedHandlerScheduledHandler<TEnv>
+}
+
 /** Options for {@link createWorkerHandler}. */
 export interface WorkerHandlerOptions {
   /**
@@ -26,7 +33,7 @@ export interface WorkerHandlerOptions {
 export function createWorkerHandler<TEnv = unknown>(
   app: BlixisApp,
   options: WorkerHandlerOptions = {},
-): ExportedHandler<TEnv> {
+): WorkerHandler<TEnv> {
   const validated = new WeakMap<object, true>()
 
   /** Throws a non-exposed `InfrastructureError` when the environment is invalid. */

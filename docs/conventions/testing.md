@@ -28,7 +28,7 @@ Keep infrastructure-specific tests separate from domain tests (§36).
 - `pnpm test` runs `tsc -b` first: workspace packages are consumed through their built `dist/` ([ADR 0001](../decisions/0001-typescript-7-build-strategy.md)).
 - Vitest only transpiles; **type checking** of tests happens in `pnpm typecheck` via each package's `tsconfig.test.json` (extends `@blixis/tsconfig/test.json`). `expectTypeOf` assertions in `*.test.ts` / `*.test-d.ts` are therefore enforced by `tsc`.
 - Each package has `"test": "vitest run --root ../.. <dir>/<name>"` so `pnpm --filter <pkg> test` works.
-- **Opting a package into the Workers runtime:** add `<pkg>/vitest.config.ts` with `plugins: [cloudflareTest({ wrangler: { configPath: './wrangler.jsonc' } })]` and `include: ['src/**/*.worker.test.ts']`, then list that config in the root `test.projects`. Keep `compatibility_date` ≤ the pool's bundled `workerd` (ADR 0002). First user: `apps/api` (task 004.005).
+- **Opting a package into the Workers runtime:** add `<pkg>/vitest.config.ts` with `plugins: [cloudflareTest({ wrangler: { configPath: './wrangler.jsonc' } })]` and `include: ['src/**/*.worker.test.ts']`, then list that config in the root `test.projects`. Keep `compatibility_date` ≤ the pool's bundled `workerd` (ADR 0002). First user: `apps/api` — see [`apps/api/vitest.config.ts`](../../apps/api/vitest.config.ts) and `apps/api/test/*.worker.test.ts`, which import the Worker entry (`src/index.ts`) and call `fetch`/`queue`/`scheduled` with `cloudflare:test` helpers (`env`, `createExecutionContext`, `createMessageBatch`, `createScheduledController`, `getQueueResult`).
 
 ## Rules
 

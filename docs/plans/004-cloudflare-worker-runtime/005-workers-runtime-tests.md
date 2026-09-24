@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -38,17 +38,24 @@ Configure `@cloudflare/vitest-pool-workers` for `apps/api` and write integration
 
 ```text
 apps/api/vitest.config.ts
+apps/api/test/env.d.ts
 apps/api/test/health.worker.test.ts
 apps/api/test/entry.worker.test.ts
-apps/api/test/env.d.ts
 ```
 
 ### Modify
 
 ```text
-apps/api/package.json
-vitest.config.ts (root workspace/projects list, if needed)
+apps/api/package.json (vitest, pool, test script)
+apps/api/tsconfig.json (include test)
+vitest.config.ts (api project)
+packages/cloudflare/src/worker-handler.ts (WorkerHandler return type)
+packages/cloudflare/src/index.ts
+pnpm-workspace.yaml
 pnpm-lock.yaml
+docs/conventions/testing.md
+docs/ROADMAP.md
+docs/plans/004-cloudflare-worker-runtime/_index.md
 ```
 
 ### Delete
@@ -71,8 +78,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] The suite runs inside `workerd` and passes locally and in CI.
-- [ ] Tests assert header propagation and error format.
+- [x] The suite runs inside `workerd` and passes locally and in CI.
+- [x] Tests assert header propagation and error format.
 
 ## Validation
 
@@ -83,15 +90,15 @@ pnpm test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Tests exercise the real Worker entry, not the Hono app directly.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Tests exercise the real Worker entry, not the Hono app directly.
 
 ## Completion conditions
 
@@ -108,4 +115,8 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- `apps/api/vitest.config.ts`: `cloudflareTest({ wrangler: { configPath: './wrangler.jsonc' } })`, project name `api`, `test/**/*.worker.test.ts`; listed in the root `test.projects`. `@cloudflare/vitest-pool-workers` 0.22.0 + Vitest 4.1.11 as `apps/api` devDependencies. `pnpm --filter @blixis/api test` runs only this project.
+- Tests import the **real Worker entry** (`src/index.ts`, i.e. `createWorkerHandler(app, { envSchema })`) and call it with `cloudflare:test` helpers: liveness 200; unknown route → 404 problem with propagated `x-correlation-id` and matching `x-request-id`; invalid env (new env object with `BLIXIS_ENV: 'nonsense'`) → redacted 500 `INFRASTRUCTURE_ERROR`; queue batch without consumer → `getQueueResult` shows `retryBatch.retry = true`; cron without jobs resolves. The task mentioned `SELF.fetch`; importing the entry directly was chosen because it also exercises `queue`/`scheduled` with the pool's typed helpers.
+- **Type fix:** `createWorkerHandler` now returns `WorkerHandler<TEnv>` (all three handlers non-optional) instead of `ExportedHandler<TEnv>`, whose members are optional. Test requests are cast to `Request<unknown, IncomingRequestCfProperties>` (Workers' incoming request type).
+- Test typing: `apps/api/test/env.d.ts` references `@cloudflare/vitest-pool-workers/types`; the app tsconfig includes `test/` (a separate test project cannot reference a `noEmit` project, TS6310).
+- Runtime: full `pnpm test` (Node + Workers projects, 180 tests) finishes in ~3 s and exits cleanly (the hanging-exit seen in the 001.002 spike does not occur). No cold-start measurement possible in the pool beyond that; production numbers come with the staging deploy (004.006).
