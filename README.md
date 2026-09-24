@@ -30,6 +30,12 @@ Describes the pnpm workspace layout (`apps/`, `packages/`, `modules/`, `tooling/
 
 → [docs/development/monorepo.md](docs/development/monorepo.md)
 
+## Package conventions
+
+Covers where packages live, the `package.json` and tsconfig template, dependency and peer rules, and forbidden import patterns.
+
+→ [docs/conventions/packages.md](docs/conventions/packages.md)
+
 ## Code standards
 
 Covers TypeScript rules, naming, module boundaries, layering, errors, validation, async on Workers, logging, and dependencies.
@@ -83,6 +89,12 @@ Covers the workflows, shared setup, CI, release and deploy sketches, secrets and
 Covers merge settings, rulesets, environments, Actions permissions, security features, and secrets rotation.
 
 → [docs/operations/repository.md](docs/operations/repository.md)
+
+## Decisions
+
+Architecture decision records (ADRs) for choices the architecture leaves open, such as the toolchain, test runner and linting.
+
+→ [docs/decisions/](docs/decisions/README.md)
 
 ## Setup checklist
 

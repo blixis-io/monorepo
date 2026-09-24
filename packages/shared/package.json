@@ -1,0 +1,26 @@
+{
+  "name": "@blixis/shared",
+  "version": "0.0.0",
+  "description": "Tiny, dependency-free utilities shared by Blixis packages",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "devDependencies": {
+    "@blixis/tsconfig": "workspace:*",
+    "typescript": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/shared"
+  }
+}

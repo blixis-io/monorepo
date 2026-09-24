@@ -1,6 +1,6 @@
 # Monorepo
 
-Blixis is a **pnpm workspace** monorepo (architecture §3). This document defines the target layout and the workspace-level configuration. The files themselves are created by roadmap plan [001 — Project Foundation](../plans/001-project-foundation/_index.md); per-package rules are written in `docs/conventions/packages.md` by task 001.004.
+Blixis is a **pnpm workspace** monorepo (architecture §3). This document defines the target layout and the workspace-level configuration. The files themselves are created by roadmap plan [001 — Project Foundation](../plans/001-project-foundation/_index.md); per-package rules are in [Package conventions](../conventions/packages.md).
 
 Related: [Getting started](./getting-started.md) · [Code standards](../conventions/code-standards.md) · [Cloudflare Workers](../operations/cloudflare.md) · [GitHub Actions](../operations/github-actions.md)
 
@@ -89,7 +89,7 @@ Versions verified in the 001.002 spike (2026-09-24); entries are added to the re
   "packageManager": "pnpm@<exact version>",
   "engines": { "node": ">=<active LTS>" },
   "scripts": {
-    "build": "pnpm -r --workspace-concurrency=4 build",
+    "build": "tsc -b",                                               // libraries; apps bundle via their own tools
     "typecheck": "tsc -b && pnpm -r --if-present typecheck:tests",  // ADR 0001
     "lint": "biome lint . && pnpm boundaries",                       // ADR 0003
     "format": "biome format --write .",
@@ -132,7 +132,7 @@ pnpm -r ls --depth -1                      # list workspace packages
 
 ## Adding a package
 
-1. Copy the structure described in `docs/conventions/packages.md` (task 001.004).
+1. Follow [Package conventions](../conventions/packages.md) (reference implementation: `packages/shared`).
 2. Name it `@blixis/<name>`; `"type": "module"`; root-only `exports`; `sideEffects: false`.
 3. Extend `@blixis/tsconfig/library.json` (or `worker.json` for Worker-targeting code).
 4. Add it to root `tsconfig.json` references.

@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -61,6 +61,10 @@ packages/shared/src/assert.ts
 tsconfig.json
 package.json
 pnpm-lock.yaml
+docs/development/monorepo.md
+docs/ROADMAP.md
+docs/plans/001-project-foundation/_index.md
+docs/plans/001-project-foundation/004-define-package-conventions.md
 ```
 
 ### Delete
@@ -115,10 +119,10 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `docs/conventions/packages.md` exists and covers every bullet in the requirements.
-- [ ] `pnpm build` produces `packages/shared/dist/index.js` and `index.d.ts` (or the ADR-defined equivalent).
-- [ ] `pnpm typecheck` passes with the package referenced.
-- [ ] Importing `@blixis/shared/src/assert` from another workspace location fails to resolve.
+- [x] `docs/conventions/packages.md` exists and covers every bullet in the requirements.
+- [x] `pnpm build` produces `packages/shared/dist/index.js` and `index.d.ts` (or the ADR-defined equivalent).
+- [x] `pnpm typecheck` passes with the package referenced.
+- [x] Importing `@blixis/shared/src/assert` from another workspace location fails to resolve.
 
 ## Validation
 
@@ -131,16 +135,16 @@ ls packages/shared/dist
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] The convention document and the real package agree field by field.
-- [ ] `@blixis/shared` exports nothing speculative.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] The convention document and the real package agree field by field.
+- [x] `@blixis/shared` exports nothing speculative.
 
 ## Completion conditions
 
@@ -157,4 +161,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- `@blixis/shared` exports only `invariant`, `assertNever`, and `InvariantError` (planned consumers: code standards §2, kernel, contracts tests). No `Result` type — no consumer yet.
+- `invariant` throws a plain `InvariantError` (not a `@blixis/contracts` error): `shared` is a leaf package with no dependencies, and invariant failures are programming errors that map to `INTERNAL` anyway.
+- Package is **not** marked private: `@blixis/kernel` (publishable) may depend on it. Publishing is decided in 018.005.
+- **Build:** root `build` script is now `tsc -b` (builds all referenced library projects in dependency order); each package also has `"build": "tsc -b"` for `pnpm --filter` use. The recursive `pnpm -r build` from 001.001 is replaced to avoid building twice. Apps will add their own bundling steps later.
+- **No `tsconfig.test.json` yet:** TS7 fails a project whose `include` matches no files (`TS18003`), so the test config arrives with the first tests in 001.006.
+- **Boundary verification** (temporary consumer package, removed): `import '@blixis/shared/src/assert.ts'` → `TS2307` in `tsc`, `ERR_PACKAGE_PATH_NOT_EXPORTED` in Node; public import works and `invariant(false, …)` throws `InvariantError`.
+- `docs/conventions/packages.md` documents the layout, `package.json` template, dependency/peer rules, tsconfig pattern, forbidden patterns (with enforcement mechanism per ADR 0003), and a creation checklist; `docs/development/monorepo.md` now links to it.
