@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -49,8 +49,10 @@ docs/contracts/events.md
 
 ```text
 packages/contracts/src/events.ts
-packages/contracts/src/index.ts
+packages/contracts/src/context.ts (TransactionScope)
 docs/contracts/README.md
+docs/ROADMAP.md
+docs/plans/002-public-contracts/_index.md
 ```
 
 ### Delete
@@ -94,9 +96,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Type test: emitting `entryPublished` with a wrong payload shape fails to compile.
-- [ ] `docs/contracts/events.md` documents naming, versioning, and delivery classes.
-- [ ] Envelope type matches §15 field-for-field.
+- [x] Type test: emitting `entryPublished` with a wrong payload shape fails to compile.
+- [x] `docs/contracts/events.md` documents naming, versioning, and delivery classes.
+- [x] Envelope type matches §15 field-for-field.
 
 ## Validation
 
@@ -107,15 +109,15 @@ pnpm typecheck
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Delivery class concept documented as the §32 per-event-class decision point.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Delivery class concept documented as the §32 per-event-class decision point.
 
 ## Completion conditions
 
@@ -132,4 +134,9 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- Exports: `EventEnvelope` (§15 field-for-field), `EventMetadata`, `EventDelivery`, `EventDefinition`, `EventType`, `defineEvent`, `EventPayload`, `EmitOptions`, `EventBus`, `EventHandlerContext`, `EventSubscription`, and a `subscribe()` helper (added so handlers get typed envelopes without annotations).
+- `defineEvent` validates the naming rule and `version >= 1` at runtime (throws `TypeError` — a programming error at module definition time), infers the payload from the schema via `InferOutput`, and freezes the definition. `EventType` (`${string}.${string}`) also rejects undotted names at compile time.
+- **`TransactionScope`** (opaque, branded with a `declare const unique symbol`) was introduced here in `context.ts` instead of 002.008 because `EmitOptions.transaction` needs it; 002.008 documents it alongside the other context types.
+- `EventHandlerContext` has `attempt` and `services`; logger/request-context fields are added in 002.008 once `Logger` exists.
+- Type tests: payload inference, `emit` rejects missing/mistyped fields (`@ts-expect-error`), typed envelopes in `subscribe`, undotted type rejected.
+- `docs/contracts/events.md` holds naming/versioning/idempotency rules and the **event register** table where every event's delivery class is recorded (§32 per-event-class decision).

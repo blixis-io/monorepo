@@ -34,7 +34,7 @@ Related: [Package conventions](../conventions/packages.md) · [Code standards](.
 | Capabilities | `src/capabilities.ts` | ✅ 002.003 |
 | Public errors | `src/errors.ts` | ✅ 002.004 — see [errors.md](./errors.md) |
 | Validation (Standard Schema) | `src/validation.ts`, `src/standard-schema.ts` | ✅ 002.005 |
-| Events | `src/events.ts` | planned — 002.006 |
+| Events | `src/events.ts` | ✅ 002.006 — see [events.md](./events.md) |
 | Actors and permissions | `src/permissions.ts` | planned — 002.007 |
 | Request context, logger, migrations | `src/context.ts`, `src/migrations.ts` | planned — 002.008 |
 

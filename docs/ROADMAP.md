@@ -54,7 +54,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | Plan | Milestone | Scope | Status | Progress | Depends on |
 |---|---|---|---|---|---|
 | [001 — Project Foundation](./plans/001-project-foundation/_index.md) | M1 | MVP | `completed` | 7/7 | — |
-| [002 — Public Contracts](./plans/002-public-contracts/_index.md) | M1 | MVP | `in-progress` | 4/8 | 001 |
+| [002 — Public Contracts](./plans/002-public-contracts/_index.md) | M1 | MVP | `in-progress` | 5/8 | 001 |
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `not-started` | 0/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `not-started` | 0/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `not-started` | 0/8 | 004 |
@@ -138,7 +138,7 @@ Creates the pnpm monorepo, TypeScript 7 baseline, package conventions, linting/b
 
 #### 002 — Public Contracts
 
-Status: `in-progress` · Progress: 4/8 · Scope: MVP  
+Status: `in-progress` · Progress: 5/8 · Scope: MVP  
 Plan: [002-public-contracts/_index.md](./plans/002-public-contracts/_index.md)  
 Depends on: [001 — Project Foundation](./plans/001-project-foundation/_index.md)
 
@@ -149,7 +149,7 @@ Creates `@blixis/contracts`: the small, stable, dependency-light package that ev
 - [x] [002.003 — Define typed service tokens and capability identifiers](./plans/002-public-contracts/003-define-service-tokens-and-capabilities.md)
 - [x] [002.004 — Define the public error model](./plans/002-public-contracts/004-define-public-errors.md)
 - [x] [002.005 — Select the validation library and define the schema contract](./plans/002-public-contracts/005-select-validation-library.md)
-- [ ] [002.006 — Define event envelope, definition, and subscription contracts](./plans/002-public-contracts/006-define-event-contracts.md)
+- [x] [002.006 — Define event envelope, definition, and subscription contracts](./plans/002-public-contracts/006-define-event-contracts.md)
 - [ ] [002.007 — Define actor, permission, and authorization contracts](./plans/002-public-contracts/007-define-permission-and-actor-contracts.md)
 - [ ] [002.008 — Define request context and migration contracts](./plans/002-public-contracts/008-define-request-context-and-migration-contracts.md)
 
