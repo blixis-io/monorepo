@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 ## Parent plan
@@ -37,24 +37,27 @@ Implement `CloudflareQueueEventBus` (producer side) in `@blixis/cloudflare` that
 ### Create
 
 ```text
-packages/cloudflare/src/queue-sender.ts
-packages/cloudflare/src/queue-sender.test.ts
-packages/events/src/ports.ts
-packages/events/src/composite-bus.ts
+packages/events/src/queue.ts
+packages/cloudflare/src/queues.ts
+packages/cloudflare/src/queues.test.ts
 ```
 
 ### Modify
 
 ```text
 packages/events/src/index.ts
-packages/events/src/module.ts
 packages/cloudflare/src/index.ts
 packages/cloudflare/package.json
+packages/cloudflare/tsconfig.json
 apps/api/wrangler.jsonc
+apps/api/worker-configuration.d.ts
 apps/api/src/env.ts
 apps/api/src/blixis.config.ts
+apps/api/package.json
+apps/api/tsconfig.json
 docs/operations/configuration.md
 docs/operations/cloudflare.md
+docs/setup-checklist.md
 pnpm-lock.yaml
 ```
 
@@ -80,9 +83,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Envelopes sent via fake binding are valid JSON matching §15.
-- [ ] Oversized payloads fail with a clear error.
-- [ ] Queues and DLQ exist (or are defined) for staging/production in `wrangler.jsonc`.
+- [x] Envelopes sent via fake binding are valid JSON matching §15.
+- [x] Oversized payloads fail with a clear error.
+- [x] Queues and DLQ exist (or are defined) for staging/production in `wrangler.jsonc`.
 
 ## Validation
 
@@ -93,15 +96,15 @@ pnpm --filter @blixis/api exec wrangler deploy --dry-run --env staging
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Current Queues limits cited from docs in Technical notes.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Current Queues limits cited from docs in Technical notes.
 
 ## Completion conditions
 
@@ -118,4 +121,12 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Code (PR #52):**
+  - `QueueSender` port with the `QUEUE_SENDER` token in `@blixis/events`.
+  - `queueTransport({ transactional? })` routes best-effort events directly to the queue and transactional events to the outbox transport. Without an outbox, transactional emits fail. **No in-process fan-out** (decided), so every subscriber gets retries and the DLQ.
+  - `cloudflareQueueSender` uses `sendBatch` with `contentType: 'json'`, chunked at 100 messages / 256 KiB. Messages over 128 KiB throw `InfrastructureError` naming the event type and id **before** anything is sent. Send failures are retryable `InfrastructureError`s.
+  - `eventsQueueModule({ binding = 'EVENTS' })` provides `QUEUE_SENDER` per request from the Worker binding.
+- **Queue names:** follow `docs/operations/cloudflare.md` (`blixis-events-<env>` / `blixis-events-<env>-dlq`), not the `blixis-events-dlq-<env>` form in the task text.
+- **Deviation:** only **producer** bindings are configured now. The consumer config (`max_batch_size`, `max_retries`, `dead_letter_queue`) arrives with the queue handler in 006.004; a consumer deployed before its handler would dead-letter every message.
+- **Provisioned 2026-09-24 by the owner (Workers Paid confirmed):** `blixis-events-staging` (`85fab784…`), `-staging-dlq` (`13b29a37…`), `blixis-events-production` (`f37de9bb…`), `-production-dlq` (`51dbc206…`). Full IDs are in the Cloudflare inventory.
+- **Bundle:** 333 KiB gzip.

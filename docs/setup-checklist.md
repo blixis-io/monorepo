@@ -46,7 +46,7 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
 ## Cloudflare
 
 - [x] Cloudflare account set up; Wrangler installed and logged in locally.
-- [ ] **(owner)** Confirm the **Workers Paid** plan is active (required for Queues, Workflows, higher CPU limits).
+- [x] **(owner)** **Workers Paid** plan active (confirmed 2026-09-24: queues could be created).
 - [x] Account ID added as GitHub variable `CLOUDFLARE_ACCOUNT_ID`.
 - [x] Developer docs deployed: https://blixis-docs.frosty-hill-6079.workers.dev (Worker `blixis-docs`).
 - [x] Cloudflare API token added as secret `CLOUDFLARE_API_TOKEN` in the GitHub **`docs`** environment — docs deploy automatically from `main`:
@@ -54,7 +54,7 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
   gh secret set CLOUDFLARE_API_TOKEN --env docs --repo blixis-io/monorepo
   ```
 - [ ] API tokens per environment with the permissions listed in [Cloudflare Workers](./operations/cloudflare.md#ci-access-api-token), stored as GitHub environment secrets.
-- [ ] **(owner)** Create the events queues and DLQs for staging and production (commands in [Cloudflare Workers](./operations/cloudflare.md#creating-the-events-queues-once-per-account-task-006003)). This requires the Workers Paid plan and must happen before the next staging deploy.
+- [x] **(owner)** Created the events queues and DLQs for staging and production (2026-09-24; IDs in the inventory) (commands in [Cloudflare Workers](./operations/cloudflare.md#creating-the-events-queues-once-per-account-task-006003)). This requires the Workers Paid plan and must happen before the next staging deploy.
 - [ ] Resources created per environment (KV, R2) as their plans arrive; IDs recorded in the inventory.
 - [ ] Workers observability (logs/traces) enabled (task 020.002).
 
