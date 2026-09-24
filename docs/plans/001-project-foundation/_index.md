@@ -79,7 +79,7 @@ Depends on:
 - [x] [004 — Define package conventions and create @blixis/shared](./004-define-package-conventions.md)
 - [x] [005 — Configure linting, formatting, and package-boundary checks](./005-configure-lint-format-and-boundaries.md)
 - [x] [006 — Configure the test runner for unit and Workers-runtime tests](./006-configure-test-runner.md)
-- [ ] [007 — Set up the continuous integration pipeline](./007-setup-ci-pipeline.md)
+- [R] [007 — Set up the continuous integration pipeline](./007-setup-ci-pipeline.md)
 
 ## Completion criteria
 

@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+review
 ```
 
 ## Parent plan
@@ -53,8 +53,10 @@ Later plans rely on CI to prove that architecture rules hold continuously (§52:
 ### Modify
 
 ```text
-README.md
-docs/operations/github-actions.md (only if the implementation deviates)
+README.md (CI badge)
+docs/ROADMAP.md
+docs/plans/001-project-foundation/_index.md
+docs/plans/001-project-foundation/007-setup-ci-pipeline.md
 ```
 
 ### Delete
@@ -118,4 +120,9 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Pinned actions** (SHA + version comment): `actions/checkout` v7.0.1 `3d3c42e5…`, `actions/setup-node` v7.0.0 `82076278…`, `pnpm/action-setup` v6.1.0 `ea17c68d…` (supports pnpm ≤ 12; reads `packageManager`), `amannn/action-semantic-pull-request` v6.1.1 `48f25628…`. `pnpm/setup` (v3) is the newer all-in-one alternative; not adopted to keep the familiar setup-node cache.
+- **Composite action** `.github/actions/setup`: pnpm → Node from `.nvmrc` with pnpm store cache → `pnpm install --frozen-lockfile`.
+- **`ci.yml` / job `verify`** (stable name = required check): format check, lint + boundaries, typecheck, test, build; `permissions: contents: read`; PR runs cancel superseded runs; `timeout-minutes: 20`. First run: **13 s** (cache cold), later ~16–21 s.
+- **Failure demonstrated:** a deliberately broken assertion in `packages/shared/src/assert.test.ts` made `verify` fail (run 35975046136); reverted with a Conventional Commit `revert:` message (git's default `Revert "…"` message would fail commitlint) and `verify` passed again (run 35975153192).
+- **`pr-title.yml`** uses `pull_request_target` (recommended by the action; runs the base-branch workflow without checking out PR code, safe for fork PRs in this public repo). Consequence: it cannot run on the PR that introduces it — verification happens after merge.
+- No secrets, no deploy steps. Postgres service and Wrangler dry-run are added by 005.006 and 004.006.

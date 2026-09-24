@@ -1,0 +1,65 @@
+name: pr-title
+
+# pull_request_target: runs in the base-branch context without checking out PR code,
+# so it also works for fork PRs; the token only needs read access.
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  pr-title:
+    name: pr-title
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Types and scopes: docs/conventions/commit-messages.md (keep in sync with commitlint.config.js)
+          types: |
+            feat
+            fix
+            perf
+            refactor
+            docs
+            test
+            build
+            ci
+            chore
+            style
+            revert
+          scopes: |
+            contracts
+            kernel
+            cloudflare
+            database
+            events
+            graphql
+            sdk
+            testing
+            shared
+            content-api
+            auth
+            users
+            spaces
+            permissions
+            content
+            assets
+            webhooks
+            releases
+            api
+            admin
+            example-site
+            deps
+            repo
+            roadmap
+            adr
+            release
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" must start with a lowercase letter (docs/conventions/commit-messages.md).

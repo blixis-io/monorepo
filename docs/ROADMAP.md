@@ -134,7 +134,7 @@ Creates the pnpm monorepo, TypeScript 7 baseline, package conventions, linting/b
 - [x] [001.004 — Define package conventions and create @blixis/shared](./plans/001-project-foundation/004-define-package-conventions.md)
 - [x] [001.005 — Configure linting, formatting, and package-boundary checks](./plans/001-project-foundation/005-configure-lint-format-and-boundaries.md)
 - [x] [001.006 — Configure the test runner for unit and Workers-runtime tests](./plans/001-project-foundation/006-configure-test-runner.md)
-- [ ] [001.007 — Set up the continuous integration pipeline](./plans/001-project-foundation/007-setup-ci-pipeline.md)
+- [R] [001.007 — Set up the continuous integration pipeline](./plans/001-project-foundation/007-setup-ci-pipeline.md)
 
 #### 002 — Public Contracts
 

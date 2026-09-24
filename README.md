@@ -1,5 +1,7 @@
 # Blixis
 
+[![ci](https://github.com/blixis-io/monorepo/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/blixis-io/monorepo/actions/workflows/ci.yml)
+
 Blixis is a modular, extensible **headless CMS** built for **Cloudflare Workers**. It is written in **TypeScript 7** with **Hono**, and exposes **REST** (management) and **GraphQL Yoga** (delivery) APIs. **Neon Postgres**, reached through **Hyperdrive**, is the source of truth. Queues, KV, R2, and Workflows provide the platform infrastructure. First-party and third-party modules implement the same public contract.
 
 > **Status:** early implementation — Milestone 1 (workspace & public contracts). Progress is tracked in [docs/ROADMAP.md](docs/ROADMAP.md).
