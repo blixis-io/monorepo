@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -40,7 +40,9 @@ Create the `packages/contracts` package following `docs/conventions/packages.md`
 ```text
 packages/contracts/package.json
 packages/contracts/tsconfig.json
+packages/contracts/tsconfig.test.json
 packages/contracts/src/index.ts
+packages/contracts/src/index.test-d.ts
 packages/contracts/src/module.ts
 packages/contracts/src/services.ts
 packages/contracts/src/capabilities.ts
@@ -57,8 +59,9 @@ docs/contracts/README.md
 
 ```text
 tsconfig.json
-docs/conventions/testing.md
 pnpm-lock.yaml
+docs/ROADMAP.md
+docs/plans/002-public-contracts/_index.md
 ```
 
 ### Delete
@@ -103,10 +106,10 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `pnpm build` produces the contracts package output.
-- [ ] `package.json` has no `dependencies` field (or an empty one).
-- [ ] A type test runs as part of `pnpm test` or `pnpm typecheck` and passes.
-- [ ] `pnpm lint` passes including boundary checks.
+- [x] `pnpm build` produces the contracts package output.
+- [x] `package.json` has no `dependencies` field (or an empty one).
+- [x] A type test runs as part of `pnpm test` or `pnpm typecheck` and passes.
+- [x] `pnpm lint` passes including boundary checks.
 
 ## Validation
 
@@ -116,15 +119,15 @@ pnpm install && pnpm typecheck && pnpm lint && pnpm test && pnpm build
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Type-test mechanism is documented and fails on a deliberately wrong assertion.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Type-test mechanism is documented and fails on a deliberately wrong assertion.
 
 ## Completion conditions
 
@@ -141,4 +144,8 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- Concern files start as `export {}` modules re-exported from `src/index.ts` with `export *`; each later task fills its file. `index.ts` uses `export *` only over our own concern files, so the public surface is still controlled file by file (every export must carry TSDoc).
+- **Type-test mechanism:** `*.test-d.ts` files use Vitest's `expectTypeOf` and are type-checked by `pnpm typecheck` via `packages/contracts/tsconfig.test.json` (not executed by Vitest; the Node project only matches `*.test.ts`). Verified: changing `toBeObject()` to `toBeString()` fails typecheck with `TS2349`-class errors; restored.
+- `tsconfig.test.json` is required from day one because TS 7 errors when a test project has no inputs, so the harness ships with one trivial type test.
+- `package.json` has no `dependencies` (the boundary checker's `contracts-runtime-dependency` rule now guards this package).
+- `docs/contracts/README.md` defines allowed/forbidden content, the stability policy, and a contents table that later tasks fill in.

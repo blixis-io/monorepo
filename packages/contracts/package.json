@@ -1,0 +1,30 @@
+{
+  "name": "@blixis/contracts",
+  "version": "0.0.0",
+  "description": "Public contracts for Blixis modules: module definition, services, capabilities, errors, events, permissions, and context",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run --root ../.. packages/contracts"
+  },
+  "devDependencies": {
+    "@blixis/tsconfig": "workspace:*",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/contracts"
+  }
+}
