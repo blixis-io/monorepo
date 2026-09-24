@@ -19,7 +19,7 @@ Pattern: `blixis-<resource>-<environment>`.
 
 | Resource | Binding | Staging | Production | Introduced |
 |---|---|---|---|---|
-| Worker | — | `blixis-api-staging` | `blixis-api-production` | 004 |
+| Worker | — | `blixis-api-staging` → https://blixis-api-staging.frosty-hill-6079.workers.dev | `blixis-api-production` (not deployed; no URL until a custom domain) | 004 |
 | Hyperdrive config | `HYPERDRIVE` | `blixis-staging` | `blixis-production` | 005 |
 | Queue (events) | `EVENTS` | `blixis-events-staging` | `blixis-events-production` | 006 |
 | Dead-letter queue | — | `blixis-events-staging-dlq` | `blixis-events-production-dlq` | 006 |
@@ -39,6 +39,14 @@ Record every created resource ID in the inventory table in this file as plans cr
 | KV `CACHE_KV` | _tbd (013.002)_ | _tbd (013.002)_ |
 
 Account ID: `7c871756de2f3f7dfa1445d5a88ca0fb` (GitHub variable `CLOUDFLARE_ACCOUNT_ID`). workers.dev subdomain: `frosty-hill-6079`.
+
+### API Worker deployments
+
+- Configured in `apps/api/wrangler.jsonc` (`env.staging`, `env.production`); vars and bindings are declared per environment.
+- **Staging:** `workers_dev: true` until the domain is decided. First manual deploy 2026-09-24 (version `ccaa058b-781f-4f69-be84-6040c65f1a3d`, 872 KiB / 145 KiB gzip); health 200, TTFB ~0.17–0.21 s from the maintainer's location.
+- **Production:** `workers_dev: false`, not deployed — production releases start with plan 021 and a custom domain.
+- Manual deploy: `pnpm --filter @blixis/api deploy:staging` (local Wrangler login). Dry-run both environments: `pnpm --filter @blixis/api deploy:dry`. Rollback: `pnpm --filter @blixis/api exec wrangler rollback --env staging`.
+- CI (`verify`): dry-runs both environments on every PR, writes the sizes to the job summary, and fails above **1024 KiB gzip** (`MAX_GZIP_KIB`).
 
 ### Developer docs Worker
 

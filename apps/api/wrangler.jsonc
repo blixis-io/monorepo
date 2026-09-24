@@ -9,9 +9,32 @@
   "observability": { "enabled": true },
   "upload_source_maps": true,
 
-  // Local development (wrangler dev). Staging/production live under "env" (task 004.006).
+  // Local development (wrangler dev).
   "vars": {
     "BLIXIS_ENV": "local",
     "LOG_LEVEL": "debug"
+  },
+
+  // Deployed environments. Vars and bindings are NOT inherited: declare everything per env.
+  // Custom domains (api.staging.<domain>, api.<domain>) are added once the domain is decided.
+  "env": {
+    "staging": {
+      // Worker name: blixis-api-staging
+      "workers_dev": true,
+      "preview_urls": false,
+      "vars": {
+        "BLIXIS_ENV": "staging",
+        "LOG_LEVEL": "info"
+      }
+    },
+    "production": {
+      // Worker name: blixis-api-production. No public URL until a custom domain exists.
+      "workers_dev": false,
+      "preview_urls": false,
+      "vars": {
+        "BLIXIS_ENV": "production",
+        "LOG_LEVEL": "info"
+      }
+    }
   }
 }

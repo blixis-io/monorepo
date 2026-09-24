@@ -32,5 +32,17 @@ jobs:
         run: pnpm test
       - name: Build
         run: pnpm build
+      - name: Worker bundles (dry-run deploy, size gate)
+        env:
+          MAX_GZIP_KIB: 1024
+        run: |
+          for e in staging production; do
+            out=$(pnpm --filter @blixis/api exec wrangler deploy --dry-run --outdir "dist/$e" --env "$e" 2>&1) || { echo "$out"; exit 1; }
+            line=$(echo "$out" | grep "Total Upload")
+            echo "$e: $line" | tee -a "$GITHUB_STEP_SUMMARY"
+            size=$(echo "$line" | sed -E 's/.*gzip: ([0-9.]+) (KiB|MiB).*/\1 \2/')
+            awk -v s="$size" -v max="$MAX_GZIP_KIB" 'BEGIN { split(s, p, " "); kib = (p[2] == "MiB") ? p[1] * 1024 : p[1];
+              if (kib > max) { printf "bundle too large: %.1f KiB gzip > %d KiB\n", kib, max; exit 1 } }'
+          done
       - name: Build docs site
         run: pnpm --filter @blixis/docs build
