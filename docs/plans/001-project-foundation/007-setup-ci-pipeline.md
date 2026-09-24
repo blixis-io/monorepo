@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-review
+completed
 ```
 
 ## Parent plan
@@ -82,10 +82,10 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] The workflow runs on pull requests and on pushes to `main`.
-- [ ] All six gates run and pass on the current repository.
-- [ ] A deliberately failing test makes the workflow fail (verified once, then reverted).
-- [ ] A PR titled `update stuff` fails `pr-title`; `ci: add verification workflow` passes.
+- [x] The workflow runs on pull requests and on pushes to `main`.
+- [x] All six gates run and pass on the current repository.
+- [x] A deliberately failing test makes the workflow fail (verified once, then reverted).
+- [x] A PR titled `update stuff` fails `pr-title`; `ci: add verification workflow` passes.
 
 ## Validation
 
@@ -94,16 +94,16 @@ Requires:
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Workflow uses frozen lockfile and pinned versions.
-- [ ] No secrets or deploy steps present.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Workflow uses frozen lockfile and pinned versions.
+- [x] No secrets or deploy steps present.
 
 ## Completion conditions
 
@@ -126,4 +126,5 @@ Change the status to `completed` only when all of the following hold:
 - **Failure demonstrated:** a deliberately broken assertion in `packages/shared/src/assert.test.ts` made `verify` fail (run 35975046136); reverted with a Conventional Commit `revert:` message (git's default `Revert "…"` message would fail commitlint) and `verify` passed again (run 35975153192).
 - **`pr-title.yml`** uses `pull_request_target` (recommended by the action; runs the base-branch workflow without checking out PR code, safe for fork PRs in this public repo). Consequence: it cannot run on the PR that introduces it — verification happens after merge.
 - No secrets, no deploy steps. Postgres service and Wrangler dry-run are added by 005.006 and 004.006.
-
+- **`pr-title` verified after merge** on PR #9: title `update stuff` → `pr-title` failed (run 35975318408); renamed to `docs(roadmap): complete ci task 001.007` → passed (run 35975380637). First `ci` run on `main` after merge: success.
+- **`main` ruleset applied** (id 23927099, public repo → available on the free plan): PR required (0 approvals — single maintainer cannot approve own PRs), squash-only merges, required checks `verify` and `pr-title` from the GitHub Actions app (integration 15368) with up-to-date branches, linear history, no force pushes, no deletion. Bypass: repository admins in `pull_request` mode only (emergency merges through a PR, never direct pushes). The `v*` tag ruleset follows in 021.003.

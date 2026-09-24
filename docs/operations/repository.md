@@ -35,12 +35,16 @@ gh repo edit blixis-io/monorepo \
 
 ### `main` branch
 
+**Applied 2026-09-24** (ruleset `main`, id 23927099).
+
+
 - Require a pull request before merging (required approvals: **0** while there is a single maintainer — GitHub does not allow approving your own PR; raise to 1 when collaborators join).
-- Require status checks to pass, branches up to date: `verify`, `pr-title` (later: `extension-contract`, `admin-e2e`).
+- Require status checks to pass, branches up to date: `verify`, `pr-title` (GitHub Actions app as the required source; later: `extension-contract`, `admin-e2e`).
+- Allowed merge method: squash only.
 - Require linear history.
 - Block force pushes and deletions.
 - Require signed commits: recommended once SSH signing is set up (see [setup checklist](../setup-checklist.md#git-and-github-account)).
-- Bypass: repository admins only, for emergencies; every bypass is noted in the PR/issue.
+- Bypass: repository admins in *pull request* mode only (emergency merge through a PR, never a direct push); every bypass is noted in the PR.
 
 ### Tags `v*`
 
