@@ -17,6 +17,7 @@ autoInstallPeers: false
 allowBuilds:
   "@biomejs/biome": false  # native binary via optional deps; no postinstall needed
   lefthook: true            # installs its platform binary
+  esbuild: true             # platform binary for Astro/Vite (apps/docs)
 
 # Shared third-party versions, referenced as "catalog:" in package.json files.
 # Entries are added by the tasks that introduce each dependency (versions verified in ADRs 0001–0003).
@@ -31,6 +32,9 @@ catalog:
   lefthook: 2.1.14
   zod: 4.6.5
   hono: 4.13.9
+  astro: 7.3.5
+  "@astrojs/starlight": 0.42.3
 
 minimumReleaseAgeExclude:
   - hono@4.13.9
+  - astro@7.3.5
