@@ -219,7 +219,7 @@ Selects the Postgres driver/query layer/migration tooling (ADR), builds `@blixis
 - [x] [005.005 — Build the migration runner for module-owned migrations](./plans/005-database-foundation/005-migration-infrastructure.md)
 - [x] [005.006 — Implement the test database strategy](./plans/005-database-foundation/006-test-database-strategy.md)
 - [x] [005.007 — Define ID, timestamp, tenancy, and cross-module schema conventions](./plans/005-database-foundation/007-ids-tenancy-and-schema-conventions.md)
-- [ ] [005.008 — Add the database readiness vertical slice](./plans/005-database-foundation/008-database-readiness-vertical-slice.md)
+- [~] [005.008 — Add the database readiness vertical slice](./plans/005-database-foundation/008-database-readiness-vertical-slice.md)
 
 #### 006 — Events & Async Processing
 

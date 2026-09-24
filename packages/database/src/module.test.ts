@@ -1,4 +1,4 @@
-import { createBlixis, noopLogger } from '@blixis/kernel'
+import { createBlixis, noopLogger, READY_PATH } from '@blixis/kernel'
 import { describe, expect, it } from 'vitest'
 import { DATABASE, databaseModule } from './module.ts'
 
@@ -50,5 +50,28 @@ describe('databaseModule', () => {
 
   it('declares the blixis.database capability', () => {
     expect(databaseModule().meta.capabilities).toEqual(['blixis.database'])
+  })
+
+  it('reports readiness 503 without connection details when the database is unreachable', async () => {
+    const secret = 'postgres://app:hunter2@127.0.0.1:1/neondb'
+    const res = await app().fetch(new Request(`http://x${READY_PATH}`), {
+      HYPERDRIVE: { connectionString: secret },
+    })
+    expect(res.status).toBe(503)
+    expect(res.headers.get('cache-control')).toBe('no-store')
+    const body = await res.text()
+    expect(JSON.parse(body)).toMatchObject({
+      status: 'unavailable',
+      checks: { database: { status: 'fail' } },
+    })
+    expect(body).not.toMatch(/hunter2|127\.0\.0\.1|neondb|ECONN/)
+  })
+
+  it('can skip the readiness check', async () => {
+    const res = await createBlixis({
+      modules: [databaseModule({ healthCheck: false })],
+      logger: noopLogger,
+    }).fetch(new Request(`http://x${READY_PATH}`), {})
+    expect(await res.json()).toEqual({ status: 'ok', checks: {} })
   })
 })

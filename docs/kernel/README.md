@@ -45,6 +45,15 @@ app.ready()   (first request/event, memoised)
   - a throwing reporter is ignored;
   - 4xx are never reported.
 
+## Health and readiness
+
+- **Liveness:** `GET /api/v1/health` returns `{ status: 'ok' }`. It does no I/O and doesn't wait for `ready()`.
+- **Readiness:** `GET /api/v1/health/ready`.
+  - It waits for `ready()`, then runs every registered check concurrently in a fresh request scope, each with its own timeout (default 2 s).
+  - It answers `200 { status: 'ok', checks: { <name>: { status, latencyMs } } }`, or `503 { status: 'unavailable', … }` when boot failed (`checks.boot`) or any check failed or timed out.
+  - Responses carry `cache-control: no-store` and never contain error messages. Failures are logged at `warn`.
+- **Registering checks:** platform modules register them in `setup` with `ctx.services.get(HEALTH_CHECKS).register({ name, timeoutMs?, check(services) })`. Names are unique, and registration is closed after setup. `databaseModule()` registers `database` (`select 1`).
+
 ## Gotchas
 
 - **TypeScript 7.0.2:** a `{@link Interface.member}` tag in the JSDoc of a member *inside that same interface* breaks name resolution for the member's signature (`TS2304: Cannot find name 'Request'`). Use backticks instead of `{@link}` there.

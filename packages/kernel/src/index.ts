@@ -33,7 +33,14 @@ export {
 export { defineModule } from './define-module.ts'
 export type { ErrorReportContext, ErrorReporter } from './error-reporter.ts'
 export { type ModuleProblem, ModuleValidationError } from './errors.ts'
+export {
+  HEALTH_CHECKS,
+  type HealthCheck,
+  type HealthCheckResult,
+  type HealthChecks,
+  type ReadinessReport,
+} from './health.ts'
 export type { BlixisHonoEnv } from './hono-env.ts'
 export { httpStatusFor, type ProblemDetails, toProblemResponse } from './internal/errors-http.ts'
-export { type ActorResolver, API_PREFIX, HEALTH_PATH } from './internal/rest.ts'
+export { type ActorResolver, API_PREFIX, HEALTH_PATH, READY_PATH } from './internal/rest.ts'
 export { createJsonLogger, type JsonLoggerOptions, type LogLevel, noopLogger } from './logger.ts'

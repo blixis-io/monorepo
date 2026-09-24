@@ -120,7 +120,7 @@ Rotate on a schedule (at least yearly), and immediately whenever a password may 
 2. Update the consumer:
    - for `blixis_app`, run `wrangler hyperdrive update <id> --origin-password=…`;
    - for `blixis_migrator`, run `gh secret set DATABASE_URL --env <env>`.
-3. Verify: the readiness endpoint (005.008) for the app; a `db:migrate` dry run for the migrator.
+3. Verify: `curl <api>/api/v1/health/ready` for the app (expects `checks.database.status = ok`); a `db:migrate` dry run for the migrator.
 4. Note the date in the setup checklist.
 
 ## Known workaround: `pg-protocol` patch
