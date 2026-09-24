@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -48,8 +48,9 @@ docs/contracts/errors.md
 
 ```text
 packages/contracts/src/errors.ts
-packages/contracts/src/index.ts
 docs/contracts/README.md
+docs/ROADMAP.md
+docs/plans/002-public-contracts/_index.md
 ```
 
 ### Delete
@@ -91,10 +92,10 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Every error class listed in §28 exists and carries the right `code`.
-- [ ] `toPublicErrorShape(new InfrastructureError('db password wrong'))` does not contain the original message.
-- [ ] `isBlixisError` returns true for a branded error from a separate module instance and false for plain `Error`.
-- [ ] `docs/contracts/errors.md` contains the REST status and GraphQL code for every error code.
+- [x] Every error class listed in §28 exists and carries the right `code`.
+- [x] `toPublicErrorShape(new InfrastructureError('db password wrong'))` does not contain the original message.
+- [x] `isBlixisError` returns true for a branded error from a separate module instance and false for plain `Error`.
+- [x] `docs/contracts/errors.md` contains the REST status and GraphQL code for every error code.
 
 ## Validation
 
@@ -104,15 +105,15 @@ pnpm --filter @blixis/contracts test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] No secrets can leak through `details` for infrastructure errors (details dropped when `expose` is false).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] No secrets can leak through `details` for infrastructure errors (details dropped when `expose` is false).
 
 ## Completion conditions
 
@@ -129,4 +130,9 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- Classes: abstract `BlixisError` (brand, `code`, `expose`, optional `details`, native `cause`) and `ValidationError` (with `issues`), `NotFoundError`, `ConflictError`, `ForbiddenError`, `UnauthorizedError`, `RateLimitError` (`retryAfterSeconds`), `ModuleError` (`moduleName`, message prefixed `[module]`, not exposed), `InfrastructureError` (`retryable`, not exposed). `ErrorCode` also includes `INTERNAL` for unknown errors.
+- `ValidationIssue` lives in `errors.ts` (needed by `ValidationError`); the validation helper in 002.005 reuses it.
+- **Brand:** `Symbol.for('@blixis/contracts.error')` as a computed class field; `isBlixisError` checks it, so errors from a second package copy are recognised (tested with a foreign class). Declaration emit keeps a non-exported `declare const BRAND: unique symbol`.
+- **Gotcha:** with ES2022 class fields (`useDefineForClassFields`), an optional field without initializer (`readonly details?: unknown`) still defines the property as `undefined`. Optional fields use `declare readonly …` so the property is absent unless set (tested: `new NotFoundError('x')` has no `details` property).
+- `toPublicErrorShape` redacts non-exposed and unknown errors to generic messages per code and never includes `cause`/stack; tested that a DB password message and details do not leak.
+- `docs/contracts/errors.md` holds the REST status / GraphQL code table: `InfrastructureError` maps to 503 when `retryable`, else 500 (refinement of the task's table); GraphQL alias for validation decided in 012.003.

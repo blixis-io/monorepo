@@ -32,7 +32,7 @@ Related: [Package conventions](../conventions/packages.md) · [Code standards](.
 | Module contract, lifecycle contexts, contributions | `src/module.ts` | planned — 002.002 |
 | Service tokens and registry interfaces | `src/services.ts` | ✅ 002.003 |
 | Capabilities | `src/capabilities.ts` | ✅ 002.003 |
-| Public errors | `src/errors.ts` | planned — 002.004 |
+| Public errors | `src/errors.ts` | ✅ 002.004 — see [errors.md](./errors.md) |
 | Validation (Standard Schema) | `src/validation.ts` | planned — 002.005 |
 | Events | `src/events.ts` | planned — 002.006 |
 | Actors and permissions | `src/permissions.ts` | planned — 002.007 |
