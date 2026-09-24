@@ -5,6 +5,18 @@
  */
 
 export {
+  BACKGROUND_HANDLERS,
+  type BackgroundContext,
+  type BackgroundHandlers,
+  type QueueBatchLike,
+  type QueueHandler,
+  type QueueMessageLike,
+  type RunInScope,
+  type ScheduledEventLike,
+  type ScheduledHandler,
+  type ScopeSeed,
+} from './background.ts'
+export {
   type Attributed,
   collectContributions,
   KERNEL_CONTRIBUTIONS,

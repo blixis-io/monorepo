@@ -6,8 +6,15 @@ import type {
   ServiceRegistry,
   ServiceToken,
 } from '@blixis/contracts'
-import { ModuleError } from '@blixis/contracts'
+import { ModuleError, type RequestContext } from '@blixis/contracts'
 import { Hono } from 'hono'
+import {
+  BACKGROUND_HANDLERS,
+  BackgroundRegistry,
+  type QueueBatchLike,
+  type RunInScope,
+  type ScheduledEventLike,
+} from './background.ts'
 import {
   collectContributions,
   KERNEL_CONTRIBUTIONS,
@@ -75,6 +82,33 @@ export interface BlixisApp {
    * `GET /api/v1/health` waits for `ready()`.
    */
   fetch(request: Request, env?: unknown, executionContext?: ExecutionContextLike): Promise<Response>
+  /**
+   * Runs `fn` in a fresh request scope with its own `RequestContext` (actor defaults to the
+   * kernel's `system` actor) and disposes the scope afterwards. Used by queue consumers, cron
+   * jobs, and workflow steps (ADR 0005). `bindings` are the platform bindings (Worker `env`).
+   */
+  runInScope<T>(
+    seed: Parameters<RunInScope>[0] & { readonly bindings?: Readonly<Record<string, unknown>> },
+    fn: (context: RequestContext) => Promise<T>,
+  ): Promise<T>
+  /**
+   * Dispatches a queue batch to the consumer registered for `batch.queue`. Unknown queues are
+   * logged and retried (never silently acknowledged).
+   */
+  queue(
+    batch: QueueBatchLike,
+    env?: unknown,
+    executionContext?: ExecutionContextLike,
+  ): Promise<void>
+  /**
+   * Runs every job registered for `event.cron`. All jobs run; if any fail, rejects with an
+   * `AggregateError` afterwards so the invocation is reported as failed.
+   */
+  scheduled(
+    event: ScheduledEventLike,
+    env?: unknown,
+    executionContext?: ExecutionContextLike,
+  ): Promise<void>
 }
 
 type Phase = 'setup' | 'boot'
@@ -108,7 +142,9 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
   const logger = options.logger ?? createJsonLogger()
   const container = new ServiceContainer()
   const hono = new Hono<BlixisHonoEnv>()
+  const background = new BackgroundRegistry()
   container.forModule('@blixis/kernel').provide(KERNEL_CONTRIBUTIONS, contributions)
+  container.forModule('@blixis/kernel').provide(BACKGROUND_HANDLERS, background)
   for (const { token, value } of options.overrides ?? []) container.override(token, value)
 
   let setupResult: Promise<void> | undefined
@@ -131,6 +167,7 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
       }
     }
     container.seal()
+    background.lock()
   }
 
   const runBoot = async (): Promise<void> => {
@@ -173,6 +210,43 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
       : { trustRequestIdHeader: options.trustRequestIdHeader }),
   })
 
+  const runInScope = async <T>(
+    seed: Parameters<RunInScope>[0] & { readonly bindings?: Readonly<Record<string, unknown>> },
+    fn: (context: RequestContext) => Promise<T>,
+  ): Promise<T> => {
+    await ready()
+    const requestId = crypto.randomUUID()
+    const correlationId = seed.correlationId ?? requestId
+    const scope = container.createRequestScope(seed.bindings ?? {})
+    const scopedLogger = logger.child({ requestId, correlationId })
+    try {
+      return await fn({
+        requestId,
+        correlationId,
+        actor: seed.actor ?? { type: 'system', component: '@blixis/kernel' },
+        tenant: seed.tenant ?? {},
+        logger: scopedLogger,
+        services: scope.services,
+        now: () => new Date(),
+      })
+    } finally {
+      await scope.dispose().catch((error: unknown) => {
+        scopedLogger.error('request scope disposal failed', { error: String(error) })
+      })
+    }
+  }
+
+  const backgroundContext = (env: unknown) => {
+    const bindings = (env ?? {}) as Readonly<Record<string, unknown>>
+    return {
+      logger,
+      runInScope: <T>(
+        seed: Parameters<RunInScope>[0],
+        fn: (context: RequestContext) => Promise<T>,
+      ) => runInScope({ ...seed, bindings }, fn),
+    }
+  }
+
   return {
     hono,
     services: container,
@@ -181,6 +255,37 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
     ready,
     async fetch(request, env, executionContext) {
       return hono.fetch(request, env as Record<string, unknown>, executionContext as never)
+    },
+    runInScope,
+    async queue(batch, env) {
+      await ready()
+      const handler = background.queues.get(batch.queue)
+      if (handler === undefined) {
+        logger.error('no consumer registered for queue; retrying batch', { queue: batch.queue })
+        batch.retryAll()
+        return
+      }
+      await handler(batch, backgroundContext(env))
+    },
+    async scheduled(event, env) {
+      await ready()
+      const handlers = background.crons.get(event.cron) ?? []
+      if (handlers.length === 0) {
+        logger.warn('no job registered for cron trigger', { cron: event.cron })
+        return
+      }
+      const results = await Promise.allSettled(
+        handlers.map((h) => h(event, backgroundContext(env))),
+      )
+      const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+      if (failures.length > 0) {
+        for (const f of failures)
+          logger.error('scheduled job failed', { cron: event.cron, error: String(f.reason) })
+        throw new AggregateError(
+          failures.map((f) => f.reason),
+          `${failures.length} scheduled job(s) failed for ${event.cron}`,
+        )
+      }
     },
   }
 }

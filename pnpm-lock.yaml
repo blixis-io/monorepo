@@ -288,6 +288,9 @@ importers:
       '@blixis/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@blixis/kernel':
+        specifier: workspace:*
+        version: link:../kernel
     devDependencies:
       '@blixis/tsconfig':
         specifier: workspace:*
