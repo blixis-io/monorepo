@@ -4,7 +4,7 @@ import { defineConfig } from 'astro/config'
 import starlightTypeDoc, { typeDocSidebarGroup } from 'starlight-typedoc'
 
 export default defineConfig({
-  site: 'https://blixis-docs.workers.dev', // replaced with the real URL in task 023.004
+  site: 'https://blixis-docs.frosty-hill-6079.workers.dev',
   telemetry: false,
   integrations: [
     starlight({

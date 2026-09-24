@@ -1,6 +1,6 @@
 # `@blixis/contracts`
 
-The developer documentation for `@blixis/contracts` lives in the **developer manual** (Starlight site in [`apps/docs`](../../apps/docs)), with an API reference generated from the TSDoc in [`packages/contracts/src`](../../packages/contracts/src). Run it locally with `pnpm --filter @blixis/docs dev`.
+The developer documentation for `@blixis/contracts` lives in the **developer manual** — [blixis-docs.frosty-hill-6079.workers.dev](https://blixis-docs.frosty-hill-6079.workers.dev) (source in [`apps/docs`](../../apps/docs)), with an API reference generated from the TSDoc in [`packages/contracts/src`](../../packages/contracts/src). Run it locally with `pnpm --filter @blixis/docs dev`.
 
 | Topic | Manual page (source) |
 |---|---|

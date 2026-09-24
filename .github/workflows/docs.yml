@@ -1,0 +1,54 @@
+name: docs
+
+# Deploys the developer documentation site (apps/docs) to Cloudflare Workers static assets.
+# Runs only on main (never on pull requests). Skips the deploy step when the `docs` environment
+# has no CLOUDFLARE_API_TOKEN yet — see docs/operations/cloudflare.md.
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/docs/**
+      - packages/**
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - .github/workflows/docs.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-docs
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: deploy-docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: docs
+      url: ${{ vars.DOCS_URL }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - name: Build docs
+        run: pnpm --filter @blixis/docs build
+      - name: Check deploy credentials
+        id: creds
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::notice::No CLOUDFLARE_API_TOKEN in the 'docs' environment; skipping deploy."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Deploy to Cloudflare
+        if: steps.creds.outputs.deploy == 'true'
+        working-directory: apps/docs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm exec wrangler deploy

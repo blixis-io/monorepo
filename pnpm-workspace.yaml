@@ -18,6 +18,7 @@ allowBuilds:
   "@biomejs/biome": false  # native binary via optional deps; no postinstall needed
   lefthook: true            # installs its platform binary
   esbuild: true             # platform binary for Astro/Vite (apps/docs)
+  workerd: true             # Cloudflare runtime binary used by Wrangler
 
 # Shared third-party versions, referenced as "catalog:" in package.json files.
 # Entries are added by the tasks that introduce each dependency (versions verified in ADRs 0001–0003).
@@ -34,7 +35,9 @@ catalog:
   hono: 4.13.9
   astro: 7.3.5
   "@astrojs/starlight": 0.42.3
+  wrangler: 4.137.0
 
 minimumReleaseAgeExclude:
   - hono@4.13.9
   - astro@7.3.5
+  - wrangler@4.137.0

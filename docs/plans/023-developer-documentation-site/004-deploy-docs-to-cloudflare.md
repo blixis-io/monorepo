@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+review
 ```
 
 ## Parent plan
@@ -43,9 +43,16 @@ apps/docs/wrangler.jsonc
 ### Modify
 
 ```text
-apps/docs/package.json
+apps/docs/package.json (deploy scripts, wrangler)
+apps/docs/astro.config.mjs (site URL)
+pnpm-workspace.yaml (catalog: wrangler; allowBuilds: workerd; minimumReleaseAgeExclude)
+pnpm-lock.yaml
 docs/operations/cloudflare.md
+docs/contracts/README.md
+docs/setup-checklist.md
 README.md
+docs/ROADMAP.md
+docs/plans/023-developer-documentation-site/_index.md
 ```
 
 ### Delete
@@ -69,9 +76,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `wrangler deploy --dry-run` succeeds for the docs app.
-- [ ] The site is reachable on its URL after deploy.
-- [ ] The workflow deploys on `main` and never on pull requests.
+- [x] `wrangler deploy --dry-run` succeeds for the docs app.
+- [x] The site is reachable on its URL after deploy.
+- [ ] The workflow deploys on `main` and never on pull requests. *(never on PRs: yes; deploy on `main`: pending the `docs` API token)*
 
 ## Validation
 
@@ -82,15 +89,15 @@ pnpm --filter @blixis/docs exec wrangler deploy --dry-run
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] API token scope limited to Workers scripts for this account.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] API token scope limited to Workers scripts for this account.
 
 ## Completion conditions
 
@@ -107,4 +114,9 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Deployed** (owner-approved, via the maintainer's local Wrangler OAuth login): assets-only Worker `blixis-docs` → https://blixis-docs.frosty-hill-6079.workers.dev (238 assets; versions `496aa31a…` then `9c74bf5a…` after setting the real `site` URL). Verified: `/`, a manual page, a concept page, and a reference page return 200 with correct titles; unknown paths return 404 (`404-page` handling); sitemap uses the real URL.
+- `apps/docs/wrangler.jsonc`: no `main` (static assets only), `assets.directory ./dist`, `not_found_handling: 404-page`, `html_handling: auto-trailing-slash`, `workers_dev: true`, `preview_urls: false`, compatibility date 2026-08-15 (kept ≤ the Workers test pool's runtime, ADR 0002).
+- **pnpm 12:** Wrangler's `workerd` needs its install script → `allowBuilds: workerd: true` (placeholder line written by pnpm on the failed install removed again). pnpm also added `minimumReleaseAgeExclude` entries for recently published `hono`, `astro`, `wrangler` versions.
+- **GitHub:** repository variable `CLOUDFLARE_ACCOUNT_ID`; environment `docs` (deployment branch policy: `main` only) with variable `DOCS_URL`.
+- **Workflow `docs.yml`:** runs on pushes to `main` touching docs/packages (+ manual dispatch), never on PRs; builds the site, then deploys only if `CLOUDFLARE_API_TOKEN` exists in the `docs` environment, otherwise emits a notice and skips.
+- **Open (why the task is in `review`):** the automatic deploy path cannot be verified until the owner creates a Cloudflare API token (Account · Workers Scripts · Edit) and stores it as `CLOUDFLARE_API_TOKEN` in the `docs` environment. Then: run the workflow once, confirm the deploy, tick the last acceptance criterion, and complete the task and plan 023.

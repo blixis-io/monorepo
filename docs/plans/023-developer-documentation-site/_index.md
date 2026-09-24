@@ -61,7 +61,7 @@ Depends on:
 - [x] [001 — Scaffold the Starlight documentation site](./001-scaffold-docs-site.md)
 - [x] [002 — Generate the API reference from TSDoc](./002-generate-api-reference.md)
 - [x] [003 — Write the developer manual for module authors](./003-write-developer-manual.md)
-- [ ] [004 — Deploy the documentation site to Cloudflare](./004-deploy-docs-to-cloudflare.md)
+- [R] [004 — Deploy the documentation site to Cloudflare](./004-deploy-docs-to-cloudflare.md)
 
 ## Completion criteria
 
