@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -38,6 +38,7 @@ Define the `Actor` model, `PermissionDefinition`, permission naming rules, the `
 ### Create
 
 ```text
+packages/contracts/src/permissions.test.ts
 packages/contracts/src/permissions.test-d.ts
 ```
 
@@ -45,8 +46,11 @@ packages/contracts/src/permissions.test-d.ts
 
 ```text
 packages/contracts/src/permissions.ts
-packages/contracts/src/index.ts
 docs/contracts/README.md
+package.json (lint → biome check)
+docs/development/getting-started.md
+docs/ROADMAP.md
+docs/plans/002-public-contracts/_index.md
 ```
 
 ### Delete
@@ -88,9 +92,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `Actor` narrowing works in type tests for all variants.
-- [ ] `AUTHORIZATION_SERVICE` exported and documented.
-- [ ] `ResourceRef` requires at least one of `organizationId`/`spaceId` for tenant-scoped types (documented rule; enforced at runtime in plan 009).
+- [x] `Actor` narrowing works in type tests for all variants.
+- [x] `AUTHORIZATION_SERVICE` exported and documented.
+- [x] `ResourceRef` requires at least one of `organizationId`/`spaceId` for tenant-scoped types (documented rule; enforced at runtime in plan 009).
 
 ## Validation
 
@@ -101,15 +105,15 @@ pnpm typecheck
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Contracts contain no role names or role checks.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Contracts contain no role names or role checks.
 
 ## Completion conditions
 
@@ -126,4 +130,9 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- `Actor` union: `user`, `apiToken` (`tokenId`, `ownerId`, `scopes`), `deliveryKey` (`keyId`, `spaceId`, `kind`), `system` (`component`, optional `onBehalfOf` — added for audit/correlation), `anonymous` (frozen `ANONYMOUS_ACTOR`). Helpers: `isUserActor`, `isAnonymousActor`, `actorId` (stable, secret-free id for logs/metadata; exhaustive switch).
+- `PermissionId` template type + runtime `isPermissionId` (2–3 lowercase dotted segments; later segments allow camelCase such as `spaces.apiKeys.manage` planned in 012.004). `definePermission` validates and freezes. `PermissionDefinition.defaultRoles` is added later by 009.002 (additive).
+- `AuthorizationCheck` includes `allowSystem` (deny-by-default for system actors, as planned in 009.003). `AUTHORIZATION_SERVICE` token name `@blixis/permissions.authorization`.
+- `ResourceRef` tenant fields are optional in the type; the rule "tenant-scoped types must carry organizationId/spaceId" is enforced at runtime by the permissions service (009.003) and documented in the contracts README.
+- **Gap found:** the pre-commit hook runs `biome check` (format + lint + import sorting), but `pnpm lint` ran only `biome lint`, so unsorted imports would pass CI. `pnpm lint` now runs `biome check . && pnpm boundaries`; `pnpm check` applies fixes (`biome check --write`).
+- Biome `useImportType` flagged `AUTHORIZATION_SERVICE` used only in `typeof` inside a type test; fixed with `import type`.

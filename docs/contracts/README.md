@@ -35,7 +35,7 @@ Related: [Package conventions](../conventions/packages.md) · [Code standards](.
 | Public errors | `src/errors.ts` | ✅ 002.004 — see [errors.md](./errors.md) |
 | Validation (Standard Schema) | `src/validation.ts`, `src/standard-schema.ts` | ✅ 002.005 |
 | Events | `src/events.ts` | ✅ 002.006 — see [events.md](./events.md) |
-| Actors and permissions | `src/permissions.ts` | planned — 002.007 |
+| Actors and permissions | `src/permissions.ts` | ✅ 002.007 |
 | Request context, logger, migrations | `src/context.ts`, `src/migrations.ts` | planned — 002.008 |
 
 ## Services
@@ -75,6 +75,28 @@ const input = await validate(CreateEntry, await request.json())  // typed; throw
 - `validate` (async) / `validateSync` throw `ValidationError` with `issues: { path, message, code? }[]`.
 - `InferOutput<S>` / `InferInput<S>` derive types from schemas — do not hand-write duplicates.
 - Worker entry points call `z.config({ jitless: true })` (Workers forbid `eval`).
+
+## Actors and permissions
+
+Authentication produces an **`Actor`**; authorization decides whether it may act (§30).
+
+| Actor `type` | Meaning |
+|---|---|
+| `user` | Signed-in user (session) |
+| `apiToken` | Personal API token — owner's permissions ∩ `scopes` |
+| `deliveryKey` | Space-scoped delivery/preview key (content delivery only) |
+| `system` | Platform code (queue consumers, cron, Workflows); denied unless a check sets `allowSystem` |
+| `anonymous` | No credentials (`ANONYMOUS_ACTOR`) |
+
+Permissions are strings `<module>.<action>` / `<module>.<resource>.<action>` declared by modules (`definePermission`). Services check them through `AUTHORIZATION_SERVICE`:
+
+```ts
+await ctx.services.get(AUTHORIZATION_SERVICE).require({
+  actor, action: 'content.publish', resource: { type: 'entry', id, spaceId },
+})
+```
+
+`ResourceRef` must carry `organizationId`/`spaceId` for tenant-scoped resources (§31). Roles never appear in contracts — they are an implementation detail of `@blixis/permissions` (plan 009). No role-name checks anywhere.
 
 ## Testing
 

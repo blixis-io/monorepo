@@ -39,9 +39,9 @@ pnpm exec lefthook install   # optional: commit-msg (commitlint) + pre-commit (B
 ## Everyday commands
 
 ```bash
-pnpm lint            # Biome lint + package boundary checks
+pnpm lint            # Biome check (format, lint, import order) + package boundary checks
 pnpm format          # format everything (Biome)
-pnpm check           # Biome format + lint + import sorting in one pass
+pnpm check           # apply Biome fixes (format, safe lint fixes, import sorting)
 pnpm typecheck       # TypeScript 7 build-mode type check
 pnpm test            # all tests (needs local Postgres from plan 005)
 pnpm build           # build all packages
