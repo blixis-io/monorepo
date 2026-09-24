@@ -14,14 +14,21 @@
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc -b",
-    "lint": "pnpm -r --if-present run lint",
-    "format": "pnpm -r --if-present run format",
+    "lint": "biome lint . && pnpm boundaries",
+    "boundaries": "node tooling/boundaries/src/cli.ts",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "check": "biome check .",
     "test": "tsc -b && vitest run",
     "test:watch": "vitest",
     "test:coverage": "tsc -b && vitest run --coverage"
   },
   "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "@commitlint/cli": "catalog:",
+    "@commitlint/config-conventional": "catalog:",
     "@vitest/coverage-v8": "catalog:",
+    "lefthook": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

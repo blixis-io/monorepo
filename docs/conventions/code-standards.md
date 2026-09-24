@@ -1,6 +1,6 @@
 # Code Standards
 
-Rules for all TypeScript code in the Blixis monorepo. They make the architecture rules in [`BLIXIS_ARCHITECTURE.md`](../BLIXIS_ARCHITECTURE.md) (§37 TypeScript, §38 dependencies, §48 agent instructions) concrete. Tooling choices (formatter, linter, boundary checker) are fixed by ADR 0003 in roadmap task [001.002](../plans/001-project-foundation/002-record-toolchain-decisions.md); this document defines *what* is enforced.
+Rules for all TypeScript code in the Blixis monorepo. They make the architecture rules in [`BLIXIS_ARCHITECTURE.md`](../BLIXIS_ARCHITECTURE.md) (§37 TypeScript, §38 dependencies, §48 agent instructions) concrete. Tooling: Biome ([`biome.json`](../../biome.json)) and the [`tooling/boundaries`](../../tooling/boundaries) checker per [ADR 0003](../decisions/0003-lint-format-and-boundaries.md); this document defines *what* is enforced.
 
 Related: [Monorepo](../development/monorepo.md) · [Testing](./testing.md) · [Commit messages](./commit-messages.md)
 

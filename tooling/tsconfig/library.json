@@ -11,5 +11,9 @@
     "outDir": "${configDir}/dist"
   },
   "include": ["${configDir}/src"],
-  "exclude": ["${configDir}/src/**/*.test.ts", "${configDir}/src/**/*.test-d.ts", "${configDir}/src/**/*.worker.test.ts"]
+  "exclude": [
+    "${configDir}/src/**/*.test.ts",
+    "${configDir}/src/**/*.test-d.ts",
+    "${configDir}/src/**/*.worker.test.ts"
+  ]
 }

@@ -1,0 +1,20 @@
+{
+  "name": "@blixis/boundaries",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Package-boundary checks that Biome cannot express (ADR 0003)",
+  "type": "module",
+  "bin": {
+    "blixis-boundaries": "./src/cli.ts"
+  },
+  "scripts": {
+    "check": "node src/cli.ts",
+    "test": "vitest run --root ../.. tooling/boundaries"
+  },
+  "devDependencies": {
+    "@blixis/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
