@@ -59,4 +59,5 @@ Events are delivered **at least once**. A retry or redelivery must not repeat si
 </Aside>
 
 - [`EventHandlerContext`](/api/contracts/interfaces/eventhandlercontext/) gives you `attempt`, `logger`, and request-scoped `services`.
+- Subscription `id`s must be unique within your module; duplicates fail startup.
 - Pass `{ versions: [1, 2] }` to `subscribe` when a handler accepts several payload versions.

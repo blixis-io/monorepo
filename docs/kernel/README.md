@@ -24,6 +24,10 @@ app.ready()   (first request/event, memoised)
 - **Services:** see [ADR 0005](../decisions/0005-service-scopes.md). The container is sealed after setup.
 - **Logger:** `createJsonLogger` (JSON lines to the console) is the default until the platform logger with redaction lands (020.001).
 
+## Contributions
+
+`collectContributions` (called synchronously in `createBlixis`) gathers `permissions`, `events` (subscriptions), `graphql`, and `migrations` per module in bootstrap order, attributed to the module, frozen, and exposed as `app.contributions` and the app-scoped `KERNEL_CONTRIBUTIONS` service (provided by `@blixis/kernel` before module setup). Checks: valid permission ids; no duplicate permission ids; **permission namespace ownership** (first id segment belongs to the first module that declares it); unique subscription ids per module; valid (`NNNN_snake_case`) and unique migration ids per module. GraphQL is only collected — parsing and type-conflict checks happen in `@blixis/graphql` (012.002).
+
 ## REST layer
 
 - Order: `GET /api/v1/health` (liveness, no `ready()`), then `use('*')` middleware: request id (random; incoming `x-request-id` only with `trustRequestIdHeader`), correlation id (incoming `x-correlation-id` if it matches `[\w.:-]{1,128}`), `await ready()`, request scope, actor resolution, `RequestContext` → `c.var`, then module routes; response headers `x-request-id`/`x-correlation-id`; scope disposed via `executionCtx.waitUntil` when available, otherwise awaited.

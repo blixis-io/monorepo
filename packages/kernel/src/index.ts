@@ -3,6 +3,13 @@
  *
  * @packageDocumentation
  */
+
+export {
+  type Attributed,
+  collectContributions,
+  KERNEL_CONTRIBUTIONS,
+  type KernelContributions,
+} from './contributions.ts'
 export {
   type BlixisApp,
   type CreateBlixisOptions,

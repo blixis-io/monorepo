@@ -32,7 +32,7 @@ permissions: [
 ]
 ```
 
-IDs are `<module>.<action>` or `<module>.<resource>.<action>`, lowercase, with your module's namespace first.
+IDs are `<module>.<action>` or `<module>.<resource>.<action>`, lowercase, with your module's namespace first. Each namespace belongs to **one** module: if another module already declared `seo.*` permissions, declaring `seo.write` in yours fails startup. Duplicate IDs fail too, naming both modules.
 
 ## Checking permissions
 

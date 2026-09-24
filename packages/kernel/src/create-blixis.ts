@@ -1,6 +1,12 @@
 import type { BlixisModule, Logger, ModuleMeta, ServiceRegistry } from '@blixis/contracts'
 import { ModuleError } from '@blixis/contracts'
 import { Hono } from 'hono'
+import {
+  collectContributions,
+  KERNEL_CONTRIBUTIONS,
+  type KernelContributions,
+} from './contributions.ts'
+import { ModuleValidationError } from './errors.ts'
 import type { BlixisHonoEnv } from './hono-env.ts'
 import { validateModuleConfigs } from './internal/config.ts'
 import { validateModuleGraph } from './internal/graph.ts'
@@ -33,6 +39,8 @@ export interface BlixisApp {
   readonly services: ServiceRegistry
   /** Metadata of the registered modules in bootstrap order. */
   readonly modules: readonly ModuleMeta[]
+  /** Permissions, event subscriptions, GraphQL fragments, and migrations contributed by modules. */
+  readonly contributions: KernelContributions
   /** Runs `setup` and `boot` hooks once; subsequent calls return the same result. */
   ready(): Promise<void>
   /**
@@ -68,9 +76,12 @@ function hookError(module: ModuleMeta, phase: Phase, cause: unknown): ModuleErro
 export function createBlixis(options: CreateBlixisOptions): BlixisApp {
   const ordered = validateModuleGraph(options.modules)
   const metas = Object.freeze(ordered.map((m) => m.meta))
+  const { contributions, problems } = collectContributions(ordered)
+  if (problems.length > 0) throw new ModuleValidationError(problems)
   const logger = options.logger ?? createJsonLogger()
   const container = new ServiceContainer()
   const hono = new Hono<BlixisHonoEnv>()
+  container.forModule('@blixis/kernel').provide(KERNEL_CONTRIBUTIONS, contributions)
 
   let setupResult: Promise<void> | undefined
   let bootedCount = 0
@@ -138,6 +149,7 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
     hono,
     services: container,
     modules: metas,
+    contributions,
     ready,
     async fetch(request, env, executionContext) {
       return hono.fetch(request, env as Record<string, unknown>, executionContext as never)
