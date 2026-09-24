@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 1 — Workspace & public contracts  
 Roadmap scope: MVP / initial platform  
-Progress: 7/8 tasks completed
+Progress: 8/8 tasks completed
 
 ## Objective
 
@@ -64,7 +64,7 @@ Depends on:
 ## Tasks
 
 - [x] [001 — Scaffold the @blixis/contracts package](./001-scaffold-contracts-package.md)
-- [ ] [002 — Define module, metadata, contribution, and lifecycle contracts](./002-define-module-contracts.md)
+- [x] [002 — Define module, metadata, contribution, and lifecycle contracts](./002-define-module-contracts.md)
 - [x] [003 — Define typed service tokens and capability identifiers](./003-define-service-tokens-and-capabilities.md)
 - [x] [004 — Define the public error model](./004-define-public-errors.md)
 - [x] [005 — Select the validation library and define the schema contract](./005-select-validation-library.md)
@@ -76,10 +76,10 @@ Depends on:
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] `@blixis/contracts` has zero runtime `dependencies` (peer/type-only dependencies documented).
-- [ ] The sample module type test compiles with only `@blixis/contracts` imported.
-- [ ] Every exported symbol is documented with TSDoc.
+- [x] All tasks `completed`.
+- [x] `@blixis/contracts` has zero runtime `dependencies` (peer/type-only dependencies documented).
+- [x] The sample module type test compiles with only `@blixis/contracts` imported.
+- [x] Every exported symbol is documented with TSDoc.
 
 ## Risks
 
@@ -94,4 +94,7 @@ The plan may be marked `completed` when:
 
 ## Technical notes
 
-No technical notes yet.
+- Completed 2026-09-24 in PRs #10–#17. Execution order 001 → 003 → 004 → 005 → 006 → 007 → 008 → 002, because the module contract (002) references all other contract types; 002 took over 008's final surface review.
+- Decisions: Zod 4 for first-party validation with vendored Standard Schema v1 in contracts ([ADR 0004](../../decisions/0004-validation-library.md)); `hono` as a type-only peer with contract-owned `ModuleHonoEnv`; invariant service-token phantom type; `Symbol.for` brands for tokens and errors.
+- Runtime surface: 27 exports; zero `dependencies`; every export documented; a full third-party-style module compiles against contracts alone (type test).
+- Found along the way: `pnpm lint` now runs `biome check` (import order was only checked by the pre-commit hook); optional class fields use `declare` to avoid `undefined` properties under ES2022 class fields; the Vitest Workers pool permits `eval`, so Worker code sets `z.config({ jitless: true })`.

@@ -23,13 +23,13 @@ Related: [Package conventions](../conventions/packages.md) · [Code standards](.
 - Semantic versioning. Any change that breaks a module compiled against a previous version is a **major** change (`feat(contracts)!:` + `BREAKING CHANGE:` footer).
 - New APIs whose shape may still change are marked `@experimental` in TSDoc.
 - Every export has TSDoc.
-- The package has **no runtime `dependencies`** (enforced by `tooling/boundaries`); type-only peers are documented below.
+- The package has **no runtime `dependencies`** (enforced by `tooling/boundaries`). The only peer is **`hono`** (`^4.13.0`), used **type-only** for `RestContribution` — no runtime import exists in `dist`.
 
 ## Contents
 
 | Area | Source | Status |
 |---|---|---|
-| Module contract, lifecycle contexts, contributions | `src/module.ts` | planned — 002.002 |
+| Module contract, lifecycle contexts, contributions | `src/module.ts` | ✅ 002.002 |
 | Service tokens and registry interfaces | `src/services.ts` | ✅ 002.003 |
 | Capabilities | `src/capabilities.ts` | ✅ 002.003 |
 | Public errors | `src/errors.ts` | ✅ 002.004 — see [errors.md](./errors.md) |
@@ -37,6 +37,42 @@ Related: [Package conventions](../conventions/packages.md) · [Code standards](.
 | Events | `src/events.ts` | ✅ 002.006 — see [events.md](./events.md) |
 | Actors and permissions | `src/permissions.ts` | ✅ 002.007 |
 | Request context, logger, migrations | `src/context.ts`, `src/migrations.ts` | ✅ 002.008 |
+
+## Module contract
+
+A module is a plain object (usually returned by a factory) implementing `BlixisModule` (§5, §6):
+
+```ts
+import { Hono } from 'hono'
+import { z } from 'zod'
+import { type ModuleFactory, type ModuleHonoEnv, definePermission } from '@blixis/contracts'
+
+const Config = z.object({ defaultTitle: z.string().default('Untitled') })
+
+const routes = new Hono<ModuleHonoEnv>().get('/entries/:id/seo', (c) =>
+  c.json({ requestId: c.var.requestContext.requestId }),
+)
+
+const seo: ModuleFactory<{ defaultTitle?: string }, z.infer<typeof Config>> = (options = {}) => ({
+  meta: { name: '@acme/blixis-seo', version: '1.0.0', requiresCapabilities: ['blixis.content'] },
+  config: options,               // raw options…
+  configSchema: Config,           // …validated by the kernel into ctx.config
+  setup(ctx) { /* ctx.services.provide(...) — no I/O here */ },
+  boot(ctx) { /* runs once, lazily, before the first request */ },
+  rest: { path: '/seo', app: routes },                       // mounted at /api/v1/seo
+  graphql: { typeDefs: 'extend type Entry { seoTitle: String }' },
+  permissions: [definePermission({ id: 'seo.read', description: 'Read SEO metadata' })],
+  events: [/* subscribe(entryPublished, 'refresh-seo', handler) */],
+  migrations: [/* defineMigration({ id: '0001_create_seo', up: '…' }) */],
+})
+export default seo
+```
+
+- **Lifecycle:** `setup` (register services; synchronous work only — Workers forbid I/O at global scope) → `boot` (lazy, once) → ready (§27). No other hooks.
+- **REST:** create routes with `new Hono<ModuleHonoEnv>()`; read `c.var.requestContext` and `c.var.services`. There are no `Bindings` in module routes — domain code never touches Cloudflare `env`. Sub-apps with other variables are rejected at compile time.
+- **Hono typing decision:** contracts reference Hono **types only** (`import type`), with `hono` as a peer dependency, because Hono is the fixed framework (§9) and a structural stand-in would lose route typing.
+- **Config:** a factory puts raw options in `config`; the kernel validates them with `configSchema` (any Standard Schema) and passes the output as `ctx.config` (003.005).
+- **`ModuleFactory<TOptions, TConfig>`:** `ModuleFactory` without options is `() => BlixisModule`; `defineModule` in `@blixis/kernel` (003.001) is an optional convenience around the same shape.
 
 ## Services
 

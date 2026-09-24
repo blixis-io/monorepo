@@ -119,10 +119,11 @@ export interface EventSubscription<TType extends string = string, TPayload = unk
   readonly event: EventDefinition<TType, TPayload>
   /** Payload versions this handler accepts; defaults to `[event.version]`. */
   readonly versions?: readonly number[]
-  readonly handle: (
-    envelope: EventEnvelope<TType, TPayload>,
-    context: EventHandlerContext,
-  ) => Promise<void>
+  /**
+   * Handles one delivery. Declared as a method so subscriptions of different events can be
+   * collected in one `readonly EventSubscription[]` (module contract `events`).
+   */
+  handle(envelope: EventEnvelope<TType, TPayload>, context: EventHandlerContext): Promise<void>
 }
 
 /** Creates a typed subscription; infers the envelope type from the event definition. */

@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -50,9 +50,12 @@ packages/contracts/src/module.test-d.ts
 
 ```text
 packages/contracts/src/module.ts
-packages/contracts/src/index.ts
-packages/contracts/package.json
+packages/contracts/src/events.ts (handle as method)
+packages/contracts/src/standard-schema.ts (TSDoc)
+packages/contracts/src/validation.ts (TSDoc)
 docs/contracts/README.md
+docs/ROADMAP.md
+docs/plans/002-public-contracts/_index.md
 ```
 
 ### Delete
@@ -104,10 +107,10 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] The sample third-party module type test compiles importing only `@blixis/contracts` (and `hono` types if the peer approach is chosen).
-- [ ] A type test proves a module missing `meta.name` fails to compile.
-- [ ] No runtime import of `hono` exists in the built output of contracts.
-- [ ] The Hono typing decision is documented.
+- [x] The sample third-party module type test compiles importing only `@blixis/contracts` (and `hono` types if the peer approach is chosen).
+- [x] A type test proves a module missing `meta.name` fails to compile.
+- [x] No runtime import of `hono` exists in the built output of contracts.
+- [x] The Hono typing decision is documented.
 
 ## Validation
 
@@ -119,16 +122,16 @@ grep -R "from 'hono'" packages/contracts/dist || echo "no runtime hono import"
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Lifecycle limited to `setup`/`boot`.
-- [ ] Contract is expressible by a third-party package without kernel imports (kernel only needed for the `defineModule` convenience helper).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Lifecycle limited to `setup`/`boot`.
+- [x] Contract is expressible by a third-party package without kernel imports (kernel only needed for the `defineModule` convenience helper).
 
 ## Completion conditions
 
@@ -145,4 +148,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Hono typing decision (plan open question):** type-only peer on `hono` (`^4.13.0`; catalog 4.13.9). Contracts define **`ModuleHonoEnv`** (`Variables: { requestContext, services }`, no `Bindings`) and `ModuleRestApp = Hono<ModuleHonoEnv, Schema, string>`. A probe (not committed) showed: typed sub-apps built with `new Hono<ModuleHonoEnv>().get(...)` are assignable; sub-apps with other variables are rejected; they mount into a kernel app whose env has more variables and bindings. `Hono<Env>` / `Hono<any,…>` were rejected alternatives (strict generics / `any` forbidden). This means the kernel's `BlixisHonoEnv` (003.006) should extend `ModuleHonoEnv`.
+- `BlixisModule` has `config?: unknown` (raw factory options) in addition to `configSchema` — this fixes the config-passing convention 003.005 was asked to define: the kernel validates `module.config` with `module.configSchema`.
+- `ModuleFactory<TOptions = void, TConfig>` is `() => BlixisModule` without options and `(options?) => BlixisModule` with options.
+- `EventSubscription.handle` changed from a function-typed property to a **method signature** so subscriptions for different events are assignable to `readonly EventSubscription[]` without `any` (method parameters are bivariant).
+- GraphQL contribution is typed loosely (`typeDefs: string | string[]`, resolver map with `GraphQLFieldResolver<TContext>`) to avoid a `graphql` dependency; `@blixis/graphql` (012) validates and composes.
+- **Type tests:** a complete third-party-style module (`@acme/blixis-seo`) with service, routes, GraphQL, permission, event subscription, migration, and typed config compiles importing only contracts, `hono`, `zod`; missing `meta.name`/`version` and wrong REST env are rejected.
+- **Final surface review (moved here from 002.008):** 27 runtime exports (listed by importing `dist/index.js` in plain Node); every exported symbol has TSDoc (scripted check); no runtime `hono`/`zod` import in `dist`; no `dependencies`. The runtime surface is minimal: error classes, token/definition helpers, validation helpers, actor/permission helpers.
