@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 1 — Workspace & public contracts  
 Roadmap scope: MVP / initial platform  
-Progress: 6/7 tasks completed
+Progress: 7/7 tasks completed
 
 ## Objective
 
@@ -79,16 +79,16 @@ Depends on:
 - [x] [004 — Define package conventions and create @blixis/shared](./004-define-package-conventions.md)
 - [x] [005 — Configure linting, formatting, and package-boundary checks](./005-configure-lint-format-and-boundaries.md)
 - [x] [006 — Configure the test runner for unit and Workers-runtime tests](./006-configure-test-runner.md)
-- [R] [007 — Set up the continuous integration pipeline](./007-setup-ci-pipeline.md)
+- [x] [007 — Set up the continuous integration pipeline](./007-setup-ci-pipeline.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks in this plan are `completed`.
-- [ ] A clean clone passes `pnpm install && pnpm lint && pnpm typecheck && pnpm test && pnpm build` locally and in CI.
-- [ ] A deliberately introduced deep import and a deliberately introduced dependency cycle are each rejected by the tooling (verified once, then reverted).
-- [ ] ADRs for all toolchain decisions exist with status `accepted`.
+- [x] All tasks in this plan are `completed`.
+- [x] A clean clone passes `pnpm install && pnpm lint && pnpm typecheck && pnpm test && pnpm build` locally and in CI.
+- [x] A deliberately introduced deep import and a deliberately introduced dependency cycle are each rejected by the tooling (verified once, then reverted).
+- [x] ADRs for all toolchain decisions exist with status `accepted`.
 
 ## Risks
 
@@ -103,4 +103,7 @@ The plan may be marked `completed` when:
 
 ## Technical notes
 
-No technical notes yet.
+- Completed 2026-09-24 in PRs #2–#9. Toolchain: pnpm 12.6.0, Node 24, TypeScript 7.0.2 (`tsc -b`, `nodenext` + `.ts` specifiers), Vitest 4.1.11, Biome 2.5.14, custom `tooling/boundaries`, commitlint + lefthook, GitHub Actions (`verify`, `pr-title`) with a `main` ruleset.
+- Versions moved beyond earlier assumptions: Vitest 5 exists but the Workers pool still requires Vitest 4; typescript-eslint does not support TS 7 (→ Biome); pnpm 12 renamed `onlyBuiltDependencies` to `allowBuilds` and enforces a minimum release age.
+- Deviations from the task texts (all recorded in the task notes): no `.npmrc`; extra `test.json`/`node.json` presets; test runner (001.006) implemented before lint (001.005) so the boundary checker had tests; `pnpm test --filter` commands normalized to `pnpm --filter <pkg> test` across all tasks.
+- Completion evidence: clean gates locally and in CI; deep import, relative escape, Node built-in, floating promise, `console`, and workspace cycle each rejected by `pnpm lint`; broken test fails `verify`; bad PR title fails `pr-title`.

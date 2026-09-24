@@ -2,7 +2,7 @@
 
 Things the project needs beyond code — accounts, settings, decisions, and files — collected in one place. Items marked **(owner)** need a decision or action by the project owner; the rest are done by the implementing tasks referenced.
 
-Last updated: 2026-09-24.
+Last updated: 2026-09-24 (after plan 001).
 
 Related: [Repository settings](./operations/repository.md) · [Cloudflare Workers](./operations/cloudflare.md) · [Environments](./operations/environments.md) · [ROADMAP](./ROADMAP.md#open-architectural-decisions)
 
@@ -27,19 +27,21 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
 - [x] Local Git identity set for this repo (`Michael <michael@voeten.online>`); commits are made with the maintainer's own account.
 - [ ] **SSH commit signing** (recommended): `git config gpg.format ssh`, `git config user.signingkey ~/.ssh/<key>.pub`, `git config commit.gpgsign true`, and add the key to GitHub as a *signing* key. Then enable "require signed commits" on `main`.
 - [x] Repository is public → rulesets, environments, environment secrets, and required reviewers are available on the free plan.
-- [ ] Repository settings, rulesets, environments applied ([Repository settings](./operations/repository.md)).
+- [x] Merge settings and the `main` ruleset applied (squash-only, required `verify` + `pr-title`, linear history). Environments and the `v*` tag ruleset follow with plan 021 ([Repository settings](./operations/repository.md)).
+- [ ] GitHub environments `staging` / `production` created (plan 021).
 - [ ] Secret scanning with push protection enabled (free for public repos).
 - [ ] Actions: require approval for workflows from first-time contributors / forks (public repo hygiene).
-- [ ] PR template, issue templates, `CODEOWNERS`, `SECURITY.md`, `CONTRIBUTING.md` (tasks 001.007 / 021.003).
+- [x] PR template (001.007).
+- [ ] Issue templates, `CODEOWNERS`, `SECURITY.md`, `CONTRIBUTING.md` (021.003).
 
 ## Conventions and tooling
 
-- [ ] Conventional Commit PR-title check (`pr-title.yml`, task 001.007).
-- [ ] Optional local `commit-msg` hook (commitlint via lefthook, task 001.005).
+- [x] Conventional Commit PR-title check (`pr-title.yml`, task 001.007).
+- [x] Optional local hooks: commitlint + Biome via lefthook (`pnpm exec lefthook install`, task 001.005).
 - [ ] release-please config + manifest + `CHANGELOG.md` (task 021.001).
 - [ ] Dependency update bot — Renovate or Dependabot (task 021.003).
-- [ ] `.editorconfig`, `.nvmrc`, `packageManager` pin, `.gitignore` (task 001.001).
-- [ ] Formatter/linter/boundary tooling per ADR 0003 (tasks 001.002, 001.005).
+- [x] `.editorconfig`, `.nvmrc`, `packageManager` pin, `.gitignore` (task 001.001).
+- [x] Formatter/linter/boundary tooling per ADR 0003 (tasks 001.002, 001.005).
 
 ## Cloudflare
 
@@ -103,7 +105,7 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
 ## Local developer machine
 
 - [x] Node 24 LTS, pnpm, Docker, `gh`, Wrangler installed.
-- [ ] `corepack enable` so the pinned pnpm version from `package.json#packageManager` is used.
+- [x] `corepack enable` so the pinned pnpm version from `package.json#packageManager` is used.
 - [ ] Editor: TypeScript 7 language service support; formatter extension per ADR 0003; EditorConfig.
 
 ## Legal / product (later)
