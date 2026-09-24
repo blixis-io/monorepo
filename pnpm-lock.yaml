@@ -367,6 +367,9 @@ importers:
       '@blixis/kernel':
         specifier: workspace:*
         version: link:../kernel
+      '@blixis/shared':
+        specifier: workspace:*
+        version: link:../shared
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.3(@cloudflare/workers-types@5.20260924.1)(@opentelemetry/api@1.9.1)(@types/pg@8.23.0)(pg@8.23.0)
@@ -389,6 +392,31 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.6)(@vitest/coverage-v8@4.1.11)(esbuild@0.28.2)(jiti@2.6.1)(yaml@2.9.1)
+
+  packages/events:
+    dependencies:
+      '@blixis/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@blixis/kernel':
+        specifier: workspace:*
+        version: link:../kernel
+      '@blixis/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@blixis/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/tsconfig
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.6)(@vitest/coverage-v8@4.1.11)(esbuild@0.28.2)(jiti@2.6.1)(yaml@2.9.1)
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.5
 
   packages/kernel:
     dependencies:

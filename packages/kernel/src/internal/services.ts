@@ -32,6 +32,11 @@ type Entry =
 export interface RequestServiceScope {
   readonly services: ServiceRegistry
   /**
+   * Makes `value` the scope's instance of `token` (e.g. the kernel's `REQUEST_CONTEXT`). Values
+   * provided this way need no registration and are not disposed.
+   */
+  provideValue<T>(token: ServiceToken<T>, value: T): void
+  /**
    * Disposes request-scoped services in reverse creation order. Every disposer runs; if any
    * fail, rejects with an `AggregateError` after all have been attempted.
    */
@@ -104,6 +109,7 @@ export class ServiceContainer implements ServiceRegistry {
   /** Creates a scope for one request, event delivery, cron run, or workflow step. */
   createRequestScope(bindings: Readonly<Record<string, unknown>> = {}): RequestServiceScope {
     const instances = new Map<symbol, unknown>()
+    const provided = new Map<symbol, unknown>()
     const created: { entry: Entry & { kind: 'factory' }; value: unknown }[] = []
     const resolving = new Set<symbol>()
     let disposed = false
@@ -115,6 +121,7 @@ export class ServiceContainer implements ServiceRegistry {
             KERNEL,
             `request scope already disposed; cannot resolve ${token.name}`,
           )
+        if (provided.has(token.id)) return provided.get(token.id) as T
         const entry = this.#entry(token, undefined)
         if (entry.kind === 'value' || entry.scope === 'app') return this.#getApp(token, undefined)
         if (instances.has(token.id)) return instances.get(token.id) as T
@@ -132,12 +139,15 @@ export class ServiceContainer implements ServiceRegistry {
         }
       },
       getOptional: <T>(token: ServiceToken<T>): T | undefined =>
-        this.has(token) ? registry.get(token) : undefined,
-      has: (token) => this.has(token),
+        registry.has(token) ? registry.get(token) : undefined,
+      has: (token) => provided.has(token.id) || this.has(token),
     }
 
     return {
       services: registry,
+      provideValue: (token, value) => {
+        provided.set(token.id, value)
+      },
       dispose: async () => {
         if (disposed) return
         disposed = true

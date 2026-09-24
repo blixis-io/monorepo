@@ -5,6 +5,7 @@ import {
   type Logger,
   ModuleError,
   NotFoundError,
+  REQUEST_CONTEXT,
   type RequestContext,
   type ServiceRegistry,
 } from '@blixis/contracts'
@@ -165,6 +166,7 @@ export function installRest(
         now: () => new Date(),
         signal: c.req.raw.signal,
       }
+      scope.provideValue(REQUEST_CONTEXT, context)
       c.set('requestContext', context)
       c.set('services', scope.services)
       await next()

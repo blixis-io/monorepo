@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 Milestone: Milestone 3 — Persistence & event infrastructure  
 Roadmap scope: MVP / initial platform  
-Progress: 0/7 tasks completed
+Progress: 1/7 tasks completed
 
 ## Objective
 
@@ -61,7 +61,7 @@ Depends on:
 
 ## Tasks
 
-- [ ] [001 — Scaffold @blixis/events with the event definition registry](./001-scaffold-events-package-and-registry.md)
+- [x] [001 — Scaffold @blixis/events with the event definition registry](./001-scaffold-events-package-and-registry.md)
 - [ ] [002 — Implement the in-process event bus](./002-in-process-event-bus.md)
 - [ ] [003 — Implement the Cloudflare Queue producer adapter](./003-cloudflare-queue-producer-adapter.md)
 - [ ] [004 — Implement queue consumer dispatch to module subscriptions](./004-queue-consumer-dispatch.md)

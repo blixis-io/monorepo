@@ -6,7 +6,7 @@ import type {
   ServiceRegistry,
   ServiceToken,
 } from '@blixis/contracts'
-import { ModuleError, type RequestContext } from '@blixis/contracts'
+import { ModuleError, REQUEST_CONTEXT, type RequestContext } from '@blixis/contracts'
 import { Hono } from 'hono'
 import {
   BACKGROUND_HANDLERS,
@@ -230,16 +230,18 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
     const correlationId = seed.correlationId ?? requestId
     const scope = container.createRequestScope(seed.bindings ?? {})
     const scopedLogger = logger.child({ requestId, correlationId })
+    const context: RequestContext = {
+      requestId,
+      correlationId,
+      actor: seed.actor ?? { type: 'system', component: '@blixis/kernel' },
+      tenant: seed.tenant ?? {},
+      logger: scopedLogger,
+      services: scope.services,
+      now: () => new Date(),
+    }
+    scope.provideValue(REQUEST_CONTEXT, context)
     try {
-      return await fn({
-        requestId,
-        correlationId,
-        actor: seed.actor ?? { type: 'system', component: '@blixis/kernel' },
-        tenant: seed.tenant ?? {},
-        logger: scopedLogger,
-        services: scope.services,
-        now: () => new Date(),
-      })
+      return await fn(context)
     } finally {
       await scope.dispose().catch((error: unknown) => {
         scopedLogger.error('request scope disposal failed', { error: String(error) })

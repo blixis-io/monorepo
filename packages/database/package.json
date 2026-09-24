@@ -24,6 +24,7 @@
   "dependencies": {
     "@blixis/contracts": "workspace:*",
     "@blixis/kernel": "workspace:*",
+    "@blixis/shared": "workspace:*",
     "drizzle-orm": "catalog:",
     "pg": "catalog:"
   },

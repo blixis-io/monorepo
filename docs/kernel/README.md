@@ -45,6 +45,10 @@ app.ready()   (first request/event, memoised)
   - a throwing reporter is ignored;
   - 4xx are never reported.
 
+## Request context as a service
+
+Every request scope (HTTP request, `runInScope` for queue messages and cron jobs) provides the current `RequestContext` as `REQUEST_CONTEXT` (from contracts). Request-scoped services read correlation ID, actor, and tenant from it; for example, the event bus stamps them on envelopes. Internally, the scope's `provideValue(token, value)` sets it; such values need no registration and are not disposed.
+
 ## Health and readiness
 
 - **Liveness:** `GET /api/v1/health` returns `{ status: 'ok' }`. It does no I/O and doesn't wait for `ready()`.
