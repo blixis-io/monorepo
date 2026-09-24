@@ -73,6 +73,8 @@ export interface BlixisApp {
   readonly services: ServiceRegistry
   /** Metadata of the registered modules in bootstrap order. */
   readonly modules: readonly ModuleMeta[]
+  /** The platform logger (for runtime adapters). */
+  readonly logger: Logger
   /** Permissions, event subscriptions, GraphQL fragments, and migrations contributed by modules. */
   readonly contributions: KernelContributions
   /** Runs `setup` and `boot` hooks once; subsequent calls return the same result. */
@@ -251,6 +253,7 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
     hono,
     services: container,
     modules: metas,
+    logger,
     contributions,
     ready,
     async fetch(request, env, executionContext) {
