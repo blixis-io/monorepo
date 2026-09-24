@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 1 — Workspace & public contracts  
 Roadmap scope: MVP / initial platform  
-Progress: 2/4 tasks completed
+Progress: 3/4 tasks completed
 
 ## Objective
 
@@ -60,7 +60,7 @@ Depends on:
 
 - [x] [001 — Scaffold the Starlight documentation site](./001-scaffold-docs-site.md)
 - [x] [002 — Generate the API reference from TSDoc](./002-generate-api-reference.md)
-- [ ] [003 — Write the developer manual for module authors](./003-write-developer-manual.md)
+- [x] [003 — Write the developer manual for module authors](./003-write-developer-manual.md)
 - [ ] [004 — Deploy the documentation site to Cloudflare](./004-deploy-docs-to-cloudflare.md)
 
 ## Completion criteria

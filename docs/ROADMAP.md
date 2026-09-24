@@ -35,7 +35,7 @@ If blocked: set `blocked`, add a `## Blocker` section to the task (what, why, wh
 
 **Definition of ready:** parent plan exists · dependencies completed · scope, files, constraints, acceptance criteria, and validation defined · no unresolved blocking decision.
 
-**Definition of done:** implementation complete · acceptance criteria and tests pass · review done · file list reflects actual changes · technical notes updated · task `completed` · `_index.md` and this roadmap updated.
+**Definition of done:** implementation complete · acceptance criteria and tests pass · review done · file list reflects actual changes · technical notes updated · **developer manual updated when public package APIs change** (TSDoc complete; concept page in `apps/docs` adjusted) · task `completed` · `_index.md` and this roadmap updated.
 
 ## Status legend
 
@@ -55,7 +55,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 |---|---|---|---|---|---|
 | [001 — Project Foundation](./plans/001-project-foundation/_index.md) | M1 | MVP | `completed` | 7/7 | — |
 | [002 — Public Contracts](./plans/002-public-contracts/_index.md) | M1 | MVP | `completed` | 8/8 | 001 |
-| [023 — Developer Documentation Site](./plans/023-developer-documentation-site/_index.md) | M1 | MVP | `in-progress` | 2/4 | 002 |
+| [023 — Developer Documentation Site](./plans/023-developer-documentation-site/_index.md) | M1 | MVP | `in-progress` | 3/4 | 002 |
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `not-started` | 0/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `not-started` | 0/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `not-started` | 0/8 | 004 |
@@ -156,7 +156,7 @@ Creates `@blixis/contracts`: the small, stable, dependency-light package that ev
 
 #### 023 — Developer Documentation Site
 
-Status: `in-progress` · Progress: 2/4 · Scope: MVP  
+Status: `in-progress` · Progress: 3/4 · Scope: MVP  
 Plan: [023-developer-documentation-site/_index.md](./plans/023-developer-documentation-site/_index.md)  
 Depends on: [002 — Public Contracts](./plans/002-public-contracts/_index.md)
 
@@ -164,7 +164,7 @@ Adds `apps/docs`: a Starlight (Astro) documentation site with a hand-written dev
 
 - [x] [023.001 — Scaffold the Starlight documentation site](./plans/023-developer-documentation-site/001-scaffold-docs-site.md)
 - [x] [023.002 — Generate the API reference from TSDoc](./plans/023-developer-documentation-site/002-generate-api-reference.md)
-- [ ] [023.003 — Write the developer manual for module authors](./plans/023-developer-documentation-site/003-write-developer-manual.md)
+- [x] [023.003 — Write the developer manual for module authors](./plans/023-developer-documentation-site/003-write-developer-manual.md)
 - [ ] [023.004 — Deploy the documentation site to Cloudflare](./plans/023-developer-documentation-site/004-deploy-docs-to-cloudflare.md)
 
 ### Milestone 2 — Kernel walking skeleton on Cloudflare Workers

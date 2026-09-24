@@ -108,7 +108,7 @@ Domain modules and third-party modules peer-depend on `@blixis/contracts`; `auto
 
 - `src/index.ts` re-exports the public API explicitly (named exports). Domain module packages also default-export their module factory.
 - No other barrel files.
-- Every export of a public package has TSDoc.
+- Every export of a public package has TSDoc — it is rendered into the generated API reference ([ADR 0018](../decisions/0018-api-reference-generator.md)). When a public API changes, update the matching concept page in `apps/docs/src/content/docs/` in the same PR.
 - Web-platform APIs only in anything that can end up in a Worker; Node built-ins only in `tooling/*` (enforced by lint).
 
 ## Forbidden patterns

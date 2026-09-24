@@ -1,10 +1,54 @@
 ---
 title: Introduction
-description: What Blixis is and what this manual covers.
+description: What Blixis is, how modules fit in, and what this manual covers.
 sidebar:
   order: 1
 ---
 
-Blixis is a modular headless CMS that runs on Cloudflare Workers. Everything it does — content, assets, users, webhooks — is implemented as **modules**. A module built by you and installed from npm uses exactly the same contracts as the modules shipped with Blixis.
+import { Aside } from '@astrojs/starlight/components'
 
-This manual is for **module authors**. It is being written alongside the implementation; the full guide arrives in the next update.
+Blixis is a **modular headless CMS** that runs on **Cloudflare Workers**. Everything it does — content, assets, users, permissions, webhooks — is implemented as **modules** that are composed into one API Worker.
+
+## One contract for every module
+
+A module shipped with Blixis (`@blixis/content`) and a module you publish to npm (`@acme/blixis-seo`) implement **the same public contract** from [`@blixis/contracts`](/api/contracts/readme/). Nothing is special-cased. If a feature needs internal imports from another module, the contract is incomplete — and we treat that as a bug.
+
+```text
+apps/api (composition root)
+  └─ modules: [auth(), users(), spaces(), content(), assets(), seo()]
+        │
+        ▼
+@blixis/kernel ── validates the module graph, registers services,
+                  mounts REST routes, composes GraphQL, wires events
+        │
+        ▼
+@blixis/contracts ── the types and helpers every module builds against
+```
+
+Modules communicate only through **public contracts**: typed [service tokens](/concepts/services-and-capabilities/), [capabilities](/concepts/services-and-capabilities/#capabilities), and [events](/concepts/events/).
+
+## What you can use today
+
+| Package | Status | What it gives you |
+|---|---|---|
+| `@blixis/contracts` | ✅ available | Module contract, service tokens, capabilities, errors, validation, events, permissions, request context, migrations |
+| `@blixis/kernel` | 🚧 in development | `defineModule`, `createBlixis`, the runtime that loads your module |
+| `@blixis/testing` | 🚧 in development | `createTestBlixis` for module tests |
+
+<Aside type="caution" title="Early development">
+Blixis is not released yet. APIs marked *coming soon* in this manual do not exist yet; everything else is implemented and tested. The [API reference](/api/contracts/readme/) is generated from the source code on every build.
+</Aside>
+
+## Principles you will see everywhere
+
+- **Explicit composition.** Modules are imported and listed in the app's config — no auto-discovery.
+- **Typed end to end.** TypeScript 7, strict mode; configuration and inputs are validated with schemas.
+- **Transport-agnostic services.** REST routes and GraphQL resolvers are thin; business logic lives in services.
+- **Cloudflare-first.** Postgres (Neon via Hyperdrive) is the source of truth; Queues, KV, R2, and Workflows provide infrastructure. Modules never touch Cloudflare bindings directly.
+
+The full rationale is in the [architecture document](https://github.com/blixis-io/monorepo/blob/main/docs/BLIXIS_ARCHITECTURE.md).
+
+## Next steps
+
+- [Your first module](/getting-started/first-module/) — build a small module end to end.
+- [Modules](/concepts/modules/) — the module contract in detail.

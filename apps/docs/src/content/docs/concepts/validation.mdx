@@ -1,0 +1,49 @@
+---
+title: Validation
+description: Validate untrusted input at every boundary with any Standard Schema library.
+sidebar:
+  order: 4
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+Validate **all untrusted input at the boundary**: request bodies, route and query parameters, GraphQL inputs, module configuration, queue messages, and webhook payloads. Derive TypeScript types from schemas instead of writing them twice.
+
+## Any Standard Schema library
+
+Contracts accept any library implementing [Standard Schema](https://standardschema.dev) ([`StandardSchemaV1`](/api/contracts/interfaces/standardschemav1/)) — Zod, Valibot, ArkType, and others. Blixis's own modules use **Zod 4**.
+
+```ts
+import { validate } from '@blixis/contracts'
+import { z } from 'zod'
+
+const CreateEntry = z.object({
+  title: z.string().min(1),
+  locale: z.string().default('en-US'),
+})
+
+const input = await validate(CreateEntry, await c.req.json())
+//    ^? { title: string; locale: string }
+```
+
+## Helpers
+
+| Helper | Behaviour |
+|---|---|
+| [`validate(schema, input, options?)`](/api/contracts/functions/validate/) | Async. Returns the schema output (defaults and transforms applied) or throws `ValidationError`. |
+| [`validateSync(schema, input, options?)`](/api/contracts/functions/validatesync/) | Same, synchronously. Throws `TypeError` for schemas with async refinements. |
+| [`toValidationIssues(issues)`](/api/contracts/functions/tovalidationissues/) | Converts Standard Schema issues into `{ path, message, code? }`. |
+| `InferOutput<S>` / `InferInput<S>` | Types of a schema's output and input. |
+
+A failed validation throws [`ValidationError`](/concepts/errors/) with `issues` such as `{ path: ['fields', 'tags'], message: 'Too big', code: 'too_big' }`, which REST returns as a 400 response.
+
+<Aside type="caution" title="Zod on Cloudflare Workers">
+Workers forbid `eval`/`new Function`. Call `z.config({ jitless: true })` once at your Worker's entry point so Zod never tries to compile validators at runtime. Tests running in the Workers test pool allow `eval`, so without this setting tests and production could behave differently.
+</Aside>
+
+## Where to validate
+
+- **Routes and resolvers:** validate input shape before calling services.
+- **Services:** re-check domain rules (uniqueness, state transitions) — schemas check shape, services check meaning.
+- **Module configuration:** set `configSchema`; the kernel validates for you.
+- **Events:** payloads are validated when emitted and again when consumed.

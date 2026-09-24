@@ -1,0 +1,56 @@
+---
+title: Request context and migrations
+description: The context every service call receives, structured logging, transactions, and module-owned migrations.
+sidebar:
+  order: 7
+---
+
+## Request context
+
+Every service call receives a [`RequestContext`](/api/contracts/interfaces/requestcontext/), whether it comes from REST, GraphQL, a queue consumer, a cron job, or a workflow step:
+
+| Field | Meaning |
+|---|---|
+| `requestId` | Unique ID of this request or invocation |
+| `correlationId` | Shared by everything caused by the same original request |
+| `actor` | [Who is acting](/concepts/permissions/) |
+| `tenant` | `organizationId`, `spaceId`, `environmentId` — verified before your code runs |
+| `logger` | Logger bound to the request's IDs |
+| `services` | Request-scoped services |
+| `now()` | Current time — use it instead of `new Date()` so tests can control time |
+| `signal` | Optional cancellation signal |
+
+Write services against `RequestContext`, never against Hono's `Context` or GraphQL's `info`.
+
+## Logging
+
+[`Logger`](/api/contracts/interfaces/logger/) has `debug`, `info`, `warn`, `error(message, fields?)` and `child(fields)`. Use the standard field names — `requestId`, `correlationId`, `tenantId`, `spaceId`, `actorId`, `module`, `eventType`, `eventId`, `duration`, `status` — and never log tokens, passwords, cookies, or connection strings. Do not use `console` in module code.
+
+## Transactions
+
+[`TransactionScope`](/api/contracts/interfaces/transactionscope/) is an opaque handle to an open database transaction, created by Blixis's database layer. Pass it to `events.emit(…, { transaction })` so a transactional event is stored atomically with your change.
+
+## Migrations
+
+Each module owns its tables and ships its migrations:
+
+```ts
+import { defineMigration } from '@blixis/contracts'
+
+migrations: [
+  defineMigration({
+    id: '0001_create_seo',
+    up: 'create table seo (entry_id text primary key, title text)',
+  }),
+  defineMigration({
+    id: '0002_index_seo_title',
+    transactional: false,
+    up: async (db) => db.execute('create index concurrently seo_title_idx on seo (title)'),
+  }),
+]
+```
+
+- IDs: `NNNN_snake_case_name` ([`defineMigration`](/api/contracts/functions/definemigration/) checks this).
+- Steps are SQL strings or functions using a minimal [`MigrationExecutor`](/api/contracts/interfaces/migrationexecutor/).
+- Migrations run from tooling and CI in module dependency order — **never** inside the Worker.
+- Never edit an applied migration. Make changes **backward compatible** (expand, then contract in a later release), because the previous version keeps running while migrations apply.

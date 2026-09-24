@@ -1,0 +1,47 @@
+---
+title: Errors
+description: Throw transport-agnostic public errors; REST and GraphQL map them to their protocols.
+sidebar:
+  order: 3
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+Services throw **public errors** from `@blixis/contracts`. Each has a stable `code`; REST and GraphQL translate the code into their protocol. Never throw HTTP- or GraphQL-specific errors from a service.
+
+## Error classes
+
+| Class | `code` | Shown to clients | REST | GraphQL `extensions.code` |
+|---|---|---|---|---|
+| [`ValidationError`](/api/contracts/classes/validationerror/) | `VALIDATION_FAILED` | yes, with `details.issues` | 400 | `VALIDATION_FAILED` |
+| [`NotFoundError`](/api/contracts/classes/notfounderror/) | `NOT_FOUND` | yes | 404 | `NOT_FOUND` |
+| [`ConflictError`](/api/contracts/classes/conflicterror/) | `CONFLICT` | yes | 409 | `CONFLICT` |
+| [`ForbiddenError`](/api/contracts/classes/forbiddenerror/) | `FORBIDDEN` | yes | 403 | `FORBIDDEN` |
+| [`UnauthorizedError`](/api/contracts/classes/unauthorizederror/) | `UNAUTHORIZED` | yes | 401 | `UNAUTHORIZED` |
+| [`RateLimitError`](/api/contracts/classes/ratelimiterror/) | `RATE_LIMITED` | yes, plus `Retry-After` | 429 | `RATE_LIMITED` |
+| [`ModuleError`](/api/contracts/classes/moduleerror/) | `MODULE_ERROR` | **no** | 500 | `INTERNAL` |
+| [`InfrastructureError`](/api/contracts/classes/infrastructureerror/) | `INFRASTRUCTURE_ERROR` | **no** | 503 if `retryable`, else 500 | `INFRASTRUCTURE_ERROR` |
+| anything else | `INTERNAL` | **no** | 500 | `INTERNAL` |
+
+## Throwing
+
+```ts
+import { ConflictError, NotFoundError, ValidationError } from '@blixis/contracts'
+
+throw new NotFoundError('Entry not found')
+throw new ConflictError('Slug is already taken', { details: { field: 'slug' } })
+throw new ValidationError('Invalid entry', [{ path: ['title'], message: 'Required' }])
+```
+
+- `details` must be JSON-serialisable and safe to show.
+- Wrap database, network, or storage failures in `InfrastructureError` with `cause`; set `retryable: true` when a retry may succeed.
+- `ModuleError` is for broken configuration or contract violations; its message starts with the module name.
+
+## Checking and exposing
+
+- [`isBlixisError(value)`](/api/contracts/functions/isblixiserror/) checks a brand instead of `instanceof`, so it works across duplicated package copies.
+- [`toPublicErrorShape(error)`](/api/contracts/functions/topublicerrorshape/) returns `{ code, message, details? }` for clients. Non-exposed and unknown errors get a generic message; stack traces and causes are never included.
+
+<Aside type="tip">
+Return `NotFoundError` (not `ForbiddenError`) when a caller asks for a resource in a tenant they are not a member of. That avoids revealing which IDs exist.
+</Aside>
