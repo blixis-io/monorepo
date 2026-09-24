@@ -46,9 +46,32 @@ routes.get('/:id', async (c) => {
 - **One database per request.** The service is request-scoped (ADR 0005). It connects on the first query and is closed automatically when the request, queue message, or cron job ends. Never keep it in module-level variables.
 - **Full Drizzle API.** `DATABASE` is Drizzle's own database type, not a Blixis wrapper, so the whole typed query builder and `sql` template are available.
 
+## Transactions
+
+Run multi-statement work with [`withTransaction`](/api/database/functions/withtransaction/). It commits when your function resolves and rolls back when it throws:
+
+```ts
+import { DATABASE, toTransactionScope, withTransaction } from '@blixis/database'
+
+const entry = await withTransaction(c.var.services.get(DATABASE), async (tx) => {
+  const [row] = await tx.insert(entries).values(input).returning()
+  await tx.insert(entryVersions).values({ entryId: row.id, version: 1 })
+  return row
+})
+```
+
+- **Isolation:** the default is `read committed`. For `serializable` work, use [`withRetryableTransaction`](/api/database/functions/withretryabletransaction/), which reruns your function after a serialisation failure or deadlock. Your function must be safe to run again.
+- **No nesting:** `withTransaction` takes the database, not a transaction. Pass `tx` down to helpers instead. For an explicit savepoint, use Drizzle's `tx.transaction(...)`.
+- **Across packages:** hand [`toTransactionScope(tx)`](/api/database/functions/totransactionscope/) to APIs that accept a `TransactionScope`, such as transactional events.
+- **Errors:** driver errors are translated (see below). Errors your function throws, such as `NotFoundError`, pass through unchanged.
+
+<Aside type="note">
+Hyperdrive pools connections per transaction. Use `SET LOCAL` inside a transaction instead of `SET`, and don't hold a transaction open while calling other services.
+</Aside>
+
 ## Errors
 
-Pass driver errors through [`translateDatabaseError`](/api/database/functions/translatedatabaseerror/) before rethrowing:
+`withTransaction` already does this for you. For queries outside a transaction, pass driver errors through [`translateDatabaseError`](/api/database/functions/translatedatabaseerror/) before rethrowing:
 
 | Postgres error | Blixis error |
 |---|---|

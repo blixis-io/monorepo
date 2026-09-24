@@ -8,9 +8,10 @@ services:
       POSTGRES_PASSWORD: blixis
       POSTGRES_DB: blixis
     ports:
-      - "5432:5432"
+      # 55432 avoids clashing with other local Postgres instances on 5432.
+      - "${BLIXIS_POSTGRES_PORT:-55432}:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql
+      - postgres18-data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U blixis -d blixis"]
       interval: 2s
@@ -18,4 +19,5 @@ services:
       retries: 15
 
 volumes:
-  postgres-data:
+  # Distinct name: an older `postgres-data` volume may exist from before the rebuild.
+  postgres18-data:
