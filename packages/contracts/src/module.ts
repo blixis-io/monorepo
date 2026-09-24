@@ -98,8 +98,13 @@ export interface BlixisModule<TConfig = unknown> {
   readonly config?: unknown
   /** Schema for `config` (any Standard Schema library, e.g. Zod). Output becomes `ctx.config`. */
   readonly configSchema?: StandardSchemaV1<unknown, TConfig>
-  readonly setup?: (context: ModuleSetupContext<TConfig>) => void | Promise<void>
-  readonly boot?: (context: ModuleBootContext) => void | Promise<void>
+  /**
+   * Registers services. Declared as a method (bivariant) so modules with different config types
+   * can be listed together as `readonly BlixisModule[]`.
+   */
+  setup?(context: ModuleSetupContext<TConfig>): void | Promise<void>
+  /** Runs once, lazily, before the first request or event. */
+  boot?(context: ModuleBootContext): void | Promise<void>
   readonly rest?: RestContribution
   readonly graphql?: GraphQLContribution
   readonly permissions?: readonly PermissionDefinition[]

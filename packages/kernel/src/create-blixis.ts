@@ -1,6 +1,7 @@
 import type { BlixisModule, Logger, ModuleMeta, ServiceRegistry } from '@blixis/contracts'
 import { ModuleError } from '@blixis/contracts'
 import { Hono } from 'hono'
+import { validateModuleConfigs } from './internal/config.ts'
 import { validateModuleGraph } from './internal/graph.ts'
 import { ServiceContainer } from './internal/services.ts'
 import { createJsonLogger } from './logger.ts'
@@ -48,6 +49,9 @@ function hookError(module: ModuleMeta, phase: Phase, cause: unknown): ModuleErro
  * or event — because Workers forbid I/O during global-scope initialisation and hooks may be
  * asynchronous.
  *
+ * Before the first `setup`, every module's `config` is validated against its `configSchema`;
+ * all failures are reported together in one `ModuleValidationError`.
+ *
  * Failure semantics: a failing `setup` is a configuration error and is cached (every later
  * `ready()` rejects with it). A failing `boot` is retried on the next `ready()`, starting
  * with the module whose boot failed; boots that succeeded are not repeated.
@@ -64,12 +68,13 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
   let bootInFlight: Promise<void> | undefined
 
   const runSetup = async (): Promise<void> => {
+    const configs = await validateModuleConfigs(ordered)
     for (const module of ordered) {
       if (module.setup === undefined) continue
       try {
         await module.setup({
           meta: module.meta,
-          config: module.config,
+          config: configs.get(module.meta.name),
           services: container.forModule(module.meta.name),
           logger: logger.child({ module: module.meta.name }),
         })

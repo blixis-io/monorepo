@@ -104,6 +104,15 @@ export default app                      // app.fetch handles requests
 
 Put the factory's options in `config` and describe them with `configSchema` (any [Standard Schema](/concepts/validation/), e.g. Zod). The kernel validates `config` and passes the **schema output** — defaults applied — to `setup` as `ctx.config`. Invalid configuration stops startup with an error naming your module.
 
+The kernel validates every module's configuration **before the first `setup` runs** and reports all problems at once. Messages contain the path and the problem, never the value (configuration may contain secrets):
+
+```text
+Invalid module configuration (1 problem(s)):
+  - [@acme/blixis-seo] invalid configuration at config.maxLength: Too small: expected number to be >0
+```
+
+A module without `configSchema` receives its raw `config` (typed `unknown`).
+
 ## REST routes
 
 ```ts
