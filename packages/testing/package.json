@@ -24,6 +24,7 @@
   "dependencies": {
     "@blixis/contracts": "workspace:*",
     "@blixis/database": "workspace:*",
+    "@blixis/events": "workspace:*",
     "@blixis/kernel": "workspace:*",
     "pg": "catalog:"
   },

@@ -2,5 +2,10 @@
   "extends": "@blixis/tsconfig/library.json",
   // createTestDatabase (./database) runs in Node: process.env and pg need Node types.
   "compilerOptions": { "lib": ["es2023", "webworker"], "types": ["node"] },
-  "references": [{ "path": "../contracts" }, { "path": "../kernel" }, { "path": "../database" }]
+  "references": [
+    { "path": "../contracts" },
+    { "path": "../kernel" },
+    { "path": "../database" },
+    { "path": "../events" }
+  ]
 }

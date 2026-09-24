@@ -45,6 +45,12 @@ export type RunInScope = <T>(
   fn: (context: RequestContext) => Promise<T>,
 ) => Promise<T>
 
+/**
+ * Request-scoped {@link RunInScope} that opens *new* scopes with the current invocation's
+ * bindings, e.g. to dispatch an in-process event to each subscriber in its own scope.
+ */
+export const RUN_IN_SCOPE = createServiceToken<RunInScope>('@blixis/kernel.run-in-scope')
+
 /** Tools available to background handlers. */
 export interface BackgroundContext {
   readonly logger: Logger

@@ -12,6 +12,7 @@ import {
   BACKGROUND_HANDLERS,
   BackgroundRegistry,
   type QueueBatchLike,
+  RUN_IN_SCOPE,
   type RunInScope,
   type ScheduledEventLike,
 } from './background.ts'
@@ -153,6 +154,13 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
   container.forModule('@blixis/kernel').provide(KERNEL_CONTRIBUTIONS, contributions)
   container.forModule('@blixis/kernel').provide(BACKGROUND_HANDLERS, background)
   container.forModule('@blixis/kernel').provide(HEALTH_CHECKS, health)
+  container.forModule('@blixis/kernel').provideFactory(
+    RUN_IN_SCOPE,
+    ({ bindings }) =>
+      <T>(seed: Parameters<RunInScope>[0], fn: (context: RequestContext) => Promise<T>) =>
+        runInScope({ ...seed, bindings }, fn),
+    { scope: 'request' },
+  )
   for (const { token, value } of options.overrides ?? []) container.override(token, value)
 
   let setupResult: Promise<void> | undefined

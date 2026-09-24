@@ -11,6 +11,7 @@ export {
   type QueueBatchLike,
   type QueueHandler,
   type QueueMessageLike,
+  RUN_IN_SCOPE,
   type RunInScope,
   type ScheduledEventLike,
   type ScheduledHandler,

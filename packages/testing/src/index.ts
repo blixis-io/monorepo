@@ -21,4 +21,5 @@ export {
   type TestBlixis,
   type TestRequestInit,
 } from './create-test-blixis.ts'
+export { type CapturedEvents, captureEvents } from './events.ts'
 export { type CapturingLogger, createCapturingLogger, type LogEntry } from './logger.ts'
