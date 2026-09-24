@@ -22,7 +22,7 @@ Configure Workers Logs (and traces where available) per environment with samplin
 
 - `wrangler.jsonc` `observability` settings per environment (sampling rates).
 - Staging verification: trace one publish operation across request → outbox → queue → invalidation → webhook by `correlationId`; record steps.
-- `docs/operations/observability.md`: log fields, example queries, error budgets/alerts (e.g. queue DLQ depth, outbox backlog age, 5xx rate, readiness failures), who gets alerted (placeholder).
+- `docs/operations/observability.md`: log fields, example queries, error budgets/alerts (e.g. queue DLQ depth, outbox backlog age, 5xx rate, readiness failures). Alerts are delivered through **Sentry** (org `private-m57`, integrated in 004.007): tune issue/spike alert rules, add cron/uptime monitors for scheduled jobs and readiness, decide Sentry performance tracing sample rates.
 - Health and backlog metrics endpoint for internal use (e.g. outbox backlog age in readiness details, auth-protected) — optional; decide.
 
 ## Architectural constraints

@@ -22,7 +22,7 @@ Related: [Release & deployment](./deployment.md) · [Cloudflare Workers](./cloud
 | Wrangler env | *(top level)* | `preview` / version alias | `--env staging` | `--env production` |
 | Worker name | local only | preview version of staging Worker | `blixis-api-staging` | `blixis-api-production` |
 | GitHub environment | — | `preview` | `staging` | `production` |
-| Database | Docker Postgres | Neon branch per PR | Neon branch `staging` | Neon branch `production` (primary) |
+| Database | Docker Postgres | Neon branch per PR | Neon branch `staging` | Neon branch `production` (primary) — Neon project in `eu-central-1` |
 | Hyperdrive | local connection string | per-preview or shared (TBD) | `blixis-staging` | `blixis-production` |
 | Queues | local simulation | staging or per preview (TBD) | `blixis-events-staging` (+ `-dlq`) | `blixis-events-production` (+ `-dlq`) |
 | KV | local simulation | staging | `blixis-cache-staging` | `blixis-cache-production` |
@@ -30,6 +30,7 @@ Related: [Release & deployment](./deployment.md) · [Cloudflare Workers](./cloud
 | Hostname | `localhost:8787` | `*.workers.dev` preview URL | `api.staging.<domain>` | `api.<domain>` |
 | GraphiQL / OpenAPI docs | on | on | on | off |
 | Log level | `debug` | `debug` | `debug`/`info` | `info` |
+| Sentry environment | disabled | `preview` (optional) | `staging` | `production` |
 | Data | disposable seed | disposable | test data, resettable | customer data |
 
 `<domain>` is not decided yet — see [setup checklist](../setup-checklist.md#domains-and-dns).

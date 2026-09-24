@@ -14,7 +14,7 @@ The architecture covers the design principles, module contract, kernel, and Clou
 
 ## Roadmap
 
-The roadmap contains 22 plans and 127 tasks across 9 milestones. It also includes the dependency graph, architectural checkpoints, the register of open decisions, and deferred work. Each plan has its own specification and task files.
+The roadmap contains 22 plans and 128 tasks across 9 milestones. It also includes the dependency graph, architectural checkpoints, the register of open decisions, and deferred work. Each plan has its own specification and task files.
 
 → [docs/ROADMAP.md](docs/ROADMAP.md) · plans in [docs/plans/](docs/plans/)
 
