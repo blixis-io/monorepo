@@ -7,6 +7,7 @@ export interface StandardSchemaV1<Input = unknown, Output = Input> {
   readonly '~standard': StandardSchemaV1.Props<Input, Output>
 }
 
+/** Types belonging to {@link StandardSchemaV1} (props, results, issues, inference helpers). */
 export declare namespace StandardSchemaV1 {
   /** The Standard Schema properties interface. */
   export interface Props<Input = unknown, Output = Input> {

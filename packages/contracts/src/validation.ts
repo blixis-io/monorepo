@@ -1,6 +1,7 @@
 import { ValidationError, type ValidationIssue } from './errors.ts'
 import type { StandardSchemaV1 } from './standard-schema.ts'
 
+/** Standard Schema v1 interface, re-exported as part of the public contract. */
 export type { StandardSchemaV1 } from './standard-schema.ts'
 
 /** Output type of a Standard Schema (e.g. a Zod schema). */
