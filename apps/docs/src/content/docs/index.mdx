@@ -1,0 +1,32 @@
+---
+title: Blixis developer documentation
+description: Build modules for Blixis, the modular headless CMS for Cloudflare Workers.
+template: splash
+hero:
+  tagline: Build modules for a modular headless CMS on Cloudflare Workers — with the same public contracts first-party modules use.
+  actions:
+    - text: Get started
+      link: /getting-started/introduction/
+      icon: right-arrow
+    - text: GitHub
+      link: https://github.com/blixis-io/monorepo
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components'
+
+<CardGrid>
+  <Card title="One contract for every module" icon="puzzle">
+    First-party modules and npm packages implement the same `@blixis/contracts` interfaces.
+  </Card>
+  <Card title="Typed end to end" icon="seti:typescript">
+    Service tokens, events, errors, and configuration are strongly typed with TypeScript 7.
+  </Card>
+  <Card title="Cloudflare-first" icon="rocket">
+    Runs on Workers with Hyperdrive, Neon Postgres, Queues, KV, R2, and Workflows.
+  </Card>
+  <Card title="Status" icon="information">
+    Early development. The manual covers what exists today and grows with each release.
+  </Card>
+</CardGrid>

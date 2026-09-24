@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -45,16 +45,19 @@ apps/docs/astro.config.mjs
 apps/docs/tsconfig.json
 apps/docs/src/content.config.ts
 apps/docs/src/content/docs/index.mdx
+apps/docs/src/content/docs/getting-started/introduction.mdx
 ```
 
 ### Modify
 
 ```text
-pnpm-workspace.yaml
+pnpm-workspace.yaml (catalog: astro, @astrojs/starlight; allowBuilds: esbuild)
 pnpm-lock.yaml
-.github/workflows/ci.yml
-biome.json
+.github/workflows/ci.yml (docs build step)
+.gitignore (.astro/)
 README.md
+docs/ROADMAP.md
+docs/plans/023-developer-documentation-site/_index.md
 ```
 
 ### Delete
@@ -78,9 +81,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `pnpm --filter @blixis/docs build` succeeds and produces static output.
-- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test` still pass at the root.
-- [ ] CI builds the docs on pull requests.
+- [x] `pnpm --filter @blixis/docs build` succeeds and produces static output.
+- [x] `pnpm lint`, `pnpm typecheck`, `pnpm test` still pass at the root.
+- [x] CI builds the docs on pull requests.
 
 ## Validation
 
@@ -91,15 +94,15 @@ pnpm lint && pnpm typecheck && pnpm test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] No unnecessary Astro integrations.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] No unnecessary Astro integrations.
 
 ## Completion conditions
 
@@ -116,4 +119,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Versions:** Astro 7.3.5, Starlight 0.42.3 (catalog). Scaffolded by hand (no interactive `create astro`).
+- **Starlight ≥ 0.39 change:** sidebar groups can no longer use `{ label, autogenerate }` directly; they must be `{ label, items: [{ autogenerate: { directory } }] }` (build error with a helpful hint).
+- **pnpm 12:** Astro/Vite needs `esbuild`'s install script → `allowBuilds: esbuild: true`. A failed install makes pnpm write a placeholder `esbuild: set this to true or false` line into `pnpm-workspace.yaml`; it had to be removed by hand.
+- **No `astro check`:** it needs `@astrojs/check` + the TypeScript JS API, which TypeScript 7 does not provide. `apps/docs/tsconfig.json` (extends `astro/tsconfigs/strict`) is for editors only and is not part of the root `tsc -b` solution. The docs build itself validates content and config.
+- Build warnings seen (framework noise, not errors): Vite `MODULE_LEVEL_DIRECTIVE` for MDX, empty `i18n` collection, 404 entry. Build output: static HTML + Pagefind search index + sitemap in `apps/docs/dist/` (git-ignored).
+- `site` is a placeholder URL until 023.004 sets the real one; telemetry disabled.
+- CI: `verify` job now also runs `pnpm --filter @blixis/docs build`.
