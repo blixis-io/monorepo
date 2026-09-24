@@ -28,7 +28,7 @@ const seo = ctx.services.get(SEO_SERVICE) // typed as SeoService
 
 - [`createServiceToken`](/api/contracts/functions/createservicetoken/) uses `Symbol.for(name)`, so two copies of a package still share tokens. Name tokens `<package>.<service>`.
 - Tokens are **invariant**: a `ServiceToken<string>` cannot be used where a `ServiceToken<number>` is expected.
-- [`ServiceRegistry`](/api/contracts/interfaces/serviceregistry/): `get` (throws `ModuleError` if missing), `getOptional`, `has`.
+- [`ServiceRegistry`](/api/contracts/interfaces/serviceregistry/): `get` (throws `ModuleError` if missing), `getOptional`, `has` (accepts any token — [`AnyServiceToken`](/api/contracts/type-aliases/anyservicetoken/)).
 - [`ServiceProvider`](/api/contracts/interfaces/serviceprovider/): `provide` for app-scoped values; `provideFactory` for lazily created services.
 - Export the token and the service interface from your package root — that is your public API.
 
@@ -39,7 +39,24 @@ const seo = ctx.services.get(SEO_SERVICE) // typed as SeoService
 | `app` | once per Worker isolate | stateless services, configuration, caches of pure data |
 | `request` | once per request, event, or job; disposed afterwards | anything holding I/O objects — database clients, open streams |
 
-Workers cannot reuse I/O objects across requests, so connection-holding services must be request-scoped. The scope API is marked `@experimental` until the kernel's registry ships.
+```ts
+// app scope: created lazily on first use, then shared
+ctx.services.provideFactory(SLUGGER, () => new Slugger(ctx.config), { scope: 'app' })
+
+// request scope: one instance per request, closed when the request ends
+ctx.services.provideFactory(SEO_REPOSITORY, ({ services }) => new SeoRepository(services.get(DATABASE)), {
+  scope: 'request',
+  dispose: (repo) => repo.close(),
+})
+```
+
+- Workers cannot reuse I/O objects across requests, so connection-holding services **must** be request-scoped.
+- **Factories are synchronous.** If a service needs async setup, connect lazily on first use or prepare app-level state in `boot`.
+- App-scoped factories may only use app-scoped services; asking for a request-scoped service there throws `ModuleError`.
+- Blixis creates and disposes request scopes for you — around every HTTP request, event delivery, cron run, and workflow step. Disposers run in reverse creation order.
+- Registering the same token twice fails startup and names both modules.
+
+The full reasoning is in [ADR 0005](https://github.com/blixis-io/monorepo/blob/main/docs/decisions/0005-service-scopes.md).
 
 ## Capabilities
 

@@ -40,5 +40,6 @@ What becomes easier or harder; follow-up tasks; risks.
 | [0002](./0002-test-runner.md) | Test runner | accepted |
 | [0003](./0003-lint-format-and-boundaries.md) | Lint, format, and package-boundary checks | accepted |
 | [0004](./0004-validation-library.md) | Validation library (Zod 4 + Standard Schema in contracts) | accepted |
-| 0005–0017 | Reserved by roadmap decision tasks (see ROADMAP register) | — |
+| [0005](./0005-service-scopes.md) | Service scopes on Workers (app vs. request, synchronous factories) | accepted |
+| 0006–0017 | Reserved by roadmap decision tasks (see ROADMAP register) | — |
 | [0018](./0018-api-reference-generator.md) | API reference generator (TypeDoc with isolated TypeScript 6) | accepted |

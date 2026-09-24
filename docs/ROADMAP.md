@@ -56,7 +56,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [001 — Project Foundation](./plans/001-project-foundation/_index.md) | M1 | MVP | `completed` | 7/7 | — |
 | [002 — Public Contracts](./plans/002-public-contracts/_index.md) | M1 | MVP | `completed` | 8/8 | 001 |
 | [023 — Developer Documentation Site](./plans/023-developer-documentation-site/_index.md) | M1 | MVP | `in-progress` | 3/4 | 002 |
-| [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `in-progress` | 2/8 | 002 |
+| [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `in-progress` | 3/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `not-started` | 0/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `not-started` | 0/8 | 004 |
 | [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `not-started` | 0/7 | 005 |
@@ -171,7 +171,7 @@ Adds `apps/docs`: a Starlight (Astro) documentation site with a hand-written dev
 
 #### 003 — Module Kernel
 
-Status: `in-progress` · Progress: 2/8 · Scope: MVP  
+Status: `in-progress` · Progress: 3/8 · Scope: MVP  
 Plan: [003-module-kernel/_index.md](./plans/003-module-kernel/_index.md)  
 Depends on: [002 — Public Contracts](./plans/002-public-contracts/_index.md)
 
@@ -179,7 +179,7 @@ Builds `@blixis/kernel` — `defineModule`, module graph validation, the typed s
 
 - [x] [003.001 — Scaffold @blixis/kernel and implement defineModule](./plans/003-module-kernel/001-scaffold-kernel-and-define-module.md)
 - [x] [003.002 — Implement module graph validation and ordering](./plans/003-module-kernel/002-module-graph-validation.md)
-- [ ] [003.003 — Implement the service registry with app and request scopes](./plans/003-module-kernel/003-service-registry-and-scopes.md)
+- [x] [003.003 — Implement the service registry with app and request scopes](./plans/003-module-kernel/003-service-registry-and-scopes.md)
 - [ ] [003.004 — Implement the setup/boot lifecycle and createBlixis](./plans/003-module-kernel/004-lifecycle-and-create-blixis.md)
 - [ ] [003.005 — Validate module configuration](./plans/003-module-kernel/005-module-configuration-validation.md)
 - [ ] [003.006 — Mount module REST apps with request context and error mapping](./plans/003-module-kernel/006-rest-mounting-and-error-mapping.md)
@@ -564,7 +564,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | D2 | CI provider | [001.007](./plans/001-project-foundation/007-setup-ci-pipeline.md) | GitHub Actions | **resolved 2026-09-24:** GitHub Actions on `blixis-io/monorepo` ([GitHub Actions](./operations/github-actions.md)) |
 | D3 | Hono types in `@blixis/contracts` (`RestContribution`) | [002.002](./plans/002-public-contracts/002-define-module-contracts.md) | `hono` as type-only peer dependency | open |
 | D4 | Validation library | [002.005](./plans/002-public-contracts/005-select-validation-library.md) | Standard Schema in contracts; one default library for first-party code | **resolved 2026-09-24:** Zod 4 for first-party code; contracts expose vendored Standard Schema v1 ([ADR 0004](./decisions/0004-validation-library.md)) |
-| D5 | Service scopes on Workers (app vs. request) | [003.003](./plans/003-module-kernel/003-service-registry-and-scopes.md) | App singletons + request-scoped factories for I/O-holding services | open |
+| D5 | Service scopes on Workers (app vs. request) | [003.003](./plans/003-module-kernel/003-service-registry-and-scopes.md) | App singletons + request-scoped factories for I/O-holding services | **resolved 2026-09-24:** app + request scopes, synchronous factories, scopes created by transports ([ADR 0005](./decisions/0005-service-scopes.md)) |
 | D6 | Postgres driver, query builder/ORM, migration format | [005.001](./plans/005-database-foundation/001-select-database-stack.md) | Decide by spike on Workers + Hyperdrive | open |
 | D7 | Test database strategy | [005.006](./plans/005-database-foundation/006-test-database-strategy.md) | Docker Postgres locally and in CI; Neon branches for staging smoke | open |
 | D8 | IDs, tenancy columns, module schema namespacing, cross-module foreign keys | [005.007](./plans/005-database-foundation/007-ids-tenancy-and-schema-conventions.md) | UUIDv7; FKs only toward modules in `meta.requires` | open |

@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -52,9 +52,13 @@ packages/kernel/src/internal/services.test.ts
 ### Modify
 
 ```text
-packages/contracts/src/services.ts
-packages/contracts/src/context.ts
-docs/contracts/README.md
+packages/contracts/src/services.ts (sync factories, AnyServiceToken, @experimental removed)
+packages/contracts/src/services.test-d.ts
+docs/decisions/README.md
+docs/decisions/0018-api-reference-generator.md
+apps/docs/src/content/docs/concepts/services-and-capabilities.mdx
+docs/ROADMAP.md (D5 resolved)
+docs/plans/003-module-kernel/_index.md
 ```
 
 ### Delete
@@ -95,10 +99,10 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] ADR 0005 accepted.
-- [ ] Two concurrent request scopes never share a request-scoped instance (test).
-- [ ] Registering the same token twice fails naming both modules.
-- [ ] Disposal hooks run once per request scope.
+- [x] ADR 0005 accepted.
+- [x] Two concurrent request scopes never share a request-scoped instance (test).
+- [x] Registering the same token twice fails naming both modules.
+- [x] Disposal hooks run once per request scope.
 
 ## Validation
 
@@ -109,15 +113,15 @@ pnpm --filter @blixis/contracts test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Design is compatible with Hyperdrive per-request clients (cross-check Cloudflare docs; note in Technical notes).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Design is compatible with Hyperdrive per-request clients (cross-check Cloudflare docs; note in Technical notes).
 
 ## Completion conditions
 
@@ -134,4 +138,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **ADR 0005 accepted.** Key refinement vs. the task text: **factories are synchronous** (`(ctx) => T`), because `ServiceRegistry.get` is synchronous in the contracts and eager async resolution would open connections requests never use. Async setup happens lazily on first use or in `boot`. Contracts updated accordingly; `@experimental` removed from the scope API.
+- **Contracts bug found and fixed:** tokens are invariant (002.003), so `ServiceToken<string>` was not assignable to `has(token: ServiceToken<unknown>)` — every real call of `registry.has(token)` would have failed to compile; no type test covered it. Added `AnyServiceToken` (`Pick<ServiceToken<unknown>, 'id' | 'name'>`) for type-agnostic APIs and a regression type test.
+- `ServiceContainer` (internal, not exported yet): `forModule(name)` gives the module-attributed `provide/provideFactory/get` view used as `ctx.services` in setup; `seal()` after setup; `createRequestScope()` → `{ services, dispose }`. Constant-time lookups by `token.id`; private class fields.
+- Errors (all `ModuleError`, module-attributed): duplicate provider (names both modules), provide after seal, missing service (requesting module or `@blixis/kernel`), request-scoped service resolved outside a scope or from an app factory (scope violation), circular resolution, use after dispose.
+- Disposal: reverse creation order, idempotent, never disposes services that were not created, runs all disposers and rejects with `AggregateError` if any failed.
+- Tests: 13 container tests incl. scope isolation between two scopes, disposal order, aggregated failures, scope violation, circularity.
+- Manual (services page) and API reference updated; ADR index now reserves 0006–0017.
