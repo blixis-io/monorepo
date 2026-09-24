@@ -66,6 +66,12 @@ Covers the test levels (unit to end-to-end), Workers-runtime tests, the test dat
 
 → [docs/conventions/testing.md](docs/conventions/testing.md)
 
+## Migrations
+
+Module-owned SQL migrations: ids, checksums, expand/contract, `db:migrate` / `db:status` / `db:new`.
+
+→ [docs/conventions/migrations.md](docs/conventions/migrations.md)
+
 ## Environments
 
 Blixis runs in local, preview, **staging** (tracks `main`), and **production** (receives released versions). The page covers resources and configuration per environment.

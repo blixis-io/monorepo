@@ -86,4 +86,25 @@ Drizzle's own error message includes the query **parameters**, which can hold us
 
 ## Migrations
 
-Each module owns SQL migration files. `drizzle-kit generate` proposes them from your schema, you review and commit them, and the Blixis migration runner applies them. This is covered by roadmap task 005.005.
+Each module owns its Postgres schema and ships SQL migrations in its definition:
+
+```ts
+import { defineMigration } from '@blixis/contracts'
+
+export const createEntries = defineMigration({
+  id: '0001_create_entries',
+  up: /* sql */ `
+    create schema content;
+    create table content.entries (id uuid primary key default gen_random_uuid(), title text not null);
+  `,
+})
+
+export const contentModule = defineModule({ meta, migrations: [createEntries] })
+```
+
+- `pnpm db:new <module-dir> <name>` scaffolds the next file. `drizzle-kit generate` can propose the SQL from your Drizzle schema, which you then review and paste in.
+- `pnpm db:migrate` applies pending migrations in module order, each in its own transaction, and records them in `blixis.migrations`. `pnpm db:status` shows what is applied, pending, or blocked.
+- **Never edit an applied migration.** Its checksum is verified, and the run is blocked. Add a new migration instead, and change schemas expand/contract style (add, backfill, switch, then drop later).
+- Migrations never run inside the Worker. CI applies them before deploying.
+
+Full conventions: `docs/conventions/migrations.md` in the repository.

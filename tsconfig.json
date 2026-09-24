@@ -8,6 +8,9 @@
       "path": "tooling/boundaries"
     },
     {
+      "path": "tooling/db"
+    },
+    {
       "path": "packages/shared"
     },
     {
