@@ -82,6 +82,29 @@ expect(t.logs.entries).toContainEqual(
 )
 ```
 
+## Database tests
+
+Use a real Postgres, never a mocked one. `createTestDatabase` from `@blixis/testing/database` creates a fresh database for your test file and applies your modules' migrations with the production runner. Pass it to `createTestBlixis` to serve the `DATABASE` service from it:
+
+```ts
+import { createTestBlixis } from '@blixis/testing'
+import { createTestDatabase, databaseTestsEnabled, type TestDatabase } from '@blixis/testing/database'
+
+describe.skipIf(!databaseTestsEnabled())('notes', () => {
+  let db: TestDatabase
+  beforeAll(async () => { db = await createTestDatabase({ modules: [notesModule()] }) })
+  beforeEach(() => db.reset())   // truncate module tables between tests
+  afterAll(() => db.drop())
+
+  it('stores a note', async () => {
+    const t = await createTestBlixis({ modules: [notesModule()], database: db })
+    expect((await t.request('/api/v1/notes', { method: 'POST', json: { body: 'hi' } })).status).toBe(201)
+  })
+})
+```
+
+Database tests run when `BLIXIS_TEST_DATABASE_URL` points at a Postgres server. Locally, run `docker compose up -d postgres` and then `pnpm test:db`. In CI they always run.
+
 ## What is not covered yet
 
-Database-backed tests (test Postgres per test file) and event assertions (`captureEvents`) arrive with the database and events packages.
+Event assertions (`captureEvents`) arrive with the events package.

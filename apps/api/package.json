@@ -23,6 +23,7 @@
   "devDependencies": {
     "@blixis/tsconfig": "workspace:*",
     "@cloudflare/vitest-pool-workers": "catalog:",
+    "drizzle-orm": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "wrangler": "catalog:"

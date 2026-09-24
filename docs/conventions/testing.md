@@ -44,16 +44,43 @@ Keep infrastructure-specific tests separate from domain tests (§36).
 
 ## Test database
 
-- Local: Docker Postgres from `docker-compose.yml` (`docker compose up -d postgres`), matching Neon's Postgres major version.
-- CI: Postgres service container.
-- Helpers (`@blixis/testing`): `createTestDatabase({ modules })` applies module migrations to an isolated schema; `createTestBlixis({ modules, database: true })` wires it into the kernel.
-- Workers-pool tests reach the test database through the Hyperdrive local connection string.
-- Final strategy recorded in roadmap task [005.006](../plans/005-database-foundation/006-test-database-strategy.md).
+Strategy (roadmap 005.006): **Docker Postgres 18**, the same major version as Neon. Locally it comes from `docker-compose.yml`, and in CI from a service container. Neon is never used by `pnpm test`, so no credentials are needed; Neon branches are only for staging smoke tests.
+
+- **Opt-in by `BLIXIS_TEST_DATABASE_URL`**, the URL of a server where tests may create databases. `pnpm test:db` sets it to the local compose database; `pnpm test` without it skips database tests. **In CI the variable is required**: `databaseTestsEnabled()` throws when `CI=true` and it's missing, so database tests can't be skipped silently.
+- **Isolation: one database per test file.** `createTestDatabase({ modules })` from `@blixis/testing/database` creates `blixis_test_<random>`, applies the modules' migrations with the real runner (same order and checks as production), and returns `{ db, url, reset, drop }`. Parallel Vitest workers never share a database.
+- **Between tests:** `reset()` truncates every module table (`restart identity cascade`) and keeps applied migrations. It's faster and more reliable than per-test transaction rollback, because services use their own pooled connections.
+- **App tests:** `createTestBlixis({ modules, database: t })` serves `DATABASE` from the test database. It's shared by all requests and never closed per request.
+
+```ts
+import { createTestBlixis } from '@blixis/testing'
+import { createTestDatabase, databaseTestsEnabled, type TestDatabase } from '@blixis/testing/database'
+
+describe.skipIf(!databaseTestsEnabled())('entries', () => {
+  let t: TestDatabase
+  beforeAll(async () => { t = await createTestDatabase({ modules: [contentModule()] }) })
+  beforeEach(() => t.reset())
+  afterAll(() => t.drop())
+
+  it('creates an entry', async () => {
+    const app = await createTestBlixis({ modules: [contentModule()], database: t })
+    expect((await app.request('/api/v1/entries', { method: 'POST', json: { title: 'x' } })).status).toBe(201)
+  })
+})
+```
+
+- **Workers-pool tests:** when `BLIXIS_TEST_DATABASE_URL` is set, `apps/api/vitest.config.ts` points the `HYPERDRIVE` binding at it and exposes `env.BLIXIS_TEST_DATABASE = 'on'`.
+
+### Known issues
+
+- **`pg` in the Vitest Workers pool:** the pool resolves `pg`'s `require('pg-cloudflare')` without the `workerd` export condition. It loads the empty Node stub, and queries fail with `CloudflareSocket is not a constructor`. Aliases and Vite resolve conditions don't reach this code path. Deployed Workers are unaffected, because Wrangler's bundler applies `workerd`.
+  - Until the pool is fixed, database behaviour is tested in the Node pool, and `apps/api/test/database.worker.test.ts` is quarantined (`describe.skip`).
+  - Real Worker plus Hyperdrive queries are verified by the staging readiness check (005.008).
 
 ## Commands
 
 ```bash
-pnpm test                          # tsc -b, then all Vitest projects
+pnpm test                          # tsc -b, then all Vitest projects (database tests skipped)
+pnpm test:db                       # same, with database tests against local Docker Postgres
 pnpm test packages/kernel          # only tests under a path (args go to `vitest run`)
 pnpm --filter @blixis/kernel test  # same, via the package's own script
 pnpm test:watch                    # watch mode (run `tsc -b --watch` alongside for cross-package changes)

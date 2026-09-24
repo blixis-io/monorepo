@@ -17,6 +17,23 @@ jobs:
     name: verify
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Test database (docs/conventions/testing.md#test-database): same major version as Neon.
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: blixis
+          POSTGRES_PASSWORD: blixis
+          POSTGRES_DB: blixis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U blixis -d blixis"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+    env:
+      BLIXIS_TEST_DATABASE_URL: postgres://blixis:blixis@localhost:5432/blixis
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup

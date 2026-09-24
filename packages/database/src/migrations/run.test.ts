@@ -4,9 +4,12 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { ModuleMigration } from './plan.ts'
 import { migrationStatus, runMigrations } from './run.ts'
 
-// Integration tests against real Postgres. Enabled when BLIXIS_TEST_DATABASE_URL is set
-// (locally: docker compose; in CI from task 005.006). Uses its own database per run.
+// Integration tests against real Postgres, enabled by BLIXIS_TEST_DATABASE_URL (locally: docker
+// compose; CI: Postgres service). Mandatory in CI. Uses its own database per run.
 const baseUrl = process.env['BLIXIS_TEST_DATABASE_URL']
+if (baseUrl === undefined && process.env['CI'] === 'true') {
+  throw new Error('BLIXIS_TEST_DATABASE_URL must be set in CI')
+}
 
 describe.skipIf(baseUrl === undefined)('runMigrations (Postgres)', () => {
   const database = `blixis_migrations_test_${Date.now()}`
