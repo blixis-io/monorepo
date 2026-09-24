@@ -176,6 +176,15 @@ importers:
         specifier: 'catalog:'
         version: 7.0.2
 
+  packages/shared:
+    devDependencies:
+      '@blixis/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/tsconfig
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+
   tooling/tsconfig:
     devDependencies:
       typescript:

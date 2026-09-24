@@ -12,7 +12,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "build": "pnpm -r --if-present run build",
+    "build": "tsc -b",
     "typecheck": "tsc -b",
     "lint": "pnpm -r --if-present run lint",
     "format": "pnpm -r --if-present run format",

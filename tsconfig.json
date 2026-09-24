@@ -1,4 +1,4 @@
 {
   "files": [],
-  "references": [{ "path": "tooling/tsconfig" }]
+  "references": [{ "path": "tooling/tsconfig" }, { "path": "packages/shared" }]
 }
