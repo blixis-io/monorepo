@@ -12,8 +12,9 @@ engineStrict: true
 # Peer dependencies must be declared explicitly (§25: modules peer-depend on @blixis/contracts)
 autoInstallPeers: false
 
-# pnpm blocks dependency lifecycle scripts by default; allow-list only what needs them (e.g. esbuild, workerd)
-onlyBuiltDependencies: []
+# pnpm blocks dependency lifecycle scripts by default; allow-list only what needs them.
+# pnpm 12 syntax: map of package name → true/false (replaces onlyBuiltDependencies).
+allowBuilds: {}
 
 # Shared third-party versions, referenced as "catalog:" in package.json files.
 # Entries are added by the tasks that introduce each dependency (001.002+).

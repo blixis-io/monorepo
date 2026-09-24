@@ -25,7 +25,7 @@ Create the shared TypeScript configuration every package extends, plus the root 
   - `base.json` — strict baseline shared by all packages;
   - `library.json` — extends base, enables declaration emit/composite settings for publishable packages;
   - `worker.json` — extends base, placeholder for Worker packages (lib `ES2022`+, no DOM, types added in plan 004).
-- Baseline must include at least: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `moduleResolution: "Bundler"` (or the TS7 equivalent), `module: "ESNext"` / `"Preserve"` per ADR, `target` ES2022+, `isolatedModules`, `skipLibCheck` decision documented, `noImplicitOverride`, `noFallthroughCasesInSwitch`.
+- Baseline must include at least: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `module`/`moduleResolution: "nodenext"`, `allowImportingTsExtensions` + `rewriteRelativeImportExtensions` (ADR 0001), `target` ES2022+, `isolatedModules`, `skipLibCheck` decision documented, `noImplicitOverride`, `noFallthroughCasesInSwitch`.
 - Create root `tsconfig.json` that only contains `references` to packages (initially empty `files: []`), used by `pnpm typecheck` in build mode.
 - Wire root `typecheck` script to the TS7 CLI in build mode (`tsc -b` or TS7 equivalent).
 
@@ -94,8 +94,10 @@ tsconfig.json             # references only
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "verbatimModuleSyntax": true,
-    "moduleResolution": "Bundler",
-    "module": "ESNext",
+    "moduleResolution": "nodenext",
+    "module": "nodenext",
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
     "target": "ES2022",
     "isolatedModules": true,
     "noImplicitOverride": true,

@@ -8,7 +8,7 @@ This roadmap turns [`BLIXIS_ARCHITECTURE.md`](./BLIXIS_ARCHITECTURE.md) into an 
 - **Architecture** (`BLIXIS_ARCHITECTURE.md`) is the source of truth for *what* to build.
 - **This roadmap** is the source of truth for *order*, *dependencies*, and *progress*.
 - **Plans** (`plans/XXX-*/_index.md`) specify each subsystem; **tasks** (`plans/XXX-*/YYY-*.md`) are the executable units.
-- **Decisions** the architecture leaves open are made in dedicated decision tasks and recorded as ADRs in `docs/decisions/` (created by task 001.002). Architecture section references such as "§13" point to `BLIXIS_ARCHITECTURE.md`.
+- **Decisions** the architecture leaves open are made in dedicated decision tasks and recorded as ADRs in [`docs/decisions/`](./decisions/README.md). Architecture section references such as "§13" point to `BLIXIS_ARCHITECTURE.md`.
 
 Task IDs use the form `PPP.TTT` (plan number, task number). Task numbering restarts in every plan.
 
@@ -53,7 +53,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 
 | Plan | Milestone | Scope | Status | Progress | Depends on |
 |---|---|---|---|---|---|
-| [001 — Project Foundation](./plans/001-project-foundation/_index.md) | M1 | MVP | `in-progress` | 1/7 | — |
+| [001 — Project Foundation](./plans/001-project-foundation/_index.md) | M1 | MVP | `in-progress` | 2/7 | — |
 | [002 — Public Contracts](./plans/002-public-contracts/_index.md) | M1 | MVP | `not-started` | 0/8 | 001 |
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `not-started` | 0/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `not-started` | 0/7 | 003 |
@@ -122,14 +122,14 @@ Plans are numbered in a valid dependency order. The critical path is `001 → 00
 
 #### 001 — Project Foundation
 
-Status: `in-progress` · Progress: 1/7 · Scope: MVP  
+Status: `in-progress` · Progress: 2/7 · Scope: MVP  
 Plan: [001-project-foundation/_index.md](./plans/001-project-foundation/_index.md)  
 Depends on: None
 
 Creates the pnpm monorepo, TypeScript 7 baseline, package conventions, linting/boundary checks, the test runner, and CI. Ends with one proving package (`@blixis/shared`) that builds, lints, and tests through the same pipeline every later package will use.
 
 - [x] [001.001 — Initialize pnpm workspace and repository](./plans/001-project-foundation/001-initialize-pnpm-workspace.md)
-- [ ] [001.002 — Record toolchain decisions for TypeScript 7, build, test, and lint](./plans/001-project-foundation/002-record-toolchain-decisions.md)
+- [x] [001.002 — Record toolchain decisions for TypeScript 7, build, test, and lint](./plans/001-project-foundation/002-record-toolchain-decisions.md)
 - [ ] [001.003 — Configure root TypeScript 7 setup](./plans/001-project-foundation/003-configure-typescript.md)
 - [ ] [001.004 — Define package conventions and create @blixis/shared](./plans/001-project-foundation/004-define-package-conventions.md)
 - [ ] [001.005 — Configure linting, formatting, and package-boundary checks](./plans/001-project-foundation/005-configure-lint-format-and-boundaries.md)
@@ -546,7 +546,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 
 | # | Decision | Resolved in | Default / recommendation | Resolution |
 |---|---|---|---|---|
-| D1 | TS7 build & declaration emit, source vs. `dist` consumption, test runner, lint/format and boundary tooling | [001.002](./plans/001-project-foundation/002-record-toolchain-decisions.md) | `tsc -b` if TS7 emit is stable; Vitest + `@cloudflare/vitest-pool-workers`; tooling without compiler-API dependency | open |
+| D1 | TS7 build & declaration emit, source vs. `dist` consumption, test runner, lint/format and boundary tooling | [001.002](./plans/001-project-foundation/002-record-toolchain-decisions.md) | `tsc -b` if TS7 emit is stable; Vitest + `@cloudflare/vitest-pool-workers`; tooling without compiler-API dependency | **resolved 2026-09-24:** TS 7.0.2 `tsc -b`, `nodenext` + `.ts` imports, `dist` consumption ([ADR 0001](./decisions/0001-typescript-7-build-strategy.md)); Vitest 4.1 + pool-workers 0.22 ([ADR 0002](./decisions/0002-test-runner.md)); Biome 2.5 + custom boundary checker ([ADR 0003](./decisions/0003-lint-format-and-boundaries.md)) |
 | D2 | CI provider | [001.007](./plans/001-project-foundation/007-setup-ci-pipeline.md) | GitHub Actions | **resolved 2026-09-24:** GitHub Actions on `blixis-io/monorepo` ([GitHub Actions](./operations/github-actions.md)) |
 | D3 | Hono types in `@blixis/contracts` (`RestContribution`) | [002.002](./plans/002-public-contracts/002-define-module-contracts.md) | `hono` as type-only peer dependency | open |
 | D4 | Validation library | [002.005](./plans/002-public-contracts/005-select-validation-library.md) | Standard Schema in contracts; one default library for first-party code | open |

@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 1 — Workspace & public contracts  
 Roadmap scope: MVP / initial platform  
-Progress: 1/7 tasks completed
+Progress: 2/7 tasks completed
 
 ## Objective
 
@@ -54,7 +54,7 @@ Depends on:
 - **Workspace**: pnpm workspaces (§3). Workspace globs: `apps/*`, `packages/*`, `modules/*`, `tooling/*`. Example third-party plugins live outside the workspace globs (see plan 018).
 - **Namespace**: every first-party package is `@blixis/<name>` (§48 Packages.1).
 - **ESM only**: `"type": "module"` everywhere; no CommonJS output (§37).
-- **TypeScript 7**: strict mode, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `moduleResolution: "Bundler"` as the baseline (§37), adjusted to what TS7 actually supports.
+- **TypeScript 7**: strict mode, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`; module settings per [ADR 0001](../../decisions/0001-typescript-7-build-strategy.md) (`nodenext` + `.ts` import specifiers rewritten on emit — deliberate adjustment of the §37 `Bundler` example).
 - **Boundaries through `exports`**: each package exposes only its root entry (plus explicitly documented subpaths). Deep imports such as `@blixis/kernel/src/...` must fail at resolution time and in lint (§24, §25).
 - **No circular package dependencies** (§48 Packages.7) — enforced by tooling, not convention.
 - **Dependency hygiene**: every dependency must be ESM-friendly and Workers-compatible when it ends up in a Worker bundle (§38). Dev-only tooling may use Node.
@@ -74,7 +74,7 @@ Depends on:
 ## Tasks
 
 - [x] [001 — Initialize pnpm workspace and repository](./001-initialize-pnpm-workspace.md)
-- [ ] [002 — Record toolchain decisions for TypeScript 7, build, test, and lint](./002-record-toolchain-decisions.md)
+- [x] [002 — Record toolchain decisions for TypeScript 7, build, test, and lint](./002-record-toolchain-decisions.md)
 - [ ] [003 — Configure root TypeScript 7 setup](./003-configure-typescript.md)
 - [ ] [004 — Define package conventions and create @blixis/shared](./004-define-package-conventions.md)
 - [ ] [005 — Configure linting, formatting, and package-boundary checks](./005-configure-lint-format-and-boundaries.md)
