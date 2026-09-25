@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-review
+completed
 ```
 
 ## Parent plan

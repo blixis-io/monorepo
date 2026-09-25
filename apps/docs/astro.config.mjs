@@ -8,6 +8,7 @@ const [kernelTypeDoc, kernelSidebar] = createStarlightTypeDocPlugin()
 const [testingTypeDoc, testingSidebar] = createStarlightTypeDocPlugin()
 const [databaseTypeDoc, databaseSidebar] = createStarlightTypeDocPlugin()
 const [eventsTypeDoc, eventsSidebar] = createStarlightTypeDocPlugin()
+const [contentTypeDoc, contentSidebar] = createStarlightTypeDocPlugin()
 
 /** Shared TypeDoc options for all documented packages (ADR 0018). */
 const typeDoc = {
@@ -64,14 +65,30 @@ export default defineConfig({
           sidebar: { label: '@blixis/events' },
           typeDoc,
         }),
+        contentTypeDoc({
+          entryPoints: ['../../modules/content/src/index.ts'],
+          tsconfig: '../../modules/content/tsconfig.json',
+          output: 'api/content',
+          sidebar: { label: '@blixis/content' },
+          typeDoc,
+        }),
       ],
       sidebar: [
         { label: 'Getting started', items: [{ autogenerate: { directory: 'getting-started' } }] },
         { label: 'Tutorials', items: [{ autogenerate: { directory: 'tutorials' } }] },
         { label: 'Concepts', items: [{ autogenerate: { directory: 'concepts' } }] },
+        { label: 'Content reference', items: [{ autogenerate: { directory: 'content' } }] },
+        { label: 'Extending Blixis', items: [{ autogenerate: { directory: 'extending' } }] },
         {
           label: 'API reference',
-          items: [contractsSidebar, kernelSidebar, testingSidebar, databaseSidebar, eventsSidebar],
+          items: [
+            contractsSidebar,
+            kernelSidebar,
+            testingSidebar,
+            databaseSidebar,
+            eventsSidebar,
+            contentSidebar,
+          ],
         },
       ],
     }),

@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 5 — Content management core  
 Roadmap scope: MVP / initial platform  
-Progress: 4/5 tasks completed
+Progress: 5/5 tasks completed
 
 ## Objective
 
@@ -66,16 +66,16 @@ Depends on:
 - [x] [002 — Scaffold the content module and content type schema](./002-content-module-scaffold-and-type-schema.md)
 - [x] [003 — Implement the built-in field type system](./003-field-type-system.md)
 - [x] [004 — Compile entry validators from content types](./004-entry-schema-compiler.md)
-- [R] [005 — Implement the content type service and REST routes](./005-content-type-service-and-routes.md)
+- [x] [005 — Implement the content type service and REST routes](./005-content-type-service-and-routes.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] Content type with every built-in field type can be created, and generated validators accept valid and reject invalid payloads with field/locale paths.
-- [ ] Destructive content-type changes are blocked or require explicit confirmation per the rules.
-- [ ] Isolation (008.006) and authz matrix (009.005) cover the new routes.
+- [x] All tasks `completed`.
+- [x] Content type with every built-in field type can be created, and generated validators accept valid and reject invalid payloads with field/locale paths.
+- [x] Destructive content-type changes are blocked or require explicit confirmation per the rules.
+- [x] Isolation (008.006) and authz matrix (009.005) cover the new routes.
 
 ## Risks
 
@@ -91,4 +91,24 @@ The plan may be marked `completed` when:
 
 ## Technical notes
 
-No technical notes yet.
+- **StAAD review (owner request, 2026-09-25):** the model adopts StAAD-style page building:
+  - `component` types with a `blocks` field;
+  - the `link` field type;
+  - presentation settings: `groups`, `showWhen` (which also relaxes `required`), help text.
+
+  It avoids StAAD's slug references and unvalidated field config ([ADR 0010](../../decisions/0010-content-storage-model.md)).
+- **The field type registry is public** (`defineFieldType`, `contentModule({ fieldTypes })`, `vendor.name` ids), because the owner asked for documented extension points.
+- **Documentation** (manual):
+  - concept: *Content modeling*;
+  - *Content reference*: field types, rich text format, content types API;
+  - *Extending Blixis*: designing components, custom field types;
+  - tutorial 5, *Build a page with components*;
+  - the `@blixis/content` API reference (TypeDoc).
+
+  `modules/content/test/docs-examples.test.ts` keeps the tutorial model, the example page and the custom field type example working.
+- **Completion evidence:**
+  - a type with all 13 built-in field types is created through the API (`content-types.api.test.ts`);
+  - the validators accept and reject payloads with field and locale paths (`entry-schema.test.ts`);
+  - destructive changes are blocked (`content-types.api.test.ts`, "blocks unsafe changes while entries exist");
+  - the isolation suite and authorization matrix cover the 5 new routes.
+- **Staging:** run `pnpm db:migrate` (content `0001_create_content_types`) before deploying.
