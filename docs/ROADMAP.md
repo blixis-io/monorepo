@@ -62,7 +62,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `completed` | 7/7 | 005 |
 | [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `completed` | 6/6 | 006 |
 | [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `completed` | 6/6 | 007 |
-| [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `in-progress` | 2/5 | 008 |
+| [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `in-progress` | 3/5 | 008 |
 | [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `not-started` | 0/5 | 009 |
 | [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `not-started` | 0/7 | 010 |
 | [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `not-started` | 0/8 | 011 |
@@ -271,7 +271,7 @@ Builds `@blixis/spaces` (organizations, spaces, default environment, locales) an
 
 #### 009 — Authorization & Permissions
 
-Status: `in-progress` · Progress: 2/5 · Scope: MVP  
+Status: `in-progress` · Progress: 3/5 · Scope: MVP  
 Plan: [009-authorization-and-permissions/_index.md](./plans/009-authorization-and-permissions/_index.md)  
 Depends on: [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md)
 
@@ -279,7 +279,7 @@ Builds `@blixis/permissions`: a registry of module-declared permissions, system 
 
 - [x] [009.001 — Create the permissions module and registry](./plans/009-authorization-and-permissions/001-permissions-module-and-registry.md)
 - [x] [009.002 — Implement roles and role assignments](./plans/009-authorization-and-permissions/002-roles-and-role-assignments.md)
-- [ ] [009.003 — Implement the authorization service](./plans/009-authorization-and-permissions/003-authorization-service.md)
+- [x] [009.003 — Implement the authorization service](./plans/009-authorization-and-permissions/003-authorization-service.md)
 - [ ] [009.004 — Enforce permissions in existing modules](./plans/009-authorization-and-permissions/004-enforce-permissions-in-existing-modules.md)
 - [ ] [009.005 — Build the authorization test matrix](./plans/009-authorization-and-permissions/005-authorization-test-matrix.md)
 

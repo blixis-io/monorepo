@@ -12,7 +12,8 @@ import {
 import { MEMBERSHIP_SERVICE, USER_SERVICE, usersModule } from '@blixis/users'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { permissionsModule, ROLE_SERVICE, type RoleService } from '../src/index.ts'
+import { ROLE_STORE, type RoleStore } from '../src/application/role.store.ts'
+import { permissionsModule } from '../src/index.ts'
 
 const blogModule = defineModule({
   meta: { name: '@acme/blog', version: '1.0.0' },
@@ -31,7 +32,7 @@ const blogModule = defineModule({
   ],
 })
 
-describe.skipIf(!databaseTestsEnabled())('RoleService (Postgres)', () => {
+describe.skipIf(!databaseTestsEnabled())('RoleStore (Postgres)', () => {
   const modules = () => [
     databaseModule(),
     eventsModule(),
@@ -54,8 +55,8 @@ describe.skipIf(!databaseTestsEnabled())('RoleService (Postgres)', () => {
       ],
       database: db,
     })
-    const run = <T>(fn: (roles: RoleService) => Promise<T>) =>
-      t.app.runInScope({}, async ({ services }) => fn(services.get(ROLE_SERVICE)))
+    const run = <T>(fn: (roles: RoleStore) => Promise<T>) =>
+      t.app.runInScope({}, async ({ services }) => fn(services.get(ROLE_STORE)))
     return { t, run }
   }
   const org = newId()
@@ -144,10 +145,10 @@ describe.skipIf(!databaseTestsEnabled())('RoleService (Postgres)', () => {
     expect((await run((r) => r.create(newId(), { name: 'Reviewer', permissions: [] }))).name).toBe(
       'Reviewer',
     )
-    const changes: ((r: RoleService) => Promise<unknown>)[] = [
-      (r: RoleService) => r.update(org, 'owner', { permissions: [] }),
-      (r: RoleService) => r.update(org, 'viewer', { name: 'Reader' }),
-      (r: RoleService) => r.delete(org, 'admin'),
+    const changes: ((r: RoleStore) => Promise<unknown>)[] = [
+      (r: RoleStore) => r.update(org, 'owner', { permissions: [] }),
+      (r: RoleStore) => r.update(org, 'viewer', { name: 'Reader' }),
+      (r: RoleStore) => r.delete(org, 'admin'),
     ]
     for (const change of changes) {
       await expect(run(change)).rejects.toThrowError(ConflictError)

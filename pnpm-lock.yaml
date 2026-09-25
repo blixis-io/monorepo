@@ -805,6 +805,9 @@ importers:
       '@blixis/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
+      '@blixis/permissions':
+        specifier: workspace:*
+        version: link:../../modules/permissions
       '@blixis/spaces':
         specifier: workspace:*
         version: link:../../modules/spaces

@@ -9,6 +9,7 @@
     { "path": "../../packages/events" },
     { "path": "../../packages/testing" },
     { "path": "../../modules/users" },
-    { "path": "../../modules/spaces" }
+    { "path": "../../modules/spaces" },
+    { "path": "../../modules/permissions" }
   ]
 }

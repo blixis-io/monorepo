@@ -32,6 +32,19 @@ export const ISOLATION_ROUTES: readonly IsolationRoute[] = [
     path: '/api/v1/organizations/:orgId/members/:membershipId',
     paramsFrom: { membershipId: 'orgMembershipId' },
   },
+  // @blixis/permissions — roles
+  { method: 'GET', path: '/api/v1/organizations/:orgId/roles' },
+  {
+    method: 'POST',
+    path: '/api/v1/organizations/:orgId/roles',
+    body: { name: 'Planted', permissions: [] },
+  },
+  {
+    method: 'PATCH',
+    path: '/api/v1/organizations/:orgId/roles/:roleId',
+    body: { permissions: ['organizations.owners.manage'] },
+  },
+  { method: 'DELETE', path: '/api/v1/organizations/:orgId/roles/:roleId' },
   // @blixis/spaces — spaces
   { method: 'GET', path: '/api/v1/spaces/:spaceId' },
   { method: 'PATCH', path: '/api/v1/spaces/:spaceId', body: { name: 'Hijacked' } },

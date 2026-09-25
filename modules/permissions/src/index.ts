@@ -5,17 +5,15 @@
  *
  * @packageDocumentation
  */
+
+export type { Tenant } from './application/authorization.service.ts'
 export {
   type CatalogPermission,
   createPermissionCatalog,
   PERMISSION_CATALOG,
   type PermissionCatalog,
 } from './application/catalog.ts'
-export {
-  createRoleService,
-  ROLE_SERVICE,
-  type RoleService,
-} from './application/role.service.ts'
+export { ROLE_SERVICE, type RoleService } from './application/role.service.ts'
 export {
   type CreateRoleInput,
   type Role,

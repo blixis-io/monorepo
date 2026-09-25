@@ -1,48 +1,46 @@
 import {
-  ConflictError,
+  type Actor,
   createServiceToken,
-  NotFoundError,
+  ForbiddenError,
   type PermissionId,
   type ServiceToken,
   ValidationError,
-  validate,
 } from '@blixis/contracts'
-import { type Database, isId } from '@blixis/database'
-import type { MembershipService } from '@blixis/users'
-import {
-  type CreateRoleInput,
-  createRoleSchema,
-  isSystemRoleId,
-  type Role,
-  type UpdateRoleInput,
-  updateRoleSchema,
-} from '../domain/role.ts'
-import { roleRepository } from '../infrastructure/role.repository.ts'
+import type { CreateRoleInput, Role, UpdateRoleInput } from '../domain/role.ts'
+import { ROLE_PERMISSIONS } from '../permissions.ts'
+import type { Authorizer, Tenant } from './authorization.service.ts'
 import type { PermissionCatalog } from './catalog.ts'
+import type { RoleStore } from './role.store.ts'
 
 /**
- * Roles of an organization: the system roles (code) and its custom roles (Postgres). Callers
- * pass an organization they already verified; authorization is checked by the calling service
- * (009.003). Request-scoped and memoised per organization.
+ * Role management on behalf of an actor (plan 009). Reading needs `roles.read`, changing needs
+ * `roles.manage` — and never more than the actor holds: a role can only be created, changed,
+ * deleted, or granted by someone holding every permission in it (escalation guard). This is
+ * also why only owners can grant `owner`. Request-scoped: `services.get(ROLE_SERVICE)`.
  */
 export interface RoleService {
-  /** System roles first (owner, admin, editor, viewer), then custom roles by name. */
-  list(organizationId: string): Promise<readonly Role[]>
-  /** @throws NotFoundError for unknown ids and other organizations' roles */
-  get(organizationId: string, roleId: string): Promise<Role>
-  /** A role by id, or `undefined`. */
-  find(organizationId: string, roleId: string): Promise<Role | undefined>
-  /** @throws ValidationError (invalid input, unknown permissions), ConflictError (name taken) */
-  create(organizationId: string, input: CreateRoleInput): Promise<Role>
-  /** @throws NotFoundError, ValidationError, ConflictError (system role, name taken) */
-  update(organizationId: string, roleId: string, input: UpdateRoleInput): Promise<Role>
-  /** @throws NotFoundError, ConflictError (system role, or still assigned to members) */
-  delete(organizationId: string, roleId: string): Promise<void>
+  /** @throws NotFoundError (not a member), ForbiddenError (no `roles.read`) */
+  list(actor: Actor, organizationId: string): Promise<readonly Role[]>
+  /** @throws NotFoundError, ForbiddenError */
+  get(actor: Actor, organizationId: string, roleId: string): Promise<Role>
+  /** @throws NotFoundError, ForbiddenError, ValidationError, ConflictError */
+  create(actor: Actor, organizationId: string, input: CreateRoleInput): Promise<Role>
+  /** @throws NotFoundError, ForbiddenError, ValidationError, ConflictError */
+  update(
+    actor: Actor,
+    organizationId: string,
+    roleId: string,
+    input: UpdateRoleInput,
+  ): Promise<Role>
+  /** @throws NotFoundError, ForbiddenError, ConflictError (system role, still assigned) */
+  delete(actor: Actor, organizationId: string, roleId: string): Promise<void>
   /**
-   * Permissions a membership with `roleKey` grants in the organization. Unknown or deleted roles
-   * grant nothing; permissions no installed module declares are ignored.
+   * Verifies the actor may grant (or take away) `roleKey` at this level: the role exists in the
+   * organization, is assignable there, and the actor holds every permission it grants there.
+   * Membership services call this before assigning, changing, or removing a role.
+   * @throws ValidationError (unknown role, wrong level), ForbiddenError (escalation)
    */
-  permissionsOf(organizationId: string, roleKey: string): Promise<ReadonlySet<PermissionId>>
+  assertCanGrant(actor: Actor, tenant: Tenant, roleKey: string): Promise<void>
 }
 
 /** Request-scoped {@link RoleService}, provided by `permissionsModule()`. */
@@ -52,109 +50,93 @@ export const ROLE_SERVICE: ServiceToken<RoleService> = createServiceToken<RoleSe
 
 /** Creates the {@link RoleService} of one request scope. */
 export function createRoleService(deps: {
-  readonly db: Database
+  readonly store: RoleStore
+  readonly authorizer: Authorizer
   readonly catalog: PermissionCatalog
-  readonly systemRoles: readonly Role[]
-  readonly memberships: MembershipService
 }): RoleService {
-  const { db, catalog, systemRoles, memberships } = deps
-  const custom = new Map<string, Promise<Role[]>>()
-  const customRoles = (organizationId: string) => {
-    let roles = custom.get(organizationId)
-    if (roles === undefined) {
-      roles = roleRepository.listInOrganization(db, organizationId)
-      custom.set(organizationId, roles)
-    }
-    return roles
-  }
-  const forget = (organizationId: string) => custom.delete(organizationId)
+  const { store, authorizer, catalog } = deps
+  const organization = (organizationId: string) => ({
+    type: 'organization',
+    id: organizationId,
+    organizationId,
+  })
+  const requireRoles = (actor: Actor, organizationId: string, manage: boolean) =>
+    authorizer.require({
+      actor,
+      action: (manage ? ROLE_PERMISSIONS.rolesManage : ROLE_PERMISSIONS.rolesRead).id,
+      resource: organization(organizationId),
+    })
 
-  const known = (ids: readonly string[]): PermissionId[] => {
-    const unknown = ids.filter((id) => catalog.get(id) === undefined)
-    if (unknown.length > 0) {
-      throw new ValidationError('Unknown permissions', [
-        { path: ['permissions'], message: `No module declares: ${unknown.join(', ')}` },
-      ])
-    }
-    return ids as PermissionId[]
+  /** Throws unless the actor holds every permission in `permissions` in `tenant`. */
+  async function assertHolds(
+    actor: Actor,
+    tenant: Tenant,
+    permissions: readonly string[],
+    message: string,
+  ): Promise<void> {
+    const held = (await authorizer.permissionsIn(actor, tenant)) ?? new Set<PermissionId>()
+    if (permissions.some((id) => !held.has(id as PermissionId))) throw new ForbiddenError(message)
   }
-  const assertNameFree = (name: string) => {
-    if (systemRoles.some((role) => role.name.toLowerCase() === name.toLowerCase()))
-      throw new ConflictError(`"${name}" is the name of a system role`)
-  }
-  const assertCustom = (roleId: string) => {
-    if (isSystemRoleId(roleId))
-      throw new ConflictError('System roles are defined in code and cannot be changed')
-  }
-  const translateNameConflict = (error: unknown): never => {
-    if (error instanceof ConflictError)
-      throw new ConflictError('A role with this name already exists')
-    throw error
-  }
+  const guard = (actor: Actor, organizationId: string, permissions: readonly string[]) =>
+    assertHolds(
+      actor,
+      { organizationId },
+      permissions,
+      'You can only manage roles whose permissions you hold',
+    )
 
-  const service: RoleService = {
-    async list(organizationId) {
-      return [...systemRoles, ...(await customRoles(organizationId))]
+  return {
+    async list(actor, organizationId) {
+      await requireRoles(actor, organizationId, false)
+      return store.list(organizationId)
     },
 
-    async find(organizationId, roleId) {
-      const system = systemRoles.find((role) => role.id === roleId)
-      if (system !== undefined) return system
-      if (!isId(roleId)) return undefined
-      return (await customRoles(organizationId)).find((role) => role.id === roleId)
+    async get(actor, organizationId, roleId) {
+      await requireRoles(actor, organizationId, false)
+      return store.get(organizationId, roleId)
     },
 
-    async get(organizationId, roleId) {
-      const role = await service.find(organizationId, roleId)
-      if (role === undefined) throw new NotFoundError('Role not found')
-      return role
+    async create(actor, organizationId, input) {
+      await requireRoles(actor, organizationId, true)
+      await guard(actor, organizationId, input.permissions ?? [])
+      return store.create(organizationId, input)
     },
 
-    async create(organizationId, input) {
-      const values = await validate(createRoleSchema, input, { message: 'Invalid role' })
-      assertNameFree(values.name)
-      const role = await roleRepository
-        .insert(db, { organizationId, ...values, permissions: known(values.permissions) })
-        .catch(translateNameConflict)
-      forget(organizationId)
-      return role
+    async update(actor, organizationId, roleId, input) {
+      await requireRoles(actor, organizationId, true)
+      const current = await store.get(organizationId, roleId)
+      await guard(actor, organizationId, [...current.permissions, ...(input.permissions ?? [])])
+      return store.update(organizationId, roleId, input)
     },
 
-    async update(organizationId, roleId, input) {
-      assertCustom(roleId)
-      const values = await validate(updateRoleSchema, input, { message: 'Invalid role' })
-      if (values.name !== undefined) assertNameFree(values.name)
-      if (!isId(roleId)) throw new NotFoundError('Role not found')
-      const updated = await roleRepository
-        .update(db, organizationId, roleId, {
-          ...(values.name === undefined ? {} : { name: values.name }),
-          ...(values.description === undefined ? {} : { description: values.description }),
-          ...(values.permissions === undefined ? {} : { permissions: known(values.permissions) }),
-        })
-        .catch(translateNameConflict)
-      if (updated === undefined) throw new NotFoundError('Role not found')
-      forget(organizationId)
-      return updated
+    async delete(actor, organizationId, roleId) {
+      await requireRoles(actor, organizationId, true)
+      const current = await store.get(organizationId, roleId)
+      await guard(actor, organizationId, current.permissions)
+      await store.delete(organizationId, roleId)
     },
 
-    async delete(organizationId, roleId) {
-      assertCustom(roleId)
-      if (!isId(roleId) || (await service.find(organizationId, roleId)) === undefined)
-        throw new NotFoundError('Role not found')
-      const assigned = await memberships.countWithRole(organizationId, roleId)
-      if (assigned > 0) {
-        throw new ConflictError(
-          `The role is assigned to ${assigned} membership(s); change their roles first`,
-        )
+    async assertCanGrant(actor, tenant, roleKey) {
+      const level = tenant.spaceId === undefined ? 'organization' : 'space'
+      const role = await store.find(tenant.organizationId, roleKey)
+      if (role === undefined || !role.assignableTo.includes(level)) {
+        const options = (await store.list(tenant.organizationId))
+          .filter((r) => r.assignableTo.includes(level))
+          .map((r) => (r.system ? r.id : `${r.id} (${r.name})`))
+        throw new ValidationError('Unknown role', [
+          { path: ['role'], message: `Use one of: ${options.join(', ')} (got ${roleKey})` },
+        ])
       }
-      await roleRepository.delete(db, organizationId, roleId)
-      forget(organizationId)
-    },
-
-    async permissionsOf(organizationId, roleKey) {
-      const role = await service.find(organizationId, roleKey)
-      return new Set(role?.permissions.filter((id) => catalog.get(id) !== undefined) ?? [])
+      // At space level only space-scoped permissions take effect (see Authorizer.permissionsIn).
+      const effective = role.permissions.filter(
+        (id) => level === 'organization' || catalog.get(id)?.scope === 'space',
+      )
+      await assertHolds(
+        actor,
+        tenant,
+        effective,
+        'You can only grant or revoke roles whose permissions you hold',
+      )
     },
   }
-  return service
 }
