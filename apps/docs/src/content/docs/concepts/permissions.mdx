@@ -66,7 +66,40 @@ await ctx.services.get(AUTHORIZATION_SERVICE).require({
 })
 ```
 
-- `require` throws `UnauthorizedError` for anonymous actors and `ForbiddenError` otherwise; `can` returns a boolean.
+- `require` throws:
+  - `UnauthorizedError` for anonymous actors;
+  - `NotFoundError` (named after `resource.type`) when the actor has no membership in the resource's tenant, so its existence isn't revealed;
+  - `ForbiddenError` for members without the permission.
+
+  `can` returns a boolean instead.
+- Unknown permission IDs, or a resource without the tenant IDs the permission's scope needs, throw `ModuleError`. These are bugs, not denials.
 - Check permissions **in services**, not in route handlers, so REST, GraphQL, and background jobs share the same rules.
 - Always pass the tenant (`spaceId` / `organizationId`) in the [`ResourceRef`](/api/contracts/interfaces/resourceref/). Never trust a resource ID alone.
 - Never compare role names in code. Roles are configuration; permissions are the contract.
+
+## How a check is evaluated
+
+`@blixis/permissions` implements `AUTHORIZATION_SERVICE`. It denies by default:
+
+| Actor | Permissions |
+|---|---|
+| `user` | Space permission: organization role ∪ space role. Organization permission: organization role only. |
+| `apiToken` | the owner's permissions ∩ the token's `scopes`. A token without scopes can do nothing. |
+| `deliveryKey` | none yet (content delivery, plan 012) |
+| `system` | all, but only when the call passes `allowSystem: true` |
+| `anonymous` | none |
+
+Memberships and custom roles are loaded once per request. Nothing is cached across requests, so a role change applies to the next request. Each decision is logged at `debug` level (`authorization`, with actor, action and decision).
+
+When a request is bound to a tenant (`spaceScoped()`), a resource from another tenant is denied too.
+
+## Managing roles
+
+| Route | Permission |
+|---|---|
+| `GET /api/v1/permissions` | signed in |
+| `GET /api/v1/organizations/:orgId/roles` | `roles.read` |
+| `POST /api/v1/organizations/:orgId/roles` | `roles.manage` |
+| `PATCH`/`DELETE /api/v1/organizations/:orgId/roles/:roleId` | `roles.manage` |
+
+**Escalation guard:** creating, changing, deleting or granting a role requires holding every permission in it. So an admin can't create a role with `organizations.owners.manage` and can't grant `owner`. Only owners hold every permission. System roles can't be changed, and a custom role can't be deleted while a membership uses it.

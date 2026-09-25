@@ -163,7 +163,11 @@ export interface AuthorizationService {
   /**
    * Throws when the check fails.
    * @throws UnauthorizedError for anonymous actors.
-   * @throws ForbiddenError for authenticated actors without the permission.
+   * @throws NotFoundError when the actor has no membership in the resource's tenant — its
+   * existence is not revealed (§31).
+   * @throws ForbiddenError for members (and other actors) without the permission.
+   * @throws ModuleError for unknown permission ids, or a resource missing the tenant ids the
+   * permission's scope needs (programming errors).
    */
   require(check: AuthorizationCheck): Promise<void>
 }

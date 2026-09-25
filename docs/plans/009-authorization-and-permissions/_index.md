@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 4 — Identity, tenancy & authorization  
 Roadmap scope: MVP / initial platform  
-Progress: 2/5 tasks completed
+Progress: 3/5 tasks completed
 
 ## Objective
 
@@ -61,7 +61,7 @@ Depends on:
 
 - [x] [001 — Create the permissions module and registry](./001-permissions-module-and-registry.md)
 - [x] [002 — Implement roles and role assignments](./002-roles-and-role-assignments.md)
-- [ ] [003 — Implement the authorization service](./003-authorization-service.md)
+- [x] [003 — Implement the authorization service](./003-authorization-service.md)
 - [ ] [004 — Enforce permissions in existing modules](./004-enforce-permissions-in-existing-modules.md)
 - [ ] [005 — Build the authorization test matrix](./005-authorization-test-matrix.md)
 

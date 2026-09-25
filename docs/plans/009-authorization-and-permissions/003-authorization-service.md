@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -43,14 +43,29 @@ Implement `AUTHORIZATION_SERVICE` (`can`, `require`) evaluating actor type, memb
 
 ```text
 modules/permissions/src/application/authorization.service.ts
-modules/permissions/test/authorization.service.test.ts
+modules/permissions/src/application/role.service.ts
+modules/permissions/test/authorization.test.ts
+modules/permissions/test/roles.api.test.ts
 ```
 
 ### Modify
 
 ```text
+packages/contracts/src/permissions.ts
+modules/permissions/src/application/role.store.ts (renamed from role.service.ts)
 modules/permissions/src/module.ts
 modules/permissions/src/index.ts
+modules/permissions/src/rest/routes.ts
+modules/permissions/test/role.store.test.ts (renamed from role.service.test.ts)
+tooling/tenant-isolation/test/routes.ts
+tooling/tenant-isolation/test/isolation.test.ts
+tooling/tenant-isolation/package.json
+tooling/tenant-isolation/tsconfig.json
+tooling/postman/blixis.postman_collection.json
+tooling/postman/{local,staging,production}.postman_environment.json
+docs/development/postman.md
+apps/docs/src/content/docs/concepts/permissions.mdx
+pnpm-lock.yaml
 ```
 
 ### Delete
@@ -73,8 +88,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Unit tests cover every actor type and tenant mismatch.
-- [ ] Token with scope `spaces.settings.read` cannot perform `spaces.settings.write` even if the owner can.
+- [x] Unit tests cover every actor type and tenant mismatch.
+- [x] Token with scope `spaces.settings.read` cannot perform `spaces.settings.write` even if the owner can.
 
 ## Validation
 
@@ -84,15 +99,15 @@ pnpm --filter @blixis/permissions test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Deny-by-default verified.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Deny-by-default verified.
 
 ## Completion conditions
 
@@ -109,4 +124,23 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Evaluation** (`createAuthorizer`, provided as `AUTHORIZATION_SERVICE`, plus the internal `AUTHORIZER` with `permissionsIn`):
+  - `anonymous`: `UnauthorizedError`.
+  - `user`: for a space permission, organization role ∪ space role; for an organization permission, the organization role only. A space membership never grants organization-scoped permissions.
+  - `apiToken`: the owner's permissions ∩ scopes. **Decision:** explicit scopes are required, so a token without scopes can do nothing.
+  - `deliveryKey`: denied until plan 012.
+  - `system`: allowed only with `allowSystem: true`.
+- **404 vs 403 lives in the service:** `require` throws `NotFoundError` (`<Type> not found` from `resource.type`) when the actor has no membership in the resource's tenant, and `ForbiddenError` for members without the permission. Callers don't reimplement the policy. The contract JSDoc now says so.
+- **Programming errors:** an unknown permission id, or a resource without the tenant ids the permission's scope needs, throws `ModuleError`.
+- **Tenant binding:** if the request is bound to a tenant (`spaceScoped()`), a resource from another organization or space is denied as `no-access`, as defence in depth against ids from untrusted input.
+- **Memoisation:** a user's memberships are loaded once per request (`listMembershipsForUser`, one query), and custom roles once per organization and request (`ROLE_STORE`). There is no KV caching (plan decision).
+- **Logging:** each decision is logged at `debug` (`authorization`: actor id, action, resource type/id, decision).
+- **Roles endpoints** (moved here from 009.002): `GET/POST /organizations/:orgId/roles`, `PATCH/DELETE /organizations/:orgId/roles/:roleId`. The permissions module is now mounted at `/`.
+- **Role layers:**
+  - `ROLE_SERVICE` takes the actor and checks `roles.read` or `roles.manage`.
+  - The 009.002 data layer became the internal `ROLE_STORE`. This avoids a circular dependency: the authorizer needs role data, and role management needs the authorizer.
+- **Escalation guard:** creating, updating (old and new permissions), deleting, or granting a role (`assertCanGrant`) requires the actor to hold every permission in it at that level. At space level only space-scoped permissions count. This makes `owner` grantable by owners only, without role-name checks.
+- **Isolation suite:**
+  - Covers the 4 roles routes, 24 routes in total.
+  - The intruder's API token now carries **every** scope, so isolation doesn't rely on missing scopes.
+  - The fingerprint includes `permissions.roles`.
