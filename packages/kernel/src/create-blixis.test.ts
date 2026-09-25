@@ -1,4 +1,5 @@
 import { createServiceToken, type LogFields, ModuleError } from '@blixis/contracts'
+import { Hono } from 'hono'
 import { describe, expect, it } from 'vitest'
 import { createBlixis } from './create-blixis.ts'
 import { defineModule } from './define-module.ts'
@@ -153,6 +154,40 @@ describe('createBlixis', () => {
     })
     await app.ready()
     expect(() => late?.()).toThrowError(/after setup/)
+  })
+})
+
+describe('root routes', () => {
+  const rootModule = (name: string) =>
+    defineModule({
+      meta: { name, version: '1.0.0' },
+      rest: {
+        path: '/graphql',
+        root: true,
+        app: new Hono().get('/', (c) =>
+          c.json({
+            requestId: (c.var as { requestContext?: { requestId: string } }).requestContext
+              ?.requestId,
+          }),
+        ) as never,
+      },
+    })()
+
+  it('mounts root routes outside /api/v1 behind the kernel middleware', async () => {
+    const app = createBlixis({ modules: [rootModule('@acme/root')], logger: noopLogger })
+    const res = await app.fetch(new Request('http://x/graphql'), {}, undefined as never)
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { requestId: string }
+    expect(body.requestId).toBe(res.headers.get('x-request-id'))
+    expect(
+      (await app.fetch(new Request('http://x/api/v1/graphql'), {}, undefined as never)).status,
+    ).toBe(404)
+  })
+
+  it('reports two modules claiming the same root route', () => {
+    expect(() =>
+      createBlixis({ modules: [rootModule('@acme/a'), rootModule('@acme/b')], logger: noopLogger }),
+    ).toThrowError(/GET \/graphql conflicts with @acme\/a/)
   })
 })
 

@@ -38,8 +38,10 @@ const apiRoutes = async () => {
   const { modules } = (await import(pathToFileURL(configPath).href)) as {
     modules: readonly BlixisModule[]
   }
+  // `ALL` routes are either middleware (`/*`, skipped) or endpoints taking any method, such as
+  // `/graphql`: a request with any method matches them.
   return createBlixis({ modules, logger: noopLogger })
-    .hono.routes.filter((route) => route.method !== 'ALL')
+    .hono.routes.filter((route) => !(route.method === 'ALL' && route.path.endsWith('*')))
     .map((route) => ({ method: route.method, path: route.path }))
 }
 const matches = (pattern: string, concrete: string) =>
@@ -52,7 +54,11 @@ describe('Postman collection', () => {
   it('only contains requests for routes the API registers', async () => {
     const routes = await apiRoutes()
     const unknown = inCollection.filter(
-      (r) => !routes.some((route) => route.method === r.method && matches(route.path, r.path)),
+      (r) =>
+        !routes.some(
+          (route) =>
+            (route.method === r.method || route.method === 'ALL') && matches(route.path, r.path),
+        ),
     )
     expect(unknown).toEqual([])
   })
@@ -60,7 +66,10 @@ describe('Postman collection', () => {
   it('covers every API route (add new endpoints to the collection)', async () => {
     const missing = (await apiRoutes()).filter(
       (route) =>
-        !inCollection.some((r) => r.method === route.method && matches(route.path, r.path)),
+        !inCollection.some(
+          (r) =>
+            (route.method === r.method || route.method === 'ALL') && matches(route.path, r.path),
+        ),
     )
     expect(missing).toEqual([])
   })

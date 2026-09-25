@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -41,23 +41,27 @@ Create `@blixis/graphql` providing `graphqlModule()` that mounts a GraphQL Yoga 
 ```text
 packages/graphql/package.json
 packages/graphql/tsconfig.json
+packages/graphql/tsconfig.test.json
 packages/graphql/src/index.ts
 packages/graphql/src/module.ts
 packages/graphql/src/context.ts
-packages/graphql/src/server.ts
+packages/graphql/src/module.test.ts
 apps/api/test/graphql.worker.test.ts
 ```
 
 ### Modify
 
 ```text
-packages/kernel/src/create-blixis.ts
+packages/contracts/src/module.ts (RestContribution.root)
 packages/kernel/src/internal/rest.ts
+packages/kernel/src/create-blixis.test.ts
 apps/api/src/blixis.config.ts
 apps/api/package.json
+apps/api/tsconfig.json
+pnpm-workspace.yaml (catalog: graphql, graphql-yoga)
 tsconfig.json
-docs/kernel/README.md
 pnpm-lock.yaml
+tooling/postman/blixis.postman_collection.json
 ```
 
 ### Delete
@@ -81,9 +85,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `POST /graphql { _platform { version } }` returns data in the Workers pool.
-- [ ] GraphiQL disabled in production config.
-- [ ] Bundle size delta recorded.
+- [x] `POST /graphql { _platform { version } }` returns data in the Workers pool.
+- [x] GraphiQL disabled in production config.
+- [x] Bundle size delta recorded.
 
 ## Validation
 
@@ -94,15 +98,15 @@ pnpm --filter @blixis/api deploy:dry
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Kernel change minimal and documented.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Kernel change minimal and documented.
 
 ## Completion conditions
 
@@ -119,4 +123,17 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Versions:** GraphQL Yoga **5.24.1** with graphql **16.14.2**. graphql 17 (released 2026-07) is accepted by Yoga's peer range, but the graphql-tools/Envelop ecosystem Yoga depends on still targets 16, so 16 is the safe choice now.
+- **Kernel hook:** `RestContribution.root?: boolean` is a minimal, explicit contract addition. A module can mount at the site root instead of `/api/v1`, and the same kernel middleware applies (request id, actor resolution, request scope, error mapping). Route-conflict detection covers root routes too. Tested in `create-blixis.test.ts`. It's documented as meant for platform endpoints only.
+- **`graphqlModule({ graphiql? })`:**
+  - builds the schema once in `setup` from `KERNEL_CONTRIBUTIONS.graphql` plus the platform type defs, and creates one Yoga instance per isolate;
+  - `ALL /graphql` passes `{ requestContext, services, loaders: new Map(), env }` as the server context;
+  - `maskedErrors` is on (customised in 012.003), logging off (the kernel logs);
+  - GraphiQL runs unless `BLIXIS_ENV === 'production'` or `graphiql: false`.
+- **`GraphQLContext`** (`requestContext`, `services`, `loaders`) and a `loader(context, key, create)` helper for per-request batching loaders are exported for module authors.
+- **Platform query:** `_platform { version modules { name version } }`. `version` is the Worker version id from `CF_VERSION_METADATA`, or `local`.
+- **Tests:**
+  - Node: composition of a fixture module's `extend type Query`, the actor reaching resolvers, GraphiQL on/off.
+  - Workers pool (`apps/api/test/graphql.worker.test.ts`): `_platform` through the real Worker entry, and GraphQL-format errors.
+  - GraphQL over HTTP: `application/json` clients get `200` with errors; `application/graphql-response+json` gets `400`.
+- **Bundle:** the staging dry-run went from **400.65 KiB to 550.19 KiB gzip** (+150 KiB for Yoga, graphql-js, graphql-tools and Envelop) against the 1024 KiB budget. Startup time will be recorded at the next staging deploy (`Worker Startup Time`; the last was 59 ms).

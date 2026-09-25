@@ -43,6 +43,12 @@ export interface RestContribution {
   /** Mount path starting with `/`, e.g. `/content`. Several modules may share a prefix. */
   readonly path: string
   readonly app: ModuleRestApp
+  /**
+   * Mount at the site root instead of `/api/v1` — only for platform endpoints outside the
+   * Management API, such as `/graphql` (§45). The same request middleware (request id, actor,
+   * request scope, error mapping) applies. Default `false`.
+   */
+  readonly root?: boolean
 }
 
 /** A GraphQL resolver function. `TContext` is provided by `@blixis/graphql` (plan 012). */

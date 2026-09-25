@@ -59,6 +59,12 @@
       "path": "packages/events"
     },
     {
+      "path": "packages/graphql"
+    },
+    {
+      "path": "packages/graphql/tsconfig.test.json"
+    },
+    {
       "path": "packages/events/tsconfig.test.json"
     },
     {

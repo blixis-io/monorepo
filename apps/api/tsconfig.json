@@ -7,6 +7,7 @@
     { "path": "../../packages/cloudflare" },
     { "path": "../../packages/database" },
     { "path": "../../packages/events" },
+    { "path": "../../packages/graphql" },
     { "path": "../../modules/users" },
     { "path": "../../modules/auth" },
     { "path": "../../modules/spaces" },

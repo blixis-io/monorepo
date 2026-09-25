@@ -1,0 +1,41 @@
+{
+  "name": "@blixis/graphql",
+  "version": "0.0.0",
+  "description": "Blixis GraphQL: one /graphql endpoint (GraphQL Yoga) composed from module contributions",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run --root ../.. packages/graphql"
+  },
+  "dependencies": {
+    "@blixis/contracts": "workspace:*",
+    "@blixis/kernel": "workspace:*",
+    "graphql": "catalog:",
+    "graphql-yoga": "catalog:"
+  },
+  "peerDependencies": {
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "@blixis/testing": "workspace:*",
+    "@blixis/tsconfig": "workspace:*",
+    "hono": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/graphql"
+  }
+}
