@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -38,21 +38,25 @@ Modules declare `permissions` in their definitions (§5); the kernel collects an
 ```text
 modules/permissions/package.json
 modules/permissions/tsconfig.json
+modules/permissions/tsconfig.test.json
 modules/permissions/src/index.ts
 modules/permissions/src/module.ts
+modules/permissions/src/permissions.ts
 modules/permissions/src/application/catalog.ts
 modules/permissions/src/rest/routes.ts
 modules/permissions/test/catalog.test.ts
+modules/spaces/src/permissions.ts
 ```
 
 ### Modify
 
 ```text
-modules/users/src/module.ts
-modules/auth/src/module.ts
 modules/spaces/src/module.ts
+modules/spaces/src/index.ts
 apps/api/src/blixis.config.ts
 apps/api/package.json
+apps/api/tsconfig.json
+tooling/postman/blixis.postman_collection.json
 tsconfig.json
 pnpm-lock.yaml
 ```
@@ -78,8 +82,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `GET /api/v1/permissions` lists all declared permissions with owning module.
-- [ ] Unknown permission lookups throw `ModuleError`.
+- [x] `GET /api/v1/permissions` lists all declared permissions with owning module.
+- [x] Unknown permission lookups throw `ModuleError`.
 
 ## Validation
 
@@ -89,15 +93,15 @@ pnpm --filter @blixis/permissions test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Permission names reviewed for consistency across modules.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Permission names reviewed for consistency across modules.
 
 ## Completion conditions
 
@@ -114,4 +118,14 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- `PERMISSION_CATALOG` is app-scoped and immutable, built once at setup from `KERNEL_CONTRIBUTIONS.permissions`. `list()` keeps module bootstrap order, and `scope` defaults to `space`. `assertKnown` throws `ModuleError`, because an unknown id in code is a programming error, not a deny.
+- `GET /api/v1/permissions` answers user and API-token actors with `{ modules: [{ module, permissions: [{ id, description, scope }] }] }`. Anonymous callers get 401.
+- **Permission set** (reviewed for consistency: `<namespace>.<resource?>.<verb>`, where the verbs are `read`, `write`, `create`, `delete` and `manage`):
+  - `@blixis/spaces`, organization scope: `organizations.read`, `organizations.settings.write`, `organizations.members.manage`, `spaces.create`.
+  - `@blixis/spaces`, space scope: `spaces.read`, `spaces.settings.write` (includes locales), `spaces.delete`, `spaces.members.manage`.
+  - `@blixis/permissions`, organization scope: `roles.read`, `roles.manage`.
+- **Deviations from the suggested list:**
+  - No `users.*` permissions: `/users/me` is self-service and needs no tenant permission. `users.invite` waits for invitations.
+  - No `auth.tokens.manage`: API tokens are personal (an owner check, not a tenant permission), and API-token actors already can't manage tokens.
+- Modules export their permission definitions as constants (`SPACES_PERMISSIONS`, `ROLE_PERMISSIONS`), so services reference typed ids instead of string literals.
+- In this task the module has no database dependency. Roles (009.002) add the migration and the `requires`.
