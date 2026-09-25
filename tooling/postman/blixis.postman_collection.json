@@ -1600,6 +1600,103 @@
           ]
         },
         {
+          "name": "List entry versions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/entries/{{entryId}}/versions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "entries", "{{entryId}}", "versions"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const versions = pm.response.json().versions; if (versions.length > 0) pm.environment.set('versionId', versions[versions.length - 1].sys.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get entry version",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/entries/{{entryId}}/versions/{{versionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "entries", "{{entryId}}", "versions", "{{versionId}}"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Restore first version",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/entries/{{entryId}}/versions/{{versionId}}/restore",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "entries",
+                "{{entryId}}",
+                "versions",
+                "{{versionId}}",
+                "restore"
+              ]
+            },
+            "description": "Saves the oldest version as a new version; history is never rewritten.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expectedVersion\": {{entryVersion}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) pm.environment.set('entryVersion', pm.response.json().sys.version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Publish entry",
           "request": {
             "method": "POST",

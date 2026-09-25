@@ -114,15 +114,18 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
           { apiId: 'article', name: 'Article' },
         )
         // Entries use `article`, so the content type rows can still delete `page`.
-        const entry = await services.get(CONTENT_SERVICE).create(
-          owner,
-          {
-            organizationId: org.id,
-            spaceId: space.id,
-            environmentId: space.environments[0]?.id ?? '',
-          },
-          { contentType: 'article', fields: {} },
-        )
+        const environment = {
+          organizationId: org.id,
+          spaceId: space.id,
+          environmentId: space.environments[0]?.id ?? '',
+        }
+        const content = services.get(CONTENT_SERVICE)
+        const entry = await content.create(owner, environment, {
+          contentType: 'article',
+          fields: {},
+        })
+        const [firstVersion] = (await content.listVersions(owner, environment, entry.sys.id))
+          .versions
         const actor = await join({ ...ids, owner, services })
         return {
           actor,
@@ -134,6 +137,7 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
             roleId: role.id,
             contentTypeId: contentType.id,
             entryId: entry.sys.id,
+            versionId: firstVersion?.sys.id ?? '',
           },
         }
       })
