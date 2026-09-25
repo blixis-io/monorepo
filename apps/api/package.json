@@ -15,6 +15,7 @@
   "dependencies": {
     "@blixis/auth": "workspace:*",
     "@blixis/cloudflare": "workspace:*",
+    "@blixis/content": "workspace:*",
     "@blixis/contracts": "workspace:*",
     "@blixis/database": "workspace:*",
     "@blixis/events": "workspace:*",

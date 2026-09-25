@@ -83,6 +83,12 @@
       "path": "modules/permissions/tsconfig.test.json"
     },
     {
+      "path": "modules/content"
+    },
+    {
+      "path": "modules/content/tsconfig.test.json"
+    },
+    {
       "path": "apps/api"
     }
   ]

@@ -1,0 +1,54 @@
+{
+  "name": "@blixis/content",
+  "version": "0.0.0",
+  "description": "Blixis content module: content types, components, field types, and entries",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run --root ../.. modules/content"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "@blixis/contracts": "workspace:*",
+    "@blixis/database": "workspace:*",
+    "@blixis/kernel": "workspace:*",
+    "@blixis/spaces": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "@blixis/contracts": "workspace:*",
+    "@blixis/database": "workspace:*",
+    "@blixis/events": "workspace:*",
+    "@blixis/kernel": "workspace:*",
+    "@blixis/permissions": "workspace:*",
+    "@blixis/shared": "workspace:*",
+    "@blixis/spaces": "workspace:*",
+    "@blixis/testing": "workspace:*",
+    "@blixis/tsconfig": "workspace:*",
+    "@blixis/users": "workspace:*",
+    "@types/node": "catalog:",
+    "drizzle-orm": "catalog:",
+    "hono": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "zod": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "modules/content"
+  }
+}
