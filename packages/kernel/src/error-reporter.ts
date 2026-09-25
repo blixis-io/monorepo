@@ -1,3 +1,5 @@
+import { createServiceToken } from '@blixis/contracts'
+
 /** Context attached to a reported error. Never contains secrets or request bodies. */
 export interface ErrorReportContext {
   readonly requestId?: string
@@ -20,3 +22,9 @@ export interface ErrorReportContext {
 export interface ErrorReporter {
   captureException(error: unknown, context: ErrorReportContext): void
 }
+
+/**
+ * The app's {@link ErrorReporter}, when one is configured (`createBlixis({ errorReporter })`).
+ * Lets transports outside the REST error handler, such as GraphQL, report unexpected errors too.
+ */
+export const ERROR_REPORTER = createServiceToken<ErrorReporter>('@blixis/kernel.error-reporter')
