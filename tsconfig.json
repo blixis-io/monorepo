@@ -17,6 +17,9 @@
       "path": "tooling/tenant-isolation"
     },
     {
+      "path": "tooling/smoke"
+    },
+    {
       "path": "packages/shared"
     },
     {
