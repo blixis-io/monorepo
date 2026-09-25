@@ -8,4 +8,5 @@ Every event is listed here with its delivery class. Rows are added by the task t
 
 | Event | Version | Delivery | Owner | Consumers | Defined in |
 |---|---|---|---|---|---|
-| _none yet_ | | | | | |
+| `user.created` | 1 | **transactional** | `@blixis/users` | provisioning (e.g. personal space, plan 008), audit (020) | [`modules/users/src/events.ts`](../../modules/users/src/events.ts) |
+| `user.updated` | 1 | best-effort | `@blixis/users` | caches of display names; losing one only delays a refresh | [`modules/users/src/events.ts`](../../modules/users/src/events.ts) |

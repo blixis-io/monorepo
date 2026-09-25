@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -42,26 +42,33 @@ Create `@blixis/users` with the `users` table, repository, `UserService` behind 
 
 ```text
 modules/users/package.json
-modules/users/tsconfig.json
-modules/users/src/index.ts
-modules/users/src/module.ts
-modules/users/src/domain/user.ts
 modules/users/src/application/user.service.ts
-modules/users/src/infrastructure/user.repository.ts
-modules/users/src/infrastructure/migrations/0001_create_users.sql
-modules/users/src/rest/routes.ts
+modules/users/src/domain/user.test.ts
+modules/users/src/domain/user.ts
 modules/users/src/events.ts
-modules/users/test/
+modules/users/src/index.ts
+modules/users/src/infrastructure/migrations/0001_create_users.ts
+modules/users/src/infrastructure/schema.ts
+modules/users/src/infrastructure/user.repository.ts
+modules/users/src/module.ts
+modules/users/src/rest/routes.ts
+modules/users/test/users.test.ts
+modules/users/tsconfig.json
+modules/users/tsconfig.test.json
 ```
 
 ### Modify
 
 ```text
-apps/api/src/blixis.config.ts
 apps/api/package.json
-tsconfig.json
-docs/contracts/events.md (event decision table)
+apps/api/src/blixis.config.ts
+apps/api/tsconfig.json
+docs/ROADMAP.md
+docs/contracts/events.md
+docs/plans/007-identity-and-authentication/002-users-module.md
+docs/plans/007-identity-and-authentication/_index.md
 pnpm-lock.yaml
+tsconfig.json
 ```
 
 ### Delete
@@ -102,10 +109,10 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `pnpm db:migrate` creates the users table via module contribution.
-- [ ] Creating a user emits `user.created` through the outbox.
-- [ ] `GET /api/v1/users/me` returns 401 for anonymous actors.
-- [ ] Package exports expose no repository.
+- [x] `pnpm db:migrate` creates the users table via module contribution.
+- [x] Creating a user emits `user.created` through the outbox.
+- [x] `GET /api/v1/users/me` returns 401 for anonymous actors.
+- [x] Package exports expose no repository.
 
 ## Validation
 
@@ -117,15 +124,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Layout follows §23 without empty directories.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Layout follows §23 without empty directories.
 
 ## Completion conditions
 
@@ -142,4 +149,20 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **First package under `modules/`.** The §23 layout keeps only what's needed: `domain/` (types, normalization, schemas), `application/` (service), `infrastructure/` (Drizzle schema, repository, migrations), `rest/`.
+- **Package shape:** the platform packages (`@blixis/contracts`, `kernel`, `database`), `drizzle-orm`, and `hono` are **peer dependencies** (packages.md: the host provides them once) and also devDependencies for local builds; `zod` is a dependency. `apps/api` now declares `drizzle-orm` and `hono` directly (autoInstallPeers is off).
+- **Email uniqueness, decided:** a normalized (trimmed, lower-cased) `email text` with `unique` plus a `check (email = lower(btrim(email)))` instead of `citext`. Creating the `citext` extension needs privileges `blixis_migrator` doesn't have, and normalization happens in `emailSchema` anyway.
+- **Users are global** (no tenant columns): identities span organizations, and membership comes in plan 008. This is an explicit exception to ADR 0007 point 4.
+- **Migration as `.ts`** (`0001_create_users.ts`) instead of `.sql`. Node tooling can't import `.sql`, and the migrations convention uses `defineMigration` modules.
+- **`UserService`:**
+  - `getById` (throws `NotFoundError`), `findById`, `findByEmail` (normalizes), `create`, `updateProfile`, `disable`.
+  - `create` validates, inserts, and emits the transactional `user.created` **in the caller's transaction** when one is given (sign-up in 007.003 creates user and credentials atomically); otherwise in its own `withTransaction`.
+  - The unique violation is mapped to `ConflictError('A user with this email already exists')`.
+  - `updateProfile`/`disable` emit best-effort `user.updated` with `changed` fields.
+- **Routes:** `GET/PATCH /api/v1/users/me`. `user` actors act as themselves, `apiToken` actors as their owner (scopes enforced in plan 009), and everything else → `401`. Handlers only call the service.
+- **Events** registered in `docs/contracts/events.md` (`user.created` transactional, `user.updated` best-effort).
+- **Tests:**
+  - 2 domain unit tests (normalization, validation);
+  - 6 Postgres integration/API tests (create + event, case-insensitive duplicate → 409, create inside a caller transaction rolls back, update/disable events, `/users/me` for user and token actors, anonymous → 401, invalid → 400).
+  - Workers-pool API tests aren't possible with `pg` (known issue); the Node pool covers them via `createTestBlixis`.
+- **API:** `usersModule()` registered; bundle 346 KiB gzip; the local `db:migrate` applied `@blixis/users 0001_create_users`. **Staging needs `db:migrate` before the next deploy.**

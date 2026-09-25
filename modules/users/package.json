@@ -1,0 +1,48 @@
+{
+  "name": "@blixis/users",
+  "version": "0.0.0",
+  "description": "Blixis users module: user records, profiles, and the USER_SERVICE other modules build on",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run --root ../.. modules/users"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "@blixis/contracts": "workspace:*",
+    "@blixis/database": "workspace:*",
+    "@blixis/kernel": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "@blixis/contracts": "workspace:*",
+    "@blixis/database": "workspace:*",
+    "@blixis/events": "workspace:*",
+    "@blixis/kernel": "workspace:*",
+    "@blixis/testing": "workspace:*",
+    "@blixis/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "drizzle-orm": "catalog:",
+    "hono": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "modules/users"
+  }
+}

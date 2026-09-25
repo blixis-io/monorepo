@@ -60,7 +60,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `completed` | 7/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `completed` | 8/8 | 004 |
 | [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `completed` | 7/7 | 005 |
-| [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `in-progress` | 1/6 | 006 |
+| [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `in-progress` | 2/6 | 006 |
 | [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `not-started` | 0/6 | 007 |
 | [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `not-started` | 0/5 | 008 |
 | [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `not-started` | 0/5 | 009 |
@@ -241,14 +241,14 @@ Builds `@blixis/events` (event registry, in-process bus, transactional outbox, i
 
 #### 007 — Identity & Authentication
 
-Status: `in-progress` · Progress: 1/6 · Scope: MVP  
+Status: `in-progress` · Progress: 2/6 · Scope: MVP  
 Plan: [007-identity-and-authentication/_index.md](./plans/007-identity-and-authentication/_index.md)  
 Depends on: [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md)
 
 Decides the authentication approach (ADR), then builds `@blixis/users` (user records, `USER_SERVICE`, user events) and `@blixis/auth` (password sign-up/sign-in, Postgres-backed sessions, personal API tokens, actor resolution for the kernel), with login rate limiting and CSRF protection for cookie sessions.
 
 - [x] [007.001 — Select the authentication approach](./plans/007-identity-and-authentication/001-select-authentication-approach.md)
-- [ ] [007.002 — Create the users module](./plans/007-identity-and-authentication/002-users-module.md)
+- [x] [007.002 — Create the users module](./plans/007-identity-and-authentication/002-users-module.md)
 - [ ] [007.003 — Implement sign-up, sign-in, sign-out, and sessions](./plans/007-identity-and-authentication/003-auth-module-sessions.md)
 - [ ] [007.004 — Resolve actors from sessions and bearer tokens](./plans/007-identity-and-authentication/004-actor-resolution.md)
 - [ ] [007.005 — Implement personal API tokens](./plans/007-identity-and-authentication/005-personal-api-tokens.md)

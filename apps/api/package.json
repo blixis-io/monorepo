@@ -18,13 +18,15 @@
     "@blixis/database": "workspace:*",
     "@blixis/events": "workspace:*",
     "@blixis/kernel": "workspace:*",
+    "@blixis/users": "workspace:*",
     "@sentry/cloudflare": "catalog:",
+    "drizzle-orm": "catalog:",
+    "hono": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@blixis/tsconfig": "workspace:*",
     "@cloudflare/vitest-pool-workers": "catalog:",
-    "drizzle-orm": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "wrangler": "catalog:"
