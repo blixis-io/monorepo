@@ -88,6 +88,7 @@ describe.skipIf(!databaseTestsEnabled())('users module', () => {
           { userId: user.id, changed: ['status'] },
         ],
       )
+      expect(events.expectEvent('user.disabled').payload).toEqual({ userId: user.id })
       await expect(
         users((s) => s.getById('0199a3f2-7c1e-7b3a-9f10-6d2c5e8a41b0')),
       ).rejects.toBeInstanceOf(NotFoundError)

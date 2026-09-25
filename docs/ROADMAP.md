@@ -60,7 +60,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `completed` | 7/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `completed` | 8/8 | 004 |
 | [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `completed` | 7/7 | 005 |
-| [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `in-progress` | 4/6 | 006 |
+| [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `in-progress` | 5/6 | 006 |
 | [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `not-started` | 0/6 | 007 |
 | [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `not-started` | 0/5 | 008 |
 | [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `not-started` | 0/5 | 009 |
@@ -241,7 +241,7 @@ Builds `@blixis/events` (event registry, in-process bus, transactional outbox, i
 
 #### 007 — Identity & Authentication
 
-Status: `in-progress` · Progress: 4/6 · Scope: MVP  
+Status: `in-progress` · Progress: 5/6 · Scope: MVP  
 Plan: [007-identity-and-authentication/_index.md](./plans/007-identity-and-authentication/_index.md)  
 Depends on: [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md)
 
@@ -251,7 +251,7 @@ Decides the authentication approach (ADR), then builds `@blixis/users` (user rec
 - [x] [007.002 — Create the users module](./plans/007-identity-and-authentication/002-users-module.md)
 - [x] [007.003 — Implement sign-up, sign-in, sign-out, and sessions](./plans/007-identity-and-authentication/003-auth-module-sessions.md)
 - [x] [007.004 — Resolve actors from sessions and bearer tokens](./plans/007-identity-and-authentication/004-actor-resolution.md)
-- [ ] [007.005 — Implement personal API tokens](./plans/007-identity-and-authentication/005-personal-api-tokens.md)
+- [x] [007.005 — Implement personal API tokens](./plans/007-identity-and-authentication/005-personal-api-tokens.md)
 - [ ] [007.006 — Add login throttling, CSRF protection, and auth security tests](./plans/007-identity-and-authentication/006-auth-hardening-and-tests.md)
 
 #### 008 — Tenancy: Organizations, Spaces & Memberships

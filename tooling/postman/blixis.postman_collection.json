@@ -406,6 +406,115 @@
       ]
     },
     {
+      "name": "API tokens",
+      "description": "Personal API tokens (`blx_pat_…`) for scripts and CI. Managing them needs a signed-in session — an API token cannot create or revoke tokens.",
+      "item": [
+        {
+          "name": "Create API token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/tokens",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "tokens"]
+            },
+            "description": "Returns the plaintext token **once**. Stored as `apiToken`; use it as `Bearer {{apiToken}}` in scripts.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman\",\n  \"expiresInDays\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  // Shown only once: copy it now if you need it outside Postman.",
+                  "  pm.environment.set('apiToken', body.token);",
+                  "  pm.environment.set('apiTokenId', body.id);",
+                  "  pm.test('plaintext token returned once', () => pm.expect(body.token).to.match(/^blx_pat_/));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List API tokens",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/tokens",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "tokens"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('lists tokens without secrets', () => {",
+                  "  const tokens = pm.response.json().tokens;",
+                  "  pm.expect(tokens).to.be.an('array');",
+                  "  tokens.forEach((t) => pm.expect(t).to.not.have.property('token'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Revoke API token",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/tokens/{{apiTokenId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "tokens", "{{apiTokenId}}"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 204', () => pm.response.to.have.status(204));",
+                  "pm.environment.unset('apiToken');",
+                  "pm.environment.unset('apiTokenId');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Sign out",
       "description": "Last in the run order: revokes the refresh-token family and clears the stored tokens.",
       "item": [

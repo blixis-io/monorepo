@@ -14,5 +14,5 @@ export {
   type User,
   type UserStatus,
 } from './domain/user.ts'
-export { userCreated, userUpdated } from './events.ts'
+export { userCreated, userDisabled, userUpdated } from './events.ts'
 export { usersModule } from './module.ts'

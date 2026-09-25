@@ -1,7 +1,13 @@
-import { BLIXIS_CAPABILITIES, EVENT_BUS, REQUEST_CONTEXT } from '@blixis/contracts'
+import { BLIXIS_CAPABILITIES, EVENT_BUS, REQUEST_CONTEXT, subscribe } from '@blixis/contracts'
 import { DATABASE } from '@blixis/database'
-import { ACTOR_RESOLVERS, BACKGROUND_HANDLERS, defineModule } from '@blixis/kernel'
-import { USER_SERVICE } from '@blixis/users'
+import {
+  ACTOR_RESOLVERS,
+  BACKGROUND_HANDLERS,
+  defineModule,
+  KERNEL_CONTRIBUTIONS,
+} from '@blixis/kernel'
+import { USER_SERVICE, userDisabled } from '@blixis/users'
+import { API_TOKEN_SERVICE, createApiTokenService } from './application/api-tokens.ts'
 import {
   AUTH_SERVICE,
   type AuthPolicy,
@@ -9,8 +15,9 @@ import {
   DEFAULT_AUTH_POLICY,
 } from './application/auth.service.ts'
 import { AUTH_CONFIG } from './application/config.ts'
-import { jwtActorResolver } from './application/resolvers.ts'
+import { apiTokenActorResolver, jwtActorResolver } from './application/resolvers.ts'
 import { createAuth } from './infrastructure/migrations/0001_create_auth.ts'
+import { createApiTokens } from './infrastructure/migrations/0002_create_api_tokens.ts'
 import { refreshTokenRepository } from './infrastructure/repositories.ts'
 import { authRoutes } from './rest/routes.ts'
 
@@ -35,7 +42,14 @@ export const authModule = defineModule((options: AuthModuleOptions) => ({
     requires: { '@blixis/users': '>=0.0.0' },
     requiresCapabilities: [BLIXIS_CAPABILITIES.database, BLIXIS_CAPABILITIES.events],
   },
-  migrations: [createAuth],
+  migrations: [createAuth, createApiTokens],
+  // Disabled users lose every credential immediately (refresh families and API tokens).
+  events: [
+    subscribe(userDisabled, 'revoke-credentials', async (envelope, context) => {
+      await context.services.get(API_TOKEN_SERVICE).revokeAll(envelope.payload.userId)
+      await context.services.get(AUTH_SERVICE).revokeAllSessions(envelope.payload.userId)
+    }),
+  ],
   setup(ctx) {
     const policy: AuthPolicy = { ...DEFAULT_AUTH_POLICY, ...options }
     ctx.services.provideFactory(
@@ -54,7 +68,22 @@ export const authModule = defineModule((options: AuthModuleOptions) => ({
       },
       { scope: 'request' },
     )
+    const knownPermissions = new Set(
+      ctx.services.get(KERNEL_CONTRIBUTIONS).permissions.map(({ value }) => value.id as string),
+    )
+    ctx.services.provideFactory(
+      API_TOKEN_SERVICE,
+      // No REQUEST_CONTEXT: this service also runs inside actor resolution.
+      ({ services }) =>
+        createApiTokenService({
+          db: services.get(DATABASE),
+          knownPermissions,
+          now: () => new Date(),
+        }),
+      { scope: 'request' },
+    )
     ctx.services.get(ACTOR_RESOLVERS).register(jwtActorResolver)
+    ctx.services.get(ACTOR_RESOLVERS).register(apiTokenActorResolver)
     ctx.services
       .get(BACKGROUND_HANDLERS)
       .onScheduled(options.cron ?? '* * * * *', (_event, background) =>

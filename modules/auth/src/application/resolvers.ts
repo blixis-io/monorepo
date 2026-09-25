@@ -1,6 +1,7 @@
 import { type Actor, ANONYMOUS_ACTOR, UnauthorizedError } from '@blixis/contracts'
 import type { ActorResolverEntry } from '@blixis/kernel'
 import { verifyAccessToken } from '../domain/jwt.ts'
+import { API_TOKEN_PREFIX, API_TOKEN_SERVICE } from './api-tokens.ts'
 import { ACCESS_TOKEN_AUDIENCE } from './auth.service.ts'
 import { AUTH_CONFIG, signingKeysFor } from './config.ts'
 
@@ -52,5 +53,18 @@ export const jwtActorResolver: ActorResolverEntry = {
       }
       throw error
     }
+  },
+}
+
+/**
+ * Resolves `Authorization: Bearer blx_pat_…` to an `apiToken` actor (ADR 0009 §7): hash lookup,
+ * revoked/expired tokens → 401. Uses only the database (runs before the request context).
+ */
+export const apiTokenActorResolver: ActorResolverEntry = {
+  name: 'api-token',
+  async resolve(request, services): Promise<Actor | undefined> {
+    const token = bearerToken(request)
+    if (token === undefined || !token.startsWith(API_TOKEN_PREFIX)) return undefined
+    return services.get(API_TOKEN_SERVICE).authenticate(token)
   },
 }
