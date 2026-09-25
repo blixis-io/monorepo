@@ -60,7 +60,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `completed` | 7/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `completed` | 8/8 | 004 |
 | [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `completed` | 7/7 | 005 |
-| [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `not-started` | 0/6 | 006 |
+| [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `in-progress` | 1/6 | 006 |
 | [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `not-started` | 0/6 | 007 |
 | [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `not-started` | 0/5 | 008 |
 | [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `not-started` | 0/5 | 009 |
@@ -241,13 +241,13 @@ Builds `@blixis/events` (event registry, in-process bus, transactional outbox, i
 
 #### 007 — Identity & Authentication
 
-Status: `not-started` · Progress: 0/6 · Scope: MVP  
+Status: `in-progress` · Progress: 1/6 · Scope: MVP  
 Plan: [007-identity-and-authentication/_index.md](./plans/007-identity-and-authentication/_index.md)  
 Depends on: [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md)
 
 Decides the authentication approach (ADR), then builds `@blixis/users` (user records, `USER_SERVICE`, user events) and `@blixis/auth` (password sign-up/sign-in, Postgres-backed sessions, personal API tokens, actor resolution for the kernel), with login rate limiting and CSRF protection for cookie sessions.
 
-- [ ] [007.001 — Select the authentication approach](./plans/007-identity-and-authentication/001-select-authentication-approach.md)
+- [x] [007.001 — Select the authentication approach](./plans/007-identity-and-authentication/001-select-authentication-approach.md)
 - [ ] [007.002 — Create the users module](./plans/007-identity-and-authentication/002-users-module.md)
 - [ ] [007.003 — Implement sign-up, sign-in, sign-out, and sessions](./plans/007-identity-and-authentication/003-auth-module-sessions.md)
 - [ ] [007.004 — Resolve actors from sessions and bearer tokens](./plans/007-identity-and-authentication/004-actor-resolution.md)
@@ -572,7 +572,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | D7 | Test database strategy | [005.006](./plans/005-database-foundation/006-test-database-strategy.md) | Docker Postgres locally and in CI; Neon branches for staging smoke | open |
 | D8 | IDs, tenancy columns, module schema namespacing, cross-module foreign keys | [005.007](./plans/005-database-foundation/007-ids-tenancy-and-schema-conventions.md) | **UUIDv7 (plain, app-generated); tenant columns + fail-closed `tenantScope`; schema per module; FKs only toward `meta.requires`; no RLS in MVP** ([ADR 0007](./decisions/0007-ids-and-tenancy-conventions.md)) | decided |
 | D9 | Outbox dispatch trigger & retention | [006.005](./plans/006-events-and-async-processing/005-transactional-outbox.md) | **Post-commit `waitUntil` dispatch + 1-minute cron sweep; `SKIP LOCKED` batches; at-least-once; 7-day retention** ([ADR 0008](./decisions/0008-outbox-dispatch.md)) | decided |
-| D10 | Authentication approach (library vs. custom, sessions, hashing on Workers, API tokens, CSRF) | [007.001](./plans/007-identity-and-authentication/001-select-authentication-approach.md) | Decide by spike; Postgres-backed opaque sessions | open |
+| D10 | Authentication approach (library vs. custom, sessions, hashing on Workers, API tokens, CSRF) | [007.001](./plans/007-identity-and-authentication/001-select-authentication-approach.md) | **Custom: EdDSA JWT access tokens (15 min) + rotating hashed refresh tokens (family revocation), scrypt N=2^15, opaque `blx_pat_` API tokens, Origin check on cookie endpoints** ([ADR 0009](./decisions/0009-authentication.md)) | decided |
 | D11 | Email delivery for invitations/password reset | [008.002](./plans/008-tenancy-organizations-and-spaces/002-memberships.md) (deferred) | Add existing users only in MVP | open |
 | D12 | Environments beyond the default `main` | [008.004](./plans/008-tenancy-organizations-and-spaces/004-environments-and-locales.md) | One default environment; `environment_id` columns from day one | open |
 | D13 | Content storage model (JSONB shape, localisation, references, rich text, schema evolution) | [010.001](./plans/010-content-modeling/001-content-storage-design.md) | JSONB keyed by stable field ID and locale | open |

@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 Milestone: Milestone 4 — Identity, tenancy & authorization  
 Roadmap scope: MVP / initial platform  
-Progress: 0/6 tasks completed
+Progress: 1/6 tasks completed
 
 ## Objective
 
@@ -46,7 +46,8 @@ Depends on:
 - **Module boundaries**: `@blixis/auth` depends on `@blixis/users` through `USER_SERVICE` (public token), never through its repository (§2.5).
 - **Actor resolution** is a kernel hook provided by the auth module; transports stay unaware of cookies/tokens.
 - **Secrets never logged**: tokens, passwords, cookies (§35).
-- **Stored credentials are hashed**: passwords with a Workers-feasible KDF; API tokens stored as SHA-256 hashes with a displayable prefix.
+- **Stored credentials are hashed**: passwords with scrypt (ADR 0009); refresh and API tokens stored as SHA-256 hashes, API tokens with a displayable prefix.
+- **Tokens (ADR 0009, owner decision):** short-lived EdDSA-signed JWT access tokens plus rotating opaque refresh tokens with family revocation, instead of the originally planned server-side sessions. Tasks 003 and 004 implement this model; the word "session" in their titles now means a refresh-token family.
 - **Events**: `user.created` is `transactional` (downstream provisioning relies on it); `user.updated` is `best-effort` unless a consumer needs guarantees (record in events decision table).
 
 ## Deliverables
@@ -58,7 +59,7 @@ Depends on:
 
 ## Tasks
 
-- [ ] [001 — Select the authentication approach](./001-select-authentication-approach.md)
+- [x] [001 — Select the authentication approach](./001-select-authentication-approach.md)
 - [ ] [002 — Create the users module](./002-users-module.md)
 - [ ] [003 — Implement sign-up, sign-in, sign-out, and sessions](./003-auth-module-sessions.md)
 - [ ] [004 — Resolve actors from sessions and bearer tokens](./004-actor-resolution.md)
