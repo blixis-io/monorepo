@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,22 +37,25 @@ Add membership storage and `MEMBERSHIP_SERVICE` to `@blixis/users`: organization
 ### Create
 
 ```text
-modules/users/src/domain/membership.ts
 modules/users/src/application/membership.service.ts
-modules/users/src/infrastructure/membership.repository.ts
-modules/users/src/infrastructure/migrations/0002_create_memberships.sql
-modules/users/test/membership.service.test.ts
-modules/spaces/src/rest/member-routes.ts
+modules/users/src/domain/membership.ts
+modules/users/src/infrastructure/migrations/0002_create_memberships.ts
+modules/users/test/memberships.test.ts
 ```
 
 ### Modify
 
 ```text
-modules/users/src/index.ts
-modules/users/src/module.ts
-modules/users/src/events.ts
-modules/spaces/src/module.ts
+docs/ROADMAP.md
 docs/contracts/events.md
+docs/plans/008-tenancy-organizations-and-spaces/002-memberships.md
+docs/plans/008-tenancy-organizations-and-spaces/_index.md
+modules/users/package.json
+modules/users/src/events.ts
+modules/users/src/index.ts
+modules/users/src/infrastructure/schema.ts
+modules/users/src/module.ts
+pnpm-lock.yaml
 ```
 
 ### Delete
@@ -76,8 +79,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Removing the last organization owner fails with `CONFLICT`.
-- [ ] `@blixis/users` has no dependency on `@blixis/spaces` (lint/boundary check passes).
+- [x] Removing the last organization owner fails with `CONFLICT`.
+- [x] `@blixis/users` has no dependency on `@blixis/spaces` (lint/boundary check passes).
 
 ## Validation
 
@@ -88,15 +91,15 @@ pnpm lint
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Membership invariants enforced in the service, not in routes.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Membership invariants enforced in the service, not in routes.
 
 ## Completion conditions
 
@@ -113,4 +116,15 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Table `users.memberships`** (migration `@blixis/users 0002_create_memberships`): `space_id` null = organization level.
+  - `unique nulls not distinct (user_id, organization_id, space_id)`. A plain unique constraint treats NULLs as distinct and would allow duplicate organization memberships (Postgres 15+; Neon runs 18).
+  - FK only to `users.users`. **No FK to `spaces.*`**: users must not depend on spaces (no cycle); tenant ids are validated by the spaces services that create memberships (008.003).
+- **Roles (placeholder until plan 009, stored as `role_key`):** organization `owner | admin | member`, space `admin | editor | viewer`. They are validated per level (a space membership can't be `owner`).
+- **`MEMBERSHIP_SERVICE`:**
+  - `addOrganizationMember` (optionally in the caller's transaction, so space/org creation can add the owner atomically in 008.003), `addSpaceMember`;
+  - `listMembers(scope)` (exact level), `getMembership`, `listMembershipsForUser`, `getSpaceAccess(userId, org, space)` → `{ organizationRole, spaceRole }` (for tenant resolution, 008.005);
+  - `changeRole` and `remove`: scoped (a wrong organization/space → 404).
+- **"At least one owner" invariant:** `changeRole` away from owner and `remove` of an owner run in a transaction that locks the target row and the organization's owner rows (`SELECT … FOR UPDATE`) and require another owner. Two concurrent removals of the last two owners serialize: exactly one succeeds (tested).
+- **Events:** `membership.created` / `membership.removed` (best-effort); `user.invited` reserved; all registered in `docs/contracts/events.md`.
+- **Deviation:** the member-management **routes** (`/organizations/:orgId/members`, space members, add-by-email) are built in 008.003 with the organization/space routes, because they need the same tenant verification (the caller's membership and the space belonging to the organization).
+- **Tests:** 4 Postgres tests (org and space membership + NULLS NOT DISTINCT duplicate, per-level role validation, the owner invariant + scoped NotFound, concurrent last-owner removal). Local `db:migrate` applied `0002_create_memberships`.

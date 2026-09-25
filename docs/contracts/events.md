@@ -9,6 +9,9 @@ Every event is listed here with its delivery class. Rows are added by the task t
 | Event | Version | Delivery | Owner | Consumers | Defined in |
 |---|---|---|---|---|---|
 | `user.created` | 1 | **transactional** | `@blixis/users` | provisioning (e.g. personal space, plan 008), audit (020) | [`modules/users/src/events.ts`](../../modules/users/src/events.ts) |
+| `membership.created` | 1 | best-effort | `@blixis/users` | audit (020), notifications | [`modules/users/src/events.ts`](../../modules/users/src/events.ts) |
+| `membership.removed` | 1 | best-effort | `@blixis/users` | audit (020), cache invalidation of access | [`modules/users/src/events.ts`](../../modules/users/src/events.ts) |
+| `user.invited` | — | *reserved* | `@blixis/users` | email invitations (deferred until an email provider is chosen) | — |
 | `organization.created` | 1 | best-effort | `@blixis/spaces` | audit (020) | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |
 | `space.created` | 1 | **transactional** | `@blixis/spaces` | provisioning: content defaults (010), delivery keys (012), search indexes | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |
 | `space.updated` | 1 | best-effort | `@blixis/spaces` | caches of space names | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |

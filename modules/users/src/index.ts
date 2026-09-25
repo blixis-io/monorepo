@@ -4,7 +4,23 @@
  *
  * @packageDocumentation
  */
+export {
+  createMembershipService,
+  MEMBERSHIP_SERVICE,
+  type MembershipService,
+} from './application/membership.service.ts'
 export { createUserService, USER_SERVICE, type UserService } from './application/user.service.ts'
+export {
+  type Membership,
+  type MembershipScope,
+  ORGANIZATION_ROLES,
+  type OrganizationRole,
+  organizationRoleSchema,
+  SPACE_ROLES,
+  type SpaceAccess,
+  type SpaceRole,
+  spaceRoleSchema,
+} from './domain/membership.ts'
 export {
   type CreateUserInput,
   displayNameSchema,
@@ -14,5 +30,11 @@ export {
   type User,
   type UserStatus,
 } from './domain/user.ts'
-export { userCreated, userDisabled, userUpdated } from './events.ts'
+export {
+  membershipCreated,
+  membershipRemoved,
+  userCreated,
+  userDisabled,
+  userUpdated,
+} from './events.ts'
 export { usersModule } from './module.ts'

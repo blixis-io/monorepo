@@ -32,6 +32,7 @@
     "@blixis/database": "workspace:*",
     "@blixis/events": "workspace:*",
     "@blixis/kernel": "workspace:*",
+    "@blixis/shared": "workspace:*",
     "@blixis/testing": "workspace:*",
     "@blixis/tsconfig": "workspace:*",
     "@types/node": "catalog:",

@@ -33,3 +33,32 @@ export const userDisabled = defineEvent({
   schema: z.object({ userId: z.string() }),
   description: 'A user was disabled; their credentials must stop working.',
 })
+
+/** A user was added to an organization or space. Best-effort (audit, notifications). */
+export const membershipCreated = defineEvent({
+  type: 'membership.created',
+  version: 1,
+  delivery: 'best-effort',
+  schema: z.object({
+    membershipId: z.string(),
+    userId: z.string(),
+    organizationId: z.string(),
+    spaceId: z.string().nullable(),
+    role: z.string(),
+  }),
+  description: 'A user was added to an organization or space.',
+})
+
+/** A membership was removed. Best-effort. */
+export const membershipRemoved = defineEvent({
+  type: 'membership.removed',
+  version: 1,
+  delivery: 'best-effort',
+  schema: z.object({
+    membershipId: z.string(),
+    userId: z.string(),
+    organizationId: z.string(),
+    spaceId: z.string().nullable(),
+  }),
+  description: 'A user was removed from an organization or space.',
+})
