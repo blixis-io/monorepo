@@ -21,6 +21,8 @@ Related: [Environments](./environments.md) · [Cloudflare Workers](./cloudflare.
 | `SENTRY_DSN` | var | no | unset (Sentry off) | project DSN | project DSN | Sentry ingest URL for `private-m57/blixis-api`. Not a secret. Unset = no events |
 | `SENTRY_RELEASE` | var | no | unset | unset | `blixis-api@<version>` (set by the deploy job) | Sentry release. Unset = the `CF_VERSION_METADATA` version id |
 | `HYPERDRIVE` | binding (Hyperdrive) | yes | Docker Postgres (`localConnectionString`) | `blixis-staging` | `blixis-production` | Postgres via Hyperdrive, read by `databaseModule()`. See [Database](./database.md) |
+| `AUTH_SIGNING_KEYS` | **secret** | for auth routes | `.dev.vars` or `--var` (`pnpm auth:generate-key`) | per-env secret | per-env secret | JSON array of Ed25519 private JWKs; the first signs access tokens, all verify (ADR 0009). Missing → only `/auth/*` fails |
+| `AUTH_ALLOWED_ORIGINS` | var | no | `http://localhost:5173` | `""` (no browser admin yet) | `""` | Comma-separated origins allowed for cookie-based refresh/sign-out (CSRF) |
 | `EVENTS` | binding (Queue producer) | yes | `blixis-events-local` (simulated) | `blixis-events-staging` | `blixis-events-production` | Events queue. Used only through `@blixis/events` (`eventsQueueModule()` → `QUEUE_SENDER`), never directly (§15) |
 | `CF_VERSION_METADATA` | binding (version metadata) | — | ✓ | ✓ | ✓ | Id/tag of the running Worker version; the release fallback |
 

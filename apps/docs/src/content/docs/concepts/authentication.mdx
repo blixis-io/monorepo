@@ -1,0 +1,57 @@
+---
+title: Authentication
+description: Sign-in, JWT access tokens, rotating refresh tokens, and how your routes see the signed-in user.
+sidebar:
+  order: 10
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+`@blixis/auth` answers **who is calling** (ADR 0009). What they may do is authorization, which is a separate module (roadmap plan 009).
+
+## How clients authenticate
+
+| Step | Endpoint | Result |
+|---|---|---|
+| Sign in | `POST /api/v1/auth/sign-in` with `{ email, password }` | An **access token** (JWT, 15 min) in the body. The **refresh token** comes in an `HttpOnly` cookie, or in the body with `"tokenDelivery": "body"` for non-browser clients |
+| Call the API | `Authorization: Bearer <accessToken>` | Your routes see a `user` actor |
+| Refresh | `POST /api/v1/auth/refresh` (cookie, or `{ refreshToken }`) | A new access token plus a **new** refresh token. The old refresh token is used up |
+| Sign out | `POST /api/v1/auth/sign-out` | The refresh-token family is revoked and the cookie cleared |
+| Public keys | `GET /api/v1/auth/jwks` | Ed25519 public keys, for verifying tokens elsewhere |
+
+- **Refresh tokens rotate on every use.** If an old, already-used refresh token shows up again, Blixis assumes it was stolen and revokes the whole family, which signs that device out.
+- **Access tokens can't be revoked.** They expire after at most 15 minutes, so keep them in memory, never in `localStorage`.
+- **Cookie-based refresh and sign-out** only accept requests from allowed origins (`AUTH_ALLOWED_ORIGINS`). This protects them against CSRF.
+
+<Aside type="note">
+Public sign-up is **off** by default (`authModule({ allowSignUp: true })` turns it on). Create the first user with the CLI:
+
+```bash
+read -rs "AUTH_PASSWORD?Password: "; export AUTH_PASSWORD; echo
+DATABASE_URL=… pnpm auth:create-user --email you@example.com --name "Your Name"
+unset AUTH_PASSWORD
+```
+</Aside>
+
+## Passwords
+
+Passwords must be 12 to 256 characters and not on a list of common passwords. There are no composition rules; this follows NIST SP 800-63B. They are hashed with **scrypt** (32 MiB, about 90 ms). Error messages never reveal whether an email exists, and an unknown email takes as long to reject as a wrong password.
+
+## In your module
+
+Read the caller from the request context. Never read tokens or cookies yourself:
+
+```ts
+routes.get('/mine', async (c) => {
+  const actor = c.var.requestContext.actor
+  if (actor.type !== 'user') throw new UnauthorizedError('Sign in first')
+  return c.json(await listFor(actor.userId))
+})
+```
+
+Profiles live in `@blixis/users`: `c.var.services.get(USER_SERVICE).getById(actor.userId)`, or `GET /api/v1/users/me`.
+
+## Operations
+
+- **Signing keys:** the `AUTH_SIGNING_KEYS` Worker secret holds a JSON array of Ed25519 private JWKs. `pnpm auth:generate-key` creates one. To rotate, put a new key first and remove the old one after 15 minutes.
+- **Cleanup:** expired refresh tokens are deleted by the minute cron.

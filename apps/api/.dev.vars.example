@@ -1,6 +1,8 @@
 # Local secrets for `wrangler dev`. Copy to .dev.vars (git-ignored) and fill in.
 # Variables are documented in docs/operations/configuration.md.
-# (No secrets are required yet.)
+
+# Access-token signing keys (ADR 0009). Generate with: pnpm auth:generate-key
+# AUTH_SIGNING_KEYS=[{"kty":"OKP","crv":"Ed25519","d":"…","x":"…","kid":"local-1"}]
 
 # Optional: send local errors to Sentry (environment "local").
 # SENTRY_DSN=https://ade334947d3608d7b3e28b18f68f0431@o4512140257918976.ingest.de.sentry.io/4512141485408336

@@ -15,7 +15,9 @@
   // Local development (wrangler dev).
   "vars": {
     "BLIXIS_ENV": "local",
-    "LOG_LEVEL": "debug"
+    "LOG_LEVEL": "debug",
+    // Origins allowed to use cookie-based refresh/sign-out (ADR 0009); comma-separated.
+    "AUTH_ALLOWED_ORIGINS": "http://localhost:5173"
   },
   // Outbox sweep and retention (ADR 0008).
   "triggers": { "crons": ["* * * * *"] },
@@ -52,6 +54,8 @@
       "vars": {
         "BLIXIS_ENV": "staging",
         "LOG_LEVEL": "info",
+        // No browser admin yet (plan 019); add its origin here.
+        "AUTH_ALLOWED_ORIGINS": "",
         // Sentry project private-m57/blixis-api (a DSN is not a secret).
         "SENTRY_DSN": "https://ade334947d3608d7b3e28b18f68f0431@o4512140257918976.ingest.de.sentry.io/4512141485408336"
       },
@@ -79,6 +83,7 @@
       "vars": {
         "BLIXIS_ENV": "production",
         "LOG_LEVEL": "info",
+        "AUTH_ALLOWED_ORIGINS": "",
         "SENTRY_DSN": "https://ade334947d3608d7b3e28b18f68f0431@o4512140257918976.ingest.de.sentry.io/4512141485408336"
       },
       // Hyperdrive blixis-production → Neon branch production, role blixis_app (DML only).

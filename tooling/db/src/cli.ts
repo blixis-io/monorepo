@@ -2,6 +2,7 @@
 import path from 'node:path'
 import process from 'node:process'
 import { migrationStatus, runMigrations } from '@blixis/database/migrations'
+import { createUser, generateSigningKeyJson } from './auth.ts'
 import { loadMigrations } from './load.ts'
 import { scaffoldMigration } from './scaffold.ts'
 
@@ -9,6 +10,8 @@ const USAGE = `Usage:
   blixis-db migrate [--config <file>]   apply pending migrations (DATABASE_URL, migration role)
   blixis-db status  [--config <file>]   show applied, pending, and blocking migrations
   blixis-db new <module-dir> <name>     scaffold <module-dir>/src/migrations/NNNN_<name>.ts
+  blixis-db create-user --email <e> --name <n>   create a user; password from AUTH_PASSWORD (DATABASE_URL)
+  blixis-db generate-signing-key [kid]           print a new AUTH_SIGNING_KEYS value
 
 --config defaults to apps/api/src/blixis.config.ts (the API Worker's module list).`
 
@@ -73,6 +76,31 @@ async function main(args: string[]): Promise<number> {
       for (const row of plan.unknown) console.log(`unknown  ${row.module} ${row.id}`)
       for (const problem of plan.problems) console.error(`blocked  ${problem}`)
       return plan.problems.length > 0 ? 1 : 0
+    }
+    case 'create-user': {
+      const email = option(rest, '--email')
+      const displayName = option(rest, '--name')
+      const password = process.env['AUTH_PASSWORD']
+      if (email === undefined || displayName === undefined) break
+      if (password === undefined || password === '') {
+        throw new Error(
+          'Set AUTH_PASSWORD (e.g. read -rs "AUTH_PASSWORD?Password: "; export AUTH_PASSWORD)',
+        )
+      }
+      const user = await createUser({
+        configPath: config,
+        databaseUrl: databaseUrl(),
+        email,
+        displayName,
+        password,
+      })
+      console.log(`created user ${user.email} (${user.id})`)
+      return 0
+    }
+    case 'generate-signing-key': {
+      const kid = rest[0] ?? `key-${new Date().toISOString().slice(0, 10)}`
+      console.log(await generateSigningKeyJson(kid))
+      return 0
     }
     case 'new': {
       const [moduleDir, name] = rest
