@@ -4,6 +4,7 @@
  * @packageDocumentation
  */
 
+export { ACTOR_RESOLVERS, type ActorResolverEntry, type ActorResolvers } from './actors.ts'
 export {
   BACKGROUND_HANDLERS,
   type BackgroundContext,

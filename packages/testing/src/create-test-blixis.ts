@@ -1,6 +1,12 @@
 import type { Actor, BlixisModule, ServiceRegistry } from '@blixis/contracts'
 import { DATABASE, type Database } from '@blixis/database'
-import { type BlixisApp, createBlixis, type ServiceOverride, serviceOverride } from '@blixis/kernel'
+import {
+  ACTOR_RESOLVERS,
+  type BlixisApp,
+  createBlixis,
+  type ServiceOverride,
+  serviceOverride,
+} from '@blixis/kernel'
 import { asAnonymous, encodeTestActor, TEST_ACTOR_HEADER } from './actors.ts'
 import { type CapturingLogger, createCapturingLogger } from './logger.ts'
 
@@ -9,7 +15,10 @@ export interface CreateTestBlixisOptions {
   readonly modules: readonly BlixisModule[]
   /** Replace services (e.g. with fakes) before any module's `setup` runs. */
   readonly overrides?: readonly ServiceOverride[]
-  /** Default actor of every request. Defaults to anonymous. */
+  /**
+   * Default actor of every request. Defaults to anonymous — but requests carrying an
+   * `Authorization` header then go through the app's real actor resolvers.
+   */
   readonly actor?: Actor
   /**
    * Serve `DATABASE` from this database (usually `createTestDatabase(...)` from
@@ -55,9 +64,13 @@ export async function createTestBlixis(options: CreateTestBlixisOptions): Promis
       ...(options.overrides ?? []),
       ...(options.database === undefined ? [] : [serviceOverride(DATABASE, options.database.db)]),
     ],
-    actorResolver: (request) => {
+    // Test actor (per request or default) wins; otherwise the app's real resolver chain runs,
+    // so requests with real credentials (e.g. `Authorization: Bearer …`) are authenticated too.
+    actorResolver: (request, services) => {
       const header = request.headers.get(TEST_ACTOR_HEADER)
-      return header === null ? defaultActor : (JSON.parse(header) as Actor)
+      if (header !== null) return JSON.parse(header) as Actor
+      if (options.actor !== undefined || !request.headers.has('authorization')) return defaultActor
+      return services.get(ACTOR_RESOLVERS).resolve(request, services)
     },
   })
   await app.ready()

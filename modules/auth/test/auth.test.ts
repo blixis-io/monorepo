@@ -219,4 +219,55 @@ describe.skipIf(!databaseTestsEnabled())('auth flows (Postgres)', () => {
     expect((await t.request('/api/v1/auth/me', { actor: asUser(user.id) })).status).toBe(200)
     expect((await t.request('/api/v1/auth/me')).status).toBe(401)
   })
+
+  describe('actor resolution (Authorization: Bearer)', () => {
+    const bearer = (token: string) => ({ authorization: `Bearer ${token}` })
+
+    it('authenticates requests with an access token — no test actor involved', async () => {
+      const { t } = await setup()
+      const { accessToken, user } = (await (await signUp(t)).json()) as {
+        accessToken: string
+        user: { id: string }
+      }
+      const me = await t.request('/api/v1/users/me', { headers: bearer(accessToken) })
+      expect(me.status).toBe(200)
+      expect(((await me.json()) as { id: string }).id).toBe(user.id)
+      expect((await t.request('/api/v1/auth/me', { headers: bearer(accessToken) })).status).toBe(
+        200,
+      )
+    })
+
+    it('rejects tampered, garbage, and not-yet-supported API tokens with 401 (never anonymous)', async () => {
+      const { t } = await setup()
+      const { accessToken } = (await (await signUp(t)).json()) as { accessToken: string }
+      const [h, p, sig] = accessToken.split('.')
+      const tampered = `${h}.${p}.${sig?.slice(0, -2)}AA`
+      for (const token of [tampered, 'not-a-jwt', 'blx_pat_abc']) {
+        expect((await t.request('/api/v1/users/me', { headers: bearer(token) })).status).toBe(401)
+      }
+      expect(
+        (await t.request('/api/v1/users/me', { headers: { authorization: 'Basic YTpi' } })).status,
+      ).toBe(401)
+    })
+
+    it('ignores a stale access token on public auth routes so clients can always refresh', async () => {
+      const { t } = await setup()
+      const body = (await (
+        await post(t, 'sign-up', {
+          email: 'z@example.com',
+          displayName: 'Z',
+          password: PASSWORD,
+          tokenDelivery: 'body',
+        })
+      ).json()) as { refreshToken: string }
+      const stale = bearer('expired.or.garbage')
+      expect((await post(t, 'refresh', { refreshToken: body.refreshToken }, stale)).status).toBe(
+        200,
+      )
+      expect(
+        (await post(t, 'sign-in', { email: 'z@example.com', password: PASSWORD }, stale)).status,
+      ).toBe(200)
+      expect((await t.request('/api/v1/auth/me', { headers: stale })).status).toBe(401)
+    })
+  })
 })

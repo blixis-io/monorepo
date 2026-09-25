@@ -1,6 +1,6 @@
 import { BLIXIS_CAPABILITIES, EVENT_BUS, REQUEST_CONTEXT } from '@blixis/contracts'
 import { DATABASE } from '@blixis/database'
-import { BACKGROUND_HANDLERS, defineModule } from '@blixis/kernel'
+import { ACTOR_RESOLVERS, BACKGROUND_HANDLERS, defineModule } from '@blixis/kernel'
 import { USER_SERVICE } from '@blixis/users'
 import {
   AUTH_SERVICE,
@@ -9,6 +9,7 @@ import {
   DEFAULT_AUTH_POLICY,
 } from './application/auth.service.ts'
 import { AUTH_CONFIG } from './application/config.ts'
+import { jwtActorResolver } from './application/resolvers.ts'
 import { createAuth } from './infrastructure/migrations/0001_create_auth.ts'
 import { refreshTokenRepository } from './infrastructure/repositories.ts'
 import { authRoutes } from './rest/routes.ts'
@@ -53,6 +54,7 @@ export const authModule = defineModule((options: AuthModuleOptions) => ({
       },
       { scope: 'request' },
     )
+    ctx.services.get(ACTOR_RESOLVERS).register(jwtActorResolver)
     ctx.services
       .get(BACKGROUND_HANDLERS)
       .onScheduled(options.cron ?? '* * * * *', (_event, background) =>
