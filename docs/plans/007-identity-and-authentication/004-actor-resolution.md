@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,18 +37,25 @@ The kernel accepts an `actorResolver` (003.006). Resolution must be transport-ag
 ### Create
 
 ```text
-modules/auth/src/application/actor-resolver.ts
-modules/auth/src/application/actor-resolver.test.ts
+modules/auth/src/application/resolvers.ts
+packages/kernel/src/actors.ts
 ```
 
 ### Modify
 
 ```text
-packages/kernel/src/internal/rest.ts
-packages/kernel/src/create-blixis.ts
-packages/contracts/src/module.ts (if resolver contribution becomes public)
-modules/auth/src/module.ts
+docs/ROADMAP.md
 docs/kernel/README.md
+docs/plans/007-identity-and-authentication/004-actor-resolution.md
+docs/plans/007-identity-and-authentication/_index.md
+modules/auth/src/application/auth.service.ts
+modules/auth/src/index.ts
+modules/auth/src/module.ts
+modules/auth/test/auth.test.ts
+packages/kernel/src/create-blixis.ts
+packages/kernel/src/index.ts
+packages/kernel/src/internal/rest.test.ts
+packages/testing/src/create-test-blixis.ts
 ```
 
 ### Delete
@@ -72,9 +79,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Request with a valid cookie has a `user` actor in context.
-- [ ] Request with an invalid bearer token receives 401.
-- [ ] Disabled users cannot authenticate.
+- [x] Request with a valid cookie has a `user` actor in context.
+- [x] Request with an invalid bearer token receives 401.
+- [x] Disabled users cannot authenticate.
 
 ## Validation
 
@@ -85,15 +92,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Resolver chain is reusable by GraphQL and by delivery keys.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Resolver chain is reusable by GraphQL and by delivery keys.
 
 ## Completion conditions
 
@@ -110,4 +117,16 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Resolver chain, decided:** a kernel-level `ACTOR_RESOLVERS` registry (like `HEALTH_CHECKS`), not a module-contract field. Modules register `{ name, resolve(request, services) }` in `setup`; the registry is locked afterwards. `resolve` returns an actor, `undefined` ("not my kind of credential"), or throws `UnauthorizedError` (my kind, but invalid). The first actor wins, in registration (bootstrap) order.
+- **Presented credentials are never ignored:** an `Authorization` header that no resolver claims → `401 Unsupported or invalid credentials`. No credentials → anonymous. An explicit `createBlixis({ actorResolver })` replaces the chain (tests).
+- **JWT resolver (`@blixis/auth`):**
+  - `Bearer <jwt>` → `{ type: 'user', userId: sub }`; `blx_*` bearer values are left to the API-token resolver (007.005). Until that exists, a `blx_pat_…` gets the kernel's unclaimed-credentials 401.
+  - **No database lookup and no disabled-user check per request.** This deviates from this task's session-based text, per ADR 0009: an access token is trusted until expiry (≤ 15 min); refresh checks user status.
+  - On public auth routes (sign-up/in, refresh, sign-out, jwks), an invalid bearer yields anonymous instead of 401, so a client with a stale token can always refresh or sign in. `/auth/me` is not exempt.
+- **Finding:** actor resolvers run **before** `REQUEST_CONTEXT` exists (the context contains the actor). The first resolver resolved `AUTH_SERVICE`, whose factory needs `REQUEST_CONTEXT` → 500. Fixed by verifying with `AUTH_CONFIG` plus the JWT functions directly; documented on `ActorResolverEntry` and in the kernel README.
+- **`createTestBlixis`:** a test actor (header or default `actor`) still wins. Otherwise, requests with an `Authorization` header go through the app's real chain (`ACTOR_RESOLVERS.resolve`, now on the public interface), so tests can use real bearer tokens.
+- **Cookie resolver:** not needed. Browsers send the access token as a Bearer header; the refresh cookie is only read by `/auth/refresh` and `/auth/sign-out` (ADR 0009). `last_seen_at` throttling is not applicable (no per-request session row).
+- **Tests:**
+  - 3 kernel chain tests (first wins, anonymous / invalid / unclaimed → 401, explicit resolver wins, late registration rejected);
+  - 3 auth tests with real Bearer tokens (`/users/me` and `/auth/me` 200; tampered / garbage / `blx_pat_` / `Basic` → 401; a stale bearer on refresh and sign-in is ignored, but not on `/auth/me`).
+- **Local `wrangler dev` end to end:** sign-in → `GET /users/me` with Bearer → 200 with the user; no token → 401; tampered token → 401.

@@ -87,7 +87,9 @@ export interface AuthService {
 export const AUTH_SERVICE: ServiceToken<AuthService> =
   createServiceToken<AuthService>('@blixis/auth.service')
 
-const AUDIENCE = 'blixis-api'
+/** `aud` of access tokens. */
+export const ACCESS_TOKEN_AUDIENCE = 'blixis-api'
+const AUDIENCE = ACCESS_TOKEN_AUDIENCE
 const invalidCredentials = () => new UnauthorizedError('Invalid email or password')
 const invalidRefresh = () => new UnauthorizedError('Invalid or expired refresh token')
 

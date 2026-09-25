@@ -13,6 +13,7 @@ import {
 } from '@blixis/contracts'
 import { Hono } from 'hono'
 import { describe, expect, it } from 'vitest'
+import { ACTOR_RESOLVERS, type ActorResolverEntry } from '../actors.ts'
 import { createBlixis } from '../create-blixis.ts'
 import { defineModule } from '../define-module.ts'
 import { ModuleValidationError } from '../errors.ts'
@@ -431,5 +432,69 @@ describe('REQUEST_CONTEXT', () => {
       services.get(SEEN),
     )
     expect(fromScope).toBe('corr-8')
+  })
+})
+
+describe('actor resolver chain', () => {
+  const echo = new Hono<ModuleHonoEnv>().get('/', (c) => c.json(c.var.requestContext.actor))
+  const withResolvers = (...resolvers: ActorResolverEntry[]) =>
+    createBlixis({
+      modules: [
+        defineModule({
+          meta: { name: '@test/auth', version: '1.0.0' },
+          setup(ctx) {
+            for (const r of resolvers) ctx.services.get(ACTOR_RESOLVERS).register(r)
+          },
+          rest: { path: '/whoami', app: echo },
+        })(),
+      ],
+      logger: noopLogger,
+    })
+  const call = (app: ReturnType<typeof createBlixis>, headers: Record<string, string> = {}) =>
+    app.fetch(new Request('http://x/api/v1/whoami', { headers }))
+  const token: ActorResolverEntry = {
+    name: 'token',
+    resolve: async (request) => {
+      const h = request.headers.get('authorization')
+      if (h === null || !h.startsWith('Token ')) return undefined
+      if (h !== 'Token good') throw new UnauthorizedError('Invalid token')
+      return { type: 'user', userId: 'u-token' }
+    },
+  }
+
+  it('uses the first resolver that recognises the request', async () => {
+    const other: ActorResolverEntry = { name: 'other', resolve: async () => undefined }
+    const res = await call(withResolvers(other, token), { authorization: 'Token good' })
+    expect(await res.json()).toEqual({ type: 'user', userId: 'u-token' })
+  })
+
+  it('is anonymous without credentials, 401 for invalid or unclaimed credentials', async () => {
+    const app = withResolvers(token)
+    expect(await (await call(app)).json()).toEqual({ type: 'anonymous' })
+    expect((await call(app, { authorization: 'Token bad' })).status).toBe(401)
+    const unclaimed = await call(app, { authorization: 'Basic abc' })
+    expect(unclaimed.status).toBe(401)
+    expect(((await unclaimed.json()) as ProblemDetails).detail).toBe(
+      'Unsupported or invalid credentials',
+    )
+  })
+
+  it('lets an explicit actorResolver option win and rejects late registration', async () => {
+    const app = createBlixis({
+      modules: [
+        defineModule({
+          meta: { name: '@test/x', version: '1.0.0' },
+          rest: { path: '/whoami', app: echo },
+        })(),
+      ],
+      logger: noopLogger,
+      actorResolver: () => ({ type: 'system', component: 'test' }),
+    })
+    expect(await (await call(app, { authorization: 'Anything' })).json()).toEqual({
+      type: 'system',
+      component: 'test',
+    })
+    await app.ready()
+    expect(() => app.services.get(ACTOR_RESOLVERS).register(token)).toThrow(/after setup/)
   })
 })

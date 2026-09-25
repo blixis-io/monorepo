@@ -8,6 +8,7 @@ import type {
 } from '@blixis/contracts'
 import { ModuleError, REQUEST_CONTEXT, type RequestContext } from '@blixis/contracts'
 import { Hono } from 'hono'
+import { ACTOR_RESOLVERS, ActorResolverRegistry } from './actors.ts'
 import {
   BACKGROUND_HANDLERS,
   BackgroundRegistry,
@@ -151,9 +152,11 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
   const hono = new Hono<BlixisHonoEnv>()
   const background = new BackgroundRegistry()
   const health = new HealthRegistry()
+  const actorResolvers = new ActorResolverRegistry()
   container.forModule('@blixis/kernel').provide(KERNEL_CONTRIBUTIONS, contributions)
   container.forModule('@blixis/kernel').provide(BACKGROUND_HANDLERS, background)
   container.forModule('@blixis/kernel').provide(HEALTH_CHECKS, health)
+  container.forModule('@blixis/kernel').provide(ACTOR_RESOLVERS, actorResolvers)
   container.forModule('@blixis/kernel').provideFactory(
     RUN_IN_SCOPE,
     ({ bindings }) =>
@@ -185,6 +188,7 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
     container.seal()
     background.lock()
     health.lock()
+    actorResolvers.lock()
   }
 
   const runBoot = async (): Promise<void> => {
@@ -221,7 +225,9 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
     container,
     ready,
     logger,
-    ...(options.actorResolver === undefined ? {} : { actorResolver: options.actorResolver }),
+    // An explicit resolver (tests) wins; otherwise the chain registered by modules (§30).
+    actorResolver:
+      options.actorResolver ?? ((request, services) => actorResolvers.resolve(request, services)),
     ...(options.trustRequestIdHeader === undefined
       ? {}
       : { trustRequestIdHeader: options.trustRequestIdHeader }),

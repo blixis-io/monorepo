@@ -45,6 +45,17 @@ app.ready()   (first request/event, memoised)
   - a throwing reporter is ignored;
   - 4xx are never reported.
 
+## Actor resolution
+
+Authentication modules register resolvers with `ctx.services.get(ACTOR_RESOLVERS).register({ name, resolve })` during `setup`. For each request, the kernel runs them in module order:
+- The first resolver that returns an actor wins.
+- A resolver returns `undefined` for credentials that aren't its kind.
+- A resolver throws `UnauthorizedError` for credentials of its kind that are invalid.
+
+A request with an `Authorization` header that no resolver claims gets a `401`. It is never treated as anonymous. Without credentials, the request is anonymous.
+
+Resolvers run **before** the request context exists, so they must not resolve services that need `REQUEST_CONTEXT`. An explicit `createBlixis({ actorResolver })` (used by `@blixis/testing`) replaces the chain; `createTestBlixis` falls back to the chain for requests that carry an `Authorization` header and no test actor.
+
 ## Request context as a service
 
 Every request scope (HTTP request, `runInScope` for queue messages and cron jobs) provides the current `RequestContext` as `REQUEST_CONTEXT` (from contracts). Request-scoped services read correlation ID, actor, and tenant from it; for example, the event bus stamps them on envelopes. Internally, the scope's `provideValue(token, value)` sets it; such values need no registration and are not disposed.
