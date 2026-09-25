@@ -152,8 +152,11 @@ pnpm --filter @blixis/api exec wrangler secret list --env production
 
 - **`AUTH_SIGNING_KEYS`** (ADR 0009), per environment, without passing through shell history:
   ```bash
-  cd apps/api
-  pnpm -s auth:generate-key staging-2026-09 | npx wrangler secret put AUTH_SIGNING_KEYS --env staging
+  # from the repo root — call the CLI with node: pnpm 12 has no -s flag, and a failing
+  # generator would pipe an EMPTY secret
+  node tooling/db/src/cli.ts generate-signing-key staging-2026-09 \
+    | (cd apps/api && npx wrangler secret put AUTH_SIGNING_KEYS --env staging)
+  curl -s https://<api>/api/v1/auth/jwks   # must list one key; 500 means the secret is missing or invalid
   ```
   Rotation: prepend a new key to the JSON array (it signs from then on) and keep the old one for at least 15 minutes, until old access tokens have expired; then remove it.
 - Local secrets in `apps/api/.dev.vars` (git-ignored); keep `.dev.vars.example` updated.

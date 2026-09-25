@@ -38,3 +38,13 @@ describe('API Worker (workerd)', () => {
     expect(body.detail).not.toContain('BLIXIS_ENV')
   })
 })
+
+describe('auth configuration failures stay contained (workerd)', () => {
+  it('an empty AUTH_SIGNING_KEYS breaks only auth routes, not health or readiness', async () => {
+    const bindings = { ...env, AUTH_SIGNING_KEYS: '' } as Env
+    expect((await call('/api/v1/health', undefined, bindings)).status).toBe(200)
+    const jwks = await call('/api/v1/auth/jwks', undefined, bindings)
+    expect(jwks.status).toBe(500)
+    expect(((await jwks.json()) as { code: string }).code).toBe('INFRASTRUCTURE_ERROR')
+  })
+})
