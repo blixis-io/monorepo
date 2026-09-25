@@ -29,6 +29,7 @@ export type RuleId =
   | 'forbidden-edge'
   | 'workspace-cycle'
   | 'contracts-runtime-dependency'
+  | 'role-name-check'
 
 export interface Violation {
   readonly rule: RuleId
@@ -191,6 +192,47 @@ export function checkPackages(packages: readonly WorkspacePackage[]): Violation[
       rule: 'contracts-runtime-dependency',
       file: `${contracts.dir}/package.json`,
       message: `@blixis/contracts must have no runtime dependencies (§4); found: ${Object.keys(contracts.dependencies).join(', ')}`,
+    })
+  }
+  return violations
+}
+
+/**
+ * The only package that may evaluate role names (roles are configuration, §30, plan 009), and
+ * this checker, whose patterns describe them.
+ */
+const ROLE_EXEMPT_DIRS = ['modules/permissions/', 'tooling/boundaries/']
+const COMMENT = /^\s*(?:\/\/|\*|\/\*)/
+
+const ROLE_NAME_CHECKS: readonly RegExp[] = [
+  // role === 'admin', m.roleKey !== "owner", spaceRole == `editor`
+  /\b\w*[rR]ole(?:Key)?\s*[!=]==?\s*['"`]/,
+  // 'admin' === role
+  /['"`]\s*[!=]==?\s*[\w.]*[rR]ole(?:Key)?\b/,
+  // eq(memberships.roleKey, 'owner') and other query-builder comparisons
+  /\b(?:eq|ne)\([\w.]*[rR]ole(?:Key)?\s*,\s*['"`]/,
+  // ['owner', 'admin'].includes(role)
+  /\[[^\]]*['"`](?:owner|admin|editor|viewer|member)['"`][^\]]*\]\.includes\(/,
+]
+
+/**
+ * Forbids comparing role names outside `@blixis/permissions` (plan 009.004): code checks
+ * permissions through `AUTHORIZATION_SERVICE`, never `role === 'admin'`. Tests are exempt.
+ */
+export function checkRoleNames(files: readonly SourceFile[]): Violation[] {
+  const violations: Violation[] = []
+  for (const file of files) {
+    if (ROLE_EXEMPT_DIRS.some((dir) => file.path.startsWith(dir)) || isTestFile(file.path)) continue
+    file.content.split('\n').forEach((text, index) => {
+      if (!COMMENT.test(text) && ROLE_NAME_CHECKS.some((pattern) => pattern.test(text))) {
+        violations.push({
+          rule: 'role-name-check',
+          file: file.path,
+          line: index + 1,
+          message:
+            'compares a role name; check a permission with AUTHORIZATION_SERVICE instead (roles are evaluated only by @blixis/permissions)',
+        })
+      }
     })
   }
   return violations

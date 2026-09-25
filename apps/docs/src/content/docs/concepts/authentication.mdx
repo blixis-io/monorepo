@@ -7,7 +7,7 @@ sidebar:
 
 import { Aside } from '@astrojs/starlight/components'
 
-`@blixis/auth` answers **who is calling** (ADR 0009). What they may do is authorization, which is a separate module (roadmap plan 009).
+`@blixis/auth` answers **who is calling** (ADR 0009). What they may do is authorization, handled by `@blixis/permissions` (see [Actors and permissions](/concepts/permissions/)).
 
 ## How clients authenticate
 
@@ -46,7 +46,7 @@ For scripts, CI, and integrations, create a long-lived token instead of storing 
 Use a token as `Authorization: Bearer blx_pat_…`. Your routes then see `{ type: 'apiToken', tokenId, ownerId, scopes }`.
 
 - **Management needs a real sign-in** with a live session. API tokens cannot create or revoke tokens (`403`), and a signed-out session can't use its remaining access token for this.
-- **Scopes** must be permission IDs that modules register. Permissions are enforced by the authorization module (roadmap plan 009).
+- **Scopes** must be permission IDs that modules register (`GET /api/v1/permissions`). A token can do what its owner can do **and** its scopes allow. A token without scopes can do nothing, and API tokens can't create organizations.
 - **Revocation:** a revoked or expired token gets `401` straight away. Disabling a user revokes all of their API tokens and signs them out everywhere, through the `user.disabled` event.
 - **Storage:** only a SHA-256 hash is stored, together with a short prefix so you can recognise the token.
 

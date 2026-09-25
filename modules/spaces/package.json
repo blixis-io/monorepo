@@ -1,7 +1,7 @@
 {
   "name": "@blixis/spaces",
   "version": "0.0.0",
-  "description": "Blixis spaces module: organizations, spaces, environments, and locales \u2014 the tenant hierarchy",
+  "description": "Blixis spaces module: organizations, spaces, environments, and locales — the tenant hierarchy",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -24,6 +24,7 @@
     "@blixis/contracts": "workspace:*",
     "@blixis/database": "workspace:*",
     "@blixis/kernel": "workspace:*",
+    "@blixis/permissions": "workspace:*",
     "@blixis/users": "workspace:*",
     "drizzle-orm": "catalog:",
     "hono": "^4.0.0"
@@ -33,6 +34,7 @@
     "@blixis/database": "workspace:*",
     "@blixis/events": "workspace:*",
     "@blixis/kernel": "workspace:*",
+    "@blixis/permissions": "workspace:*",
     "@blixis/shared": "workspace:*",
     "@blixis/testing": "workspace:*",
     "@blixis/tsconfig": "workspace:*",

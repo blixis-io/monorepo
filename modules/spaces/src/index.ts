@@ -14,6 +14,11 @@ export {
   type SpaceTenant,
 } from './application/locales.service.ts'
 export {
+  MEMBER_SERVICE,
+  type Member,
+  type MemberService,
+} from './application/members.service.ts'
+export {
   type SpaceDetails,
   TENANCY_SERVICE,
   type TenancyService,

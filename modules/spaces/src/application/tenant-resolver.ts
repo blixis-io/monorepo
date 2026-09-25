@@ -1,5 +1,6 @@
 import {
   type Actor,
+  type AuthorizationService,
   createServiceToken,
   type ModuleHonoEnv,
   NotFoundError,
@@ -7,10 +8,10 @@ import {
   TENANT_BINDER,
 } from '@blixis/contracts'
 import { type Database, isId } from '@blixis/database'
-import type { MembershipService } from '@blixis/users'
 import type { Context, Next } from 'hono'
 import { environmentRepository, spaceRepository } from '../infrastructure/repositories.ts'
-import { actingUserId, requireSpaceAccess } from './access.ts'
+import { SPACES_PERMISSIONS } from '../permissions.ts'
+import { spaceResource } from './access.ts'
 
 /** A verified tenant for one space and environment. */
 export interface ResolvedTenant {
@@ -26,10 +27,10 @@ export interface ResolvedTenant {
  */
 export interface TenantResolver {
   /**
-   * Loads the space, verifies the actor may access it (users and API tokens through the owner's
-   * memberships; `system` actors are trusted but the space must exist), and resolves the
-   * environment (`environmentKey`, or the space's default).
-   * @throws NotFoundError for unknown spaces/environments and spaces the actor cannot access
+   * Loads the space, requires `spaces.read` on it (`system` actors are trusted but the space
+   * must exist), and resolves the environment (`environmentKey`, or the space's default).
+   * @throws NotFoundError for unknown spaces/environments and spaces the actor is not a member of
+   * @throws ForbiddenError for members without `spaces.read`
    * @throws UnauthorizedError for anonymous actors
    */
   resolveSpace(actor: Actor, spaceId: string, environmentKey?: string): Promise<ResolvedTenant>
@@ -42,7 +43,7 @@ export const TENANT_RESOLVER: ServiceToken<TenantResolver> = createServiceToken<
 
 export function createTenantResolver(deps: {
   readonly db: Database
-  readonly memberships: MembershipService
+  readonly authz: AuthorizationService
 }): TenantResolver {
   const memo = new Map<string, Promise<ResolvedTenant>>()
 
@@ -54,15 +55,13 @@ export function createTenantResolver(deps: {
     if (!isId(spaceId)) throw new NotFoundError('Space not found')
     const space = await spaceRepository.findForResolution(deps.db, spaceId)
     if (space === undefined) throw new NotFoundError('Space not found')
-    if (actor.type !== 'system') {
-      await requireSpaceAccess(
-        deps.memberships,
-        actingUserId(actor),
-        space.organizationId,
-        space.id,
-      )
-    }
     const tenant = { organizationId: space.organizationId, spaceId: space.id }
+    await deps.authz.require({
+      actor,
+      action: SPACES_PERMISSIONS.spaceRead.id,
+      resource: spaceResource(tenant),
+      allowSystem: true,
+    })
     const environments = await environmentRepository.list(deps.db, tenant)
     const environment =
       environmentKey === undefined

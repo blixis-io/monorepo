@@ -62,9 +62,18 @@ describe.skipIf(!databaseTestsEnabled())(
           await mk('space-only@example.com'),
         ]
         // Victim tenant: organization B with spaces B1 (probed) and B2.
-        const orgB = await tenancy.createOrganization(owner.id, { name: 'Victim', slug: 'victim' })
-        const spaceB1 = await tenancy.createSpace(owner.id, orgB.id, { name: 'B1', slug: 'b1' })
-        const spaceB2 = await tenancy.createSpace(owner.id, orgB.id, { name: 'B2', slug: 'b2' })
+        const orgB = await tenancy.createOrganization(asUser(owner.id), {
+          name: 'Victim',
+          slug: 'victim',
+        })
+        const spaceB1 = await tenancy.createSpace(asUser(owner.id), orgB.id, {
+          name: 'B1',
+          slug: 'b1',
+        })
+        const spaceB2 = await tenancy.createSpace(asUser(owner.id), orgB.id, {
+          name: 'B2',
+          slug: 'b2',
+        })
         const orgMembership = await memberships.addOrganizationMember({
           userId: member.id,
           organizationId: orgB.id,
@@ -78,13 +87,17 @@ describe.skipIf(!databaseTestsEnabled())(
         })
         const german = await services
           .get(LOCALE_SERVICE)
-          .create({ organizationId: orgB.id, spaceId: spaceB1.id }, { code: 'de', name: 'German' })
+          .create(
+            asUser(owner.id),
+            { organizationId: orgB.id, spaceId: spaceB1.id },
+            { code: 'de', name: 'German' },
+          )
         // Intruders: owner of another organization; a member of only the sibling space B2.
-        const orgA = await tenancy.createOrganization(attacker.id, {
+        const orgA = await tenancy.createOrganization(asUser(attacker.id), {
           name: 'Attacker',
           slug: 'attacker',
         })
-        await tenancy.createSpace(attacker.id, orgA.id, { name: 'A1', slug: 'a1' })
+        await tenancy.createSpace(asUser(attacker.id), orgA.id, { name: 'A1', slug: 'a1' })
         await memberships.addSpaceMember({
           userId: spaceOnly.id,
           organizationId: orgB.id,

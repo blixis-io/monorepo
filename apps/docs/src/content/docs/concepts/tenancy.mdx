@@ -17,13 +17,13 @@ Blixis is multi-tenant from the start. **Organizations** contain **spaces**, and
 | Locales | `GET/POST /api/v1/spaces/:spaceId/locales`, `PATCH/DELETE …/locales/:localeId` |
 | Members | `GET/POST …/members`, `PATCH/DELETE …/members/:membershipId`, for organizations and spaces |
 
-- **New organizations and spaces:** creating an organization makes you its **owner**. Creating a space gives it a `main` environment and a default locale (`en-US` unless you pick one), makes you its **admin**, and emits `space.created`.
-- **Members** are added by email and must already have an account. Email invitations come later.
-- **Invisible to outsiders:** anything you can't access answers **404**, never 403, so it doesn't reveal that it exists.
+- **New organizations and spaces:** only signed-in users (not API tokens) can create organizations, and creating one makes you its **owner**. Creating a space gives it a `main` environment and a default locale (`en-US` unless you pick one), makes you its **admin**, and emits `space.created`.
+- **Members** are added by email and must already have an account. Email invitations come later. A member's role is a system role (`owner`, `admin`, `editor`, `viewer`) or a custom role ID. See [Actors and permissions](/concepts/permissions/#roles).
+- **Invisible to outsiders:** anything in a tenant you aren't a member of answers **404**, so it doesn't reveal that it exists. Members without the permission get **403**.
 
 ## In your module: `spaceScoped()`
 
-Put `spaceScoped()` on every route under `/spaces/:spaceId/…`. It verifies the caller's access and fills in the request's tenant:
+Put `spaceScoped()` on every route under `/spaces/:spaceId/…`. It requires `spaces.read` on the space (404 for non-members) and fills in the request's tenant. Your service still checks its own permission for the operation:
 
 ```ts
 import { spaceScoped } from '@blixis/spaces'

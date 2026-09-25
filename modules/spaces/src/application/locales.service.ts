@@ -1,4 +1,6 @@
 import {
+  type Actor,
+  type AuthorizationService,
   ConflictError,
   createServiceToken,
   type EventBus,
@@ -12,6 +14,11 @@ import { z } from 'zod'
 import { type Environment, type Locale, localeCodeSchema, nameSchema } from '../domain/tenancy.ts'
 import { localeCreated, localeDeleted, localeUpdated } from '../events.ts'
 import { environmentRepository, localeRepository } from '../infrastructure/repositories.ts'
+import { SPACES_PERMISSIONS } from '../permissions.ts'
+import { spaceResource } from './access.ts'
+
+const read = SPACES_PERMISSIONS.spaceRead.id
+const write = SPACES_PERMISSIONS.spaceSettingsWrite.id
 
 /** A verified tenant: callers pass the tenant from the resolved request context (008.005). */
 export interface SpaceTenant {
@@ -21,27 +28,36 @@ export interface SpaceTenant {
 
 /** Environments of a space. MVP: only the default `main`; creating/cloning is deferred. */
 export interface EnvironmentService {
-  list(tenant: SpaceTenant): Promise<Environment[]>
-  /** @throws NotFoundError when the space has no default environment */
+  /** Needs `spaces.read`. */
+  list(actor: Actor, tenant: SpaceTenant): Promise<Environment[]>
+  /**
+   * The default environment, for platform code resolving it internally — no authorization.
+   * @throws NotFoundError when the space has no default environment
+   */
   getDefault(tenant: SpaceTenant): Promise<Environment>
 }
 
-/** Locales of a space: exactly one default, acyclic fallbacks. */
+/**
+ * Locales of a space: exactly one default, acyclic fallbacks. Reading needs `spaces.read`,
+ * changes need `spaces.settings.write`; denials throw `ForbiddenError`/`NotFoundError`.
+ */
 export interface LocaleService {
-  list(tenant: SpaceTenant): Promise<Locale[]>
+  list(actor: Actor, tenant: SpaceTenant): Promise<Locale[]>
   /** @throws ValidationError, ConflictError (code exists, bad fallback) */
   create(
+    actor: Actor,
     tenant: SpaceTenant,
     input: { code: string; name?: string; fallbackCode?: string | null; isDefault?: boolean },
   ): Promise<Locale>
   /** @throws NotFoundError, ValidationError, ConflictError */
   update(
+    actor: Actor,
     tenant: SpaceTenant,
     localeId: string,
     input: { name?: string; fallbackCode?: string | null; isDefault?: boolean },
   ): Promise<Locale>
   /** @throws NotFoundError, ConflictError (default locale, or another locale's fallback) */
-  delete(tenant: SpaceTenant, localeId: string): Promise<void>
+  delete(actor: Actor, tenant: SpaceTenant, localeId: string): Promise<void>
 }
 
 export const ENVIRONMENT_SERVICE: ServiceToken<EnvironmentService> =
@@ -49,9 +65,16 @@ export const ENVIRONMENT_SERVICE: ServiceToken<EnvironmentService> =
 export const LOCALE_SERVICE: ServiceToken<LocaleService> =
   createServiceToken<LocaleService>('@blixis/spaces.locales')
 
-export function createEnvironmentService(db: Database): EnvironmentService {
+export function createEnvironmentService(deps: {
+  readonly db: Database
+  readonly authz: AuthorizationService
+}): EnvironmentService {
+  const { db, authz } = deps
   return {
-    list: (tenant) => environmentRepository.list(db, tenant),
+    async list(actor, tenant) {
+      await authz.require({ actor, action: read, resource: spaceResource(tenant) })
+      return environmentRepository.list(db, tenant)
+    },
     async getDefault(tenant) {
       const found = (await environmentRepository.list(db, tenant)).find((e) => e.isDefault)
       if (found === undefined) throw new NotFoundError('Space has no default environment')
@@ -95,8 +118,11 @@ function assertFallback(
 export function createLocaleService(deps: {
   readonly db: Database
   readonly events: EventBus
+  readonly authz: AuthorizationService
 }): LocaleService {
-  const { db, events } = deps
+  const { db, events, authz } = deps
+  const requireWrite = (actor: Actor, tenant: SpaceTenant) =>
+    authz.require({ actor, action: write, resource: spaceResource(tenant) })
   type LocaleEvent = typeof localeCreated | typeof localeUpdated | typeof localeDeleted
   const emit = (event: LocaleEvent, tenant: SpaceTenant, locale: Locale) =>
     events.emit(event as typeof localeCreated, {
@@ -106,9 +132,13 @@ export function createLocaleService(deps: {
     })
 
   return {
-    list: (tenant) => localeRepository.list(db, tenant),
+    async list(actor, tenant) {
+      await authz.require({ actor, action: read, resource: spaceResource(tenant) })
+      return localeRepository.list(db, tenant)
+    },
 
-    async create(tenant, input) {
+    async create(actor, tenant, input) {
+      await requireWrite(actor, tenant)
       const values = await validate(createInput, input, { message: 'Invalid locale' })
       const locale = await withTransaction(db, async (tx) => {
         const all = await localeRepository.list(tx, tenant)
@@ -127,7 +157,8 @@ export function createLocaleService(deps: {
       return locale
     },
 
-    async update(tenant, localeId, input) {
+    async update(actor, tenant, localeId, input) {
+      await requireWrite(actor, tenant)
       const values = await validate(updateInput, input, { message: 'Invalid locale' })
       const locale = await withTransaction(db, async (tx) => {
         const current = await localeRepository.findById(tx, tenant, localeId)
@@ -153,7 +184,8 @@ export function createLocaleService(deps: {
       return locale
     },
 
-    async delete(tenant, localeId) {
+    async delete(actor, tenant, localeId) {
+      await requireWrite(actor, tenant)
       const removed = await withTransaction(db, async (tx) => {
         const current = await localeRepository.findById(tx, tenant, localeId)
         if (current === undefined) throw new NotFoundError('Locale not found')

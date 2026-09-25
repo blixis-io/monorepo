@@ -1,113 +1,37 @@
-import { ForbiddenError, type ModuleHonoEnv, NotFoundError, validate } from '@blixis/contracts'
+import { ForbiddenError, type ModuleHonoEnv } from '@blixis/contracts'
 import { requireTenant } from '@blixis/database'
-import {
-  MEMBERSHIP_SERVICE,
-  type Membership,
-  type MembershipScope,
-  organizationRoleSchema,
-  spaceRoleSchema,
-  USER_SERVICE,
-} from '@blixis/users'
 import type { Context } from 'hono'
 import { Hono } from 'hono'
-import { z } from 'zod'
-import {
-  actingUserId,
-  canManageSpace,
-  requireOrganizationManager,
-  requireOrganizationMember,
-  requireSpaceAccess,
-} from '../application/access.ts'
 import { ENVIRONMENT_SERVICE, LOCALE_SERVICE } from '../application/locales.service.ts'
+import { MEMBER_SERVICE } from '../application/members.service.ts'
 import { TENANCY_SERVICE } from '../application/tenancy.service.ts'
 import { spaceScoped } from '../application/tenant-resolver.ts'
 
 type Ctx = Context<ModuleHonoEnv>
-const userOf = (c: Ctx) => actingUserId(c.var.requestContext.actor)
+const actorOf = (c: Ctx) => c.var.requestContext.actor
 const json = async (c: Ctx) => (await c.req.json().catch(() => ({}))) as unknown
-
-const addMemberInput = (role: z.ZodType) =>
-  z.object({ email: z.string().trim().toLowerCase().max(254), role })
-
-/** Members with their user's email and display name (for management UIs). */
-async function present(c: Ctx, list: readonly Membership[]) {
-  const users = c.var.services.get(USER_SERVICE)
-  return Promise.all(
-    list.map(async (m) => {
-      const user = await users.findById(m.userId)
-      return {
-        id: m.id,
-        userId: m.userId,
-        email: user?.email ?? null,
-        displayName: user?.displayName ?? null,
-        role: m.role,
-        createdAt: m.createdAt,
-      }
-    }),
-  )
-}
-
-/** Adds an existing user by email; unknown emails get guidance (invitations are deferred). */
-async function addByEmail(c: Ctx, scope: MembershipScope, email: string, role: string) {
-  const user = await c.var.services.get(USER_SERVICE).findByEmail(email)
-  if (user === undefined) {
-    throw new NotFoundError(
-      'No user with this email. Invitations are not available yet: create the account first (pnpm auth:create-user).',
-    )
-  }
-  const memberships = c.var.services.get(MEMBERSHIP_SERVICE)
-  const created =
-    scope.spaceId === undefined
-      ? await memberships.addOrganizationMember({
-          userId: user.id,
-          organizationId: scope.organizationId,
-          role: role as never,
-        })
-      : await memberships.addSpaceMember({
-          userId: user.id,
-          organizationId: scope.organizationId,
-          spaceId: scope.spaceId,
-          role: role as never,
-        })
-  return (await present(c, [created]))[0]
-}
+const param = (c: Ctx, name: string) => c.req.param(name) ?? ''
 
 /**
- * Only organization owners may grant or revoke `owner` (until permissions arrive in 009.004).
- * TODO(009.004): replace with permission checks.
+ * `/api/v1/organizations/*` and `/api/v1/spaces/*`. Handlers only translate HTTP ⇄ services;
+ * the services check permissions (§30).
  */
-async function assertOwnerChange(
-  c: Ctx,
-  organizationId: string,
-  roles: readonly (string | undefined)[],
-) {
-  if (!roles.includes('owner')) return
-  const own = await requireOrganizationMember(
-    c.var.services.get(MEMBERSHIP_SERVICE),
-    userOf(c),
-    organizationId,
-  )
-  if (own !== 'owner') throw new ForbiddenError('Only owners can grant or revoke the owner role')
-}
-
-/** `/api/v1/organizations/*` and `/api/v1/spaces/*`. Handlers only translate HTTP ⇄ services. */
 export function spacesRoutes(options: { readonly allowOrganizationCreation: boolean }) {
   return (
     new Hono<ModuleHonoEnv>()
       .get('/organizations', async (c) =>
         c.json({
-          organizations: await c.var.services.get(TENANCY_SERVICE).listOrganizations(userOf(c)),
+          organizations: await c.var.services.get(TENANCY_SERVICE).listOrganizations(actorOf(c)),
         }),
       )
       .post('/organizations', async (c) => {
-        const userId = userOf(c)
         if (!options.allowOrganizationCreation)
           throw new ForbiddenError('Organization creation is disabled')
         const body = (await json(c)) as { name?: string; slug?: string }
         return c.json(
           await c.var.services
             .get(TENANCY_SERVICE)
-            .createOrganization(userId, { name: body.name ?? '', slug: body.slug ?? '' }),
+            .createOrganization(actorOf(c), { name: body.name ?? '', slug: body.slug ?? '' }),
           201,
         )
       })
@@ -115,7 +39,7 @@ export function spacesRoutes(options: { readonly allowOrganizationCreation: bool
         c.json(
           await c.var.services
             .get(TENANCY_SERVICE)
-            .getOrganization(userOf(c), c.req.param('orgId')),
+            .getOrganization(actorOf(c), c.req.param('orgId')),
         ),
       )
       .patch('/organizations/:orgId', async (c) =>
@@ -123,7 +47,7 @@ export function spacesRoutes(options: { readonly allowOrganizationCreation: bool
           await c.var.services
             .get(TENANCY_SERVICE)
             .renameOrganization(
-              userOf(c),
+              actorOf(c),
               c.req.param('orgId'),
               (await json(c)) as { name?: string; slug?: string },
             ),
@@ -133,14 +57,14 @@ export function spacesRoutes(options: { readonly allowOrganizationCreation: bool
         c.json({
           spaces: await c.var.services
             .get(TENANCY_SERVICE)
-            .listSpaces(userOf(c), c.req.param('orgId')),
+            .listSpaces(actorOf(c), c.req.param('orgId')),
         }),
       )
       .post('/organizations/:orgId/spaces', async (c) => {
         const body = (await json(c)) as { name?: string; slug?: string; defaultLocale?: string }
         const space = await c.var.services
           .get(TENANCY_SERVICE)
-          .createSpace(userOf(c), c.req.param('orgId'), {
+          .createSpace(actorOf(c), c.req.param('orgId'), {
             name: body.name ?? '',
             slug: body.slug ?? '',
             ...(body.defaultLocale === undefined ? {} : { defaultLocale: body.defaultLocale }),
@@ -149,7 +73,7 @@ export function spacesRoutes(options: { readonly allowOrganizationCreation: bool
       })
       .get('/spaces/:spaceId', async (c) =>
         c.json(
-          await c.var.services.get(TENANCY_SERVICE).getSpace(userOf(c), c.req.param('spaceId')),
+          await c.var.services.get(TENANCY_SERVICE).getSpace(actorOf(c), c.req.param('spaceId')),
         ),
       )
       .patch('/spaces/:spaceId', async (c) =>
@@ -157,132 +81,125 @@ export function spacesRoutes(options: { readonly allowOrganizationCreation: bool
           await c.var.services
             .get(TENANCY_SERVICE)
             .updateSpace(
-              userOf(c),
+              actorOf(c),
               c.req.param('spaceId'),
               (await json(c)) as { name?: string; slug?: string },
             ),
         ),
       )
       .delete('/spaces/:spaceId', async (c) => {
-        await c.var.services.get(TENANCY_SERVICE).deleteSpace(userOf(c), c.req.param('spaceId'))
+        await c.var.services.get(TENANCY_SERVICE).deleteSpace(actorOf(c), c.req.param('spaceId'))
         return c.body(null, 204)
       })
       // Environments (read-only in the MVP) and locales — the canonical space-scoped pattern:
       // spaceScoped() verifies access and binds the tenant; handlers read it from the context.
       .get('/spaces/:spaceId/environments', spaceScoped(), async (c) =>
         c.json({
-          environments: await c.var.services.get(ENVIRONMENT_SERVICE).list(spaceTenant(c)),
+          environments: await c.var.services
+            .get(ENVIRONMENT_SERVICE)
+            .list(actorOf(c), spaceTenant(c)),
         }),
       )
       .get('/spaces/:spaceId/locales', spaceScoped(), async (c) =>
-        c.json({ locales: await c.var.services.get(LOCALE_SERVICE).list(spaceTenant(c)) }),
+        c.json({
+          locales: await c.var.services.get(LOCALE_SERVICE).list(actorOf(c), spaceTenant(c)),
+        }),
       )
-      .post('/spaces/:spaceId/locales', spaceScoped(), async (c) => {
-        const tenant = await requireSpaceManager(c)
-        return c.json(
+      .post('/spaces/:spaceId/locales', spaceScoped(), async (c) =>
+        c.json(
           await c.var.services
             .get(LOCALE_SERVICE)
-            .create(tenant, (await json(c)) as { code: string }),
+            .create(actorOf(c), spaceTenant(c), (await json(c)) as { code: string }),
           201,
-        )
-      })
-      .patch('/spaces/:spaceId/locales/:localeId', spaceScoped(), async (c) => {
-        const tenant = await requireSpaceManager(c)
-        return c.json(
+        ),
+      )
+      .patch('/spaces/:spaceId/locales/:localeId', spaceScoped(), async (c) =>
+        c.json(
           await c.var.services
             .get(LOCALE_SERVICE)
-            .update(tenant, c.req.param('localeId') ?? '', (await json(c)) as object),
-        )
-      })
+            .update(actorOf(c), spaceTenant(c), param(c, 'localeId'), (await json(c)) as object),
+        ),
+      )
       .delete('/spaces/:spaceId/locales/:localeId', spaceScoped(), async (c) => {
-        const tenant = await requireSpaceManager(c)
-        await c.var.services.get(LOCALE_SERVICE).delete(tenant, c.req.param('localeId') ?? '')
+        await c.var.services
+          .get(LOCALE_SERVICE)
+          .delete(actorOf(c), spaceTenant(c), param(c, 'localeId'))
         return c.body(null, 204)
       })
       // Organization members
-      .get('/organizations/:orgId/members', async (c) => {
-        const organizationId = c.req.param('orgId')
-        const memberships = c.var.services.get(MEMBERSHIP_SERVICE)
-        await requireOrganizationMember(memberships, userOf(c), organizationId)
-        return c.json({
-          members: await present(c, await memberships.listMembers({ organizationId })),
-        })
-      })
-      .post('/organizations/:orgId/members', async (c) => {
-        const organizationId = c.req.param('orgId')
-        await requireOrganizationManager(
-          c.var.services.get(MEMBERSHIP_SERVICE),
-          userOf(c),
-          organizationId,
-        )
-        const input = await validate(addMemberInput(organizationRoleSchema), await json(c), {
-          message: 'Invalid member',
-        })
-        await assertOwnerChange(c, organizationId, [input.role as string])
-        return c.json(
-          await addByEmail(c, { organizationId }, input.email, input.role as string),
+      .get('/organizations/:orgId/members', async (c) =>
+        c.json({
+          members: await c.var.services
+            .get(MEMBER_SERVICE)
+            .listOrganizationMembers(actorOf(c), c.req.param('orgId')),
+        }),
+      )
+      .post('/organizations/:orgId/members', async (c) =>
+        c.json(
+          await c.var.services
+            .get(MEMBER_SERVICE)
+            .addOrganizationMember(
+              actorOf(c),
+              c.req.param('orgId'),
+              (await json(c)) as { email: string; role: string },
+            ),
           201,
-        )
-      })
-      .patch('/organizations/:orgId/members/:membershipId', async (c) => {
-        const organizationId = c.req.param('orgId')
-        const memberships = c.var.services.get(MEMBERSHIP_SERVICE)
-        await requireOrganizationManager(memberships, userOf(c), organizationId)
-        const { role } = await validate(z.object({ role: organizationRoleSchema }), await json(c), {
-          message: 'Invalid role',
-        })
-        const current = (await memberships.listMembers({ organizationId })).find(
-          (m) => m.id === c.req.param('membershipId'),
-        )
-        await assertOwnerChange(c, organizationId, [role, current?.role])
-        const updated = await memberships.changeRole(
-          c.req.param('membershipId'),
-          { organizationId },
-          role,
-        )
-        return c.json((await present(c, [updated]))[0])
-      })
+        ),
+      )
+      .patch('/organizations/:orgId/members/:membershipId', async (c) =>
+        c.json(
+          await c.var.services
+            .get(MEMBER_SERVICE)
+            .changeOrganizationMemberRole(
+              actorOf(c),
+              c.req.param('orgId'),
+              c.req.param('membershipId'),
+              ((await json(c)) as { role?: string }).role ?? '',
+            ),
+        ),
+      )
       .delete('/organizations/:orgId/members/:membershipId', async (c) => {
-        const organizationId = c.req.param('orgId')
-        const memberships = c.var.services.get(MEMBERSHIP_SERVICE)
-        await requireOrganizationManager(memberships, userOf(c), organizationId)
-        const current = (await memberships.listMembers({ organizationId })).find(
-          (m) => m.id === c.req.param('membershipId'),
-        )
-        await assertOwnerChange(c, organizationId, [current?.role])
-        await memberships.remove(c.req.param('membershipId'), { organizationId })
+        await c.var.services
+          .get(MEMBER_SERVICE)
+          .removeOrganizationMember(actorOf(c), c.req.param('orgId'), c.req.param('membershipId'))
         return c.body(null, 204)
       })
       // Space members
-      .get('/spaces/:spaceId/members', async (c) => {
-        const space = await c.var.services
-          .get(TENANCY_SERVICE)
-          .getSpace(userOf(c), c.req.param('spaceId'))
-        const members = await c.var.services
-          .get(MEMBERSHIP_SERVICE)
-          .listMembers({ organizationId: space.organizationId, spaceId: space.id })
-        return c.json({ members: await present(c, members) })
-      })
-      .post('/spaces/:spaceId/members', async (c) => {
-        const scope = await manageableSpace(c)
-        const input = await validate(addMemberInput(spaceRoleSchema), await json(c), {
-          message: 'Invalid member',
-        })
-        return c.json(await addByEmail(c, scope, input.email, input.role as string), 201)
-      })
-      .patch('/spaces/:spaceId/members/:membershipId', async (c) => {
-        const scope = await manageableSpace(c)
-        const { role } = await validate(z.object({ role: spaceRoleSchema }), await json(c), {
-          message: 'Invalid role',
-        })
-        const updated = await c.var.services
-          .get(MEMBERSHIP_SERVICE)
-          .changeRole(c.req.param('membershipId'), scope, role)
-        return c.json((await present(c, [updated]))[0])
-      })
+      .get('/spaces/:spaceId/members', async (c) =>
+        c.json({
+          members: await c.var.services
+            .get(MEMBER_SERVICE)
+            .listSpaceMembers(actorOf(c), c.req.param('spaceId')),
+        }),
+      )
+      .post('/spaces/:spaceId/members', async (c) =>
+        c.json(
+          await c.var.services
+            .get(MEMBER_SERVICE)
+            .addSpaceMember(
+              actorOf(c),
+              c.req.param('spaceId'),
+              (await json(c)) as { email: string; role: string },
+            ),
+          201,
+        ),
+      )
+      .patch('/spaces/:spaceId/members/:membershipId', async (c) =>
+        c.json(
+          await c.var.services
+            .get(MEMBER_SERVICE)
+            .changeSpaceMemberRole(
+              actorOf(c),
+              c.req.param('spaceId'),
+              c.req.param('membershipId'),
+              ((await json(c)) as { role?: string }).role ?? '',
+            ),
+        ),
+      )
       .delete('/spaces/:spaceId/members/:membershipId', async (c) => {
-        const scope = await manageableSpace(c)
-        await c.var.services.get(MEMBERSHIP_SERVICE).remove(c.req.param('membershipId'), scope)
+        await c.var.services
+          .get(MEMBER_SERVICE)
+          .removeSpaceMember(actorOf(c), c.req.param('spaceId'), c.req.param('membershipId'))
         return c.body(null, 204)
       })
   )
@@ -296,32 +213,4 @@ function spaceTenant(c: Ctx): { organizationId: string; spaceId: string } {
     'spaceId',
   )
   return { organizationId, spaceId }
-}
-
-/** The space tenant, if the actor may manage the space (404 otherwise). TODO(009.004): permissions. */
-async function requireSpaceManager(c: Ctx): Promise<{ organizationId: string; spaceId: string }> {
-  const tenant = spaceTenant(c)
-  const access = await requireSpaceAccess(
-    c.var.services.get(MEMBERSHIP_SERVICE),
-    userOf(c),
-    tenant.organizationId,
-    tenant.spaceId,
-  )
-  if (!canManageSpace(access)) throw new NotFoundError('Space not found')
-  return tenant
-}
-
-/** The space scope, if the actor may manage the space (404 otherwise). */
-async function manageableSpace(c: Ctx): Promise<{ organizationId: string; spaceId: string }> {
-  const space = await c.var.services
-    .get(TENANCY_SERVICE)
-    .getSpace(userOf(c), c.req.param('spaceId') ?? '')
-  const access = await requireSpaceAccess(
-    c.var.services.get(MEMBERSHIP_SERVICE),
-    userOf(c),
-    space.organizationId,
-    space.id,
-  )
-  if (!canManageSpace(access)) throw new NotFoundError('Space not found')
-  return { organizationId: space.organizationId, spaceId: space.id }
 }
