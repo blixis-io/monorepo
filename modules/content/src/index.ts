@@ -19,5 +19,36 @@ export {
   type ShowWhen,
   type UpdateContentTypeInput,
 } from './domain/content-type.ts'
-export { contentModule } from './module.ts'
+export {
+  assetField,
+  BUILT_IN_FIELD_TYPES,
+  blocksField,
+  booleanField,
+  dateField,
+  dateTimeField,
+  jsonField,
+  linkField,
+  longTextField,
+  numberField,
+  referenceField,
+  richTextField,
+  selectField,
+  textField,
+} from './field-types/built-in/index.ts'
+export { LINK_KINDS } from './field-types/built-in/links.ts'
+export { RICH_TEXT_MARKS, RICH_TEXT_NODES } from './field-types/built-in/rich-text.ts'
+export {
+  createFieldTypeRegistry,
+  defineFieldType,
+  FIELD_TYPES,
+  type FieldTypeDefinition,
+  type FieldTypeInfo,
+  type FieldTypeRegistry,
+  type FieldValueContext,
+  type GraphqlHint,
+  isEmptyValue,
+  type ResolvedComponent,
+  type ValidationMode,
+} from './field-types/define.ts'
+export { type ContentModuleOptions, contentModule } from './module.ts'
 export { CONTENT_PERMISSIONS } from './permissions.ts'

@@ -1262,6 +1262,37 @@
       ]
     },
     {
+      "name": "Content model",
+      "item": [
+        {
+          "name": "List field types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/field-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "field-types"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('built-in types', () => pm.expect(pm.response.json().fieldTypes.map((t) => t.id)).to.include.members(['text', 'richText', 'blocks', 'link']));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Cleanup",
       "description": "Deletes the space created above (and emits `space.deleted`).",
       "item": [
