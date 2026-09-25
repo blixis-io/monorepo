@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 import path from 'node:path'
 import process from 'node:process'
-import { checkImports, checkPackages } from './rules.ts'
+import { checkImports, checkPackages, checkRoleNames } from './rules.ts'
 import { loadPackages, loadSourceFiles } from './workspace.ts'
 
 const root = path.resolve(import.meta.dirname, '../../..')
 const packages = loadPackages(root)
 const files = loadSourceFiles(root, packages)
-const violations = [...checkPackages(packages), ...checkImports(packages, files)]
+const violations = [
+  ...checkPackages(packages),
+  ...checkImports(packages, files),
+  ...checkRoleNames(files),
+]
 
 if (violations.length === 0) {
   console.log(`boundaries: ok (${packages.length} packages, ${files.length} files)`)

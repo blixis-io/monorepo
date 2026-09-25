@@ -1,13 +1,15 @@
-import { BLIXIS_CAPABILITIES, EVENT_BUS } from '@blixis/contracts'
+import { AUTHORIZATION_SERVICE, BLIXIS_CAPABILITIES, EVENT_BUS } from '@blixis/contracts'
 import { DATABASE } from '@blixis/database'
 import { defineModule } from '@blixis/kernel'
-import { MEMBERSHIP_SERVICE } from '@blixis/users'
+import { ROLE_SERVICE } from '@blixis/permissions'
+import { MEMBERSHIP_SERVICE, USER_SERVICE } from '@blixis/users'
 import {
   createEnvironmentService,
   createLocaleService,
   ENVIRONMENT_SERVICE,
   LOCALE_SERVICE,
 } from './application/locales.service.ts'
+import { createMemberService, MEMBER_SERVICE } from './application/members.service.ts'
 import { createTenancyService, TENANCY_SERVICE } from './application/tenancy.service.ts'
 import { createTenantResolver, TENANT_RESOLVER } from './application/tenant-resolver.ts'
 import { createSpaces } from './infrastructure/migrations/0001_create_spaces.ts'
@@ -29,7 +31,7 @@ export const spacesModule = defineModule((options: SpacesModuleOptions) => ({
     name: '@blixis/spaces',
     version: '0.0.0',
     capabilities: [BLIXIS_CAPABILITIES.spaces],
-    requires: { '@blixis/users': '>=0.0.0' },
+    requires: { '@blixis/users': '>=0.0.0', '@blixis/permissions': '>=0.0.0' },
     requiresCapabilities: [BLIXIS_CAPABILITIES.database, BLIXIS_CAPABILITIES.events],
   },
   permissions: Object.values(SPACES_PERMISSIONS),
@@ -42,20 +44,27 @@ export const spacesModule = defineModule((options: SpacesModuleOptions) => ({
           db: services.get(DATABASE),
           memberships: services.get(MEMBERSHIP_SERVICE),
           events: services.get(EVENT_BUS),
+          authz: services.get(AUTHORIZATION_SERVICE),
         }),
       { scope: 'request' },
     )
     ctx.services.provideFactory(
       ENVIRONMENT_SERVICE,
-      ({ services }) => createEnvironmentService(services.get(DATABASE)),
-      {
-        scope: 'request',
-      },
+      ({ services }) =>
+        createEnvironmentService({
+          db: services.get(DATABASE),
+          authz: services.get(AUTHORIZATION_SERVICE),
+        }),
+      { scope: 'request' },
     )
     ctx.services.provideFactory(
       LOCALE_SERVICE,
       ({ services }) =>
-        createLocaleService({ db: services.get(DATABASE), events: services.get(EVENT_BUS) }),
+        createLocaleService({
+          db: services.get(DATABASE),
+          events: services.get(EVENT_BUS),
+          authz: services.get(AUTHORIZATION_SERVICE),
+        }),
       { scope: 'request' },
     )
     ctx.services.provideFactory(
@@ -63,7 +72,19 @@ export const spacesModule = defineModule((options: SpacesModuleOptions) => ({
       ({ services }) =>
         createTenantResolver({
           db: services.get(DATABASE),
+          authz: services.get(AUTHORIZATION_SERVICE),
+        }),
+      { scope: 'request' },
+    )
+    ctx.services.provideFactory(
+      MEMBER_SERVICE,
+      ({ services }) =>
+        createMemberService({
+          db: services.get(DATABASE),
+          authz: services.get(AUTHORIZATION_SERVICE),
+          roles: services.get(ROLE_SERVICE),
           memberships: services.get(MEMBERSHIP_SERVICE),
+          users: services.get(USER_SERVICE),
         }),
       { scope: 'request' },
     )

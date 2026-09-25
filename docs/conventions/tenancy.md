@@ -77,8 +77,8 @@ A route may only be skipped through `ISOLATION_ALLOW_LIST`, with a reason. Keep 
 
 ## Authorization
 
-Until plan 009, access is membership-based:
-- organization members read, and owners and admins manage;
-- space members read, and space admins manage.
-
-Plan 009 replaces the role checks with permissions. The tenant resolution stays.
+Services check permissions through `AUTHORIZATION_SERVICE`, never roles (plan 009):
+- **Non-members get 404:** the actor has no membership in the resource's tenant.
+- **Members without the permission get 403.** `require` implements both, so callers never choose.
+- **Pass the verified tenant in the `ResourceRef`:** use the tenant from `spaceScoped()`, or the organization/space you loaded by id, never ids from the request body.
+- **No role-name comparisons:** `role === 'admin'` and the like fail `pnpm lint` (the `role-name-check` rule) everywhere outside `@blixis/permissions`.

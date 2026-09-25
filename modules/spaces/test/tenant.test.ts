@@ -1,7 +1,14 @@
-import { defineEvent, EVENT_BUS, type ModuleHonoEnv, REQUEST_CONTEXT } from '@blixis/contracts'
+import {
+  type Actor,
+  defineEvent,
+  EVENT_BUS,
+  type ModuleHonoEnv,
+  REQUEST_CONTEXT,
+} from '@blixis/contracts'
 import { databaseModule } from '@blixis/database'
 import { eventsModule } from '@blixis/events'
 import { defineModule } from '@blixis/kernel'
+import { permissionsModule } from '@blixis/permissions'
 import { newId } from '@blixis/shared'
 import { asAnonymous, asApiToken, asUser, captureEvents, createTestBlixis } from '@blixis/testing'
 import {
@@ -47,7 +54,13 @@ describe.skipIf(!databaseTestsEnabled())('tenant resolution (Postgres)', () => {
   let db: TestDatabase
   beforeAll(async () => {
     db = await createTestDatabase({
-      modules: [databaseModule(), eventsModule(), usersModule(), spacesModule()],
+      modules: [
+        databaseModule(),
+        eventsModule(),
+        usersModule(),
+        permissionsModule(),
+        spacesModule(),
+      ],
     })
   })
   beforeEach(() => db.reset())
@@ -56,7 +69,14 @@ describe.skipIf(!databaseTestsEnabled())('tenant resolution (Postgres)', () => {
   async function setup() {
     const events = captureEvents()
     const t = await createTestBlixis({
-      modules: [databaseModule(), events.module(), usersModule(), spacesModule(), probe()],
+      modules: [
+        databaseModule(),
+        events.module(),
+        usersModule(),
+        permissionsModule(),
+        spacesModule(),
+        probe(),
+      ],
       database: db,
     })
     const user = async (email: string) =>
@@ -69,8 +89,8 @@ describe.skipIf(!databaseTestsEnabled())('tenant resolution (Postgres)', () => {
     const stranger = await user('stranger@example.com')
     const { space, org } = await t.app.runInScope({}, async ({ services }) => {
       const tenancy = services.get(TENANCY_SERVICE)
-      const org = await tenancy.createOrganization(owner, { name: 'Acme', slug: 'acme' })
-      const space = await tenancy.createSpace(owner, org.id, { name: 'Blog', slug: 'blog' })
+      const org = await tenancy.createOrganization(asUser(owner), { name: 'Acme', slug: 'acme' })
+      const space = await tenancy.createSpace(asUser(owner), org.id, { name: 'Blog', slug: 'blog' })
       return { org, space }
     })
     return { t, events, owner, stranger, space, org }
@@ -134,12 +154,13 @@ describe.skipIf(!databaseTestsEnabled())('tenant resolution (Postgres)', () => {
     ).toBe(401)
   })
 
-  it("API tokens act with their owner's memberships; system actors are trusted but need a real space", async () => {
+  it("API tokens act with their owner's memberships within their scopes; system actors are trusted but need a real space", async () => {
     const { t, owner, stranger, space } = await setup()
-    expect(
-      (await t.request(`/api/v1/probe/spaces/${space.id}/tenant`, { actor: asApiToken(owner) }))
-        .status,
-    ).toBe(200)
+    const resolveAs = (actor: Actor) =>
+      t.request(`/api/v1/probe/spaces/${space.id}/tenant`, { actor })
+    expect((await resolveAs(asApiToken(owner, ['spaces.read']))).status).toBe(200)
+    // Explicit scopes are required (plan 009): without spaces.read the owner's token is refused.
+    expect((await resolveAs(asApiToken(owner))).status).toBe(403)
     expect(
       (await t.request(`/api/v1/probe/spaces/${space.id}/tenant`, { actor: asApiToken(stranger) }))
         .status,

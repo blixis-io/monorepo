@@ -1,11 +1,17 @@
 import {
+  type Actor,
+  type AuthorizationService,
   createServiceToken,
   type EventBus,
+  ForbiddenError,
   NotFoundError,
+  OWNER_ROLE,
+  type PermissionId,
   type ServiceToken,
+  type SystemRoleKey,
   validate,
 } from '@blixis/contracts'
-import { type Database, toTransactionScope, withTransaction } from '@blixis/database'
+import { type Database, isId, toTransactionScope, withTransaction } from '@blixis/database'
 import type { MembershipService } from '@blixis/users'
 import { z } from 'zod'
 import {
@@ -25,12 +31,8 @@ import {
   organizationRepository,
   spaceRepository,
 } from '../infrastructure/repositories.ts'
-import {
-  canManageSpace,
-  requireOrganizationManager,
-  requireOrganizationMember,
-  requireSpaceAccess,
-} from './access.ts'
+import { SPACES_PERMISSIONS as P } from '../permissions.ts'
+import { actingUserId, organizationResource, spaceResource } from './access.ts'
 
 /** A space with its environments and locales. */
 export interface SpaceDetails extends Space {
@@ -39,37 +41,53 @@ export interface SpaceDetails extends Space {
 }
 
 /**
- * Organizations and spaces, always on behalf of a user (`userId`: the actor, or an API token's
- * owner) whose membership is checked first. Request-scoped: `services.get(TENANCY_SERVICE)`.
+ * Role the creator of a space gets in it, so they can manage the space they created even with a
+ * custom organization role that only grants `spaces.create`.
+ */
+const SPACE_CREATOR_ROLE = 'admin' satisfies SystemRoleKey
+
+/**
+ * Organizations and spaces on behalf of an actor. Every operation checks a permission through
+ * `AUTHORIZATION_SERVICE` (§30): non-members get `NotFoundError`, members without the permission
+ * `ForbiddenError`. Request-scoped: `services.get(TENANCY_SERVICE)`.
  */
 export interface TenancyService {
-  /** Creates an organization with the creator as owner. */
-  createOrganization(userId: string, input: { name: string; slug: string }): Promise<Organization>
+  /**
+   * Creates an organization with the acting user as owner. Users only: API tokens cannot create
+   * organizations (no scope covers it). @throws ForbiddenError for other actors
+   */
+  createOrganization(actor: Actor, input: { name: string; slug: string }): Promise<Organization>
   /** Organizations the user belongs to (directly or through a space membership). */
-  listOrganizations(userId: string): Promise<Organization[]>
-  getOrganization(userId: string, organizationId: string): Promise<Organization>
+  listOrganizations(actor: Actor): Promise<Organization[]>
+  /** Needs `organizations.read`. */
+  getOrganization(actor: Actor, organizationId: string): Promise<Organization>
+  /** Needs `organizations.settings.write`. */
   renameOrganization(
-    userId: string,
+    actor: Actor,
     organizationId: string,
     input: { name?: string; slug?: string },
   ): Promise<Organization>
-  /** Creates a space with its `main` environment, default locale, and the creator as space admin. */
+  /**
+   * Needs `spaces.create`. Creates the space with its `main` environment and default locale; the
+   * acting user becomes space admin.
+   */
   createSpace(
-    userId: string,
+    actor: Actor,
     organizationId: string,
     input: { name: string; slug: string; defaultLocale?: string },
   ): Promise<SpaceDetails>
-  /** Spaces of the organization the user can see (all, for organization members). */
-  listSpaces(userId: string, organizationId: string): Promise<Space[]>
-  /** A space by id — the organization is looked up and the user's access verified. */
-  getSpace(userId: string, spaceId: string): Promise<SpaceDetails>
+  /** Needs `organizations.read`. */
+  listSpaces(actor: Actor, organizationId: string): Promise<Space[]>
+  /** A space by id (its organization is looked up); needs `spaces.read`. */
+  getSpace(actor: Actor, spaceId: string): Promise<SpaceDetails>
+  /** Needs `spaces.settings.write`. */
   updateSpace(
-    userId: string,
+    actor: Actor,
     spaceId: string,
     input: { name?: string; slug?: string },
   ): Promise<Space>
-  /** Deletes the space and emits `space.deleted` for modules to delete their data. */
-  deleteSpace(userId: string, spaceId: string): Promise<void>
+  /** Needs `spaces.delete`. Emits `space.deleted` for modules to delete their data. */
+  deleteSpace(actor: Actor, spaceId: string): Promise<void>
 }
 
 /** Request-scoped {@link TenancyService}, provided by `spacesModule()`. */
@@ -90,16 +108,23 @@ export function createTenancyService(deps: {
   readonly db: Database
   readonly memberships: MembershipService
   readonly events: EventBus
+  readonly authz: AuthorizationService
 }): TenancyService {
-  const { db, memberships, events } = deps
+  const { db, memberships, events, authz } = deps
 
-  /** Finds a space and verifies access; 404 for both "missing" and "not yours" (§31). */
-  async function accessibleSpace(userId: string, spaceId: string) {
-    const space = await spaceRepository.findForResolution(db, spaceId)
+  /** Finds a space and checks `action` on it; 404 for both "missing" and "not yours" (§31). */
+  async function authorizedSpace(actor: Actor, spaceId: string, action: PermissionId) {
+    const space = isId(spaceId) ? await spaceRepository.findForResolution(db, spaceId) : undefined
     if (space === undefined) throw new NotFoundError('Space not found')
-    const access = await requireSpaceAccess(memberships, userId, space.organizationId, space.id)
-    return { space, access }
+    await authz.require({
+      actor,
+      action,
+      resource: spaceResource({ organizationId: space.organizationId, spaceId: space.id }),
+    })
+    return space
   }
+  const requireOrganization = (actor: Actor, organizationId: string, action: PermissionId) =>
+    authz.require({ actor, action, resource: organizationResource(organizationId) })
 
   async function details(space: Space): Promise<SpaceDetails> {
     const tenant = { organizationId: space.organizationId, spaceId: space.id }
@@ -111,12 +136,16 @@ export function createTenancyService(deps: {
   }
 
   const service: TenancyService = {
-    async createOrganization(userId, input) {
+    async createOrganization(actor, input) {
+      if (actor.type !== 'user') {
+        actingUserId(actor)
+        throw new ForbiddenError('Only signed-in users can create organizations')
+      }
       const values = await validate(organizationInput, input, { message: 'Invalid organization' })
       const organization = await withTransaction(db, async (tx) => {
         const created = await organizationRepository.insert(tx, values)
         await memberships.addOrganizationMember(
-          { userId, organizationId: created.id, role: 'owner' },
+          { userId: actor.userId, organizationId: created.id, role: OWNER_ROLE },
           { transaction: toTransactionScope(tx) },
         )
         return created
@@ -124,37 +153,38 @@ export function createTenancyService(deps: {
       await events.emit(organizationCreated, {
         organizationId: organization.id,
         slug: organization.slug,
-        createdBy: userId,
+        createdBy: actor.userId,
       })
       return organization
     },
 
-    async listOrganizations(userId) {
-      const own = await memberships.listMembershipsForUser(userId)
+    async listOrganizations(actor) {
+      const own = await memberships.listMembershipsForUser(actingUserId(actor))
       return organizationRepository.findManyByIds(db, [
         ...new Set(own.map((m) => m.organizationId)),
       ])
     },
 
-    async getOrganization(userId, organizationId) {
-      await requireOrganizationMember(memberships, userId, organizationId)
+    async getOrganization(actor, organizationId) {
+      await requireOrganization(actor, organizationId, P.organizationRead.id)
       return (
         (await organizationRepository.findById(db, organizationId)) ??
         Promise.reject(new NotFoundError('Organization not found'))
       )
     },
 
-    async renameOrganization(userId, organizationId, input) {
+    async renameOrganization(actor, organizationId, input) {
       const values = await validate(organizationPatch, input, { message: 'Invalid organization' })
-      await requireOrganizationManager(memberships, userId, organizationId)
+      await requireOrganization(actor, organizationId, P.organizationSettingsWrite.id)
       const updated = await organizationRepository.update(db, organizationId, values)
       if (updated === undefined) throw new NotFoundError('Organization not found')
       return updated
     },
 
-    async createSpace(userId, organizationId, input) {
+    async createSpace(actor, organizationId, input) {
       const values = await validate(spaceInput, input, { message: 'Invalid space' })
-      await requireOrganizationManager(memberships, userId, organizationId)
+      await requireOrganization(actor, organizationId, P.spaceCreate.id)
+      const userId = actingUserId(actor)
       const defaultLocale = values.defaultLocale ?? 'en-US'
       return withTransaction(db, async (tx) => {
         const space = await spaceRepository.insert(tx, {
@@ -174,7 +204,7 @@ export function createTenancyService(deps: {
           fallbackCode: null,
         })
         await memberships.addSpaceMember(
-          { userId, organizationId, spaceId: space.id, role: 'admin' },
+          { userId, organizationId, spaceId: space.id, role: SPACE_CREATOR_ROLE },
           { transaction: toTransactionScope(tx) },
         )
         await events.emit(
@@ -192,29 +222,26 @@ export function createTenancyService(deps: {
       })
     },
 
-    async listSpaces(userId, organizationId) {
-      await requireOrganizationMember(memberships, userId, organizationId)
+    async listSpaces(actor, organizationId) {
+      await requireOrganization(actor, organizationId, P.organizationRead.id)
       return spaceRepository.listInOrganization(db, organizationId)
     },
 
-    async getSpace(userId, spaceId) {
-      const { space } = await accessibleSpace(userId, spaceId)
-      return details(space)
+    async getSpace(actor, spaceId) {
+      return details(await authorizedSpace(actor, spaceId, P.spaceRead.id))
     },
 
-    async updateSpace(userId, spaceId, input) {
+    async updateSpace(actor, spaceId, input) {
       const values = await validate(spacePatch, input, { message: 'Invalid space' })
-      const { space, access } = await accessibleSpace(userId, spaceId)
-      if (!canManageSpace(access)) throw new NotFoundError('Space not found')
+      const space = await authorizedSpace(actor, spaceId, P.spaceSettingsWrite.id)
       const updated = await spaceRepository.update(db, space.organizationId, space.id, values)
       if (updated === undefined) throw new NotFoundError('Space not found')
       await events.emit(spaceUpdated, { spaceId: space.id, organizationId: space.organizationId })
       return updated
     },
 
-    async deleteSpace(userId, spaceId) {
-      const { space, access } = await accessibleSpace(userId, spaceId)
-      if (!canManageSpace(access)) throw new NotFoundError('Space not found')
+    async deleteSpace(actor, spaceId) {
+      const space = await authorizedSpace(actor, spaceId, P.spaceDelete.id)
       await withTransaction(db, async (tx) => {
         const scope = toTransactionScope(tx)
         await memberships.removeAllForSpace(space.organizationId, space.id, { transaction: scope })

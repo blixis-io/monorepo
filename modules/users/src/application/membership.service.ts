@@ -3,6 +3,7 @@ import {
   createServiceToken,
   type EventBus,
   NotFoundError,
+  OWNER_ROLE,
   type ServiceToken,
   type TransactionScope,
   ValidationError,
@@ -21,10 +22,7 @@ import {
   type Membership,
   type MembershipScope,
   ORGANIZATION_ROLES,
-  type OrganizationRole,
   SPACE_ROLES,
-  type SpaceAccess,
-  type SpaceRole,
 } from '../domain/membership.ts'
 import { membershipCreated, membershipRemoved } from '../events.ts'
 import { memberships } from '../infrastructure/schema.ts'
@@ -49,8 +47,6 @@ export interface MembershipService {
   listMembershipsForUser(userId: string): Promise<Membership[]>
   /** How many memberships (organization- and space-level) in the organization use `roleKey`. */
   countWithRole(organizationId: string, roleKey: string): Promise<number>
-  /** Roles a user holds for a space, through its organization and/or the space. */
-  getSpaceAccess(userId: string, organizationId: string, spaceId: string): Promise<SpaceAccess>
   /** @throws NotFoundError, ValidationError, ConflictError (would leave no owner) */
   changeRole(membershipId: string, scope: MembershipScope, role: string): Promise<Membership>
   /** @throws NotFoundError, ConflictError (last owner) */
@@ -140,7 +136,7 @@ export function createMembershipService(deps: {
         and(
           eq(memberships.organizationId, organizationId),
           isNull(memberships.spaceId),
-          eq(memberships.roleKey, 'owner'),
+          eq(memberships.roleKey, OWNER_ROLE),
         ),
       )
       .for('update')
@@ -236,26 +232,13 @@ export function createMembershipService(deps: {
       return row?.count ?? 0
     },
 
-    async getSpaceAccess(userId, organizationId, spaceId) {
-      const rows = await db
-        .select()
-        .from(memberships)
-        .where(and(eq(memberships.userId, userId), eq(memberships.organizationId, organizationId)))
-      const org = rows.find((r) => r.spaceId === null)
-      const space = rows.find((r) => r.spaceId === spaceId)
-      return {
-        organizationRole: (org?.roleKey as OrganizationRole | undefined) ?? null,
-        spaceRole: (space?.roleKey as SpaceRole | undefined) ?? null,
-      }
-    },
-
     async changeRole(membershipId, scope, role) {
       const allowed: readonly string[] =
         scope.spaceId === undefined ? ORGANIZATION_ROLES : SPACE_ROLES
       if (!assignable(role, allowed)) throw invalidRole(role, allowed)
       return withTransaction(db, async (tx) => {
         const row = await locked(tx, membershipId, scope)
-        if (scope.spaceId === undefined && row.roleKey === 'owner' && role !== 'owner') {
+        if (scope.spaceId === undefined && row.roleKey === OWNER_ROLE && role !== OWNER_ROLE) {
           await assertAnotherOwner(tx, scope.organizationId, membershipId)
         }
         const [updated] = await tx
@@ -270,7 +253,7 @@ export function createMembershipService(deps: {
     async remove(membershipId, scope) {
       const removed = await withTransaction(db, async (tx) => {
         const row = await locked(tx, membershipId, scope)
-        if (scope.spaceId === undefined && row.roleKey === 'owner') {
+        if (scope.spaceId === undefined && row.roleKey === OWNER_ROLE) {
           await assertAnotherOwner(tx, scope.organizationId, membershipId)
         }
         await tx.delete(memberships).where(eq(memberships.id, membershipId))

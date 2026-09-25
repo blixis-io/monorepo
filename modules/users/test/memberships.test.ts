@@ -62,14 +62,13 @@ describe.skipIf(!databaseTestsEnabled())('memberships (Postgres)', () => {
     expect(
       (await run((m) => m.listMembers({ organizationId: org, spaceId: space }))).map((x) => x.id),
     ).toEqual([editor.id])
-    expect(await run((m) => m.getSpaceAccess(ada.id, org, space))).toEqual({
-      organizationRole: 'owner',
-      spaceRole: 'editor',
-    })
-    expect(await run((m) => m.getSpaceAccess(ada.id, newId(), space))).toEqual({
-      organizationRole: null,
-      spaceRole: null,
-    })
+    expect(
+      (await run((m) => m.listMembershipsForUser(ada.id))).map((x) => [x.spaceId, x.role]),
+    ).toEqual([
+      [null, 'owner'],
+      [space, 'editor'],
+    ])
+    expect(await run((m) => m.countWithRole(org, 'editor'))).toBe(1)
     expect(events.emitted.filter((e) => e.type === 'membership.created')).toHaveLength(2)
   })
 

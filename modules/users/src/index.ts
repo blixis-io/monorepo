@@ -15,11 +15,8 @@ export {
   type MembershipScope,
   ORGANIZATION_ROLES,
   type OrganizationRole,
-  organizationRoleSchema,
   SPACE_ROLES,
-  type SpaceAccess,
   type SpaceRole,
-  spaceRoleSchema,
 } from './domain/membership.ts'
 export {
   type CreateUserInput,

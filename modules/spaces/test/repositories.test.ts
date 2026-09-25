@@ -1,6 +1,7 @@
 import { ConflictError } from '@blixis/contracts'
 import { databaseModule } from '@blixis/database'
 import { eventsModule } from '@blixis/events'
+import { permissionsModule } from '@blixis/permissions'
 import { newId } from '@blixis/shared'
 import {
   createTestDatabase,
@@ -21,7 +22,13 @@ describe.skipIf(!databaseTestsEnabled())('spaces schema and repositories (Postgr
   let db: TestDatabase
   beforeAll(async () => {
     db = await createTestDatabase({
-      modules: [databaseModule(), eventsModule(), usersModule(), spacesModule()],
+      modules: [
+        databaseModule(),
+        eventsModule(),
+        usersModule(),
+        permissionsModule(),
+        spacesModule(),
+      ],
     })
   })
   beforeEach(() => db.reset())
