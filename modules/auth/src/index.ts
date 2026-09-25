@@ -21,9 +21,17 @@ export {
   type IssuedTokens,
 } from './application/auth.service.ts'
 export { AUTH_CONFIG, type AuthConfig } from './application/config.ts'
+export {
+  DELIVERY_KEY_PREFIX,
+  DELIVERY_KEY_SERVICE,
+  type DeliveryKeyRecord,
+  type DeliveryKeyService,
+  PREVIEW_KEY_PREFIX,
+} from './application/delivery-keys.ts'
 export { apiTokenActorResolver, bearerToken, jwtActorResolver } from './application/resolvers.ts'
 export { DEFAULT_THROTTLE_POLICY, type ThrottlePolicy } from './application/throttle.ts'
 export { type AccessTokenClaims, generateSigningKey } from './domain/jwt.ts'
 export { userSignedIn, userSignedOut } from './events.ts'
 export { type AuthModuleOptions, authModule } from './module.ts'
+export { AUTH_PERMISSIONS } from './permissions.ts'
 export { REFRESH_COOKIE } from './rest/routes.ts'

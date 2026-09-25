@@ -1,3 +1,4 @@
+import { DELIVERY_KEY_SERVICE } from '@blixis/auth'
 import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE } from '@blixis/content'
 import type { Actor, PermissionId, ServiceRegistry, UserActor } from '@blixis/contracts'
 import { QUEUE_SENDER } from '@blixis/events'
@@ -9,6 +10,7 @@ import {
   type AuthzLevel,
   asAnonymous,
   asApiToken,
+  asDeliveryKey,
   asUser,
   checkAuthzMatrix,
   createTestBlixis,
@@ -126,6 +128,14 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
         })
         const [firstVersion] = (await content.listVersions(owner, environment, entry.sys.id))
           .versions
+        const deliveryKey = await services
+          .get(DELIVERY_KEY_SERVICE)
+          .create(
+            owner,
+            { organizationId: org.id, spaceId: space.id },
+            { name: 'Site', kind: 'delivery' },
+            [],
+          )
         const actor = await join({ ...ids, owner, services })
         return {
           actor,
@@ -137,6 +147,7 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
             roleId: role.id,
             contentTypeId: contentType.id,
             entryId: entry.sys.id,
+            keyId: deliveryKey.record.id,
             versionId: firstVersion?.sys.id ?? '',
           },
         }
@@ -191,6 +202,23 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
       },
       { name: 'anonymous', setup: tenant(async () => asAnonymous()), permissions: () => new Set() },
       token("owner's read-only API token", ['organizations.read', 'spaces.read']),
+      ...(['delivery', 'preview'] as const).map(
+        (kind): AuthzCase => ({
+          name: `${kind} key of the space`,
+          setup: tenant(async ({ orgId, spaceId }) =>
+            asDeliveryKey({ organizationId: orgId, spaceId }, kind),
+          ),
+          // Keys hold only delivery permissions, and only in their own space (none of these routes).
+          permissions: (level) =>
+            level === 'space'
+              ? new Set(
+                  kind === 'preview'
+                    ? ['content.delivery.read', 'content.preview.read']
+                    : ['content.delivery.read'],
+                )
+              : undefined,
+        }),
+      ),
       token("owner's API token with every scope", allPermissions),
     ]
   }

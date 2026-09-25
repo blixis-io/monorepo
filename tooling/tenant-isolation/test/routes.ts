@@ -83,6 +83,14 @@ export const ISOLATION_ROUTES: readonly IsolationRoute[] = [
   { method: 'POST', path: '/api/v1/entries/:entryId/publish' },
   { method: 'POST', path: '/api/v1/entries/:entryId/unpublish', body: { force: true } },
   { method: 'DELETE', path: '/api/v1/entries/:entryId' },
+  // @blixis/auth — delivery keys
+  { method: 'GET', path: '/api/v1/spaces/:spaceId/delivery-keys' },
+  {
+    method: 'POST',
+    path: '/api/v1/spaces/:spaceId/delivery-keys',
+    body: { name: 'Planted', kind: 'preview' },
+  },
+  { method: 'DELETE', path: '/api/v1/spaces/:spaceId/delivery-keys/:keyId' },
   // @blixis/spaces — spaces
   { method: 'GET', path: '/api/v1/spaces/:spaceId' },
   { method: 'PATCH', path: '/api/v1/spaces/:spaceId', body: { name: 'Hijacked' } },

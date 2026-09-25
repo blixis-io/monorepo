@@ -43,6 +43,7 @@ Postman uses `"tokenDelivery": "body"`, so the refresh token comes back in the J
 | `entryId`, `entryVersion` | Create entry / Update entry scripts | The entry requests; `entryVersion` is sent as `If-Match` |
 | `versionId` | List entry versions script | The oldest version, for *Restore first version* |
 | `componentId`, `contentTypeId`, `contentTypeVersion` | Create component / Create content type / Update scripts | The *Content model* requests; `contentTypeVersion` is sent back on update (optimistic concurrency) |
+| `deliveryKey`, `deliveryKeyId` | Create delivery key script | A space's delivery key (secret, shown once) for the GraphQL delivery API, and its ID for *Revoke* |
 | `apiToken`, `apiTokenId` | Create API token script | The last created personal API token, shown once and stored as a secret, and its ID for *Revoke* |
 
 ## Command line

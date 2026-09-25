@@ -20,12 +20,18 @@ export interface ApiTokenActor {
   readonly scopes: readonly PermissionId[]
 }
 
-/** A space-scoped content delivery or preview key. */
+/**
+ * A space-scoped content delivery or preview key (plan 012.004). It may read content of its space
+ * only: `delivery` keys published content, `preview` keys drafts too.
+ */
 export interface DeliveryKeyActor {
   readonly type: 'deliveryKey'
   readonly keyId: string
+  readonly organizationId: string
   readonly spaceId: string
   readonly kind: 'delivery' | 'preview'
+  /** Environments the key may read; `null` for every environment of the space. */
+  readonly environmentIds: readonly string[] | null
 }
 
 /** Platform code acting on its own behalf (queue consumers, cron jobs, Workflows). */
@@ -118,6 +124,11 @@ export interface PermissionDefinition {
    * through custom roles).
    */
   readonly defaultRoles?: readonly SystemRoleKey[]
+  /**
+   * Delivery-key kinds granted this permission in their own space (plan 012.004), e.g.
+   * `['delivery', 'preview']` for reading published content. Keys get nothing else.
+   */
+  readonly deliveryKeys?: readonly ('delivery' | 'preview')[]
 }
 
 /** Declares a permission with a runtime naming check. */
@@ -133,8 +144,15 @@ export function definePermission(definition: PermissionDefinition): PermissionDe
       `Permission "${definition.id}" grants unknown default roles: ${unknownRoles.join(', ')}`,
     )
   }
+  const kinds = definition.deliveryKeys ?? []
+  if (kinds.some((kind) => kind !== 'delivery' && kind !== 'preview')) {
+    throw new TypeError(`Permission "${definition.id}" grants unknown delivery key kinds`)
+  }
   return Object.freeze({
     ...definition,
+    ...(definition.deliveryKeys === undefined
+      ? {}
+      : { deliveryKeys: Object.freeze([...definition.deliveryKeys]) }),
     ...(definition.defaultRoles === undefined
       ? {}
       : { defaultRoles: Object.freeze([...definition.defaultRoles]) }),

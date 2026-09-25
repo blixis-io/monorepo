@@ -25,6 +25,7 @@
     "@blixis/contracts": "workspace:*",
     "@blixis/database": "workspace:*",
     "@blixis/kernel": "workspace:*",
+    "@blixis/spaces": "workspace:*",
     "@blixis/users": "workspace:*",
     "drizzle-orm": "catalog:",
     "hono": "^4.0.0"
@@ -34,6 +35,8 @@
     "@blixis/database": "workspace:*",
     "@blixis/events": "workspace:*",
     "@blixis/kernel": "workspace:*",
+    "@blixis/permissions": "workspace:*",
+    "@blixis/spaces": "workspace:*",
     "@blixis/testing": "workspace:*",
     "@blixis/tsconfig": "workspace:*",
     "@blixis/users": "workspace:*",

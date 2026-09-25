@@ -19,13 +19,19 @@ export const permissionsRoutes = new Hono<ModuleHonoEnv>()
       throw new UnauthorizedError('Sign in to list permissions')
     const groups = new Map<
       string,
-      { id: string; description: string; scope: string; defaultRoles: readonly string[] }[]
+      {
+        id: string
+        description: string
+        scope: string
+        defaultRoles: readonly string[]
+        deliveryKeys: readonly string[]
+      }[]
     >()
-    for (const { module, id, description, scope, defaultRoles } of c.var.services
+    for (const { module, id, description, scope, defaultRoles, deliveryKeys } of c.var.services
       .get(PERMISSION_CATALOG)
       .list()) {
       const group = groups.get(module) ?? []
-      group.push({ id, description, scope, defaultRoles })
+      group.push({ id, description, scope, defaultRoles, deliveryKeys })
       groups.set(module, group)
     }
     return c.json({

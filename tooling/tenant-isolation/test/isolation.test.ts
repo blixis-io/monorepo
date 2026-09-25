@@ -1,3 +1,4 @@
+import { DELIVERY_KEY_SERVICE } from '@blixis/auth'
 import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE } from '@blixis/content'
 import type { Actor } from '@blixis/contracts'
 import { QUEUE_SENDER } from '@blixis/events'
@@ -6,6 +7,7 @@ import { PERMISSION_CATALOG, ROLE_SERVICE } from '@blixis/permissions'
 import { LOCALE_SERVICE, TENANCY_SERVICE } from '@blixis/spaces'
 import {
   asApiToken,
+  asDeliveryKey,
   asUser,
   createTestBlixis,
   expectIsolated,
@@ -133,7 +135,18 @@ describe.skipIf(!databaseTestsEnabled())(
             entry.sys.id,
           )
         ).versions
+        const deliveryKey = await services
+          .get(DELIVERY_KEY_SERVICE)
+          .create(
+            asUser(owner.id),
+            { organizationId: orgB.id, spaceId: spaceB1.id },
+            { name: 'Victim site', kind: 'delivery' },
+            [],
+          )
+        const attackerSpace = (await tenancy.listSpaces(asUser(attacker.id), orgA.id))[0]
         return {
+          deliveryKey,
+          attackerTenant: { organizationId: orgA.id, spaceId: attackerSpace?.id ?? '' },
           entry,
           entryVersionId: firstVersion?.sys.id ?? '',
           contentType,
@@ -159,6 +172,7 @@ describe.skipIf(!databaseTestsEnabled())(
         roleId: seeded.role.id,
         contentTypeId: seeded.contentType.id,
         entryId: seeded.entry.sys.id,
+        keyId: seeded.deliveryKey.record.id,
         versionId: seeded.entryVersionId,
       }
       intruders = [
@@ -174,6 +188,10 @@ describe.skipIf(!databaseTestsEnabled())(
           ),
         },
         { name: 'admin of a sibling space only', actor: asUser(seeded.spaceOnly.id) },
+        {
+          name: 'preview key of the attacker’s space',
+          actor: asDeliveryKey(seeded.attackerTenant, 'preview'),
+        },
       ]
     })
     afterAll(() => db?.drop())
@@ -203,6 +221,9 @@ describe.skipIf(!databaseTestsEnabled())(
         entryVersions: await q(
           sql`select id, fields from content.entry_versions where organization_id = ${victimOrg}::uuid order by id`,
         ),
+        deliveryKeys: await q(
+          sql`select id, name, revoked_at from auth.delivery_keys where organization_id = ${victimOrg}::uuid order by id`,
+        ),
         memberships: await q(
           sql`select id, user_id, space_id, role_key from users.memberships where organization_id = ${victimOrg}::uuid order by id`,
         ),
@@ -228,7 +249,7 @@ describe.skipIf(!databaseTestsEnabled())(
       expect(failures).toEqual([])
     })
 
-    it.each([0, 1, 2])(
+    it.each([0, 1, 2, 3])(
       'rejects intruder #%i on every route without changing data',
       async (index) => {
         const intruder = intruders[index]

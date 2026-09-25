@@ -262,6 +262,26 @@ export const AUTHZ_ROUTES = defineAuthzMatrix([
     permission: 'content.types.write',
     level: 'space',
   },
+  // Delivery keys
+  {
+    method: 'GET',
+    path: '/api/v1/spaces/:spaceId/delivery-keys',
+    permission: 'auth.deliveryKeys.manage',
+    level: 'space',
+  },
+  {
+    method: 'POST',
+    path: '/api/v1/spaces/:spaceId/delivery-keys',
+    body: { name: 'Matrix', kind: 'delivery' },
+    permission: 'auth.deliveryKeys.manage',
+    level: 'space',
+  },
+  {
+    method: 'DELETE',
+    path: '/api/v1/spaces/:spaceId/delivery-keys/:keyId',
+    permission: 'auth.deliveryKeys.manage',
+    level: 'space',
+  },
   // Last: deletes the case's space.
   {
     method: 'DELETE',

@@ -6,6 +6,7 @@
     { "path": "../../packages/contracts" },
     { "path": "../../packages/kernel" },
     { "path": "../../packages/database" },
-    { "path": "../users" }
+    { "path": "../users" },
+    { "path": "../spaces" }
   ]
 }
