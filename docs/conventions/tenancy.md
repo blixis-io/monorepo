@@ -2,7 +2,7 @@
 
 How module routes and services get a **trustworthy tenant** (architecture §21, §31; plan 008). The hierarchy is Organization → Space → Environment and Locale, owned by `@blixis/spaces`. Memberships are owned by `@blixis/users`.
 
-Related: [Database conventions](./database.md) · [ADR 0007](../decisions/0007-ids-and-tenancy-conventions.md) · [Manual: Organizations & spaces](../../apps/docs/src/content/docs/concepts/tenancy.mdx)
+Related: [Authorization](./authorization.md) · [Database conventions](./database.md) · [ADR 0007](../decisions/0007-ids-and-tenancy-conventions.md) · [Manual: Organizations & spaces](../../apps/docs/src/content/docs/concepts/tenancy.mdx)
 
 ---
 
