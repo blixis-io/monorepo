@@ -4,6 +4,7 @@ import { verifyAccessToken } from '../domain/jwt.ts'
 import { API_TOKEN_PREFIX, API_TOKEN_SERVICE } from './api-tokens.ts'
 import { ACCESS_TOKEN_AUDIENCE } from './auth.service.ts'
 import { AUTH_CONFIG, signingKeysFor } from './config.ts'
+import { DELIVERY_KEY_PREFIX, DELIVERY_KEY_SERVICE, PREVIEW_KEY_PREFIX } from './delivery-keys.ts'
 
 const BEARER = /^Bearer\s+(\S+)$/i
 
@@ -66,5 +67,20 @@ export const apiTokenActorResolver: ActorResolverEntry = {
     const token = bearerToken(request)
     if (token === undefined || !token.startsWith(API_TOKEN_PREFIX)) return undefined
     return services.get(API_TOKEN_SERVICE).authenticate(token)
+  },
+}
+
+/**
+ * Resolves `Authorization: Bearer blx_dk_…` / `blx_pk_…` to a `deliveryKey` actor (plan 012.004):
+ * hash lookup; unknown or revoked keys → 401. Runs before the request context exists.
+ */
+export const deliveryKeyActorResolver: ActorResolverEntry = {
+  name: 'delivery-key',
+  async resolve(request, services): Promise<Actor | undefined> {
+    const token = bearerToken(request)
+    if (token === undefined) return undefined
+    if (!token.startsWith(DELIVERY_KEY_PREFIX) && !token.startsWith(PREVIEW_KEY_PREFIX))
+      return undefined
+    return services.get(DELIVERY_KEY_SERVICE).authenticate(token)
   },
 }

@@ -15,6 +15,7 @@ import { newId } from '@blixis/shared'
 import {
   asAnonymous,
   asApiToken,
+  asDeliveryKey,
   asUser,
   captureEvents,
   createTestBlixis,
@@ -37,6 +38,12 @@ const blogModule = defineModule({
       id: 'blog.posts.read',
       description: 'Read posts',
       defaultRoles: ['admin', 'editor', 'viewer'],
+      deliveryKeys: ['delivery', 'preview'],
+    }),
+    definePermission({
+      id: 'blog.drafts.read',
+      description: 'Read drafts',
+      deliveryKeys: ['preview'],
     }),
     definePermission({
       id: 'blog.posts.write',
@@ -216,20 +223,34 @@ describe.skipIf(!databaseTestsEnabled())('AUTHORIZATION_SERVICE (Postgres)', () 
     ).toBe(false)
   })
 
-  it('system actors only when allowed per call; delivery keys are denied', async () => {
+  it('system actors only when allowed per call', async () => {
     const { t } = await setup()
     const system: Actor = { type: 'system', component: 'test' }
     const check = { actor: system, action: 'blog.posts.write' as const, resource: space(s1) }
     expect(await can(t, check)).toBe(false)
     expect(await can(t, { ...check, allowSystem: true })).toBe(true)
     await expect(require_(t, check)).rejects.toThrowError(ForbiddenError)
-    expect(
-      await can(t, {
-        actor: { type: 'deliveryKey', keyId: 'k', spaceId: s1, kind: 'delivery' },
-        action: 'blog.posts.read',
-        resource: space(s1),
-      }),
-    ).toBe(false)
+  })
+
+  it('delivery keys get exactly the permissions granted to their kind, in their space', async () => {
+    const { t } = await setup()
+    const delivery = asDeliveryKey({ organizationId: org, spaceId: s1 })
+    const preview = asDeliveryKey({ organizationId: org, spaceId: s1 }, 'preview')
+    expect(await can(t, { actor: delivery, action: 'blog.posts.read', resource: space(s1) })).toBe(
+      true,
+    )
+    expect(await can(t, { actor: delivery, action: 'blog.drafts.read', resource: space(s1) })).toBe(
+      false,
+    )
+    expect(await can(t, { actor: preview, action: 'blog.drafts.read', resource: space(s1) })).toBe(
+      true,
+    )
+    await expect(
+      require_(t, { actor: delivery, action: 'blog.posts.write', resource: space(s1) }),
+    ).rejects.toThrowError(ForbiddenError)
+    await expect(
+      require_(t, { actor: delivery, action: 'blog.posts.read', resource: space(s2) }),
+    ).rejects.toThrowError(NotFoundError)
   })
 
   it('treats unknown permissions and missing tenant ids as programming errors', async () => {

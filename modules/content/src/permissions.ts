@@ -32,4 +32,16 @@ export const CONTENT_PERMISSIONS = {
     description: 'Delete unpublished entries with all their versions',
     defaultRoles: ['admin', 'editor'],
   }),
+  deliveryRead: definePermission({
+    id: 'content.delivery.read',
+    description: 'Read published content through the delivery API (GraphQL)',
+    defaultRoles: ['admin', 'editor', 'viewer'],
+    deliveryKeys: ['delivery', 'preview'],
+  }),
+  previewRead: definePermission({
+    id: 'content.preview.read',
+    description: 'Read draft content through the delivery API (preview)',
+    defaultRoles: ['admin', 'editor', 'viewer'],
+    deliveryKeys: ['preview'],
+  }),
 } as const

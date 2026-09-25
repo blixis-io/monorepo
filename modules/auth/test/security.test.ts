@@ -2,6 +2,8 @@ import { databaseModule } from '@blixis/database'
 import { eventsModule } from '@blixis/events'
 import { outboxModule } from '@blixis/events/outbox'
 import { serviceOverride } from '@blixis/kernel'
+import { permissionsModule } from '@blixis/permissions'
+import { spacesModule } from '@blixis/spaces'
 import { captureEvents, createTestBlixis, type TestBlixis } from '@blixis/testing'
 import {
   createTestDatabase,
@@ -30,7 +32,15 @@ describe.skipIf(!databaseTestsEnabled())('auth security (Postgres)', () => {
   beforeAll(async () => {
     signingKeys = JSON.stringify([await generateSigningKey('sec-1')])
     db = await createTestDatabase({
-      modules: [databaseModule(), eventsModule(), outboxModule(), usersModule(), authModule()],
+      modules: [
+        databaseModule(),
+        eventsModule(),
+        outboxModule(),
+        usersModule(),
+        spacesModule(),
+        permissionsModule(),
+        authModule(),
+      ],
     })
   })
   beforeEach(() => db.reset())
@@ -44,6 +54,8 @@ describe.skipIf(!databaseTestsEnabled())('auth security (Postgres)', () => {
         events.module(),
         outboxModule(),
         usersModule(),
+        spacesModule(),
+        permissionsModule(),
         authModule({ allowSignUp: true, ...options }),
       ],
       database: db,

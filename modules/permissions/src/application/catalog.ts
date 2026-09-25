@@ -16,6 +16,8 @@ export interface CatalogPermission {
   readonly scope: 'organization' | 'space'
   /** System roles granted this permission by default (`owner` holds every permission). */
   readonly defaultRoles: readonly SystemRoleKey[]
+  /** Delivery-key kinds granted this permission in their space. */
+  readonly deliveryKeys: readonly ('delivery' | 'preview')[]
   /** Name of the declaring module, e.g. `@blixis/spaces`. */
   readonly module: string
 }
@@ -52,6 +54,7 @@ export function createPermissionCatalog(
         description: value.description,
         scope: value.scope ?? 'space',
         defaultRoles: value.defaultRoles ?? [],
+        deliveryKeys: value.deliveryKeys ?? [],
         module,
       }),
     ),

@@ -1910,6 +1910,97 @@
       ]
     },
     {
+      "name": "Delivery keys",
+      "item": [
+        {
+          "name": "Create delivery key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/delivery-keys",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "delivery-keys"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Website\",\n  \"kind\": \"delivery\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { pm.environment.set('deliveryKey', pm.response.json().key); pm.environment.set('deliveryKeyId', pm.response.json().id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List delivery keys",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/delivery-keys",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "delivery-keys"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Revoke delivery key",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/delivery-keys/{{deliveryKeyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "delivery-keys", "{{deliveryKeyId}}"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 204', () => pm.response.to.have.status(204));"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "GraphQL",
       "item": [
         {

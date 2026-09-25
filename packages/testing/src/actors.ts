@@ -23,13 +23,20 @@ export function asApiToken(
   return { type: 'apiToken', tokenId, ownerId, scopes }
 }
 
-/** A delivery or preview key actor for a space. */
+/** A delivery or preview key actor for a space (every environment unless limited). */
 export function asDeliveryKey(
-  spaceId: string,
+  tenant: { readonly organizationId: string; readonly spaceId: string },
   kind: 'delivery' | 'preview' = 'delivery',
-  keyId = `key_${spaceId}`,
+  options: { readonly keyId?: string; readonly environmentIds?: readonly string[] | null } = {},
 ): DeliveryKeyActor {
-  return { type: 'deliveryKey', keyId, spaceId, kind }
+  return {
+    type: 'deliveryKey',
+    keyId: options.keyId ?? `key_${tenant.spaceId}`,
+    organizationId: tenant.organizationId,
+    spaceId: tenant.spaceId,
+    kind,
+    environmentIds: options.environmentIds ?? null,
+  }
 }
 
 /** A platform component actor. */

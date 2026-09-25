@@ -370,6 +370,12 @@ importers:
       '@blixis/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
+      '@blixis/permissions':
+        specifier: workspace:*
+        version: link:../permissions
+      '@blixis/spaces':
+        specifier: workspace:*
+        version: link:../spaces
       '@blixis/testing':
         specifier: workspace:*
         version: link:../../packages/testing
@@ -903,6 +909,9 @@ importers:
 
   tooling/tenant-isolation:
     devDependencies:
+      '@blixis/auth':
+        specifier: workspace:*
+        version: link:../../modules/auth
       '@blixis/content':
         specifier: workspace:*
         version: link:../../modules/content

@@ -8,6 +8,7 @@
     "test": "vitest run --root ../.. tooling/tenant-isolation"
   },
   "devDependencies": {
+    "@blixis/auth": "workspace:*",
     "@blixis/content": "workspace:*",
     "@blixis/contracts": "workspace:*",
     "@blixis/database": "workspace:*",

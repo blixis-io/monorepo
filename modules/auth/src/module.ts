@@ -1,4 +1,11 @@
-import { BLIXIS_CAPABILITIES, EVENT_BUS, REQUEST_CONTEXT, subscribe } from '@blixis/contracts'
+import {
+  AUTHORIZATION_SERVICE,
+  BLIXIS_CAPABILITIES,
+  EVENT_BUS,
+  type ModuleHonoEnv,
+  REQUEST_CONTEXT,
+  subscribe,
+} from '@blixis/contracts'
 import { DATABASE } from '@blixis/database'
 import {
   ACTOR_RESOLVERS,
@@ -6,7 +13,9 @@ import {
   defineModule,
   KERNEL_CONTRIBUTIONS,
 } from '@blixis/kernel'
+import { spaceDeleted } from '@blixis/spaces'
 import { USER_SERVICE, userDisabled } from '@blixis/users'
+import { Hono } from 'hono'
 import { API_TOKEN_SERVICE, createApiTokenService } from './application/api-tokens.ts'
 import {
   AUTH_SERVICE,
@@ -15,11 +24,19 @@ import {
   DEFAULT_AUTH_POLICY,
 } from './application/auth.service.ts'
 import { AUTH_CONFIG } from './application/config.ts'
-import { apiTokenActorResolver, jwtActorResolver } from './application/resolvers.ts'
+import { createDeliveryKeyService, DELIVERY_KEY_SERVICE } from './application/delivery-keys.ts'
+import {
+  apiTokenActorResolver,
+  deliveryKeyActorResolver,
+  jwtActorResolver,
+} from './application/resolvers.ts'
 import { createAuth } from './infrastructure/migrations/0001_create_auth.ts'
 import { createApiTokens } from './infrastructure/migrations/0002_create_api_tokens.ts'
 import { createThrottle } from './infrastructure/migrations/0003_create_throttle.ts'
+import { createDeliveryKeys } from './infrastructure/migrations/0004_create_delivery_keys.ts'
 import { refreshTokenRepository } from './infrastructure/repositories.ts'
+import { AUTH_PERMISSIONS } from './permissions.ts'
+import { deliveryKeyRoutes } from './rest/delivery-key.routes.ts'
 import { authRoutes } from './rest/routes.ts'
 
 /** Options for {@link authModule}. */
@@ -40,15 +57,20 @@ export const authModule = defineModule((options: AuthModuleOptions) => ({
     name: '@blixis/auth',
     version: '0.0.0',
     capabilities: [BLIXIS_CAPABILITIES.auth],
-    requires: { '@blixis/users': '>=0.0.0' },
+    requires: { '@blixis/users': '>=0.0.0', '@blixis/spaces': '>=0.0.0' },
     requiresCapabilities: [BLIXIS_CAPABILITIES.database, BLIXIS_CAPABILITIES.events],
   },
-  migrations: [createAuth, createApiTokens, createThrottle],
+  permissions: Object.values(AUTH_PERMISSIONS),
+  migrations: [createAuth, createApiTokens, createThrottle, createDeliveryKeys],
   // Disabled users lose every credential immediately (refresh families and API tokens).
   events: [
     subscribe(userDisabled, 'revoke-credentials', async (envelope, context) => {
       await context.services.get(API_TOKEN_SERVICE).revokeAll(envelope.payload.userId)
       await context.services.get(AUTH_SERVICE).revokeAllSessions(envelope.payload.userId)
+    }),
+    // Keys belong to their space.
+    subscribe(spaceDeleted, 'delete-space-delivery-keys', async ({ payload }, context) => {
+      await context.services.get(DELIVERY_KEY_SERVICE).deleteAllForSpace(payload)
     }),
   ],
   setup(ctx) {
@@ -85,6 +107,18 @@ export const authModule = defineModule((options: AuthModuleOptions) => ({
     )
     ctx.services.get(ACTOR_RESOLVERS).register(jwtActorResolver)
     ctx.services.get(ACTOR_RESOLVERS).register(apiTokenActorResolver)
+    ctx.services.get(ACTOR_RESOLVERS).register(deliveryKeyActorResolver)
+    ctx.services.provideFactory(
+      DELIVERY_KEY_SERVICE,
+      // No REQUEST_CONTEXT here: key authentication runs during actor resolution.
+      ({ services }) =>
+        createDeliveryKeyService({
+          db: services.get(DATABASE),
+          authz: () => services.get(AUTHORIZATION_SERVICE),
+          now: () => new Date(),
+        }),
+      { scope: 'request' },
+    )
     ctx.services
       .get(BACKGROUND_HANDLERS)
       .onScheduled(options.cron ?? '* * * * *', (_event, background) =>
@@ -99,5 +133,10 @@ export const authModule = defineModule((options: AuthModuleOptions) => ({
           .then(() => undefined),
       )
   },
-  rest: { path: '/auth', app: authRoutes({ allowSignUp: options.allowSignUp ?? false }) },
+  rest: {
+    path: '/',
+    app: new Hono<ModuleHonoEnv>()
+      .route('/auth', authRoutes({ allowSignUp: options.allowSignUp ?? false }))
+      .route('/', deliveryKeyRoutes),
+  },
 }))
