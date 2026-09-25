@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,18 +37,27 @@ Expose read access to the default environment and full CRUD for space locales, i
 ### Create
 
 ```text
-modules/spaces/src/application/environment.service.ts
-modules/spaces/src/application/locale.service.ts
-modules/spaces/test/locale.service.test.ts
+modules/spaces/src/application/locales.service.ts
 ```
 
 ### Modify
 
 ```text
-modules/spaces/src/rest/routes.ts
-modules/spaces/src/module.ts
-modules/spaces/src/index.ts
+docs/ROADMAP.md
+docs/contracts/events.md
+docs/development/postman.md
+docs/plans/008-tenancy-organizations-and-spaces/004-environments-and-locales.md
+docs/plans/008-tenancy-organizations-and-spaces/_index.md
 modules/spaces/src/events.ts
+modules/spaces/src/index.ts
+modules/spaces/src/infrastructure/repositories.ts
+modules/spaces/src/module.ts
+modules/spaces/src/rest/routes.ts
+modules/spaces/test/api.test.ts
+tooling/postman/blixis.postman_collection.json
+tooling/postman/local.postman_environment.json
+tooling/postman/production.postman_environment.json
+tooling/postman/staging.postman_environment.json
 ```
 
 ### Delete
@@ -71,8 +80,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Switching default locale is atomic (old default unset, new set).
-- [ ] Fallback cycles are rejected with `VALIDATION_FAILED`.
+- [x] Switching default locale is atomic (old default unset, new set).
+- [x] Fallback cycles are rejected with `VALIDATION_FAILED`.
 
 ## Validation
 
@@ -82,15 +91,15 @@ pnpm --filter @blixis/spaces test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Deferred environment features documented in the plan Technical notes and ROADMAP deferred list.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Deferred environment features documented in the plan Technical notes and ROADMAP deferred list.
 
 ## Completion conditions
 
@@ -107,4 +116,15 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **`ENVIRONMENT_SERVICE`** (`list`, `getDefault`) and **`LOCALE_SERVICE`** (`list`, `create`, `update`, `delete`) take a **verified `SpaceTenant`** (`{ organizationId, spaceId }`) from the caller. Routes get it from the access check today, and from the tenant resolver in 008.005. Queries use `tenantScope`.
+- **Environments:** read-only (`GET /spaces/:spaceId/environments`). Create/clone routes are **omitted** (deferred per plan 008; no 501 stubs).
+- **Locale rules (in a transaction):**
+  - codes are canonical BCP 47 and unique per space (409);
+  - `isDefault: true` clears the old default first (the partial unique index allows only one);
+  - `isDefault: false` on the default → 400 ("make another locale the default instead");
+  - a fallback must exist in the space and differ from the locale itself, and the fallback chain is walked to reject cycles (409);
+  - deleting the default or a locale another locale falls back to → 409, naming the dependents.
+- **Access:** readers (space access) list environments and locales; managers (organization owner/admin, space admin) create, update, and delete. Non-members get 404.
+- **Events:** `locale.created/updated/deleted` (best-effort), registered.
+- **Tests:** 4 API tests (environments list + viewer read-only + manager create; the default swap + 400 on unset; fallback existence / self / cycle / duplicate + deletion guards + event sequence; canonical `pt-br` → `pt-BR` + invalid 400).
+- **Postman:** new "Environments & locales" folder (+ `localeId`). **Newman on the real Worker: 35 requests, 78 assertions, 0 failures.**

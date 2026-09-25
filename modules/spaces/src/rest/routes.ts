@@ -17,6 +17,7 @@ import {
   requireOrganizationMember,
   requireSpaceAccess,
 } from '../application/access.ts'
+import { ENVIRONMENT_SERVICE, LOCALE_SERVICE } from '../application/locales.service.ts'
 import { TENANCY_SERVICE } from '../application/tenancy.service.ts'
 
 type Ctx = Context<ModuleHonoEnv>
@@ -164,6 +165,37 @@ export function spacesRoutes(options: { readonly allowOrganizationCreation: bool
         await c.var.services.get(TENANCY_SERVICE).deleteSpace(userOf(c), c.req.param('spaceId'))
         return c.body(null, 204)
       })
+      // Environments (read-only in the MVP) and locales
+      .get('/spaces/:spaceId/environments', async (c) => {
+        const tenant = await readableSpace(c)
+        return c.json({ environments: await c.var.services.get(ENVIRONMENT_SERVICE).list(tenant) })
+      })
+      .get('/spaces/:spaceId/locales', async (c) => {
+        const tenant = await readableSpace(c)
+        return c.json({ locales: await c.var.services.get(LOCALE_SERVICE).list(tenant) })
+      })
+      .post('/spaces/:spaceId/locales', async (c) => {
+        const tenant = await manageableSpace(c)
+        return c.json(
+          await c.var.services
+            .get(LOCALE_SERVICE)
+            .create(tenant, (await json(c)) as { code: string }),
+          201,
+        )
+      })
+      .patch('/spaces/:spaceId/locales/:localeId', async (c) => {
+        const tenant = await manageableSpace(c)
+        return c.json(
+          await c.var.services
+            .get(LOCALE_SERVICE)
+            .update(tenant, c.req.param('localeId'), (await json(c)) as object),
+        )
+      })
+      .delete('/spaces/:spaceId/locales/:localeId', async (c) => {
+        const tenant = await manageableSpace(c)
+        await c.var.services.get(LOCALE_SERVICE).delete(tenant, c.req.param('localeId'))
+        return c.body(null, 204)
+      })
       // Organization members
       .get('/organizations/:orgId/members', async (c) => {
         const organizationId = c.req.param('orgId')
@@ -253,7 +285,15 @@ export function spacesRoutes(options: { readonly allowOrganizationCreation: bool
   )
 }
 
-/** The space scope, if the actor may manage its members (404 otherwise). */
+/** The space scope, if the actor can see the space (404 otherwise). */
+async function readableSpace(c: Ctx): Promise<{ organizationId: string; spaceId: string }> {
+  const space = await c.var.services
+    .get(TENANCY_SERVICE)
+    .getSpace(userOf(c), c.req.param('spaceId') ?? '')
+  return { organizationId: space.organizationId, spaceId: space.id }
+}
+
+/** The space scope, if the actor may manage the space (404 otherwise). */
 async function manageableSpace(c: Ctx): Promise<{ organizationId: string; spaceId: string }> {
   const space = await c.var.services
     .get(TENANCY_SERVICE)
