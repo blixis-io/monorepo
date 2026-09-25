@@ -241,7 +241,11 @@ describe.skipIf(!databaseTestsEnabled())('auth flows (Postgres)', () => {
       const { t } = await setup()
       const { accessToken } = (await (await signUp(t)).json()) as { accessToken: string }
       const [h, p, sig] = accessToken.split('.')
-      const tampered = `${h}.${p}.${sig?.slice(0, -2)}AA`
+      // Flip a character in the middle: the last base64url character of a 64-byte signature
+      // carries padding bits, so changing it may not change the decoded signature at all.
+      const middle = Math.floor((sig ?? '').length / 2)
+      const flipped = sig?.[middle] === 'A' ? 'B' : 'A'
+      const tampered = `${h}.${p}.${sig?.slice(0, middle)}${flipped}${sig?.slice(middle + 1)}`
       for (const token of [tampered, 'not-a-jwt', 'blx_pat_abc']) {
         expect((await t.request('/api/v1/users/me', { headers: bearer(token) })).status).toBe(401)
       }
