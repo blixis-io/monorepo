@@ -38,8 +38,8 @@ Create a reusable isolation test harness that, for every tenant-scoped route, se
 ```text
 packages/testing/src/isolation.ts
 tooling/tenant-isolation/package.json
-tooling/tenant-isolation/src/isolation.test.ts
-tooling/tenant-isolation/src/routes.ts
+tooling/tenant-isolation/test/isolation.test.ts
+tooling/tenant-isolation/test/routes.ts
 tooling/tenant-isolation/tsconfig.json
 ```
 

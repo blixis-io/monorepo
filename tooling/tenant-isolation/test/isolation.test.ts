@@ -10,7 +10,6 @@ import {
   createTestBlixis,
   expectIsolated,
   type IsolationParams,
-  isolationUrl,
   type TestBlixis,
   uncoveredTenantRoutes,
 } from '@blixis/testing'

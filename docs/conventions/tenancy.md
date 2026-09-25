@@ -64,7 +64,7 @@ Queue handlers and cron jobs run as `system` actors. Pass the tenant explicitly:
 
 Every probe must answer 403 or 404, and the victim's data must be unchanged.
 
-**CI fails when a route under `/organizations/:orgId/…` or `/spaces/:spaceId/…` isn't listed** in `tooling/tenant-isolation/src/routes.ts`. When you add one:
+**CI fails when a route under `/organizations/:orgId/…` or `/spaces/:spaceId/…` isn't listed** in `tooling/tenant-isolation/test/routes.ts`. When you add one:
 1. Add `{ method, path, body? }`. The `path` must be the pattern exactly as registered, and `body` should be a request that *would* change or reveal data if isolation failed.
 2. If the route needs a resource ID the suite doesn't seed yet (e.g. `:entryId`), seed one for the victim in the suite's `beforeAll`, add it to `params`, and extend the `fingerprint` with the module's tables.
 3. When one parameter name means different things on different routes, map it with `paramsFrom: { membershipId: 'orgMembershipId' }`.
