@@ -4,5 +4,12 @@
  *
  * @packageDocumentation
  */
+export { composeSchema, type SchemaPart } from './compose.ts'
 export { type GraphQLContext, loader } from './context.ts'
+export {
+  GRAPHQL_SCHEMA_EXTENSION,
+  type SchemaExtension,
+  type SchemaExtensionProvider,
+} from './extensions.ts'
 export { type GraphqlModuleOptions, graphqlModule } from './module.ts'
+export { SCALAR_TYPE_DEFS, SCALARS } from './scalars.ts'

@@ -1,8 +1,11 @@
 import type { ModuleHonoEnv, ModuleMeta } from '@blixis/contracts'
 import { defineModule, KERNEL_CONTRIBUTIONS } from '@blixis/kernel'
-import { createSchema, createYoga, type YogaServerInstance } from 'graphql-yoga'
+import type { GraphQLSchema } from 'graphql'
+import { createYoga, type YogaServerInstance } from 'graphql-yoga'
 import { Hono } from 'hono'
+import { composeSchema, type SchemaPart } from './compose.ts'
 import type { GraphQLContext } from './context.ts'
+import { GRAPHQL_SCHEMA_EXTENSION } from './extensions.ts'
 
 /** Options for {@link graphqlModule}. */
 export interface GraphqlModuleOptions {
@@ -11,6 +14,8 @@ export interface GraphqlModuleOptions {
    * `BLIXIS_ENV` is `production`.
    */
   readonly graphiql?: boolean
+  /** How many extended schemas (e.g. one per space content model) to keep per isolate. Default 50. */
+  readonly schemaCacheSize?: number
 }
 
 const PLATFORM_TYPE_DEFS = /* GraphQL */ `
@@ -46,27 +51,47 @@ export const graphqlModule = defineModule((options: GraphqlModuleOptions) => {
   return {
     meta: { name: '@blixis/graphql', version: '0.0.0' },
     setup(ctx) {
-      const contributions = ctx.services.get(KERNEL_CONTRIBUTIONS).graphql
-      const schema = createSchema<ServerContext>({
-        typeDefs: [PLATFORM_TYPE_DEFS, ...contributions.flatMap(({ value }) => value.typeDefs)],
-        resolvers: [
-          {
-            Query: {
-              _platform: (_parent: unknown, _args: unknown, context: ServerContext) => ({
-                version:
-                  (context.env['CF_VERSION_METADATA'] as { id?: string } | undefined)?.id ??
-                  'local',
-                modules: modules.map((m) => ({ name: m.name, version: m.version })),
-              }),
-            },
+      const platform: SchemaPart = {
+        module: '@blixis/graphql',
+        typeDefs: PLATFORM_TYPE_DEFS,
+        resolvers: {
+          Query: {
+            _platform: (_parent: unknown, _args: unknown, context: ServerContext) => ({
+              version:
+                (context.env['CF_VERSION_METADATA'] as { id?: string } | undefined)?.id ?? 'local',
+              modules: modules.map((m) => ({ name: m.name, version: m.version })),
+            }),
           },
-          ...contributions.flatMap(({ value }) =>
-            value.resolvers === undefined ? [] : [value.resolvers],
-          ),
-        ] as never,
-      })
+        } as never,
+      }
+      const parts: SchemaPart[] = [
+        platform,
+        ...ctx.services.get(KERNEL_CONTRIBUTIONS).graphql.map(({ module, value }) => ({
+          module,
+          typeDefs: value.typeDefs,
+          resolvers: value.resolvers as never,
+        })),
+      ]
+      // Static contributions compose once per isolate; problems fail setup, naming the module.
+      const staticSchema = composeSchema(parts)
+      const extended = new Map<string, GraphQLSchema>()
+      const capacity = options.schemaCacheSize ?? 50
+      const schemaFor = async (context: ServerContext): Promise<GraphQLSchema> => {
+        const extension = await context.services.getOptional(GRAPHQL_SCHEMA_EXTENSION)?.(context)
+        if (extension === undefined) return staticSchema
+        let schema = extended.get(extension.key)
+        if (schema === undefined) {
+          schema = composeSchema([...parts, ...extension.parts])
+          extended.set(extension.key, schema)
+          if (extended.size > capacity) extended.delete(extended.keys().next().value as string)
+        } else {
+          extended.delete(extension.key)
+          extended.set(extension.key, schema)
+        }
+        return schema
+      }
       yoga = createYoga<ServerContext>({
-        schema,
+        schema: (context) => schemaFor(context),
         graphqlEndpoint: '/graphql',
         maskedErrors: true,
         landingPage: false,

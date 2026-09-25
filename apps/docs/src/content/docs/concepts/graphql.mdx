@@ -1,0 +1,86 @@
+---
+title: GraphQL contributions
+description: Add types and queries to the one /graphql endpoint from your module — schema fragments, resolvers, context, loaders, and scalars.
+sidebar:
+  order: 14
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+Blixis serves **one** GraphQL endpoint, `/graphql`, powered by GraphQL Yoga inside the API Worker. Modules never create their own server. They contribute a schema fragment and resolvers, and `@blixis/graphql` composes them into one schema.
+
+## Contribute a fragment
+
+```ts
+import { defineModule } from '@blixis/kernel'
+import type { GraphQLContext } from '@blixis/graphql'
+
+export const seoModule = defineModule({
+  meta: { name: '@acme/seo', version: '1.0.0' },
+  graphql: {
+    typeDefs: /* GraphQL */ `
+      type SeoInfo { title: String! description: String updatedAt: DateTime }
+      extend type Query { seo(path: String!, locale: Locale): SeoInfo }
+    `,
+    resolvers: {
+      Query: {
+        seo: (_parent, args: { path: string; locale?: string }, context: GraphQLContext) =>
+          context.services.get(SEO_SERVICE).forPath(context.requestContext.actor, args.path, args.locale),
+      },
+    },
+  },
+})
+```
+
+- **Adding queries:** use `extend type Query { … }`. `Query` belongs to the platform.
+- **Keep resolvers thin.** Call your module's **services** with `context.requestContext.actor`, so permissions, validation and tenancy are the same as in REST. Never query tables from a resolver.
+- **Errors:** throw the contract errors (`NotFoundError`, `ForbiddenError`, …); they become GraphQL errors with a `code`.
+
+## Composition rules
+
+The schema is composed once per Worker instance at startup. These problems fail startup and name the module responsible:
+
+| Problem | Example |
+|---|---|
+| Invalid SDL | a syntax error in `typeDefs` |
+| A type defined twice | two modules declare `type Author` |
+| A field added twice | two modules add `Query.hello` |
+| A resolver without a field | `Query.missing` has no field in the schema |
+| A root field without a resolver | `Query.lonely` would always return `null` |
+
+Prefix your types with your module's domain (`SeoInfo`, not `Info`) to avoid clashes.
+
+## Shared scalars
+
+Always available, without declaring them:
+
+| Scalar | Format |
+|---|---|
+| `DateTime` | ISO 8601 with offset, `2026-09-25T14:30:00.000Z` |
+| `Date` | `YYYY-MM-DD` |
+| `Locale` | BCP 47 code, `nl-NL` |
+| `JSON` | any JSON value |
+
+## The resolver context
+
+| Property | Meaning |
+|---|---|
+| `requestContext` | the actor, tenant, request id and logger, the same as in REST handlers |
+| `services` | the services of this request |
+| `loaders` | a per-request map for batching loaders |
+
+Use `loader(context, key, create)` to share one batching loader per request, so that resolving 50 entries costs one query, not 50:
+
+```ts
+import { loader } from '@blixis/graphql'
+
+const authors = loader(context, '@acme/seo.authors', () => createAuthorLoader(context.services))
+```
+
+## Per-request schemas
+
+A module can extend the schema for one request, for example with types generated from a space's content model. Provide `GRAPHQL_SCHEMA_EXTENSION` from `@blixis/graphql`: a function that returns `{ key, parts }`. Composed schemas are cached per `key`, so the same key must always describe the same parts. `@blixis/content` uses this for typed delivery schemas.
+
+<Aside>
+GraphiQL, an in-browser query editor, is served at `/graphql` in every environment except production.
+</Aside>

@@ -1,7 +1,8 @@
-import { defineModule } from '@blixis/kernel'
+import { defineModule, ModuleValidationError } from '@blixis/kernel'
 import { asUser, createTestBlixis } from '@blixis/testing'
 import { describe, expect, it } from 'vitest'
 import type { GraphQLContext } from './context.ts'
+import { GRAPHQL_SCHEMA_EXTENSION, type SchemaExtensionProvider } from './extensions.ts'
 import { graphqlModule } from './module.ts'
 
 const greeter = defineModule({
@@ -57,5 +58,60 @@ describe('graphqlModule', () => {
     const off = await createTestBlixis({ modules: [graphqlModule({ graphiql: false })] })
     const blocked = await off.request('/graphql', { headers: { accept: 'text/html' } })
     expect(blocked.headers.get('content-type') ?? '').not.toContain('text/html')
+  })
+
+  it('fails setup with the module named when contributions conflict', async () => {
+    const clash = defineModule({
+      meta: { name: '@acme/clash', version: '1.0.0' },
+      graphql: {
+        typeDefs: 'extend type Query { hello(name: String!): String! }',
+        resolvers: { Query: { hello: () => 'x' } },
+      },
+    })
+    const t = await createTestBlixis({ modules: [graphqlModule(), greeter(), clash()] }).catch(
+      (e: unknown) => e,
+    )
+    expect(t).toBeInstanceOf(ModuleValidationError)
+    expect(String(t)).toContain(
+      '[@acme/clash] field Query.hello is already defined by @acme/greeter',
+    )
+  })
+
+  it('extends the schema per request through GRAPHQL_SCHEMA_EXTENSION, cached by key', async () => {
+    let builds = 0
+    const extension = defineModule({
+      meta: { name: '@acme/dynamic', version: '1.0.0' },
+      setup(ctx) {
+        ctx.services.provideFactory(
+          GRAPHQL_SCHEMA_EXTENSION,
+          (): SchemaExtensionProvider => async (context) => {
+            const tenant =
+              context.requestContext.actor.type === 'user'
+                ? context.requestContext.actor.userId
+                : 'none'
+            if (tenant === 'none') return undefined
+            return {
+              key: tenant,
+              get parts() {
+                builds++
+                return [
+                  {
+                    module: '@acme/dynamic',
+                    typeDefs: `extend type Query { tenant: String! }`,
+                    resolvers: { Query: { tenant: () => tenant } } as never,
+                  },
+                ]
+              },
+            }
+          },
+          { scope: 'request' },
+        )
+      },
+    })
+    const t = await createTestBlixis({ modules: [graphqlModule(), extension()] })
+    expect((await post(t, '{ tenant }', asUser('alice'))).body.data).toEqual({ tenant: 'alice' })
+    expect((await post(t, '{ tenant }', asUser('alice'))).body.data).toEqual({ tenant: 'alice' })
+    expect((await post(t, '{ tenant }', asUser('bob'))).body.data).toEqual({ tenant: 'bob' })
+    expect(builds).toBe(2)
   })
 })
