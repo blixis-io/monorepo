@@ -21,8 +21,9 @@ export const apiEnvSchema = defineEnvSchema(
     BLIXIS_ENV: z.enum(['local', 'preview', 'staging', 'production']),
     LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).optional(),
     SENTRY_DSN: z.url().optional(),
-    // Optional so a missing key only breaks auth routes, not the whole API; checked when used.
-    AUTH_SIGNING_KEYS: z.string().min(1).optional(),
+    // Optional and may be empty: a missing or empty key only breaks /auth/* (checked when used by
+    // authConfigModule), never the whole API. An empty secret once took staging down.
+    AUTH_SIGNING_KEYS: z.string().optional(),
     AUTH_ALLOWED_ORIGINS: z.string().optional(),
     // Shape check only; the connection string is never logged.
     HYPERDRIVE: z.looseObject({ connectionString: z.string().min(1) }),
