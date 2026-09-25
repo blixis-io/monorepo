@@ -1,0 +1,166 @@
+---
+title: 1. A module with a database table
+description: Build a Notes module that stores data in Postgres — schema, migration, validated routes, and tenant scoping.
+sidebar:
+  order: 1
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components'
+
+In this series you build **`@acme/notes`**, a small module in which each space has its own notes. This part covers:
+
+- a table in the module's own Postgres schema;
+- a migration;
+- two validated routes: create a note, and read a note scoped to its space.
+
+Later parts add [events](/tutorials/02-events/) and [idempotent commands](/tutorials/03-idempotent-commands/), and then [test everything](/tutorials/04-testing/).
+
+<Aside type="tip" title="The code is real">
+The complete module is compiled and tested with every Blixis build: [`packages/testing/test/tutorial`](https://github.com/blixis-io/monorepo/tree/main/packages/testing/test/tutorial). If a snippet here and that file ever disagree, the file is right.
+</Aside>
+
+## What you need
+
+- A package that depends on `@blixis/contracts`, `@blixis/kernel`, `@blixis/database`, `drizzle-orm`, `hono`, and `zod`.
+- Local Postgres, started with `docker compose up -d postgres` in the Blixis repository.
+
+<Steps>
+
+1. **Declare the tables.**
+
+   Every module owns a Postgres **schema** named after it. The [database conventions](/concepts/database/#ids-and-tenancy) give you the ID and timestamp columns:
+
+   ```ts title="src/schema.ts"
+   import { idColumn, timestamps } from '@blixis/database'
+   import { integer, pgSchema, text, uuid } from 'drizzle-orm/pg-core'
+
+   export const notesSchema = pgSchema('notes')
+
+   export const notes = notesSchema.table('notes', {
+     id: idColumn(),                          // uuid primary key, UUIDv7 generated in your code
+     spaceId: uuid('space_id').notNull(),     // tenant column: every query filters on it
+     title: text('title').notNull(),
+     body: text('body').notNull().default(''),
+     ...timestamps(),                         // created_at, updated_at (timestamptz)
+   })
+
+   export const noteCounts = notesSchema.table('note_counts', {
+     spaceId: uuid('space_id').primaryKey(),
+     count: integer('count').notNull().default(0),
+   })
+   ```
+
+   `note_counts` is used in [part 2](/tutorials/02-events/).
+
+2. **Write the migration.**
+
+   Migrations are plain SQL. `pnpm db:new <module-dir> create_notes` scaffolds the file, and `drizzle-kit generate` can propose the SQL from your schema for you to review:
+
+   ```ts title="src/migrations/0001_create_notes.ts"
+   import { defineMigration } from '@blixis/contracts'
+
+   export const createNotes = defineMigration({
+     id: '0001_create_notes',
+     up: /* sql */ `
+       create schema notes;
+       create table notes.notes (
+         id uuid primary key,
+         space_id uuid not null,
+         title text not null,
+         body text not null default '',
+         created_at timestamptz not null default now(),
+         updated_at timestamptz not null default now()
+       );
+       create index notes_space_created_idx on notes.notes (space_id, created_at);
+       create table notes.note_counts (
+         space_id uuid primary key,
+         count integer not null default 0
+       );
+     `,
+   })
+   ```
+
+   Never edit a migration once it has been applied anywhere. Add a new one instead; the runner verifies checksums. See [Migrations](/concepts/database/#migrations).
+
+3. **Add the routes.**
+
+   Validate input at the boundary, and never load a row by ID alone: combine the ID with `tenantScope`.
+
+   ```ts title="src/routes.ts"
+   import { type ModuleHonoEnv, NotFoundError, validate } from '@blixis/contracts'
+   import { DATABASE, isId, tenantScope } from '@blixis/database'
+   import { and, eq } from 'drizzle-orm'
+   import { Hono } from 'hono'
+   import { z } from 'zod'
+   import { notes } from './schema.ts'
+
+   const createNoteInput = z.object({
+     title: z.string().trim().min(1).max(200),
+     body: z.string().max(10_000).default(''),
+   })
+
+   export const routes = new Hono<ModuleHonoEnv>()
+     .post('/:spaceId/notes', async (c) => {
+       const spaceId = c.req.param('spaceId')
+       if (!isId(spaceId)) throw new NotFoundError('Space not found')
+       const input = await validate(createNoteInput, await c.req.json())   // 400 with issues if invalid
+
+       const [note] = await c.var.services.get(DATABASE).insert(notes).values({ spaceId, ...input }).returning()
+       return c.json(note, 201)
+     })
+     .get('/:spaceId/notes/:id', async (c) => {
+       const { spaceId, id } = c.req.param()
+       if (!isId(spaceId) || !isId(id)) throw new NotFoundError('Note not found')
+       const [note] = await c.var.services
+         .get(DATABASE)
+         .select()
+         .from(notes)
+         .where(and(tenantScope(notes, { spaceId }), eq(notes.id, id)))
+       if (note === undefined) throw new NotFoundError('Note not found')   // another space's note is "not found"
+       return c.json(note)
+     })
+   ```
+
+   <Aside type="note">
+   Until spaces and memberships exist (roadmap plan 008), the space comes from the URL. After that it comes from the request's tenant context, `requireTenant(ctx, 'spaceId')`, which the kernel fills in only after checking access.
+   </Aside>
+
+4. **Define the module.**
+
+   ```ts title="src/index.ts"
+   import { defineModule } from '@blixis/kernel'
+   import { createNotes } from './migrations/0001_create_notes.ts'
+   import { routes } from './routes.ts'
+
+   export const notesModule = defineModule({
+     meta: { name: '@acme/notes', version: '1.0.0', requiresCapabilities: ['blixis.database', 'blixis.events'] },
+     migrations: [createNotes],
+     rest: { path: '/spaces', app: routes },
+   })
+   ```
+
+   `requiresCapabilities` makes startup fail with a clear message if the app lacks a database or events module.
+
+5. **Register it and migrate.**
+
+   ```ts title="apps/api/src/blixis.config.ts"
+   export const modules = [databaseModule(), eventsModule({ /* … */ }), /* … */ notesModule()]
+   ```
+
+   ```bash
+   DATABASE_URL=postgres://blixis:blixis@localhost:5432/blixis pnpm db:migrate
+   # applied @acme/notes 0001_create_notes
+   ```
+
+   Your routes are now served at `POST /api/v1/spaces/:spaceId/notes` and `GET /api/v1/spaces/:spaceId/notes/:id`.
+
+</Steps>
+
+## What you learned
+
+- Each module owns a schema, and migrations are append-only SQL.
+- `idColumn()` and `timestamps()` follow the shared conventions.
+- Input is validated at the boundary (`validate` → `400`).
+- Queries are always tenant-scoped, and another tenant's row is "not found".
+
+**Next:** [2. Events](/tutorials/02-events/)

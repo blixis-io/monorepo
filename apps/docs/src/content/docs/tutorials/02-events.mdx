@@ -1,0 +1,98 @@
+---
+title: 2. Events
+description: Emit a transactional event when a note is created and react to it exactly once in a subscription.
+sidebar:
+  order: 2
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components'
+
+Now the Notes module announces every new note with a `note.created` event, and a subscription keeps a per-space note count. You will see why the event must be **transactional**, and how the handler applies its effect **exactly once** even though delivery is at least once.
+
+<Steps>
+
+1. **Define the event.**
+
+   ```ts title="src/events.ts"
+   import { defineEvent } from '@blixis/contracts'
+   import { z } from 'zod'
+
+   export const noteCreated = defineEvent({
+     type: 'note.created',
+     version: 1,
+     delivery: 'transactional',   // losing it would leave the counts wrong
+     schema: z.object({ noteId: z.string(), spaceId: z.string(), title: z.string() }),
+     description: 'A note was created in a space.',
+   })
+   ```
+
+   Payloads carry IDs and small facts, not whole documents. They must be plain JSON: use ISO strings for times.
+
+2. **Emit it in the same transaction as the insert.**
+
+   Replace the create handler's insert with a transaction:
+
+   ```ts title="src/routes.ts (create handler)"
+   import { EVENT_BUS } from '@blixis/contracts'
+   import { DATABASE, toTransactionScope, withTransaction } from '@blixis/database'
+   import { noteCreated } from './events.ts'
+
+   const note = await withTransaction(c.var.services.get(DATABASE), async (tx) => {
+     const [row] = await tx.insert(notes).values({ spaceId, ...input }).returning()
+     if (row === undefined) throw new Error('insert returned no row')
+     await c.var.services
+       .get(EVENT_BUS)
+       .emit(noteCreated, { noteId: row.id, spaceId, title: row.title }, { transaction: toTransactionScope(tx) })
+     return row
+   })
+   return c.json(note, 201)
+   ```
+
+   The event is written to the **outbox** inside your transaction. If anything after it throws, both the note and the event roll back. After commit it is sent to the queue straight away, and a one-minute sweep sends anything that was missed. Emitting a transactional event without `{ transaction }` fails immediately.
+
+3. **React to it.**
+
+   ```ts title="src/subscriptions.ts"
+   import { subscribe } from '@blixis/contracts'
+   import { fromTransactionScope } from '@blixis/database'
+   import { sql } from 'drizzle-orm'
+   import { noteCreated } from './events.ts'
+
+   export const countNotes = subscribe(
+     noteCreated,
+     'count-notes',                       // stable id — the key for "already processed"
+     async (envelope, context) => {
+       const tx = fromTransactionScope(context.transaction ?? missingTransaction())
+       await tx.execute(sql`
+         insert into notes.note_counts (space_id, count) values (${envelope.payload.spaceId}::uuid, 1)
+         on conflict (space_id) do update set count = notes.note_counts.count + 1`)
+     },
+     { idempotency: 'transactional' },    // marker + your writes commit together
+   )
+
+   function missingTransaction(): never {
+     throw new Error('count-notes runs with transactional idempotency')
+   }
+   ```
+
+   Register it on the module: `defineModule({ …, events: [countNotes] })`.
+
+</Steps>
+
+## Why `idempotency: 'transactional'`?
+
+Queues deliver **at least once**, so the same event can arrive twice. Blixis records which subscription processed which event:
+- **`'after'` (the default)** marks the event after your handler succeeds. That's fine for effects that are naturally idempotent, such as setting a value or purging a cache.
+- **`'transactional'`** inserts the marker first, **in a transaction your handler receives**. Your writes and the marker commit together, so a counter can never be incremented twice.
+
+<Aside type="caution">
+There is no ordering guarantee. `note.created` for note B may be processed before note A's. Design handlers so the order doesn't matter.
+</Aside>
+
+## What you learned
+
+- Transactional events are emitted inside the domain transaction, which gives no phantom events and no lost events.
+- Handlers run in their own scope, get retries with backoff, and end up in a dead-letter queue if they keep failing.
+- `idempotency: 'transactional'` gives exactly-once database effects.
+
+**Next:** [3. Idempotent commands](/tutorials/03-idempotent-commands/)

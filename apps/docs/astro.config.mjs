@@ -67,6 +67,7 @@ export default defineConfig({
       ],
       sidebar: [
         { label: 'Getting started', items: [{ autogenerate: { directory: 'getting-started' } }] },
+        { label: 'Tutorials', items: [{ autogenerate: { directory: 'tutorials' } }] },
         { label: 'Concepts', items: [{ autogenerate: { directory: 'concepts' } }] },
         {
           label: 'API reference',

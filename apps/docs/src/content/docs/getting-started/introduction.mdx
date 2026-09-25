@@ -32,8 +32,11 @@ Modules communicate only through **public contracts**: typed [service tokens](/c
 | Package | Status | What it gives you |
 |---|---|---|
 | `@blixis/contracts` | ✅ available | Module contract, service tokens, capabilities, errors, validation, events, permissions, request context, migrations |
-| `@blixis/kernel` | 🚧 in development | [`defineModule`](/api/kernel/functions/definemodule/) and [`createBlixis`](/api/kernel/functions/createblixis/) (module graph validation, services, lifecycle, REST routes, error responses) ✅ |
-| `@blixis/testing` | ✅ available | [`createTestBlixis`](/concepts/testing/), test actors, service overrides, captured logs |
+| `@blixis/kernel` | ✅ available | [`defineModule`](/api/kernel/functions/definemodule/) and [`createBlixis`](/api/kernel/functions/createblixis/): module graph validation, services and scopes, lifecycle, REST routes, error responses, health and readiness, queue and cron dispatch |
+| `@blixis/database` | ✅ available | Postgres through Hyperdrive with Drizzle: per-request connections, transactions, migrations, IDs and tenant scoping, idempotency keys ([Database](/concepts/database/)) |
+| `@blixis/events` | ✅ available | Typed events, the transactional outbox, Cloudflare Queues delivery, and idempotent consumers ([Events](/concepts/events/)) |
+| `@blixis/testing` | ✅ available | [`createTestBlixis`](/concepts/testing/), test databases, `captureEvents`, test actors, service overrides, captured logs |
+| Auth, users, spaces, content, … | 🚧 next | Follow the [roadmap](https://github.com/blixis-io/monorepo/blob/main/docs/ROADMAP.md) |
 
 <Aside type="caution" title="Early development">
 Blixis is not released yet. APIs marked *coming soon* in this manual do not exist yet; everything else is implemented and tested. The [API reference](/api/contracts/readme/) is generated from the source code on every build.
@@ -50,5 +53,6 @@ The full rationale is in the [architecture document](https://github.com/blixis-i
 
 ## Next steps
 
-- [Your first module](/getting-started/first-module/) — build a small module end to end.
+- [Tutorials](/tutorials/01-database-module/): build a Notes module with a database table, events, idempotent commands, and tests. It runs today.
+- [Your first module](/getting-started/first-module/): a tour of every part of the module contract.
 - [Modules](/concepts/modules/) — the module contract in detail.

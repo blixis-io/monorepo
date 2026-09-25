@@ -10,7 +10,7 @@ import { Aside, Steps } from '@astrojs/starlight/components'
 This walkthrough builds `@acme/blixis-seo`, a module that stores SEO titles for content entries. It uses every part of the module contract. The code compiles against `@blixis/contracts` today — it mirrors a type test in the Blixis repository.
 
 <Aside type="note">
-Running the module inside Blixis needs `@blixis/kernel` (`createBlixis`), which is **coming soon**. Until then you can write and type-check modules, and the kernel will load them unchanged.
+This SEO module depends on `@blixis/content`, which doesn't exist yet, so this page is a **tour of the contract**. To build and run a real module today, follow the [tutorials](/tutorials/01-database-module/).
 </Aside>
 
 ## 1. Create the package
