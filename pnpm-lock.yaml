@@ -441,6 +441,9 @@ importers:
       '@blixis/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
+      '@blixis/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@blixis/testing':
         specifier: workspace:*
         version: link:../../packages/testing
