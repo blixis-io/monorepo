@@ -200,6 +200,12 @@ export const AUTHZ_ROUTES = defineAuthzMatrix([
   },
   {
     method: 'GET',
+    path: '/api/v1/entries/:entryId/referrers',
+    permission: 'content.entries.read',
+    level: 'space',
+  },
+  {
+    method: 'GET',
     path: '/api/v1/entries/:entryId/versions',
     permission: 'content.entries.read',
     level: 'space',

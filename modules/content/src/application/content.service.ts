@@ -190,6 +190,24 @@ export interface ContentService {
     versionId: string,
     expectedVersion: number,
   ): Promise<EntryView>
+  /** Entries linking to this one through their current (`draft`) or published version. */
+  findReferrers(
+    actor: Actor,
+    tenant: EnvironmentTenant,
+    id: string,
+    options?: { state?: EntryState | undefined },
+  ): Promise<EntryView[]>
+  /**
+   * Loads the entries linked from `entryIds`, level by level up to `depth` (0–3), with one batch
+   * query per level. Cycles are followed once; links that don't resolve (missing, or unpublished
+   * for `published`) are left out. Asset links are skipped until assets exist (plan 014).
+   */
+  resolveLinks(
+    actor: Actor,
+    tenant: EnvironmentTenant,
+    entryIds: readonly string[],
+    options?: { depth?: number | undefined; state?: EntryState | undefined },
+  ): Promise<EntryView[]>
 }
 
 /** Request-scoped {@link ContentService}, provided by `contentModule()`. */
@@ -207,6 +225,8 @@ export interface ContentServiceDeps {
 }
 
 const P = CONTENT_PERMISSIONS
+/** Maximum levels of `include` (link resolution depth). */
+export const MAX_INCLUDE_DEPTH = 3
 const encodeCursor = (c: EntryCursor) =>
   btoa(JSON.stringify([c.updatedAt, c.id])).replace(/=+$/, '')
 function decodeCursor(value: string): EntryCursor {
@@ -553,6 +573,49 @@ export function createContentService(deps: ContentServiceDeps): ContentService {
         restoredFrom: old.id,
       })
       return kit.view(tenant, saved.entry, saved.version)
+    },
+    async findReferrers(actor, tenant, id, options = {}) {
+      await kit.require(actor, P.entriesRead.id, tenant, id)
+      const entry = await kit.load(tenant, id)
+      const state = options.state ?? 'draft'
+      const referrers = (
+        await entryRepository.referrers(db, tenant, { type: 'entry', id: entry.id }, state)
+      ).filter((r) => r.id !== entry.id)
+      const loaded = await entryRepository.findManyWithVersions(
+        db,
+        tenant,
+        referrers.map((r) => r.id),
+        state,
+      )
+      return Promise.all(loaded.map((r) => kit.view(tenant, r.entry, r.version)))
+    },
+
+    async resolveLinks(actor, tenant, entryIds, options = {}) {
+      await kit.require(actor, P.entriesRead.id, tenant)
+      const depth = options.depth ?? 1
+      if (!Number.isInteger(depth) || depth < 0 || depth > MAX_INCLUDE_DEPTH)
+        throw new ValidationError('Invalid include', [
+          { path: ['include'], message: `Use 0–${MAX_INCLUDE_DEPTH}` },
+        ])
+      const state = options.state ?? 'draft'
+      const seen = new Set(entryIds)
+      const included: EntryView[] = []
+      const types = await kit.types(tenant)
+      let frontier = await entryRepository.findManyWithVersions(db, tenant, [...seen], state)
+      for (let level = 0; level < depth && frontier.length > 0; level++) {
+        const next = new Set<string>()
+        for (const { entry, version } of frontier) {
+          const type = types.find((t) => t.id === entry.contentTypeId)
+          if (type === undefined) continue
+          for (const link of collectLinks(type, types, version.fields))
+            if (link.type === 'entry' && !seen.has(link.id)) next.add(link.id)
+        }
+        if (next.size === 0) break
+        for (const id of next) seen.add(id)
+        frontier = await entryRepository.findManyWithVersions(db, tenant, [...next], state)
+        for (const row of frontier) included.push(await kit.view(tenant, row.entry, row.version))
+      }
+      return included
     },
     async publish(actor, tenant, id, options = {}) {
       await kit.require(actor, P.entriesPublish.id, tenant, id)

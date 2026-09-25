@@ -12,6 +12,7 @@ export {
   type EntrySys,
   type EntryVersionView,
   type EntryView,
+  MAX_INCLUDE_DEPTH,
 } from './application/content.service.ts'
 export {
   CONTENT_TYPE_SERVICE,
