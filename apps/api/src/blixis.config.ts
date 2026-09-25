@@ -4,6 +4,7 @@ import { databaseModule } from '@blixis/database'
 import { idempotencyModule } from '@blixis/database/idempotency'
 import { eventsModule, queueTransport } from '@blixis/events'
 import { outboxModule, outboxTransport } from '@blixis/events/outbox'
+import { usersModule } from '@blixis/users'
 
 /**
  * The explicit module list of the API Worker (architecture §2.3). Modules are imported by
@@ -21,4 +22,6 @@ export const modules: readonly BlixisModule[] = [
   outboxModule(),
   // Idempotency-Key support for command routes (blixis.idempotency_keys).
   idempotencyModule(),
+  // Domain modules.
+  usersModule(),
 ]

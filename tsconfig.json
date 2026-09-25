@@ -53,6 +53,12 @@
       "path": "packages/events/tsconfig.test.json"
     },
     {
+      "path": "modules/users"
+    },
+    {
+      "path": "modules/users/tsconfig.test.json"
+    },
+    {
       "path": "apps/api"
     }
   ]

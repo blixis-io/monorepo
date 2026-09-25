@@ -268,9 +268,18 @@ importers:
       '@blixis/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
+      '@blixis/users':
+        specifier: workspace:*
+        version: link:../../modules/users
       '@sentry/cloudflare':
         specifier: 'catalog:'
         version: 11.0.0(@cloudflare/workers-types@5.20260924.1)(wrangler@4.137.0(@cloudflare/workers-types@5.20260924.1)(@types/node@24.13.6))
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.3(@cloudflare/workers-types@5.20260924.1)(@opentelemetry/api@1.9.1)(@types/pg@8.23.0)(pg@8.23.0)
+      hono:
+        specifier: 'catalog:'
+        version: 4.13.9
       zod:
         specifier: 'catalog:'
         version: 4.6.5
@@ -281,9 +290,6 @@ importers:
       '@cloudflare/vitest-pool-workers':
         specifier: 'catalog:'
         version: 0.22.0(@cloudflare/workers-types@5.20260924.1)(@vitest/runner@4.1.11)(@vitest/snapshot@4.1.11)(vitest@4.1.11)
-      drizzle-orm:
-        specifier: 'catalog:'
-        version: 0.45.3(@cloudflare/workers-types@5.20260924.1)(@opentelemetry/api@1.9.1)(@types/pg@8.23.0)(pg@8.23.0)
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
@@ -318,6 +324,46 @@ importers:
       wrangler:
         specifier: 'catalog:'
         version: 4.137.0(@cloudflare/workers-types@5.20260924.1)(@types/node@24.13.6)
+
+  modules/users:
+    dependencies:
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.5
+    devDependencies:
+      '@blixis/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@blixis/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@blixis/events':
+        specifier: workspace:*
+        version: link:../../packages/events
+      '@blixis/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@blixis/testing':
+        specifier: workspace:*
+        version: link:../../packages/testing
+      '@blixis/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/tsconfig
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.13.6
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.3(@cloudflare/workers-types@5.20260924.1)(@opentelemetry/api@1.9.1)(@types/pg@8.23.0)(pg@8.23.0)
+      hono:
+        specifier: 'catalog:'
+        version: 4.13.9
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.6)(@vitest/coverage-v8@4.1.11)(esbuild@0.28.2)(jiti@2.6.1)(yaml@2.9.1)
 
   packages/cloudflare:
     dependencies:

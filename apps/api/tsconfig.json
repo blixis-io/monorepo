@@ -6,6 +6,7 @@
     { "path": "../../packages/kernel" },
     { "path": "../../packages/cloudflare" },
     { "path": "../../packages/database" },
-    { "path": "../../packages/events" }
+    { "path": "../../packages/events" },
+    { "path": "../../modules/users" }
   ]
 }
