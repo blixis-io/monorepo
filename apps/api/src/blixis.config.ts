@@ -1,5 +1,6 @@
 import { authModule } from '@blixis/auth'
 import { eventsQueueModule } from '@blixis/cloudflare'
+import { contentModule } from '@blixis/content'
 import type { BlixisModule } from '@blixis/contracts'
 import { databaseModule } from '@blixis/database'
 import { idempotencyModule } from '@blixis/database/idempotency'
@@ -33,4 +34,5 @@ export const modules: readonly BlixisModule[] = [
   authModule(),
   spacesModule(),
   permissionsModule(),
+  contentModule(),
 ]
