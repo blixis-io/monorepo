@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 5 — Content management core  
 Roadmap scope: MVP / initial platform  
-Progress: 6/7 tasks completed
+Progress: 7/7 tasks completed
 
 ## Objective
 
@@ -66,16 +66,16 @@ Depends on:
 - [x] [004 — Implement publish and unpublish commands](./004-publish-and-unpublish-commands.md)
 - [x] [005 — Implement version history and restore](./005-version-history-and-restore.md)
 - [x] [006 — Implement entry references and link resolution](./006-references-and-link-resolution.md)
-- [R] [007 — Verify the content management vertical slice end to end](./007-content-vertical-slice-end-to-end.md)
+- [x] [007 — Verify the content management vertical slice end to end](./007-content-vertical-slice-end-to-end.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] Publish → `entry.published` delivered through the queue in the Workers-pool test.
-- [ ] Isolation and authz matrices cover all entry routes.
-- [ ] Architectural checkpoint CP5 (content vertical slice) recorded, including latency of create/publish on staging.
+- [x] All tasks `completed`.
+- [x] Publish → `entry.published` delivered through the queue in the Workers-pool test.
+- [x] Isolation and authz matrices cover all entry routes.
+- [x] Architectural checkpoint CP5 (content vertical slice) recorded, including latency of create/publish on staging.
 
 ## Risks
 
@@ -90,4 +90,16 @@ The plan may be marked `completed` when:
 
 ## Technical notes
 
-No technical notes yet.
+- **Checkpoint CP5 passed 2026-09-25** (details in [011.007](./007-content-vertical-slice-end-to-end.md)):
+  - **Path proven on staging:** request → Hono route → `CONTENT_SERVICE` → repository → Hyperdrive → Neon, plus publish → outbox → Queue → consumer.
+  - **Staging latency:** create ~280 ms, publish ~260 ms, published read ~150 ms (p50 200–250 ms). The cause is sequential database round trips; follow-ups for plans 013 and 020.
+  - **§48 review:** no findings.
+- **Deviation:** the "Workers-pool" scenario test runs in the Node pool (`modules/content/test/vertical-slice.test.ts`), because `pg` can't reach Postgres from the Workers pool. Delivery to a subscriber in another module is asserted there, and the Worker/queue path was verified on staging.
+- **API decisions** recorded in the task notes:
+  - `{ sys, fields }` entries;
+  - ETag/If-Match;
+  - `entryScoped()`;
+  - unpublish blocked by published referrers unless `force`;
+  - links stored per version;
+  - `include` up to depth 3.
+- **Documentation:** *Entries and publishing* (concept), *Entries API* (reference), tutorial 5 (create and publish), and `docs/api/management-conventions.md`.

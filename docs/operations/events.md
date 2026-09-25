@@ -30,6 +30,8 @@ Best-effort events skip the outbox and go straight to the queue.
 | DLQ | dashboard → Queues → `blixis-events-<env>-dlq` | empty |
 | Handler failures | log `event handler failed` (error), `event.consumed` with `status: retrying` (warn) | rare, transient |
 | Invalid envelopes | log `event.invalid` (error) | none |
+| Post-commit dispatch | log `outbox.dispatched` (`events`: rows sent after a request committed) | after every transactional command |
+| Consumer runs | `wrangler tail` line `Queue blixis-events-<env> (N messages) - Ok`; logs `event.consumed` (subscribed types) and `event.unrouted` (no subscriber in this Worker, acked) | a few seconds after writes |
 | Sweep activity | log `outbox.swept` (only when it sent or deleted something) | occasional (the post-commit path normally wins) |
 
 Logs appear in Workers Logs (`observability.enabled`) and live with `npx wrangler tail blixis-api-<env> --format pretty`. Errors also reach Sentry.
@@ -63,6 +65,14 @@ from events.outbox group by type;
 - **At least once**, with **no ordering guarantee**. Handlers must tolerate duplicates and reordering. `events.processed` skips duplicates per subscription for 30 days.
 - A rolled-back command never produces an event. A committed transactional event is never lost: the sweep retries until the send succeeds.
 - **Measured (006.007):** emit → handler takes a p50 of 8 ms locally on the post-commit path (simulated queue, local Postgres). On Cloudflare, add the queue's batching delay (`max_batch_timeout` 5 s) and network time. On the sweep path, add up to 60 s.
+
+## Verifying the event path end to end
+
+1. Start `npx wrangler tail blixis-api-<env> --format pretty` with **no** `--search` filter. Queue invocations aren't log lines, so a search hides them.
+2. Run the content smoke test (`pnpm --filter @blixis/smoke content`, see `tooling/smoke`).
+3. Expect the HTTP requests, then `outbox.dispatched` for the publish, unpublish and delete, and within about 5–10 s a `Queue blixis-events-<env> (N messages) - Ok` invocation. N counts every event of the run, best-effort ones included.
+
+Verified on staging on 2026-09-25 (CP5): the smoke run's 13 requests were followed by `Queue blixis-events-staging (10 messages) - Ok` one second after the last request.
 
 ## Staging verification (after `db:migrate` and deploy)
 

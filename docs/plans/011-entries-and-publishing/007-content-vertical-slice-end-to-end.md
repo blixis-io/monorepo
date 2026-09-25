@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-review
+completed
 ```
 
 ## Parent plan
@@ -125,4 +125,22 @@ Change the status to `completed` only when all of the following hold:
   - No hidden global state: the only app-scoped state is the pure compiled-schema LRU.
   - One justified `any` (field type settings generics in `ContentModuleOptions`, with a `biome-ignore` comment).
   - New behaviour has tests.
-- **CP5:** recorded after the staging smoke run and outbox/queue verification (see below).
+- **Staging (2026-09-25, version `19979c84`):**
+  - **Postman:** 60 requests / 134 assertions, all green.
+  - **Smoke:** three runs of 13 requests, p50 **203–246 ms** from the Netherlands.
+
+    | Step | Typical time |
+    |---|---|
+    | create entry | ~280 ms |
+    | update entry | ~265 ms |
+    | publish | ~260–280 ms |
+    | idempotent replay | 82–104 ms |
+    | read published | ~150 ms |
+    | list by slug | ~150–165 ms |
+
+  - **Event path:** `wrangler tail` showed `Queue blixis-events-staging (10 messages) - Ok` one second after the run: 4 content type events, 5 entry events (published, unpublished and deleted through the outbox), and `user.signed-in`.
+- **Finding (latency):** local p50 is 23 ms against 200–250 ms on staging. The replay, which runs one query, costs ~90 ms, so most of the gap is **several sequential Hyperdrive→Neon round trips per request**: actor memberships, roles, content types, locales, then the entry and version. They aren't cached since ADR 0019. Follow-ups for plans 013 and 020:
+  - measure the query count per route;
+  - combine the authorization lookups into one query;
+  - cache content types and locales per isolate, invalidated by `content-type.*`/`locale.*` events.
+- **Finding (observability):** a successful post-commit dispatch logged nothing, and unrouted events logged only at `debug`, so the event path couldn't be verified from staging logs. Fixed here: `outbox.dispatched` and `event.unrouted` are now logged at `info`, and `docs/operations/events.md` describes the end-to-end check.
