@@ -59,7 +59,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [003 — Module Kernel](./plans/003-module-kernel/_index.md) | M2 | MVP | `completed` | 8/8 | 002 |
 | [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md) | M2 | MVP | `completed` | 7/7 | 003 |
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `completed` | 8/8 | 004 |
-| [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `in-progress` | 6/7 | 005 |
+| [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `completed` | 7/7 | 005 |
 | [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `not-started` | 0/6 | 006 |
 | [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `not-started` | 0/6 | 007 |
 | [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `not-started` | 0/5 | 008 |
@@ -223,7 +223,7 @@ Selects the Postgres driver/query layer/migration tooling (ADR), builds `@blixis
 
 #### 006 — Events & Async Processing
 
-Status: `in-progress` · Progress: 6/7 · Scope: MVP  
+Status: `completed` · Progress: 7/7 · Scope: MVP  
 Plan: [006-events-and-async-processing/_index.md](./plans/006-events-and-async-processing/_index.md)  
 Depends on: [005 — Database Foundation](./plans/005-database-foundation/_index.md)
 
@@ -235,7 +235,7 @@ Builds `@blixis/events` (event registry, in-process bus, transactional outbox, i
 - [x] [006.004 — Implement queue consumer dispatch to module subscriptions](./plans/006-events-and-async-processing/004-queue-consumer-dispatch.md)
 - [x] [006.005 — Implement the transactional outbox and dispatcher](./plans/006-events-and-async-processing/005-transactional-outbox.md)
 - [x] [006.006 — Implement idempotent consumers and command idempotency keys](./plans/006-events-and-async-processing/006-idempotent-consumers-and-command-keys.md)
-- [~] [006.007 — Verify the event pipeline end to end](./plans/006-events-and-async-processing/007-event-pipeline-end-to-end.md)
+- [x] [006.007 — Verify the event pipeline end to end](./plans/006-events-and-async-processing/007-event-pipeline-end-to-end.md)
 
 ### Milestone 4 — Identity, tenancy & authorization
 
@@ -548,7 +548,9 @@ Checkpoints are review gates where the architecture is validated against working
   - **Passed 2026-09-24.** `packages/testing/test/kernel.e2e.test.ts`: `@acme/blixis-external` (contracts + hono + zod only — not even `defineModule`) requires capability `fixture.greeting`, consumes `GREETING_SERVICE` in a REST route, validates its config, and maps a thrown `UnauthorizedError` to a 401 problem response. Missing capability, duplicate module, incompatible version, and duplicate service provider each fail with the module name. Contract gaps found on the way and fixed in contracts: `has()` token invariance (`AnyServiceToken`), `setup`/`boot` variance (methods), `EventSubscription.handle` variance.
 - [x] **CP2a — Kernel on `workerd`** (end of [004](./plans/004-cloudflare-worker-runtime/_index.md)). Lazy boot, per-request service scopes, `fetch`/`queue`/`scheduled` entry routing verified in the Workers runtime; bundle-size baseline recorded. Passed 2026-09-24: `apps/api/test/*.worker.test.ts` run the entry in `workerd`. Bundle baseline: ~254 KiB gzip with Sentry (gate 1024 KiB).
 - [x] **CP2b — Database path** (end of [005](./plans/005-database-foundation/_index.md)). `Worker → Hyperdrive → Neon` readiness verified on staging with latency numbers; request-scoped connections confirmed; module-owned migrations applied in module order. Passed 2026-09-24: staging `/api/v1/health/ready` through Hyperdrive → Neon (eu-central-1): first database check 89 ms, warm 7–15 ms (13 calls); request scopes close connections via `waitUntil`; runner applies module migrations in bootstrap order (integration tests in CI).
-- [ ] **CP3 — Event consistency** (end of [006](./plans/006-events-and-async-processing/_index.md)). Rolled-back transactions emit nothing; committed transactional events are delivered via outbox → Queue; redeliveries are processed once (§32, §33).
+- [x] **CP3 — Event consistency** (end of [006](./plans/006-events-and-async-processing/_index.md)). Rolled-back transactions emit nothing; committed transactional events are delivered via outbox → Queue; redeliveries are processed once (§32, §33). Passed 2026-09-25:
+  - End-to-end test against Postgres: a rollback emits nothing; committed events go through outbox → queue → consumer; redeliveries and retries produce one effect; a queue outage is recovered by the sweep.
+  - Staging: queue consumer attached, outbox cron `Ok` every minute, no Sentry issues.
 - [ ] **CP4 — Tenancy & authorization** (end of [009](./plans/009-authorization-and-permissions/_index.md)). Isolation suite and authz matrix cover every tenant-scoped route; no role-name checks outside `@blixis/permissions` (§30, §31).
 - [ ] **CP5 — Content vertical slice** (end of [011](./plans/011-entries-and-publishing/_index.md)). request → Hono route → `ContentService` → repository → Hyperdrive → Neon, plus publish → outbox → Queue → subscriber, on staging; review against §48 rules.
 - [ ] **CP6 — Delivery performance & cache correctness** (end of [013](./plans/013-delivery-caching/_index.md)). Measured before/after caching; bounded staleness after publish; no cross-tenant or preview cache leakage (§34).

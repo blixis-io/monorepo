@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 ## Parent plan
@@ -36,15 +36,19 @@ This is architectural checkpoint CP3 (event consistency). It validates §32/§33
 ### Create
 
 ```text
-apps/api/test/fixtures/event-fixture-module.ts
-apps/api/test/event-pipeline.worker.test.ts
+packages/events/test/fixtures/notes.ts
+packages/events/test/pipeline.test.ts
 docs/operations/events.md
 ```
 
 ### Modify
 
 ```text
-apps/api/vitest.config.ts
+packages/events/package.json
+README.md
+docs/ROADMAP.md
+docs/plans/006-events-and-async-processing/_index.md
+pnpm-lock.yaml
 ```
 
 ### Delete
@@ -68,8 +72,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] All four scenarios pass in the Workers pool.
-- [ ] `docs/operations/events.md` explains outbox backlog, DLQ inspection, and replay.
+- [x] All four scenarios pass in the Workers pool.
+- [x] `docs/operations/events.md` explains outbox backlog, DLQ inspection, and replay.
 
 ## Validation
 
@@ -79,15 +83,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] CP3 conclusions recorded in plan Technical notes and in ROADMAP checkpoint section.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] CP3 conclusions recorded in plan Technical notes and in ROADMAP checkpoint section.
 
 ## Completion conditions
 
@@ -104,4 +108,24 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Deviation (location):** the fixture module and the pipeline test live in `packages/events/test/` instead of `apps/api/test/fixtures`, and run in the **Node pool against real Postgres**. `pg` can't open sockets in the Vitest Workers pool (known issue, 005.006), and `apps/api`'s tsconfig uses Worker types only. The Worker queue path itself is covered by `apps/api/test/events.worker.test.ts`. The fixture is never in `blixis.config.ts`.
+- **Deviation (queue):** instead of the local queue simulation, a `SimulatedQueue` has Cloudflare semantics (per-message ack/retry, increasing attempts, at-least-once redelivery) and drives `app.queue`. The test app uses the production module set (database, events with queue and outbox transports, outbox, idempotency).
+- **The test uses its own database helper**, not `@blixis/testing/database`: `@blixis/testing` depends on `@blixis/events`, so a devDependency back would create a workspace cycle (pnpm warned).
+- **Scenarios (PR #57), all passing:**
+  - happy path, exactly once;
+  - handler failing twice → retried → one effect;
+  - duplicate redelivery → no second effect;
+  - rolled-back command → no note, outbox row, message, or effect;
+  - queue outage → post-commit fails → sweep delivers once;
+  - correlation id end to end, plus the processed marker per subscription.
+- **Latency:**
+  - Local post-commit path: emit → handler p50 **8 ms**, max 10 ms (20 samples; local Postgres; simulated queue, no batching delay).
+  - On Cloudflare, add queue batching (`max_batch_timeout` 5 s) and network time.
+  - Sweep path: up to 60 s by design (1-minute cron, rows older than 5 s).
+- **Staging verification (2026-09-25, version `41b70931`):**
+  - The owner ran `db:migrate` (outbox, processed, idempotency) and deployed.
+  - `/api/v1/health/ready` → 200 (database 82 ms).
+  - `wrangler queues info blixis-events-staging`: producer and consumer `worker:blixis-api-staging`.
+  - `wrangler tail`: 12 consecutive `* * * * *` runs (10:13–10:24), all `Ok`.
+  - Sentry: no staging issues in 24 h.
+- `wrangler tail` doesn't stream from the non-interactive agent shell (no output, and macOS has no `timeout`). The owner ran it; the procedure is in `docs/operations/events.md`.

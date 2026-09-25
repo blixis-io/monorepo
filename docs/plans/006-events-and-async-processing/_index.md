@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 3 — Persistence & event infrastructure  
 Roadmap scope: MVP / initial platform  
-Progress: 6/7 tasks completed
+Progress: 7/7 tasks completed
 
 ## Objective
 
@@ -67,16 +67,16 @@ Depends on:
 - [x] [004 — Implement queue consumer dispatch to module subscriptions](./004-queue-consumer-dispatch.md)
 - [x] [005 — Implement the transactional outbox and dispatcher](./005-transactional-outbox.md)
 - [x] [006 — Implement idempotent consumers and command idempotency keys](./006-idempotent-consumers-and-command-keys.md)
-- [~] [007 — Verify the event pipeline end to end](./007-event-pipeline-end-to-end.md)
+- [x] [007 — Verify the event pipeline end to end](./007-event-pipeline-end-to-end.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] A rolled-back transaction never produces a delivered event (test).
-- [ ] A redelivered message is acknowledged without re-running handler side effects (test).
-- [ ] Architectural checkpoint CP3 (event consistency) recorded.
+- [x] All tasks `completed`.
+- [x] A rolled-back transaction never produces a delivered event (test).
+- [x] A redelivered message is acknowledged without re-running handler side effects (test).
+- [x] Architectural checkpoint CP3 (event consistency) recorded.
 
 ## Risks
 
