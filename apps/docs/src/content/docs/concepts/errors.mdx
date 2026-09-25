@@ -20,8 +20,28 @@ Services throw **public errors** from `@blixis/contracts`. Each has a stable `co
 | [`UnauthorizedError`](/api/contracts/classes/unauthorizederror/) | `UNAUTHORIZED` | yes | 401 | `UNAUTHORIZED` |
 | [`RateLimitError`](/api/contracts/classes/ratelimiterror/) | `RATE_LIMITED` | yes, plus `Retry-After` | 429 | `RATE_LIMITED` |
 | [`ModuleError`](/api/contracts/classes/moduleerror/) | `MODULE_ERROR` | **no** | 500 | `INTERNAL` |
-| [`InfrastructureError`](/api/contracts/classes/infrastructureerror/) | `INFRASTRUCTURE_ERROR` | **no** | 503 if `retryable`, else 500 | `INFRASTRUCTURE_ERROR` |
+| [`InfrastructureError`](/api/contracts/classes/infrastructureerror/) | `INFRASTRUCTURE_ERROR` | **no** | 503 if `retryable`, else 500 | `INFRASTRUCTURE_ERROR` (with `retryable`) |
 | anything else | `INTERNAL` | **no** | 500 | `INTERNAL` |
+
+## What clients receive (GraphQL)
+
+Errors appear in the response's `errors` list, next to any partial `data`:
+
+```json
+{
+  "data": { "entry": null },
+  "errors": [{
+    "message": "Entry not found",
+    "path": ["entry"],
+    "extensions": { "code": "NOT_FOUND", "requestId": "0192f0c8-…" }
+  }]
+}
+```
+
+- **Every error** carries `extensions.code` and `extensions.requestId`.
+- **`VALIDATION_FAILED`** adds `extensions.issues`.
+- **Messages of internal errors** are replaced by `Unexpected error` (code `INTERNAL`). These errors are logged and reported to Sentry with the request id, just like REST 5xx responses.
+- **Query syntax and validation errors** (such as an unknown field) keep GraphQL's own message.
 
 ## What clients receive (REST)
 

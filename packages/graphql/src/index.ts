@@ -6,6 +6,7 @@
  */
 export { composeSchema, type SchemaPart } from './compose.ts'
 export { type GraphQLContext, loader } from './context.ts'
+export { mapGraphQLError, useBlixisErrors } from './errors.ts'
 export {
   GRAPHQL_SCHEMA_EXTENSION,
   type SchemaExtension,

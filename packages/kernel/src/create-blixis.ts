@@ -22,7 +22,7 @@ import {
   KERNEL_CONTRIBUTIONS,
   type KernelContributions,
 } from './contributions.ts'
-import type { ErrorReporter } from './error-reporter.ts'
+import { ERROR_REPORTER, type ErrorReporter } from './error-reporter.ts'
 import { ModuleValidationError } from './errors.ts'
 import { HEALTH_CHECKS, HealthRegistry } from './health.ts'
 import type { BlixisHonoEnv } from './hono-env.ts'
@@ -158,6 +158,8 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
   container.forModule('@blixis/kernel').provide(BACKGROUND_HANDLERS, background)
   container.forModule('@blixis/kernel').provide(HEALTH_CHECKS, health)
   container.forModule('@blixis/kernel').provide(ACTOR_RESOLVERS, actorResolvers)
+  if (options.errorReporter !== undefined)
+    container.forModule('@blixis/kernel').provide(ERROR_REPORTER, options.errorReporter)
   container.forModule('@blixis/kernel').provideFactory(
     RUN_IN_SCOPE,
     ({ bindings }) =>

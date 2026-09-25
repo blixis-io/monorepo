@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -43,8 +43,12 @@ packages/graphql/src/errors.test.ts
 ### Modify
 
 ```text
-packages/graphql/src/server.ts
-docs/contracts/errors.md
+packages/graphql/src/module.ts
+packages/graphql/src/index.ts
+packages/kernel/src/error-reporter.ts (ERROR_REPORTER token)
+packages/kernel/src/create-blixis.ts
+packages/kernel/src/index.ts
+apps/docs/src/content/docs/concepts/errors.mdx (GraphQL section; docs/contracts/errors.md points here)
 ```
 
 ### Delete
@@ -66,8 +70,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] A resolver throwing `NotFoundError` yields `extensions.code = "NOT_FOUND"`.
-- [ ] An unexpected `Error('secret')` yields a masked message.
+- [x] A resolver throwing `NotFoundError` yields `extensions.code = "NOT_FOUND"`.
+- [x] An unexpected `Error('secret')` yields a masked message.
 
 ## Validation
 
@@ -77,15 +81,15 @@ pnpm --filter @blixis/graphql test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Mapping table consistent with REST.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Mapping table consistent with REST.
 
 ## Completion conditions
 
@@ -102,4 +106,13 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **`useBlixisErrors()`** (Yoga plugin, `onExecuteDone`) maps every execution error with `mapGraphQLError`:
+  - **Public `BlixisError`s** keep their message, with `extensions.code` (`MODULE_ERROR` → `INTERNAL`). `ValidationError`s add `extensions.issues`.
+  - **`InfrastructureError`** follows the documented contract: code `INFRASTRUCTURE_ERROR` with `retryable`, and the hidden message `A dependency is unavailable`.
+  - **Non-exposed errors and anything else** become `Unexpected error` / `INTERNAL`.
+  - **GraphQL parse and validation errors,** and `GraphQLError`s thrown on purpose, keep their message.
+  - Every error gets `extensions.requestId`.
+- **Unexpected errors** are logged (`graphql resolver failed`, with path and original error) and reported through the new optional kernel service **`ERROR_REPORTER`**. The kernel provides it whenever `createBlixis({ errorReporter })` is set, as the Sentry reporter in the API Worker is. Reports carry request id, correlation id, actor type, space and `route: '/graphql'`, the same as REST 5xx.
+- Yoga's `maskedErrors` stays enabled as a last line of defence. Errors that `useBlixisErrors` already mapped have no `originalError`, so they pass through unchanged.
+- **Tests** cover all 9 error kinds in one query (codes, messages, issues, request ids, no leaked internals), reporting of exactly the 3 unexpected errors with context, logs, and GraphQL validation errors.
+- **Manual:** *Concepts → Errors* has a *What clients receive (GraphQL)* section, and the table notes `retryable`.
