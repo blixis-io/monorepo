@@ -5,6 +5,15 @@
  * @packageDocumentation
  */
 export {
+  type ApiFields,
+  compileEntrySchema,
+  createEntrySchemaCache,
+  type EntrySchema,
+  type EntrySchemaCache,
+  type EntrySchemaOptions,
+  type StoredFields,
+} from './application/entry-schema.ts'
+export {
   apiIdSchema,
   CONTENT_LIMITS,
   CONTENT_TYPE_KINDS,
