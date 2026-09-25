@@ -9,6 +9,7 @@ import {
   type TestDatabase,
 } from '@blixis/testing/database'
 import { USER_SERVICE, usersModule } from '@blixis/users'
+import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import {
   AUTH_CONFIG,
@@ -272,6 +273,148 @@ describe.skipIf(!databaseTestsEnabled())('auth flows (Postgres)', () => {
         (await post(t, 'sign-in', { email: 'z@example.com', password: PASSWORD }, stale)).status,
       ).toBe(200)
       expect((await t.request('/api/v1/auth/me', { headers: stale })).status).toBe(401)
+    })
+  })
+
+  describe('personal API tokens', () => {
+    const bearer = (token: string) => ({ authorization: `Bearer ${token}` })
+    async function signedIn(t: TestBlixis) {
+      const body = (await (await signUp(t)).json()) as { accessToken: string; user: { id: string } }
+      return body
+    }
+    const createToken = (t: TestBlixis, accessToken: string, json: unknown) =>
+      t.request('/api/v1/auth/tokens', { method: 'POST', json, headers: bearer(accessToken) })
+
+    it('creates a token (plaintext once), lists it without the secret, and authenticates with it', async () => {
+      const { t } = await setup()
+      const { accessToken, user } = await signedIn(t)
+      const created = await createToken(t, accessToken, { name: 'CI deploy' })
+      expect(created.status).toBe(201)
+      const body = (await created.json()) as {
+        id: string
+        token: string
+        prefix: string
+        name: string
+      }
+      expect(body.token).toMatch(/^blx_pat_[\w-]{43}$/)
+      expect(body.token.startsWith(body.prefix)).toBe(true)
+      expect(created.headers.get('cache-control')).toBe('no-store')
+
+      const list = (await (
+        await t.request('/api/v1/auth/tokens', { headers: bearer(accessToken) })
+      ).json()) as { tokens: Record<string, unknown>[] }
+      expect(list.tokens).toHaveLength(1)
+      expect(JSON.stringify(list)).not.toContain(body.token)
+      expect(list.tokens[0]).not.toHaveProperty('tokenHash')
+
+      const me = await t.request('/api/v1/users/me', { headers: bearer(body.token) })
+      expect(me.status).toBe(200)
+      expect(((await me.json()) as { id: string }).id).toBe(user.id)
+      const used = await db.db.execute(
+        sql`select last_used_at is not null as used from auth.api_tokens`,
+      )
+      expect(used.rows).toEqual([{ used: true }])
+    })
+
+    it('API tokens cannot manage tokens; unknown scopes are rejected', async () => {
+      const { t } = await setup()
+      const { accessToken } = await signedIn(t)
+      const { token } = (await (await createToken(t, accessToken, { name: 'x' })).json()) as {
+        token: string
+      }
+      expect((await createToken(t, token, { name: 'escalate' })).status).toBe(403)
+      expect((await t.request('/api/v1/auth/tokens', { headers: bearer(token) })).status).toBe(403)
+      expect(
+        (await createToken(t, accessToken, { name: 'y', scopes: ['admin.everything'] })).status,
+      ).toBe(400)
+      expect((await t.request('/api/v1/auth/tokens')).status).toBe(401)
+    })
+
+    it("revoked and expired tokens get 401; revoking someone else's token is 404", async () => {
+      const { t } = await setup()
+      const a = await signedIn(t)
+      const b = (await (await signUp(t, 'bob@example.com')).json()) as { accessToken: string }
+      const first = (await (await createToken(t, a.accessToken, { name: 'one' })).json()) as {
+        id: string
+        token: string
+      }
+      const second = (await (
+        await createToken(t, a.accessToken, { name: 'two', expiresInDays: 1 })
+      ).json()) as { id: string; token: string }
+
+      expect(
+        (
+          await t.request(`/api/v1/auth/tokens/${first.id}`, {
+            method: 'DELETE',
+            headers: bearer(b.accessToken),
+          })
+        ).status,
+      ).toBe(404)
+      expect(
+        (
+          await t.request(`/api/v1/auth/tokens/${first.id}`, {
+            method: 'DELETE',
+            headers: bearer(a.accessToken),
+          })
+        ).status,
+      ).toBe(204)
+      expect((await t.request('/api/v1/users/me', { headers: bearer(first.token) })).status).toBe(
+        401,
+      )
+
+      await db.db.execute(
+        sql`update auth.api_tokens set expires_at = now() - interval '1 minute' where id = ${second.id}::uuid`,
+      )
+      expect((await t.request('/api/v1/users/me', { headers: bearer(second.token) })).status).toBe(
+        401,
+      )
+      expect(
+        (await t.request('/api/v1/users/me', { headers: bearer('blx_pat_doesnotexist') })).status,
+      ).toBe(401)
+    })
+
+    it('a signed-out session cannot manage tokens with its remaining access token', async () => {
+      const { t } = await setup()
+      const res = await post(t, 'sign-up', {
+        email: 's@example.com',
+        displayName: 'S',
+        password: PASSWORD,
+        tokenDelivery: 'body',
+      })
+      const { accessToken, refreshToken } = (await res.json()) as {
+        accessToken: string
+        refreshToken: string
+      }
+      expect((await post(t, 'sign-out', { refreshToken })).status).toBe(204)
+      // Ordinary requests keep working until expiry (ADR 0009 trade-off) …
+      expect((await t.request('/api/v1/users/me', { headers: bearer(accessToken) })).status).toBe(
+        200,
+      )
+      // … sensitive ones re-check the session.
+      expect((await createToken(t, accessToken, { name: 'late' })).status).toBe(401)
+    })
+
+    it('disabling a user revokes their API tokens and refresh tokens (user.disabled)', async () => {
+      const { t } = await setup()
+      const res = await post(t, 'sign-up', {
+        email: 'd@example.com',
+        displayName: 'D',
+        password: PASSWORD,
+        tokenDelivery: 'body',
+      })
+      const session = (await res.json()) as {
+        accessToken: string
+        refreshToken: string
+        user: { id: string }
+      }
+      const { token } = (await (
+        await createToken(t, session.accessToken, { name: 'bot' })
+      ).json()) as { token: string }
+      await t.app.runInScope({}, async ({ services }) =>
+        services.get(USER_SERVICE).disable(session.user.id),
+      )
+      expect((await t.request('/api/v1/users/me', { headers: bearer(token) })).status).toBe(401)
+      expect((await post(t, 'refresh', { refreshToken: session.refreshToken })).status).toBe(401)
     })
   })
 })

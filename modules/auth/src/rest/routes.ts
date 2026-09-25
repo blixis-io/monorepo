@@ -8,8 +8,10 @@ import { toProblemResponse } from '@blixis/kernel'
 import { USER_SERVICE } from '@blixis/users'
 import type { Context } from 'hono'
 import { Hono } from 'hono'
+import { API_TOKEN_SERVICE } from '../application/api-tokens.ts'
 import { AUTH_SERVICE, type Authentication } from '../application/auth.service.ts'
 import { AUTH_CONFIG } from '../application/config.ts'
+import { bearerToken } from '../application/resolvers.ts'
 
 /** Refresh-token cookie (ADR 0009): HttpOnly, Secure, SameSite=Strict, only sent to auth routes. */
 export const REFRESH_COOKIE = 'blixis_refresh'
@@ -97,6 +99,20 @@ const client = (c: Ctx) => {
   return userAgent === undefined ? {} : { userAgent }
 }
 
+/**
+ * Token management requires a signed-in user with a live session (ADR 0009): API tokens cannot
+ * create or revoke tokens, and a signed-out session cannot use its remaining access token for it.
+ */
+async function requireLiveSession(c: Ctx): Promise<string> {
+  const actor = c.var.requestContext.actor
+  if (actor.type === 'apiToken')
+    throw new ForbiddenError('API tokens cannot manage API tokens; sign in')
+  const token = bearerToken(c.req.raw)
+  if (actor.type !== 'user' || token === undefined)
+    throw new UnauthorizedError('Sign in to manage API tokens')
+  return c.var.services.get(AUTH_SERVICE).assertActiveSession(token)
+}
+
 /** `/auth` routes. Handlers only translate HTTP ⇄ `AUTH_SERVICE` (§48 Code.8). */
 export function authRoutes(options: { readonly allowSignUp: boolean }) {
   return new Hono<ModuleHonoEnv>()
@@ -151,6 +167,29 @@ export function authRoutes(options: { readonly allowSignUp: boolean }) {
         actor.type === 'user' ? actor.userId : actor.type === 'apiToken' ? actor.ownerId : undefined
       if (userId === undefined) throw new UnauthorizedError('Not signed in')
       return c.json(await c.var.services.get(USER_SERVICE).getById(userId))
+    })
+    .get('/tokens', async (c) => {
+      const userId = await requireLiveSession(c)
+      return c.json({ tokens: await c.var.services.get(API_TOKEN_SERVICE).list(userId) })
+    })
+    .post('/tokens', async (c) => {
+      const userId = await requireLiveSession(c)
+      const body = await jsonBody(c)
+      const { token, record } = await c.var.services.get(API_TOKEN_SERVICE).create(userId, {
+        name: String(body['name'] ?? ''),
+        ...(Array.isArray(body['scopes']) ? { scopes: body['scopes'].map(String) } : {}),
+        ...(typeof body['expiresInDays'] === 'number'
+          ? { expiresInDays: body['expiresInDays'] }
+          : {}),
+      })
+      c.header('cache-control', 'no-store')
+      // The plaintext token is returned once and never stored.
+      return c.json({ ...record, token }, 201)
+    })
+    .delete('/tokens/:id', async (c) => {
+      const userId = await requireLiveSession(c)
+      await c.var.services.get(API_TOKEN_SERVICE).revoke(userId, c.req.param('id'))
+      return c.body(null, 204)
     })
     .get('/jwks', async (c) => {
       c.header('cache-control', 'public, max-age=300')

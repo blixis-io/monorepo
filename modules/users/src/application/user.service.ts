@@ -21,7 +21,7 @@ import {
   type User,
   updateProfileSchema,
 } from '../domain/user.ts'
-import { userCreated, userUpdated } from '../events.ts'
+import { userCreated, userDisabled, userUpdated } from '../events.ts'
 import { userRepository } from '../infrastructure/user.repository.ts'
 
 /** Users of the platform (architecture §30). Resolve per request: `services.get(USER_SERVICE)`. */
@@ -42,7 +42,10 @@ export interface UserService {
   ): Promise<User>
   /** @throws ValidationError, NotFoundError */
   updateProfile(id: string, input: UpdateProfileInput): Promise<User>
-  /** Disabled users cannot sign in. @throws NotFoundError */
+  /**
+   * Disables a user and emits the transactional `user.disabled` (credentials are revoked by
+   * `@blixis/auth`) plus `user.updated`. @throws NotFoundError
+   */
   disable(id: string): Promise<User>
 }
 
@@ -96,8 +99,12 @@ export function createUserService(deps: {
     },
 
     async disable(id) {
-      const user = await userRepository.update(db, id, { status: 'disabled' })
-      if (user === undefined) throw notFound()
+      const user = await withTransaction(db, async (tx) => {
+        const updated = await userRepository.update(tx, id, { status: 'disabled' })
+        if (updated === undefined) throw notFound()
+        await events.emit(userDisabled, { userId: id }, { transaction: toTransactionScope(tx) })
+        return updated
+      })
       await events.emit(userUpdated, { userId: id, changed: ['status'] })
       return user
     },

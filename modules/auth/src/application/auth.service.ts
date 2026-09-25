@@ -81,6 +81,14 @@ export interface AuthService {
   verifyAccessToken(token: string): Promise<AccessTokenClaims>
   /** Public keys for `GET /api/v1/auth/jwks`. */
   publicKeys(): Promise<readonly JsonWebKey[]>
+  /**
+   * For sensitive operations (ADR 0009): verifies the access token **and** that its refresh
+   * family is still active — so a signed-out or revoked session cannot use its remaining
+   * ≤ 15 minutes for them. Returns the user id. @throws UnauthorizedError
+   */
+  assertActiveSession(accessToken: string): Promise<string>
+  /** Revokes all refresh-token families of a user (sign out everywhere). */
+  revokeAllSessions(userId: string): Promise<void>
 }
 
 /** Request-scoped {@link AuthService}, provided by `authModule()`. */
@@ -256,6 +264,16 @@ export function createAuthService(deps: {
     async publicKeys() {
       return (await signingKeysFor(config())).publicJwks
     },
+
+    async assertActiveSession(accessToken) {
+      const claims = await service.verifyAccessToken(accessToken)
+      if (!(await refreshTokenRepository.familyActive(db, claims.sid))) {
+        throw new UnauthorizedError('Session ended; sign in again')
+      }
+      return claims.sub
+    },
+
+    revokeAllSessions: (userId) => refreshTokenRepository.revokeAllForUser(db, userId),
   }
   return service
 }

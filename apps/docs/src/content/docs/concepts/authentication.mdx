@@ -33,6 +33,23 @@ unset AUTH_PASSWORD
 ```
 </Aside>
 
+## Personal API tokens
+
+For scripts, CI, and integrations, create a long-lived token instead of storing a password:
+
+| Endpoint | Does |
+|---|---|
+| `POST /api/v1/auth/tokens` with `{ name, scopes?, expiresInDays? }` | Returns `{ id, name, prefix, scopes, expiresAt, token }`. The `token` (`blx_pat_…`) is shown **only this once** |
+| `GET /api/v1/auth/tokens` | Your active tokens: name, prefix, scopes, expiry, last use. Never the secret |
+| `DELETE /api/v1/auth/tokens/:id` | Revokes it immediately |
+
+Use a token as `Authorization: Bearer blx_pat_…`. Your routes then see `{ type: 'apiToken', tokenId, ownerId, scopes }`.
+
+- **Management needs a real sign-in** with a live session. API tokens cannot create or revoke tokens (`403`), and a signed-out session can't use its remaining access token for this.
+- **Scopes** must be permission IDs that modules register. Permissions are enforced by the authorization module (roadmap plan 009).
+- **Revocation:** a revoked or expired token gets `401` straight away. Disabling a user revokes all of their API tokens and signs them out everywhere, through the `user.disabled` event.
+- **Storage:** only a SHA-256 hash is stored, together with a short prefix so you can recognise the token.
+
 ## Passwords
 
 Passwords must be 12 to 256 characters and not on a list of common passwords. There are no composition rules; this follows NIST SP 800-63B. They are hashed with **scrypt** (32 MiB, about 90 ms). Error messages never reveal whether an email exists, and an unknown email takes as long to reject as a wrong password.

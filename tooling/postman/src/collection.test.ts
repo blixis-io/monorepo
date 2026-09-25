@@ -91,7 +91,7 @@ describe('Postman collection', () => {
           .filter((v) => v.type === 'secret')
           .map((v) => v.key)
           .sort(),
-      ).toEqual(['accessToken', 'password', 'refreshToken'])
+      ).toEqual(['accessToken', 'apiToken', 'password', 'refreshToken'])
     }
   })
 })

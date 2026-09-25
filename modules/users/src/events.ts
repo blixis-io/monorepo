@@ -21,3 +21,15 @@ export const userUpdated = defineEvent({
   schema: z.object({ userId: z.string(), changed: z.array(z.enum(['displayName', 'status'])) }),
   description: 'A user profile or status changed.',
 })
+
+/**
+ * A user was disabled. Transactional: `@blixis/auth` revokes the user's refresh tokens and API
+ * tokens on it — losing it would leave long-lived credentials working.
+ */
+export const userDisabled = defineEvent({
+  type: 'user.disabled',
+  version: 1,
+  delivery: 'transactional',
+  schema: z.object({ userId: z.string() }),
+  description: 'A user was disabled; their credentials must stop working.',
+})

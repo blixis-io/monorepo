@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,18 +37,36 @@ Allow authenticated users to create, list, and revoke personal API tokens for Ma
 ### Create
 
 ```text
-modules/auth/src/application/api-token.service.ts
-modules/auth/src/infrastructure/api-token.repository.ts
-modules/auth/src/infrastructure/migrations/0002_create_api_tokens.sql
-modules/auth/test/api-tokens.test.ts
+modules/auth/src/application/api-tokens.ts
+modules/auth/src/infrastructure/migrations/0002_create_api_tokens.ts
 ```
 
 ### Modify
 
 ```text
-modules/auth/src/rest/routes.ts
-modules/auth/src/application/actor-resolver.ts
+apps/docs/src/content/docs/concepts/authentication.mdx
+docs/ROADMAP.md
+docs/contracts/events.md
+docs/development/postman.md
+docs/plans/007-identity-and-authentication/005-personal-api-tokens.md
+docs/plans/007-identity-and-authentication/_index.md
+modules/auth/src/application/auth.service.ts
+modules/auth/src/application/resolvers.ts
+modules/auth/src/index.ts
+modules/auth/src/infrastructure/repositories.ts
+modules/auth/src/infrastructure/schema.ts
 modules/auth/src/module.ts
+modules/auth/src/rest/routes.ts
+modules/auth/test/auth.test.ts
+modules/users/src/application/user.service.ts
+modules/users/src/events.ts
+modules/users/src/index.ts
+modules/users/test/users.test.ts
+tooling/postman/blixis.postman_collection.json
+tooling/postman/local.postman_environment.json
+tooling/postman/production.postman_environment.json
+tooling/postman/src/collection.test.ts
+tooling/postman/staging.postman_environment.json
 ```
 
 ### Delete
@@ -72,9 +90,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] A created token authenticates `GET /api/v1/auth/me` via bearer header.
-- [ ] Revoked or expired tokens return 401.
-- [ ] Listing never returns token plaintext or hash.
+- [x] A created token authenticates `GET /api/v1/auth/me` via bearer header.
+- [x] Revoked or expired tokens return 401.
+- [x] Listing never returns token plaintext or hash.
 
 ## Validation
 
@@ -85,15 +103,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Token prefix format documented for secret scanning.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Token prefix format documented for secret scanning.
 
 ## Completion conditions
 
@@ -110,4 +128,17 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Table:** `auth.api_tokens` (migration `0002_create_api_tokens`) instead of `auth_api_tokens`. Tokens are `blx_pat_<32B b64url>`, stored as a SHA-256 hash with a unique index, so lookup is by hash and the plaintext is never compared. The display `prefix` is the first 12 characters. `scopes text[]`, optional `expires_at`, `last_used_at`, `revoked_at`.
+- **Scopes:** must be permission ids that modules registered (`KERNEL_CONTRIBUTIONS.permissions`). None are registered yet (plan 009), so only an empty scope list is accepted today; unknown → 400.
+- **`apiTokenActorResolver`:**
+  - Registered after the JWT resolver: `Bearer blx_pat_…` → `{ type: 'apiToken', tokenId, ownerId, scopes }`. Revoked, expired, or unknown → 401.
+  - `last_used_at` is updated only when null or older than 5 minutes (a conditional `update`, no write on most requests).
+  - `API_TOKEN_SERVICE` has no `REQUEST_CONTEXT` dependency, because it runs inside actor resolution (see 007.004).
+- **"Tokens cannot create tokens" (documented):** token management requires a `user` actor (API token → 403, anonymous → 401) **and** `assertActiveSession`, which verifies the JWT and checks that its refresh family is still active. A signed-out session cannot use its remaining ≤ 15-minute access token for token management (ADR 0009: sensitive operations re-check).
+- **Disabled users:** the users module now emits a **transactional `user.disabled`** event inside the disable transaction (a new event, registered in `docs/contracts/events.md`), in addition to the best-effort `user.updated`. `@blixis/auth` subscribes (`revoke-credentials`) and revokes all API tokens and refresh families; the handler is idempotent. Without it, long-lived API tokens of a disabled user would keep working.
+- **Routes:** `GET/POST /api/v1/auth/tokens`, `DELETE /api/v1/auth/tokens/:id` (404 for another user's token). The creation response has `cache-control: no-store`.
+- **Postman:** a new "API tokens" folder (create stores `apiToken` as a secret and `apiTokenId`; list; revoke) before "Sign out". The environments gained `apiToken`/`apiTokenId`, and the drift test caught the new routes before they were added.
+- **Verification:**
+  - 5 new Postgres tests: create/list/use/`last_used_at`, token → 403 on management and unknown scope → 400, revoked/expired/unknown → 401 and a foreign revoke → 404, a signed-out session can't manage tokens while `/users/me` still works, and disabling revokes the PAT and refresh token.
+  - Users test: the `user.disabled` event.
+  - Local `wrangler dev`: Newman 13 requests / 33 assertions, 0 failures; PAT → `/users/me` 200; PAT → create token 403.

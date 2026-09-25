@@ -50,6 +50,21 @@ export const refreshTokenRepository = {
       .set({ revokedAt: new Date() })
       .where(and(eq(refreshTokens.familyId, familyId), isNull(refreshTokens.revokedAt)))
   },
+  /** Whether a family still has a usable (not revoked, not expired) token. */
+  async familyActive(db: Queryable, familyId: string): Promise<boolean> {
+    const rows = await db
+      .select({ id: refreshTokens.id })
+      .from(refreshTokens)
+      .where(
+        and(
+          eq(refreshTokens.familyId, familyId),
+          isNull(refreshTokens.revokedAt),
+          sql`${refreshTokens.familyExpiresAt} > now()`,
+        ),
+      )
+      .limit(1)
+    return rows.length > 0
+  },
   async revokeAllForUser(db: Queryable, userId: string): Promise<void> {
     await db
       .update(refreshTokens)

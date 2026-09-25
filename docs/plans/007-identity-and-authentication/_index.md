@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 4 — Identity, tenancy & authorization  
 Roadmap scope: MVP / initial platform  
-Progress: 4/6 tasks completed
+Progress: 5/6 tasks completed
 
 ## Objective
 
@@ -63,7 +63,7 @@ Depends on:
 - [x] [002 — Create the users module](./002-users-module.md)
 - [x] [003 — Implement sign-up, sign-in, sign-out, and sessions](./003-auth-module-sessions.md)
 - [x] [004 — Resolve actors from sessions and bearer tokens](./004-actor-resolution.md)
-- [ ] [005 — Implement personal API tokens](./005-personal-api-tokens.md)
+- [x] [005 — Implement personal API tokens](./005-personal-api-tokens.md)
 - [ ] [006 — Add login throttling, CSRF protection, and auth security tests](./006-auth-hardening-and-tests.md)
 
 ## Completion criteria

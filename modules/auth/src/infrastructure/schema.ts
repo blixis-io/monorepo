@@ -23,3 +23,16 @@ export const refreshTokens = authSchema.table('refresh_tokens', {
   revokedAt: timestamp('revoked_at', { withTimezone: true }),
   userAgent: text('user_agent'),
 })
+
+export const apiTokens = authSchema.table('api_tokens', {
+  id: uuid('id').primaryKey(),
+  userId: uuid('user_id').notNull(),
+  name: text('name').notNull(),
+  prefix: text('prefix').notNull(),
+  tokenHash: text('token_hash').notNull(),
+  scopes: text('scopes').array().notNull().default([]),
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+  lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  revokedAt: timestamp('revoked_at', { withTimezone: true }),
+})
