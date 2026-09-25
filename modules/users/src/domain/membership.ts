@@ -1,9 +1,13 @@
+import { SYSTEM_ROLES, type SystemRoleKey } from '@blixis/contracts'
 import { z } from 'zod'
 
-/** Roles until plan 009 introduces permission-based roles; stored as `role_key`. */
-export const ORGANIZATION_ROLES = ['owner', 'admin', 'member'] as const
-export const SPACE_ROLES = ['admin', 'editor', 'viewer'] as const
-export type OrganizationRole = (typeof ORGANIZATION_ROLES)[number]
+/**
+ * System roles assignable per level (`role_key`). Roles are defined and evaluated by
+ * `@blixis/permissions`; `role_key` may also hold a custom role id (plan 009).
+ */
+export const ORGANIZATION_ROLES = SYSTEM_ROLES
+export const SPACE_ROLES = ['admin', 'editor', 'viewer'] as const satisfies readonly SystemRoleKey[]
+export type OrganizationRole = SystemRoleKey
 export type SpaceRole = (typeof SPACE_ROLES)[number]
 
 /** A user's membership of an organization (`spaceId: null`) or a space. */

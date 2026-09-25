@@ -67,7 +67,7 @@ describe.skipIf(!databaseTestsEnabled())(
         const orgMembership = await memberships.addOrganizationMember({
           userId: member.id,
           organizationId: orgB.id,
-          role: 'member',
+          role: 'viewer',
         })
         const spaceMembership = await memberships.addSpaceMember({
           userId: member.id,

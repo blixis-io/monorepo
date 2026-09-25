@@ -85,12 +85,33 @@ export function isPermissionId(value: string): value is PermissionId {
   return PERMISSION_PATTERN.test(value)
 }
 
+/**
+ * Built-in roles every organization has (plan 009). Roles are configuration, evaluated only by
+ * `@blixis/permissions` — code checks permissions, never role names (§30). `owner` holds every
+ * permission and is assignable only at organization level.
+ */
+export const SYSTEM_ROLES = ['owner', 'admin', 'editor', 'viewer'] as const
+
+/** Key of a {@link SYSTEM_ROLES | system role}. */
+export type SystemRoleKey = (typeof SYSTEM_ROLES)[number]
+
+/** Whether `value` is a system role key. */
+export function isSystemRoleKey(value: string): value is SystemRoleKey {
+  return (SYSTEM_ROLES as readonly string[]).includes(value)
+}
+
 /** A permission contributed by a module (module contract `permissions`). */
 export interface PermissionDefinition {
   readonly id: PermissionId
   readonly description: string
   /** Tenant level at which the permission is granted. Defaults to `space`. */
   readonly scope?: 'organization' | 'space'
+  /**
+   * System roles granted this permission by default. `owner` always holds every permission, so
+   * listing it is optional; a permission without `defaultRoles` is owner-only (or granted
+   * through custom roles).
+   */
+  readonly defaultRoles?: readonly SystemRoleKey[]
 }
 
 /** Declares a permission with a runtime naming check. */
@@ -100,7 +121,18 @@ export function definePermission(definition: PermissionDefinition): PermissionDe
       `Invalid permission id "${definition.id}": use "<module>.<action>" or "<module>.<resource>.<action>"`,
     )
   }
-  return Object.freeze({ ...definition })
+  const unknownRoles = (definition.defaultRoles ?? []).filter((role) => !isSystemRoleKey(role))
+  if (unknownRoles.length > 0) {
+    throw new TypeError(
+      `Permission "${definition.id}" grants unknown default roles: ${unknownRoles.join(', ')}`,
+    )
+  }
+  return Object.freeze({
+    ...definition,
+    ...(definition.defaultRoles === undefined
+      ? {}
+      : { defaultRoles: Object.freeze([...definition.defaultRoles]) }),
+  })
 }
 
 /**
