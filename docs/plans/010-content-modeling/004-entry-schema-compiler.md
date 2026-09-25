@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -38,13 +38,13 @@ Implement `compileEntrySchema(contentType, localeContext)` that produces a valid
 
 ```text
 modules/content/src/application/entry-schema.ts
-modules/content/src/application/entry-schema.test.ts
+modules/content/test/entry-schema.test.ts
 ```
 
 ### Modify
 
 ```text
-modules/content/src/index.ts (only if exported for other packages — default: internal)
+modules/content/src/index.ts
 ```
 
 ### Delete
@@ -68,8 +68,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Draft validation accepts missing required fields; publish validation rejects them with correct paths.
-- [ ] Compiled schemas are reused for the same content-type version (cache test).
+- [x] Draft validation accepts missing required fields; publish validation rejects them with correct paths.
+- [x] Compiled schemas are reused for the same content-type version (cache test).
 
 ## Validation
 
@@ -79,15 +79,15 @@ pnpm --filter @blixis/content test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Validator output types are inferred, not hand-duplicated.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Validator output types are inferred, not hand-duplicated.
 
 ## Completion conditions
 
@@ -104,4 +104,20 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **`compileEntrySchema({ contentType, types, locales, defaultLocale, mode, registry })`** returns `validate`, `toStorage` and `fromStorage`.
+- **Validation (API shape, keyed by `apiId`):**
+  - unknown and disabled fields are rejected;
+  - localized fields take `{ locale: value }` maps whose keys must be space locales; non-localized fields take plain values;
+  - each value is validated by its field type;
+  - `required` applies only in `publish` mode, to the default locale for localized fields, and only while the `showWhen` condition holds (a JSON-equality check on a sibling field).
+- **Issue paths:** `fields.<apiId>[.<locale>][.<index>.<nested>…]`, e.g. `fields.body.en-US.1.children.0.heading`.
+- **Components:**
+  - resolved by `apiId` from the environment's `component` types and compiled lazily per `(componentId, depth)`, so self-nesting works;
+  - the `blocks` field type enforces the depth limit (5);
+  - component fields are checked with the same rules, without locale maps.
+- **Mapping:** `toStorage`/`fromStorage` translate field keys (`apiId` ↔ stable id) and block `_type` (component `apiId` ↔ component id) recursively. Disabled and unknown stored keys are dropped on read, and renaming an `apiId` keeps stored data readable (tested).
+- **`createEntrySchemaCache(capacity = 200)`:**
+  - an isolate-level LRU;
+  - the key covers the type id and version, mode, default locale, locales, and every component's `id:version`, so a model change never hits a stale entry;
+  - it holds only pure data (no request-scoped objects).
+- **Exported publicly** (the plan's default was internal), so plan 011 and modules such as importers validate exactly like the API.
