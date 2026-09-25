@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -48,7 +48,8 @@ docs/decisions/0010-content-storage-model.md
 ### Modify
 
 ```text
-None.
+docs/decisions/README.md
+docs/ROADMAP.md (decision register D13)
 ```
 
 ### Delete
@@ -71,7 +72,7 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] ADR 0010 accepted, covering every requirement bullet with concrete examples.
+- [x] ADR 0010 accepted, covering every requirement bullet with concrete examples.
 
 ## Validation
 
@@ -79,15 +80,15 @@ Requires:
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Decision allows adding field-level permissions and additional environments later without data migration.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Decision allows adding field-level permissions and additional environments later without data migration.
 
 ## Completion conditions
 
@@ -104,4 +105,11 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- The owner asked (2026-09-25) to compare the plan with the StAAD CMS (`StAAD/Kantoor`: block library, `blocks` field, `showWhen`, tabs, `link`, path-based pages, menus). The ADR adopts:
+  - `component` content types and a `blocks` field (inline, published with the parent);
+  - the `link` field type;
+  - presentation settings (`group`, `showWhen` that also relaxes `required`, `description`, `hidden`).
+- It deliberately avoids StAAD's two weaknesses: references by slug (Blixis uses stable ids) and unvalidated field config (Blixis uses validated settings per field type).
+- **Deviation from the task's suggested shape:** non-localized fields take a plain value (not a default-locale key), so changing the space's default locale never rewrites stored data.
+- **Deviation from 010.003's "internal registry":** the field type registry is extensible from the start (`contentModule({ fieldTypes })`, `vendor.name` ids), because the owner asked for documented extension points.
+- Page trees and path delivery, menus, and datasources are out of the core. They're planned as modules.

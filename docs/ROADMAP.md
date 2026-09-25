@@ -63,7 +63,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `completed` | 6/6 | 006 |
 | [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `completed` | 6/6 | 007 |
 | [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `completed` | 5/5 | 008 |
-| [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `not-started` | 0/5 | 009 |
+| [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `in-progress` | 1/5 | 009 |
 | [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `not-started` | 0/7 | 010 |
 | [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `not-started` | 0/8 | 011 |
 | [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `not-started` | 0/5 | 012 |
@@ -287,13 +287,13 @@ Builds `@blixis/permissions`: a registry of module-declared permissions, system 
 
 #### 010 — Content Modeling
 
-Status: `not-started` · Progress: 0/5 · Scope: MVP  
+Status: `in-progress` · Progress: 1/5 · Scope: MVP  
 Plan: [010-content-modeling/_index.md](./plans/010-content-modeling/_index.md)  
 Depends on: [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md)
 
 Decides the content storage model (ADR), then builds the `@blixis/content` module's modeling half: content types, field definitions, an extensible field-type system, entry payload validation derived from content types, and content-type management REST routes with events and safe-change rules.
 
-- [ ] [010.001 — Decide the content storage model](./plans/010-content-modeling/001-content-storage-design.md)
+- [x] [010.001 — Decide the content storage model](./plans/010-content-modeling/001-content-storage-design.md)
 - [ ] [010.002 — Scaffold the content module and content type schema](./plans/010-content-modeling/002-content-module-scaffold-and-type-schema.md)
 - [ ] [010.003 — Implement the built-in field type system](./plans/010-content-modeling/003-field-type-system.md)
 - [ ] [010.004 — Compile entry validators from content types](./plans/010-content-modeling/004-entry-schema-compiler.md)
@@ -575,7 +575,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | D10 | Authentication approach (library vs. custom, sessions, hashing on Workers, API tokens, CSRF) | [007.001](./plans/007-identity-and-authentication/001-select-authentication-approach.md) | **Custom: EdDSA JWT access tokens (15 min) + rotating hashed refresh tokens (family revocation), scrypt N=2^15, opaque `blx_pat_` API tokens, Origin check on cookie endpoints** ([ADR 0009](./decisions/0009-authentication.md)) | decided |
 | D11 | Email delivery for invitations/password reset | [008.002](./plans/008-tenancy-organizations-and-spaces/002-memberships.md) (deferred) | Add existing users only in MVP | open |
 | D12 | Environments beyond the default `main` | [008.004](./plans/008-tenancy-organizations-and-spaces/004-environments-and-locales.md) | One default environment; `environment_id` columns from day one | open |
-| D13 | Content storage model (JSONB shape, localisation, references, rich text, schema evolution) | [010.001](./plans/010-content-modeling/001-content-storage-design.md) | JSONB keyed by stable field ID and locale | open |
+| D13 | Content storage model (JSONB shape, localisation, references, rich text, schema evolution) | [010.001](./plans/010-content-modeling/001-content-storage-design.md) | JSONB keyed by stable field ID and locale | [ADR 0010](./decisions/0010-content-storage-model.md): JSONB fields with stable ids; components + `blocks`; plain values for non-localized fields; ProseMirror-compatible rich text |
 | D14 | Delivery GraphQL schema (generic vs. generated per space) | [012.005](./plans/012-graphql-delivery-api/005-decide-delivery-schema-strategy.md) | Generated typed schema per space/environment, cached by content-model version | open |
 | D15 | Delivery cache invalidation (versioned keys via KV vs. purge vs. TTL) | [013.001](./plans/013-delivery-caching/001-caching-strategy-and-baseline.md) | Versioned keys with KV stamp, justified by measurement | open |
 | D16 | Asset upload strategy and serving domain | [014.001](./plans/014-assets/001-upload-strategy-and-object-storage.md) | Stream through Worker via R2 binding; multipart for large files | open |
