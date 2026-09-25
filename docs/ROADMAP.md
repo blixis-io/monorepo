@@ -64,7 +64,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `completed` | 6/6 | 007 |
 | [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `completed` | 5/5 | 008 |
 | [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `completed` | 5/5 | 009 |
-| [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `in-progress` | 5/7 | 010 |
+| [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `in-progress` | 6/7 | 010 |
 | [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `not-started` | 0/8 | 011 |
 | [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `not-started` | 0/5 | 012 |
 | [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `not-started` | 0/6 | 012 |
@@ -301,7 +301,7 @@ Decides the content storage model (ADR), then builds the `@blixis/content` modul
 
 #### 011 — Entries, Versions & Publishing
 
-Status: `in-progress` · Progress: 5/7 · Scope: MVP  
+Status: `in-progress` · Progress: 6/7 · Scope: MVP  
 Plan: [011-entries-and-publishing/_index.md](./plans/011-entries-and-publishing/_index.md)  
 Depends on: [010 — Content Modeling](./plans/010-content-modeling/_index.md)
 
@@ -312,7 +312,7 @@ Completes `@blixis/content` with entries, immutable entry versions, publications
 - [x] [011.003 — Implement entry management REST routes](./plans/011-entries-and-publishing/003-entry-management-routes.md)
 - [x] [011.004 — Implement publish and unpublish commands](./plans/011-entries-and-publishing/004-publish-and-unpublish-commands.md)
 - [x] [011.005 — Implement version history and restore](./plans/011-entries-and-publishing/005-version-history-and-restore.md)
-- [ ] [011.006 — Implement entry references and link resolution](./plans/011-entries-and-publishing/006-references-and-link-resolution.md)
+- [x] [011.006 — Implement entry references and link resolution](./plans/011-entries-and-publishing/006-references-and-link-resolution.md)
 - [ ] [011.007 — Verify the content management vertical slice end to end](./plans/011-entries-and-publishing/007-content-vertical-slice-end-to-end.md)
 
 ### Milestone 6 — Content delivery

@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -36,18 +36,19 @@ ADR 0010 defines reference representation. Delivery APIs need efficient link res
 ### Create
 
 ```text
-modules/content/src/infrastructure/migrations/0003_create_entry_references.sql
-modules/content/src/application/links.ts
-modules/content/test/links.test.ts
+modules/content/test/links.api.test.ts
 ```
 
 ### Modify
 
 ```text
-modules/content/src/infrastructure/entry-version.repository.ts
-modules/content/src/application/publishing.ts
 modules/content/src/application/content.service.ts
+modules/content/src/infrastructure/entry.repository.ts (findManyWithVersions)
+modules/content/src/rest/entry.routes.ts
 modules/content/src/index.ts
+tooling/tenant-isolation/test/routes.ts
+tooling/tenant-isolation/test/authz-routes.ts
+tooling/postman/blixis.postman_collection.json
 ```
 
 ### Delete
@@ -71,8 +72,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `resolveLinks` with depth 2 uses at most 2 additional queries.
-- [ ] Published resolution never returns draft-only entries.
+- [x] `resolveLinks` with depth 2 uses at most 2 additional queries.
+- [x] Published resolution never returns draft-only entries.
 
 ## Validation
 
@@ -82,15 +83,15 @@ pnpm --filter @blixis/content test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Cycle handling documented.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Cycle handling documented.
 
 ## Completion conditions
 
@@ -107,4 +108,14 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **`entry_references`** (011.001) is written for every version, so no separate maintenance is needed. The task allowed limiting it to current and published versions; queries join on the entry's current or published version id instead, which gives the same answers without deleting rows from immutable history.
+- **`findReferrers(actor, tenant, id, { state })`:** entries whose current (`draft`) or published version links to this one, excluding self-links, returned as views in that state.
+- **`resolveLinks(actor, tenant, entryIds, { depth 0–3, state })`:**
+  - Breadth-first. Each level is **one** `findManyWithVersions` batch, a join of entries and versions with `inArray`, and levels with nothing new stop early.
+  - A `seen` set follows cycles once.
+  - Missing targets, and unpublished ones for `published`, are left out, matching ADR 0010 §7 ("delivery omits links that don't resolve").
+  - Asset links are skipped until plan 014.
+  - **Deviation:** no `locale` option. Fields keep all locales, and locale selection and fallback belong to delivery (plan 012).
+- **Tests:** a query-count assertion via `vi.spyOn(entryRepository, 'findManyWithVersions')` (roots plus one call per level), the cycle a→b→c→a, depth limits (`include=4` gives `400`), and state-specific resolution.
+- **REST:** `?include=0..3` on `GET /entries/:entryId` and the entries list adds `includes: { entries }`. `GET /entries/:entryId/referrers?state=` lists referrers. The isolation suite, authorization matrix and Postman cover it.
+- **Asset existence:** the optional `blixis.assets` capability check is deferred to 014.005, as the task allows. Asset links are already stored.

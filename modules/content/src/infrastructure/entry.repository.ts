@@ -135,6 +135,27 @@ export const entryRepository = {
     return rows.map(toEntry)
   },
 
+  /**
+   * Entries with their current (`draft`) or published version in one query — the batch step of
+   * link resolution. Unpublished entries are left out for `published`.
+   */
+  async findManyWithVersions(
+    db: Queryable,
+    tenant: EnvironmentTenant,
+    ids: readonly string[],
+    state: EntryState,
+  ): Promise<{ entry: Entry; version: EntryVersion }[]> {
+    if (ids.length === 0) return []
+    const versionColumn =
+      state === 'published' ? entries.publishedVersionId : entries.currentVersionId
+    const rows = await db
+      .select({ entry: entries, version: entryVersions })
+      .from(entries)
+      .innerJoin(entryVersions, eq(entryVersions.id, versionColumn))
+      .where(and(tenantScope(entries, tenant), inArray(entries.id, [...ids])))
+    return rows.map((r) => ({ entry: toEntry(r.entry), version: toVersion(r.version) }))
+  },
+
   async version(db: Queryable, tenant: EnvironmentTenant, entryId: string, versionId: string) {
     const [row] = await db
       .select()
