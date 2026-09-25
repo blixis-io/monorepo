@@ -64,7 +64,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `completed` | 6/6 | 007 |
 | [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `completed` | 5/5 | 008 |
 | [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `completed` | 5/5 | 009 |
-| [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `in-progress` | 6/7 | 010 |
+| [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `completed` | 7/7 | 010 |
 | [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `not-started` | 0/8 | 011 |
 | [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `not-started` | 0/5 | 012 |
 | [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `not-started` | 0/6 | 012 |
@@ -301,7 +301,7 @@ Decides the content storage model (ADR), then builds the `@blixis/content` modul
 
 #### 011 — Entries, Versions & Publishing
 
-Status: `in-progress` · Progress: 6/7 · Scope: MVP  
+Status: `completed` · Progress: 7/7 · Scope: MVP  
 Plan: [011-entries-and-publishing/_index.md](./plans/011-entries-and-publishing/_index.md)  
 Depends on: [010 — Content Modeling](./plans/010-content-modeling/_index.md)
 
@@ -313,7 +313,7 @@ Completes `@blixis/content` with entries, immutable entry versions, publications
 - [x] [011.004 — Implement publish and unpublish commands](./plans/011-entries-and-publishing/004-publish-and-unpublish-commands.md)
 - [x] [011.005 — Implement version history and restore](./plans/011-entries-and-publishing/005-version-history-and-restore.md)
 - [x] [011.006 — Implement entry references and link resolution](./plans/011-entries-and-publishing/006-references-and-link-resolution.md)
-- [R] [011.007 — Verify the content management vertical slice end to end](./plans/011-entries-and-publishing/007-content-vertical-slice-end-to-end.md)
+- [x] [011.007 — Verify the content management vertical slice end to end](./plans/011-entries-and-publishing/007-content-vertical-slice-end-to-end.md)
 
 ### Milestone 6 — Content delivery
 
@@ -552,7 +552,7 @@ Checkpoints are review gates where the architecture is validated against working
   - End-to-end test against Postgres: a rollback emits nothing; committed events go through outbox → queue → consumer; redeliveries and retries produce one effect; a queue outage is recovered by the sweep.
   - Staging: queue consumer attached, outbox cron `Ok` every minute, no Sentry issues.
 - [x] **CP4 — Tenancy & authorization** (end of [009](./plans/009-authorization-and-permissions/_index.md)). Isolation suite and authz matrix cover every tenant-scoped route; no role-name checks outside `@blixis/permissions` (§30, §31). Passed 2026-09-25: isolation suite (24 routes × 3 intruders, including an every-scope API token) and authorization matrix (24 routes × 12 role/actor cases, fresh tenant per case) in CI with route-coverage checks; `role-name-check` boundary rule in `pnpm lint`.
-- [ ] **CP5 — Content vertical slice** (end of [011](./plans/011-entries-and-publishing/_index.md)). request → Hono route → `ContentService` → repository → Hyperdrive → Neon, plus publish → outbox → Queue → subscriber, on staging; review against §48 rules.
+- [x] **CP5 — Content vertical slice** (end of [011](./plans/011-entries-and-publishing/_index.md)). request → Hono route → `ContentService` → repository → Hyperdrive → Neon, plus publish → outbox → Queue → subscriber, on staging; review against §48 rules. Passed 2026-09-25: the full path on staging (Postman 60/134 green; content smoke 13 requests OK, p50 ~200–250 ms; `Queue blixis-events-staging (10 messages) - Ok` after publish/unpublish/delete through the outbox); vertical-slice test with cross-module delivery; §48 review without findings. Latency follow-up: fewer DB round trips per request (plans 013/020).
 - [ ] **CP6 — Delivery performance & cache correctness** (end of [013](./plans/013-delivery-caching/_index.md)). Measured before/after caching; bounded staleness after publish; no cross-tenant or preview cache leakage (§34).
 - [ ] **CP7 — Extension contract sufficiency** (end of [018](./plans/018-extension-platform/_index.md)). Example plugin installed from a packed tarball works using only public packages; CI gate enforces it continuously (§42 Stage 8, §52).
 - [ ] **CP8 — Architecture conformance & launch** (end of [022](./plans/022-production-readiness/_index.md)). Conformance review against §2, §4, §24–§35, §46–§48 with no blocking violations; launch checklist complete.
