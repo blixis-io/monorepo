@@ -39,6 +39,7 @@ Postman uses `"tokenDelivery": "body"`, so the refresh token comes back in the J
 | `memberEmail` | you (current value) | Email of **another existing user** to add in *Members*. Without it those requests are skipped with 404/400 |
 | `localeId` | Create locale script | For update and delete |
 | `orgMembershipId`, `spaceMembershipId` | Add member scripts | For change-role and remove |
+| `roleId` | Create custom role script | For update and delete in *Roles* |
 | `apiToken`, `apiTokenId` | Create API token script | The last created personal API token, shown once and stored as a secret, and its ID for *Revoke* |
 
 ## Command line

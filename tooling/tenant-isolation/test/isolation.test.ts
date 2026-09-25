@@ -3,6 +3,7 @@ import { pathToFileURL } from 'node:url'
 import type { Actor, BlixisModule } from '@blixis/contracts'
 import { QUEUE_SENDER } from '@blixis/events'
 import { serviceOverride } from '@blixis/kernel'
+import { PERMISSION_CATALOG, ROLE_SERVICE } from '@blixis/permissions'
 import { LOCALE_SERVICE, TENANCY_SERVICE } from '@blixis/spaces'
 import {
   asApiToken,
@@ -90,7 +91,20 @@ describe.skipIf(!databaseTestsEnabled())(
           spaceId: spaceB2.id,
           role: 'admin',
         })
-        return { owner, attacker, spaceOnly, orgB, spaceB1, orgMembership, spaceMembership, german }
+        const role = await services
+          .get(ROLE_SERVICE)
+          .create(asUser(owner.id), orgB.id, { name: 'Reviewer', permissions: ['spaces.read'] })
+        return {
+          owner,
+          attacker,
+          spaceOnly,
+          orgB,
+          spaceB1,
+          orgMembership,
+          spaceMembership,
+          german,
+          role,
+        }
       })
       victimOwner = asUser(seeded.owner.id)
       victimOrg = seeded.orgB.id
@@ -100,10 +114,20 @@ describe.skipIf(!databaseTestsEnabled())(
         orgMembershipId: seeded.orgMembership.id,
         spaceMembershipId: seeded.spaceMembership.id,
         localeId: seeded.german.id,
+        roleId: seeded.role.id,
       }
       intruders = [
         { name: 'owner of another organization', actor: asUser(seeded.attacker.id) },
-        { name: "that owner's API token", actor: asApiToken(seeded.attacker.id) },
+        {
+          name: "that owner's API token (every scope)",
+          actor: asApiToken(
+            seeded.attacker.id,
+            t.services
+              .get(PERMISSION_CATALOG)
+              .list()
+              .map((p) => p.id),
+          ),
+        },
         { name: 'admin of a sibling space only', actor: asUser(seeded.spaceOnly.id) },
       ]
     })
@@ -121,6 +145,9 @@ describe.skipIf(!databaseTestsEnabled())(
         ),
         locales: await q(
           sql`select id, code, name, is_default from spaces.locales where organization_id = ${victimOrg}::uuid order by id`,
+        ),
+        roles: await q(
+          sql`select id, name, permissions from permissions.roles where organization_id = ${victimOrg}::uuid order by id`,
         ),
         memberships: await q(
           sql`select id, user_id, space_id, role_key from users.memberships where organization_id = ${victimOrg}::uuid order by id`,
