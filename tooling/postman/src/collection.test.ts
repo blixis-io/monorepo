@@ -24,7 +24,7 @@ const requests = (items: Item[]): { name: string; method: string; path: string }
             {
               name: item.name,
               method: item.request.method,
-              path: item.request.url.raw.replace('{{baseUrl}}', ''),
+              path: item.request.url.raw.replace('{{baseUrl}}', '').split('?')[0] ?? '',
             },
           ],
   )

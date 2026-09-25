@@ -67,9 +67,16 @@ export async function expectIsolated(options: {
   return failures
 }
 
-/** Whether a route pattern is tenant-scoped (has an organization or space parameter). */
+/**
+ * Route segments that identify a tenant or a tenant-owned resource. Routes by resource id (e.g.
+ * `/entries/:entryId`) resolve their tenant from the resource, so they need isolation tests too.
+ * Add new top-level resource routes here.
+ */
+const TENANT_SEGMENTS = ['organizations/:orgId', 'spaces/:spaceId', 'entries/:entryId']
+
+/** Whether a route pattern is tenant-scoped (has an organization, space, or resource-id segment). */
 export const isTenantScoped = (path: string): boolean =>
-  /\/(organizations\/:orgId|spaces\/:spaceId)(\/|$)/.test(path)
+  TENANT_SEGMENTS.some((segment) => new RegExp(`/${segment}(/|$)`).test(path))
 
 /**
  * Tenant-scoped routes of `app` that no isolation spec covers and that are not allow-listed —

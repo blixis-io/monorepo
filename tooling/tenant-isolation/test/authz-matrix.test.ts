@@ -1,4 +1,4 @@
-import { CONTENT_TYPE_SERVICE } from '@blixis/content'
+import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE } from '@blixis/content'
 import type { Actor, PermissionId, ServiceRegistry, UserActor } from '@blixis/contracts'
 import { QUEUE_SENDER } from '@blixis/events'
 import { serviceOverride } from '@blixis/kernel'
@@ -104,6 +104,25 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
           },
           { apiId: 'page', name: 'Page' },
         )
+        await services.get(CONTENT_TYPE_SERVICE).create(
+          owner,
+          {
+            organizationId: org.id,
+            spaceId: space.id,
+            environmentId: space.environments[0]?.id ?? '',
+          },
+          { apiId: 'article', name: 'Article' },
+        )
+        // Entries use `article`, so the content type rows can still delete `page`.
+        const entry = await services.get(CONTENT_SERVICE).create(
+          owner,
+          {
+            organizationId: org.id,
+            spaceId: space.id,
+            environmentId: space.environments[0]?.id ?? '',
+          },
+          { contentType: 'article', fields: {} },
+        )
         const actor = await join({ ...ids, owner, services })
         return {
           actor,
@@ -114,6 +133,7 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
             localeId: locale.id,
             roleId: role.id,
             contentTypeId: contentType.id,
+            entryId: entry.sys.id,
           },
         }
       })

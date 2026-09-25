@@ -1,4 +1,4 @@
-import { CONTENT_TYPE_SERVICE } from '@blixis/content'
+import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE } from '@blixis/content'
 import type { Actor } from '@blixis/contracts'
 import { QUEUE_SENDER } from '@blixis/events'
 import { serviceOverride } from '@blixis/kernel'
@@ -113,7 +113,17 @@ describe.skipIf(!databaseTestsEnabled())(
             fields: [{ apiId: 'title', name: 'Title', type: 'text' }],
           },
         )
+        const entry = await services.get(CONTENT_SERVICE).create(
+          asUser(owner.id),
+          {
+            organizationId: orgB.id,
+            spaceId: spaceB1.id,
+            environmentId: spaceB1.environments[0]?.id ?? '',
+          },
+          { contentType: 'page', fields: { title: 'Victim page' } },
+        )
         return {
+          entry,
           contentType,
           owner,
           attacker,
@@ -136,6 +146,7 @@ describe.skipIf(!databaseTestsEnabled())(
         localeId: seeded.german.id,
         roleId: seeded.role.id,
         contentTypeId: seeded.contentType.id,
+        entryId: seeded.entry.sys.id,
       }
       intruders = [
         { name: 'owner of another organization', actor: asUser(seeded.attacker.id) },
@@ -172,6 +183,12 @@ describe.skipIf(!databaseTestsEnabled())(
         ),
         contentTypes: await q(
           sql`select id, api_id, name, version, fields from content.content_types where organization_id = ${victimOrg}::uuid order by id`,
+        ),
+        entries: await q(
+          sql`select id, version, current_version_id, published_version_id from content.entries where organization_id = ${victimOrg}::uuid order by id`,
+        ),
+        entryVersions: await q(
+          sql`select id, fields from content.entry_versions where organization_id = ${victimOrg}::uuid order by id`,
         ),
         memberships: await q(
           sql`select id, user_id, space_id, role_key from users.memberships where organization_id = ${victimOrg}::uuid order by id`,

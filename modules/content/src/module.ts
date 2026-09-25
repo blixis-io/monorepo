@@ -28,6 +28,7 @@ import { createContentTypes } from './infrastructure/migrations/0001_create_cont
 import { createEntries } from './infrastructure/migrations/0002_create_entries.ts'
 import { CONTENT_PERMISSIONS } from './permissions.ts'
 import { contentTypeRoutes } from './rest/content-type.routes.ts'
+import { entryRoutes } from './rest/entry.routes.ts'
 import { fieldTypeRoutes } from './rest/field-types.routes.ts'
 
 /** Options for {@link contentModule}. */
@@ -113,6 +114,9 @@ export const contentModule = defineModule((options: ContentModuleOptions) => ({
   },
   rest: {
     path: '/',
-    app: new Hono<ModuleHonoEnv>().route('/', fieldTypeRoutes).route('/', contentTypeRoutes),
+    app: new Hono<ModuleHonoEnv>()
+      .route('/', fieldTypeRoutes)
+      .route('/', contentTypeRoutes)
+      .route('/', entryRoutes),
   },
 }))

@@ -95,3 +95,4 @@ export {
 export type { EnvironmentTenant } from './infrastructure/content-type.repository.ts'
 export { type ContentModuleOptions, contentModule } from './module.ts'
 export { CONTENT_PERMISSIONS } from './permissions.ts'
+export { entryScoped } from './rest/entry.routes.ts'

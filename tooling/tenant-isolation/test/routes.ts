@@ -59,6 +59,20 @@ export const ISOLATION_ROUTES: readonly IsolationRoute[] = [
     body: { version: 1, name: 'Hijacked' },
   },
   { method: 'DELETE', path: '/api/v1/spaces/:spaceId/content-types/:contentTypeId' },
+  // @blixis/content — entries
+  { method: 'GET', path: '/api/v1/spaces/:spaceId/entries' },
+  {
+    method: 'POST',
+    path: '/api/v1/spaces/:spaceId/entries',
+    body: { contentType: 'page', fields: { title: 'Planted' } },
+  },
+  { method: 'GET', path: '/api/v1/entries/:entryId' },
+  {
+    method: 'PATCH',
+    path: '/api/v1/entries/:entryId',
+    body: { expectedVersion: 1, fields: { title: 'Hijacked' } },
+  },
+  { method: 'DELETE', path: '/api/v1/entries/:entryId' },
   // @blixis/spaces — spaces
   { method: 'GET', path: '/api/v1/spaces/:spaceId' },
   { method: 'PATCH', path: '/api/v1/spaces/:spaceId', body: { name: 'Hijacked' } },
