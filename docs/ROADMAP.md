@@ -62,7 +62,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `completed` | 7/7 | 005 |
 | [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `completed` | 6/6 | 006 |
 | [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `completed` | 6/6 | 007 |
-| [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `in-progress` | 4/5 | 008 |
+| [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `completed` | 5/5 | 008 |
 | [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `not-started` | 0/5 | 009 |
 | [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `not-started` | 0/7 | 010 |
 | [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `not-started` | 0/8 | 011 |
@@ -271,7 +271,7 @@ Builds `@blixis/spaces` (organizations, spaces, default environment, locales) an
 
 #### 009 — Authorization & Permissions
 
-Status: `in-progress` · Progress: 4/5 · Scope: MVP  
+Status: `completed` · Progress: 5/5 · Scope: MVP  
 Plan: [009-authorization-and-permissions/_index.md](./plans/009-authorization-and-permissions/_index.md)  
 Depends on: [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md)
 
@@ -281,7 +281,7 @@ Builds `@blixis/permissions`: a registry of module-declared permissions, system 
 - [x] [009.002 — Implement roles and role assignments](./plans/009-authorization-and-permissions/002-roles-and-role-assignments.md)
 - [x] [009.003 — Implement the authorization service](./plans/009-authorization-and-permissions/003-authorization-service.md)
 - [x] [009.004 — Enforce permissions in existing modules](./plans/009-authorization-and-permissions/004-enforce-permissions-in-existing-modules.md)
-- [ ] [009.005 — Build the authorization test matrix](./plans/009-authorization-and-permissions/005-authorization-test-matrix.md)
+- [x] [009.005 — Build the authorization test matrix](./plans/009-authorization-and-permissions/005-authorization-test-matrix.md)
 
 ### Milestone 5 — Content management core
 
@@ -551,7 +551,7 @@ Checkpoints are review gates where the architecture is validated against working
 - [x] **CP3 — Event consistency** (end of [006](./plans/006-events-and-async-processing/_index.md)). Rolled-back transactions emit nothing; committed transactional events are delivered via outbox → Queue; redeliveries are processed once (§32, §33). Passed 2026-09-25:
   - End-to-end test against Postgres: a rollback emits nothing; committed events go through outbox → queue → consumer; redeliveries and retries produce one effect; a queue outage is recovered by the sweep.
   - Staging: queue consumer attached, outbox cron `Ok` every minute, no Sentry issues.
-- [ ] **CP4 — Tenancy & authorization** (end of [009](./plans/009-authorization-and-permissions/_index.md)). Isolation suite and authz matrix cover every tenant-scoped route; no role-name checks outside `@blixis/permissions` (§30, §31).
+- [x] **CP4 — Tenancy & authorization** (end of [009](./plans/009-authorization-and-permissions/_index.md)). Isolation suite and authz matrix cover every tenant-scoped route; no role-name checks outside `@blixis/permissions` (§30, §31). Passed 2026-09-25: isolation suite (24 routes × 3 intruders, including an every-scope API token) and authorization matrix (24 routes × 12 role/actor cases, fresh tenant per case) in CI with route-coverage checks; `role-name-check` boundary rule in `pnpm lint`.
 - [ ] **CP5 — Content vertical slice** (end of [011](./plans/011-entries-and-publishing/_index.md)). request → Hono route → `ContentService` → repository → Hyperdrive → Neon, plus publish → outbox → Queue → subscriber, on staging; review against §48 rules.
 - [ ] **CP6 — Delivery performance & cache correctness** (end of [013](./plans/013-delivery-caching/_index.md)). Measured before/after caching; bounded staleness after publish; no cross-tenant or preview cache leakage (§34).
 - [ ] **CP7 — Extension contract sufficiency** (end of [018](./plans/018-extension-platform/_index.md)). Example plugin installed from a packed tarball works using only public packages; CI gate enforces it continuously (§42 Stage 8, §52).

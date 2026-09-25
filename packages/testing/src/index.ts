@@ -16,6 +16,14 @@ export {
   TEST_ACTOR_HEADER,
 } from './actors.ts'
 export {
+  type AuthzCase,
+  type AuthzLevel,
+  type AuthzRoute,
+  checkAuthzMatrix,
+  defineAuthzMatrix,
+  expectedAuthzStatus,
+} from './authz-matrix.ts'
+export {
   type CreateTestBlixisOptions,
   createTestBlixis,
   type TestBlixis,

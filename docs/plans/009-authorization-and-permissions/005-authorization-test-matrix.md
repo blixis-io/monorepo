@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -36,7 +36,10 @@ Checkpoint CP4 requires evidence that authorization and tenancy compose correctl
 
 ```text
 packages/testing/src/authz-matrix.ts
-apps/api/test/authz-matrix.worker.test.ts
+packages/testing/src/authz-matrix.test.ts
+tooling/tenant-isolation/test/api.ts
+tooling/tenant-isolation/test/authz-routes.ts
+tooling/tenant-isolation/test/authz-matrix.test.ts
 docs/conventions/authorization.md
 ```
 
@@ -44,6 +47,11 @@ docs/conventions/authorization.md
 
 ```text
 packages/testing/src/index.ts
+tooling/tenant-isolation/test/isolation.test.ts
+tooling/tenant-isolation/package.json
+docs/conventions/tenancy.md
+docs/ROADMAP.md (CP4)
+docs/plans/009-authorization-and-permissions/_index.md
 ```
 
 ### Delete
@@ -66,7 +74,7 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Matrix covers every permission-guarded route and passes.
+- [x] Matrix covers every permission-guarded route and passes.
 
 ## Validation
 
@@ -76,15 +84,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] CP4 recorded in plan Technical notes and ROADMAP.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] CP4 recorded in plan Technical notes and ROADMAP.
 
 ## Completion conditions
 
@@ -101,4 +109,20 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Harness** (`@blixis/testing`):
+  - `defineAuthzMatrix(routes)` validates permission ids and duplicate rows.
+  - `checkAuthzMatrix({ t, routes, cases })` returns all failures at once, e.g. `space viewer: POST … → 201 (expected 403)`.
+  - `expectedAuthzStatus` returns `401` for anonymous, `404` for no membership at the route's level, `2xx` when the permission is held, `403` otherwise.
+  - `AuthzRoute` extends `IsolationRoute`, so `paramsFrom`, `isolationUrl` and `uncoveredTenantRoutes` are reused.
+- **Deviation, location:** the matrix lives in `tooling/tenant-isolation/test/authz-matrix.test.ts` (Node pool, the API's real module list) rather than `apps/api/test/*.worker.test.ts`. `pg` still can't reach Postgres from the Workers pool (`pg-cloudflare` resolves without the `workerd` condition), the same reason as the isolation suite. Documented in `docs/conventions/authorization.md` and `testing.md`.
+- **Cases** (12), each on a fresh tenant so allowed changes and deletions really run:
+  - organization `owner`, `admin`, `editor` and `viewer`;
+  - space-only `admin`, `editor` and `viewer`;
+  - an owner of another organization;
+  - an anonymous caller;
+  - the owner's read-only API token (`organizations.read`, `spaces.read`) and a token with every scope.
+- **Rows:** 24, covering every tenant-scoped route, with a coverage check against the registered routes. That is 288 requests per run, about 3 s locally.
+- **Expected permissions** are derived from `systemRoles(catalog)`, so a change to a module's `defaultRoles` moves the expectations with it.
+- **Mutation check:** after removing the `spaces.settings.write` check from `LOCALE_SERVICE.create`, the matrix reported exactly the 5 cases that lack the permission (org editor/viewer, space editor/viewer, read-only token). The check was restored.
+- `apiModules()` is shared by the isolation suite and the matrix (`test/api.ts`).
+- **Local end-to-end:** migrations applied to local Postgres (users `0003`, permissions `0001`); Newman against `wrangler dev` ran 40 requests / 90 assertions with 0 failures.

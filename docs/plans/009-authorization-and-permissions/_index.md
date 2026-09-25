@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 4 — Identity, tenancy & authorization  
 Roadmap scope: MVP / initial platform  
-Progress: 4/5 tasks completed
+Progress: 5/5 tasks completed
 
 ## Objective
 
@@ -63,16 +63,16 @@ Depends on:
 - [x] [002 — Implement roles and role assignments](./002-roles-and-role-assignments.md)
 - [x] [003 — Implement the authorization service](./003-authorization-service.md)
 - [x] [004 — Enforce permissions in existing modules](./004-enforce-permissions-in-existing-modules.md)
-- [ ] [005 — Build the authorization test matrix](./005-authorization-test-matrix.md)
+- [x] [005 — Build the authorization test matrix](./005-authorization-test-matrix.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] No role-name checks exist outside `@blixis/permissions` (grep-based lint check).
-- [ ] Matrix tests pass; isolation suite (008.006) still passes.
-- [ ] Architectural checkpoint CP4 recorded.
+- [x] All tasks `completed`.
+- [x] No role-name checks exist outside `@blixis/permissions` (grep-based lint check).
+- [x] Matrix tests pass; isolation suite (008.006) still passes.
+- [x] Architectural checkpoint CP4 recorded.
 
 ## Risks
 
@@ -86,4 +86,15 @@ The plan may be marked `completed` when:
 
 ## Technical notes
 
-No technical notes yet.
+- **Checkpoint CP4 passed 2026-09-25:**
+  - The isolation suite (24 tenant routes × 3 intruders, one of them an API token with every scope) and the authorization matrix (24 routes × 12 cases) run in CI and cover every tenant-scoped route, enforced by coverage checks.
+  - The `role-name-check` boundary rule keeps role-name comparisons out of every package except `@blixis/permissions`.
+- **Open questions resolved:**
+  - Content-type-level permissions are deferred: `ResourceRef` carries `type`/`id`, so they can be added without a contract change.
+  - Custom roles are organization-scoped and assignable at organization or space level.
+- **Decisions recorded in the task notes:**
+  - system roles are derived in code;
+  - API tokens need explicit scopes;
+  - `require` itself implements 404 vs 403;
+  - the escalation guard makes `owner` grantable by owners only.
+- **Staging:** run `pnpm db:migrate` (users `0003_system_role_keys`, permissions `0001_create_roles`) before deploying plan 009. Existing organization `member` memberships become `viewer`. Existing API tokens without scopes lose access to tenant routes, so re-create them with scopes.

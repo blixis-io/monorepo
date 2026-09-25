@@ -2,7 +2,7 @@
   "name": "@blixis/tenant-isolation",
   "version": "0.0.0",
   "private": true,
-  "description": "Cross-tenant isolation suite for every tenant-scoped route of the API Worker (roadmap 008.006)",
+  "description": "Cross-tenant isolation suite and authorization matrix for every tenant-scoped route of the API Worker (roadmap 008.006, 009.005)",
   "type": "module",
   "scripts": {
     "test": "vitest run --root ../.. tooling/tenant-isolation"
