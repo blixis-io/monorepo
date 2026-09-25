@@ -81,11 +81,13 @@ Create or update values without passing them through shell history:
 cd apps/api
 read -rs "PW?blixis_app password: "; echo
 npx wrangler hyperdrive update <hyperdrive-id> \
-  --origin-password="$PW"          # or: hyperdrive create <name> --connection-string="postgresql://blixis_app:${PW}@<direct-host>/neondb?sslmode=require"
+  --origin-password="$PW"          # or: hyperdrive create <name> --caching-disabled --connection-string="postgresql://blixis_app:${PW}@<direct-host>/neondb?sslmode=require"
 unset PW
 
 gh secret set DATABASE_URL --env staging --repo blixis-io/monorepo   # prompts for the value
 ```
+
+**Query caching must be off** on every Hyperdrive configuration ([ADR 0019](../decisions/0019-hyperdrive-query-caching-disabled.md)). Otherwise, reads of memberships, roles and tokens can be up to 60 s stale. Check with `npx wrangler hyperdrive get <id>`, which must show `"caching": { "disabled": true }`. Fix it with `npx wrangler hyperdrive update <id> --caching-disabled`.
 
 ## Migrations
 

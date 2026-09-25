@@ -97,4 +97,5 @@ The plan may be marked `completed` when:
   - API tokens need explicit scopes;
   - `require` itself implements 404 vs 403;
   - the escalation guard makes `owner` grantable by owners only.
+- **Staging finding (2026-09-25):** Hyperdrive's default query cache (60 s) served stale membership lists, so a new organization answered 404 to its owner for about 40 s. Caching is now disabled on the staging and production Hyperdrive configurations ([ADR 0019](../../decisions/0019-hyperdrive-query-caching-disabled.md)). After that, staging Newman passed: 40 requests / 90 assertions, 0 failures.
 - **Staging:** run `pnpm db:migrate` (users `0003_system_role_keys`, permissions `0001_create_roles`) before deploying plan 009. Existing organization `member` memberships become `viewer`. Existing API tokens without scopes lose access to tenant routes, so re-create them with scopes.
