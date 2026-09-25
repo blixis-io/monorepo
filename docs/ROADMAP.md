@@ -63,7 +63,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `completed` | 6/6 | 006 |
 | [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `completed` | 6/6 | 007 |
 | [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `completed` | 5/5 | 008 |
-| [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `in-progress` | 2/5 | 009 |
+| [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `in-progress` | 3/5 | 009 |
 | [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `not-started` | 0/7 | 010 |
 | [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `not-started` | 0/8 | 011 |
 | [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `not-started` | 0/5 | 012 |
@@ -287,7 +287,7 @@ Builds `@blixis/permissions`: a registry of module-declared permissions, system 
 
 #### 010 — Content Modeling
 
-Status: `in-progress` · Progress: 2/5 · Scope: MVP  
+Status: `in-progress` · Progress: 3/5 · Scope: MVP  
 Plan: [010-content-modeling/_index.md](./plans/010-content-modeling/_index.md)  
 Depends on: [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md)
 
@@ -295,7 +295,7 @@ Decides the content storage model (ADR), then builds the `@blixis/content` modul
 
 - [x] [010.001 — Decide the content storage model](./plans/010-content-modeling/001-content-storage-design.md)
 - [x] [010.002 — Scaffold the content module and content type schema](./plans/010-content-modeling/002-content-module-scaffold-and-type-schema.md)
-- [ ] [010.003 — Implement the built-in field type system](./plans/010-content-modeling/003-field-type-system.md)
+- [x] [010.003 — Implement the built-in field type system](./plans/010-content-modeling/003-field-type-system.md)
 - [ ] [010.004 — Compile entry validators from content types](./plans/010-content-modeling/004-entry-schema-compiler.md)
 - [ ] [010.005 — Implement the content type service and REST routes](./plans/010-content-modeling/005-content-type-service-and-routes.md)
 
