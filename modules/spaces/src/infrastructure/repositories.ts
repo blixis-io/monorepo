@@ -81,7 +81,7 @@ export const organizationRepository = {
   update(
     db: Queryable,
     id: string,
-    values: { name?: string; slug?: string },
+    values: { name?: string | undefined; slug?: string | undefined },
   ): Promise<Organization | undefined> {
     return write(async () => {
       const [row] = await db
@@ -135,11 +135,22 @@ export const spaceRepository = {
       return toSpace(row ?? fail())
     })
   },
+  /** Deletes a space with its environments and locales (tenant-scoped). `false` if not found. */
+  async delete(db: Queryable, organizationId: string, spaceId: string): Promise<boolean> {
+    const tenant = { organizationId, spaceId }
+    await db.delete(environments).where(tenantScope(environments, tenant))
+    await db.delete(locales).where(tenantScope(locales, tenant))
+    const rows = await db
+      .delete(spaces)
+      .where(and(eq(spaces.organizationId, organizationId), eq(spaces.id, spaceId)))
+      .returning({ id: spaces.id })
+    return rows.length > 0
+  },
   update(
     db: Queryable,
     organizationId: string,
     spaceId: string,
-    values: { name?: string; slug?: string },
+    values: { name?: string | undefined; slug?: string | undefined },
   ): Promise<Space | undefined> {
     return write(async () => {
       const [row] = await db

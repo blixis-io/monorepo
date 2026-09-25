@@ -10,7 +10,7 @@ Related: [Getting started](./getting-started.md) · [Authentication (manual)](..
 
 | File | Contents |
 |---|---|
-| `blixis.postman_collection.json` | All `/api/v1` endpoints, in folders: Health, Auth, Users, API tokens, and Sign out (last, so a full run ends signed out) |
+| `blixis.postman_collection.json` | All `/api/v1` endpoints, in run order: Health, Auth, Users, Organizations, Spaces, Members, Cleanup (deletes the space it created), API tokens, and Sign out |
 | `local.postman_environment.json` | `baseUrl = http://localhost:8787` (`pnpm dev`) |
 | `staging.postman_environment.json` | `baseUrl = https://blixis-api-staging.frosty-hill-6079.workers.dev` |
 | `production.postman_environment.json` | `baseUrl` empty until the custom domain exists |
@@ -35,6 +35,9 @@ Postman uses `"tokenDelivery": "body"`, so the refresh token comes back in the J
 | `accessToken`, `accessTokenExpiresAt` | Sign in / Refresh scripts | JWT (15 min) and its expiry in ms |
 | `refreshToken` | Sign in / Refresh scripts | Opaque `blx_rt_…`; rotates on every refresh |
 | `userId` | Sign in script | Your user's ID |
+| `organizationId`, `spaceId` | Create organization / Create space scripts | The organization and space the later requests use |
+| `memberEmail` | you (current value) | Email of **another existing user** to add in *Members*. Without it those requests are skipped with 404/400 |
+| `orgMembershipId`, `spaceMembershipId` | Add member scripts | For change-role and remove |
 | `apiToken`, `apiTokenId` | Create API token script | The last created personal API token, shown once and stored as a secret, and its ID for *Revoke* |
 
 ## Command line
@@ -51,7 +54,7 @@ unset PW
 
 ## Keeping it in sync
 
-`tooling/postman/src/collection.test.ts` fails when:
+`tooling/postman/src/collection.test.ts` loads the API's real module list (`apps/api/src/blixis.config.ts`) and fails when:
 - a collection request points at a route the API doesn't register (a renamed or removed endpoint);
 - an API route has no request in the collection (a new endpoint was added without one);
 - the environments differ in variables, or an environment file contains a value other than `baseUrl` (no committed credentials or tokens).

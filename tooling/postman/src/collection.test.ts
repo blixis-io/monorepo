@@ -1,12 +1,8 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { authModule } from '@blixis/auth'
-import { databaseModule } from '@blixis/database'
-import { idempotencyModule } from '@blixis/database/idempotency'
-import { eventsModule } from '@blixis/events'
-import { outboxModule } from '@blixis/events/outbox'
+import { pathToFileURL } from 'node:url'
+import type { BlixisModule } from '@blixis/contracts'
 import { createBlixis, noopLogger } from '@blixis/kernel'
-import { usersModule } from '@blixis/users'
 import { describe, expect, it } from 'vitest'
 
 const root = path.resolve(import.meta.dirname, '..')
@@ -33,21 +29,17 @@ const requests = (items: Item[]): { name: string; method: string; path: string }
           ],
   )
 
-/** The API Worker's modules (apps/api/src/blixis.config.ts), minus app-local config modules. */
-const apiRoutes = () => {
-  const app = createBlixis({
-    modules: [
-      databaseModule(),
-      eventsModule(),
-      outboxModule(),
-      idempotencyModule(),
-      usersModule(),
-      authModule(),
-    ],
-    logger: noopLogger,
-  })
-  return app.hono.routes
-    .filter((route) => route.method !== 'ALL')
+/**
+ * Routes of the real API Worker: loads its explicit module list (apps/api/src/blixis.config.ts),
+ * so the collection is compared with exactly what the API serves — no duplicated module list.
+ */
+const apiRoutes = async () => {
+  const configPath = path.resolve(root, '../../apps/api/src/blixis.config.ts')
+  const { modules } = (await import(pathToFileURL(configPath).href)) as {
+    modules: readonly BlixisModule[]
+  }
+  return createBlixis({ modules, logger: noopLogger })
+    .hono.routes.filter((route) => route.method !== 'ALL')
     .map((route) => ({ method: route.method, path: route.path }))
 }
 const matches = (pattern: string, concrete: string) =>
@@ -57,16 +49,16 @@ describe('Postman collection', () => {
   const collection = read('blixis.postman_collection.json') as { item: Item[] }
   const inCollection = requests(collection.item)
 
-  it('only contains requests for routes the API registers', () => {
-    const routes = apiRoutes()
+  it('only contains requests for routes the API registers', async () => {
+    const routes = await apiRoutes()
     const unknown = inCollection.filter(
       (r) => !routes.some((route) => route.method === r.method && matches(route.path, r.path)),
     )
     expect(unknown).toEqual([])
   })
 
-  it('covers every API route (add new endpoints to the collection)', () => {
-    const missing = apiRoutes().filter(
+  it('covers every API route (add new endpoints to the collection)', async () => {
+    const missing = (await apiRoutes()).filter(
       (route) =>
         !inCollection.some((r) => r.method === route.method && matches(route.path, r.path)),
     )

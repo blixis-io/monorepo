@@ -1,10 +1,4 @@
 {
   "extends": "@blixis/tsconfig/node.json",
-  "references": [
-    { "path": "../../packages/kernel" },
-    { "path": "../../packages/database" },
-    { "path": "../../packages/events" },
-    { "path": "../../modules/users" },
-    { "path": "../../modules/auth" }
-  ]
+  "references": [{ "path": "../../packages/contracts" }, { "path": "../../packages/kernel" }]
 }

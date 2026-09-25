@@ -5,6 +5,12 @@
  *
  * @packageDocumentation
  */
+
+export {
+  type SpaceDetails,
+  TENANCY_SERVICE,
+  type TenancyService,
+} from './application/tenancy.service.ts'
 export {
   canonicalLocale,
   DEFAULT_ENVIRONMENT_KEY,
@@ -16,5 +22,5 @@ export {
   type Space,
   slugSchema,
 } from './domain/tenancy.ts'
-export { organizationCreated, spaceCreated, spaceUpdated } from './events.ts'
-export { spacesModule } from './module.ts'
+export { organizationCreated, spaceCreated, spaceDeleted, spaceUpdated } from './events.ts'
+export { type SpacesModuleOptions, spacesModule } from './module.ts'

@@ -36,12 +36,10 @@ export interface MembershipService {
     options?: { readonly transaction?: TransactionScope },
   ): Promise<Membership>
   /** @throws ValidationError, ConflictError */
-  addSpaceMember(input: {
-    userId: string
-    organizationId: string
-    spaceId: string
-    role: SpaceRole
-  }): Promise<Membership>
+  addSpaceMember(
+    input: { userId: string; organizationId: string; spaceId: string; role: SpaceRole },
+    options?: { readonly transaction?: TransactionScope },
+  ): Promise<Membership>
   /** Members at exactly this level (organization-level or space-level), oldest first. */
   listMembers(scope: MembershipScope): Promise<Membership[]>
   /** The user's membership at exactly this level, if any. */
@@ -54,6 +52,12 @@ export interface MembershipService {
   changeRole(membershipId: string, scope: MembershipScope, role: string): Promise<Membership>
   /** @throws NotFoundError, ConflictError (last owner) */
   remove(membershipId: string, scope: MembershipScope): Promise<void>
+  /** Removes every membership of a space (space deletion), in the caller's transaction. */
+  removeAllForSpace(
+    organizationId: string,
+    spaceId: string,
+    options: { readonly transaction: TransactionScope },
+  ): Promise<void>
 }
 
 /** Request-scoped {@link MembershipService}, provided by `usersModule()`. */
@@ -170,10 +174,11 @@ export function createMembershipService(deps: {
       return membership
     },
 
-    async addSpaceMember(input) {
+    async addSpaceMember(input, options = {}) {
       if (!(SPACE_ROLES as readonly string[]).includes(input.role))
         throw invalidRole(input.role, SPACE_ROLES)
-      const membership = await insert(db, {
+      const q = options.transaction === undefined ? db : fromTransactionScope(options.transaction)
+      const membership = await insert(q, {
         userId: input.userId,
         organizationId: input.organizationId,
         spaceId: input.spaceId,
@@ -255,6 +260,14 @@ export function createMembershipService(deps: {
         organizationId: removed.organizationId,
         spaceId: removed.spaceId,
       })
+    },
+
+    async removeAllForSpace(organizationId, spaceId, options) {
+      await fromTransactionScope(options.transaction)
+        .delete(memberships)
+        .where(
+          and(eq(memberships.organizationId, organizationId), eq(memberships.spaceId, spaceId)),
+        )
     },
   }
 }

@@ -40,3 +40,15 @@ export const spaceUpdated = defineEvent({
   schema: z.object({ spaceId: z.string(), organizationId: z.string() }),
   description: 'A space was renamed.',
 })
+
+/**
+ * A space was deleted, with its environments, locales, and space memberships. Transactional:
+ * every module storing space data subscribes and deletes its own rows (no cross-module FKs).
+ */
+export const spaceDeleted = defineEvent({
+  type: 'space.deleted',
+  version: 1,
+  delivery: 'transactional',
+  schema: z.object({ spaceId: z.string(), organizationId: z.string() }),
+  description: 'A space was deleted; modules must delete their data for it.',
+})

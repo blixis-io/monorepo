@@ -8,12 +8,9 @@
     "test": "vitest run --root ../.. tooling/postman"
   },
   "devDependencies": {
-    "@blixis/auth": "workspace:*",
-    "@blixis/database": "workspace:*",
-    "@blixis/events": "workspace:*",
+    "@blixis/contracts": "workspace:*",
     "@blixis/kernel": "workspace:*",
     "@blixis/tsconfig": "workspace:*",
-    "@blixis/users": "workspace:*",
     "@types/node": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
