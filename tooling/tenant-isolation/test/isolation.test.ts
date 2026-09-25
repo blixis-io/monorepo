@@ -1,6 +1,4 @@
-import path from 'node:path'
-import { pathToFileURL } from 'node:url'
-import type { Actor, BlixisModule } from '@blixis/contracts'
+import type { Actor } from '@blixis/contracts'
 import { QUEUE_SENDER } from '@blixis/events'
 import { serviceOverride } from '@blixis/kernel'
 import { PERMISSION_CATALOG, ROLE_SERVICE } from '@blixis/permissions'
@@ -22,14 +20,8 @@ import {
 import { MEMBERSHIP_SERVICE, USER_SERVICE } from '@blixis/users'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { apiModules } from './api.ts'
 import { ISOLATION_ALLOW_LIST, ISOLATION_ROUTES } from './routes.ts'
-
-/** The API Worker's real module list, so the suite covers exactly what the API serves. */
-async function apiModules(): Promise<readonly BlixisModule[]> {
-  const config = path.resolve(import.meta.dirname, '../../../apps/api/src/blixis.config.ts')
-  return ((await import(pathToFileURL(config).href)) as { modules: readonly BlixisModule[] })
-    .modules
-}
 
 describe.skipIf(!databaseTestsEnabled())(
   'cross-tenant isolation (every tenant-scoped route)',
