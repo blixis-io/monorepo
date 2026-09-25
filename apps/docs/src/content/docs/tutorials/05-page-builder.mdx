@@ -1,0 +1,182 @@
+---
+title: 5. Build a page with components
+description: Model a website page from reusable components — hero, section, cards — through the REST API, and render it in Astro.
+sidebar:
+  order: 5
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components'
+
+This tutorial builds the content model of a small website:
+- a `page` type whose body is a list of **components**;
+- a `hero`, a `section` that holds `card`s, and a call to action;
+- an Astro renderer for the result.
+
+You need a space and a user allowed to change content types (the `admin` or `owner` role). The examples use `curl` with an access token in `$TOKEN` and your space id in `$SPACE`. The Postman collection's *Content model* folder contains the same requests.
+
+```bash
+API=http://localhost:8787/api/v1   # or your staging URL
+```
+
+<Aside>
+Entries (creating the actual pages) arrive with the next roadmap plan. This tutorial builds the model and shows exactly what a page will look like.
+</Aside>
+
+<Steps>
+
+1. **Create the `card` component.** Components are content types with `kind: "component"`:
+
+   ```bash
+   curl -s -X POST "$API/spaces/$SPACE/content-types" -H "authorization: Bearer $TOKEN" \
+     -H 'content-type: application/json' -d '{
+       "kind": "component", "apiId": "card", "name": "Card",
+       "fields": [
+         { "apiId": "title", "name": "Title", "type": "text", "required": true },
+         { "apiId": "text", "name": "Text", "type": "longText", "settings": { "maxLength": 300 } },
+         { "apiId": "image", "name": "Image", "type": "asset", "settings": { "mimeTypes": ["image/*"] } },
+         { "apiId": "link", "name": "Link", "type": "link" }
+       ] }'
+   ```
+
+   Save the returned `id` as `CARD`.
+
+2. **Create the `section` component.** It has a title, rich text, and a `blocks` field holding cards:
+
+   ```bash
+   curl -s -X POST "$API/spaces/$SPACE/content-types" -H "authorization: Bearer $TOKEN" \
+     -H 'content-type: application/json' -d '{
+       "kind": "component", "apiId": "section", "name": "Section",
+       "groups": [ { "id": "style", "name": "Style" } ],
+       "fields": [
+         { "apiId": "title", "name": "Title", "type": "text" },
+         { "apiId": "text", "name": "Text", "type": "richText",
+           "settings": { "nodes": ["heading", "bulletList", "orderedList"], "headingLevels": [3, 4] } },
+         { "apiId": "cards", "name": "Cards", "type": "blocks",
+           "settings": { "componentIds": ["'"$CARD"'"], "max": 12 } },
+         { "apiId": "background", "name": "Background", "type": "select", "group": "style",
+           "settings": { "options": [ { "value": "light", "label": "Light" }, { "value": "dark", "label": "Dark" } ] } }
+       ] }'
+   ```
+
+   Save the `id` as `SECTION`.
+
+3. **Create the `hero` component** with a button that only appears when enabled (`showWhen`):
+
+   ```bash
+   curl -s -X POST "$API/spaces/$SPACE/content-types" -H "authorization: Bearer $TOKEN" \
+     -H 'content-type: application/json' -d '{
+       "kind": "component", "apiId": "hero", "name": "Hero",
+       "fields": [
+         { "apiId": "heading", "name": "Heading", "type": "text", "required": true },
+         { "apiId": "intro", "name": "Intro", "type": "longText" },
+         { "apiId": "hasButton", "name": "Show a button", "type": "boolean" },
+         { "apiId": "button", "name": "Button", "type": "link", "required": true,
+           "settings": { "text": "required" }, "showWhen": { "field": "hasButton", "equals": true } }
+       ] }'
+   ```
+
+   Save the `id` as `HERO`.
+
+4. **Create the `page` type.** Its `body` is a localized `blocks` field allowing the hero and sections, so every locale gets its own layout:
+
+   ```bash
+   curl -s -X POST "$API/spaces/$SPACE/content-types" -H "authorization: Bearer $TOKEN" \
+     -H 'content-type: application/json' -d '{
+       "apiId": "page", "name": "Page", "displayField": "title",
+       "groups": [ { "id": "seo", "name": "SEO" } ],
+       "fields": [
+         { "apiId": "title", "name": "Title", "type": "text", "required": true, "localized": true },
+         { "apiId": "slug", "name": "Slug", "type": "text", "required": true, "settings": { "format": "slug" } },
+         { "apiId": "body", "name": "Body", "type": "blocks", "localized": true,
+           "settings": { "componentIds": ["'"$HERO"'", "'"$SECTION"'"], "min": 1 } },
+         { "apiId": "metaDescription", "name": "Meta description", "type": "longText",
+           "localized": true, "group": "seo", "settings": { "maxLength": 160 } }
+       ] }'
+   ```
+
+5. **Look at the model.** Blixis filled in stable field ids and the default settings:
+
+   ```bash
+   curl -s "$API/spaces/$SPACE/content-types?kind=component" -H "authorization: Bearer $TOKEN"
+   ```
+
+6. **Change it safely.** Rename `intro` to `subtitle` by sending the full field list with the existing ids and the current `version`:
+
+   ```bash
+   curl -s -X PATCH "$API/spaces/$SPACE/content-types/$HERO" -H "authorization: Bearer $TOKEN" \
+     -H 'content-type: application/json' -d '{ "version": 1, "fields": [ … same fields, "apiId": "subtitle" … ] }'
+   ```
+
+   Stored content is keyed by the field `id`, so nothing needs migrating.
+
+</Steps>
+
+## What a page looks like
+
+An English page in this model has this shape, and it's what the entries API will accept and return:
+
+```json
+{
+  "title": { "en-US": "Courses" },
+  "slug": "courses",
+  "metaDescription": { "en-US": "All our courses for autumn 2026." },
+  "body": {
+    "en-US": [
+      { "_id": "hEro0001", "_type": "hero", "heading": "Learn something new",
+        "hasButton": true, "button": { "kind": "url", "url": "https://example.com/enrol", "text": "Enrol now" } },
+      { "_id": "sEct0001", "_type": "section", "title": "Popular courses", "background": "light",
+        "cards": [
+          { "_id": "cArd0001", "_type": "card", "title": "Yoga", "text": "Mondays at 10:00" },
+          { "_id": "cArd0002", "_type": "card", "title": "Bridge for beginners" }
+        ] }
+    ]
+  }
+}
+```
+
+If the hero's button is enabled but empty, publishing fails with a precise error:
+
+```json
+{ "path": ["fields", "body", "en-US", 0, "button"], "message": "Required" }
+```
+
+## Render it in Astro
+
+One renderer per component, plus a dispatcher that calls itself for nested blocks:
+
+```astro
+---
+// src/components/Blocks.astro
+import Hero from './blocks/Hero.astro'
+import Section from './blocks/Section.astro'
+import Card from './blocks/Card.astro'
+
+const renderers = { hero: Hero, section: Section, card: Card } as const
+const { blocks = [] } = Astro.props
+---
+{blocks.map((block) => {
+  const Component = renderers[block._type as keyof typeof renderers]
+  return Component ? <Component {...block} /> : null
+})}
+```
+
+```astro
+---
+// src/components/blocks/Section.astro
+import Blocks from '../Blocks.astro'
+import RichText from '../RichText.astro'
+const { title, text, cards, background = 'light' } = Astro.props
+---
+<section class={`section section--${background}`}>
+  {title && <h2>{title}</h2>}
+  {text && <RichText doc={text} />}
+  <div class="grid"><Blocks blocks={cards} /></div>
+</section>
+```
+
+`RichText` walks the [rich text document](/content/rich-text/#rendering).
+
+## Next
+
+- [Designing components](/extending/components/): patterns for a complete component library.
+- [Field types](/content/field-types/): every setting of every type.

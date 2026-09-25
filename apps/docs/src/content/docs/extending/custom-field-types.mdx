@@ -1,0 +1,153 @@
+---
+title: Custom field types
+description: Add your own field types — settings, value validation, emptiness, GraphQL hints, registration, and tests.
+sidebar:
+  order: 2
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+The built-in field types cover most content. When you need a value with its own rules, add a **custom field type**, such as a color, a geographic location, a price with currency, or an opening-hours table. Custom types behave exactly like built-ins:
+- they're validated in drafts and on publish;
+- they appear in `GET /api/v1/field-types` with a settings schema;
+- they can be localized.
+
+## Define a type
+
+```ts title="src/color-field.ts"
+import { defineFieldType } from '@blixis/content'
+import { z } from 'zod'
+
+export const colorField = defineFieldType({
+  // Custom ids are namespaced: <vendor>.<name>. They can never clash with built-ins.
+  id: 'acme.color',
+  name: 'Color',
+  description: 'A hex color such as #ff6600, optionally with alpha (#ff6600cc).',
+
+  // Settings: a strict Zod object. Defaults are stored with the field.
+  settings: z
+    .object({
+      allowAlpha: z.boolean().default(false),
+      /** Restrict to a palette; empty allows any color. */
+      palette: z.array(z.string().regex(/^#[0-9a-f]{6}$/i)).max(50).default([]),
+    })
+    .strict(),
+
+  // The validator for ONE value (one locale of a localized field).
+  value: (settings) => {
+    const hex = settings.allowAlpha ? /^#[0-9a-f]{6}([0-9a-f]{2})?$/i : /^#[0-9a-f]{6}$/i
+    return z
+      .string()
+      .regex(hex, 'Use a hex color such as #ff6600')
+      .refine((v) => settings.palette.length === 0 || settings.palette.includes(v.slice(0, 7).toLowerCase()), {
+        message: 'Pick a color from the palette',
+      })
+  },
+
+  // Optional: what counts as empty for `required` (default: null, undefined, '', []).
+  isEmpty: (value) => value === undefined || value === null || value === '',
+
+  // Optional: how GraphQL delivery exposes it (plan 012). Default: the JSON scalar.
+  graphql: () => ({ type: 'String', list: false }),
+})
+```
+
+### The definition
+
+| Property | Required | Purpose |
+|---|---|---|
+| `id` | yes | `vendor.name`: lowercase vendor, then a name (`acme.color`, `shop.price`) |
+| `name`, `description` | yes | shown to people who build content models |
+| `settings` | yes | a Zod schema for the field's settings. Make it `.strict()` and give every option a default |
+| `value(settings, context)` | yes | returns a Zod schema that validates one value |
+| `isEmpty(value, settings)` | no | decides whether a `required` field is filled |
+| `localizable` | no | `false` forbids `localized: true` for fields of this type |
+| `graphql(settings)` | no | GraphQL output hint `{ type, list }`, e.g. `String`, `Int`, `Float`, `Boolean`, `JSON` |
+
+### The value context
+
+`value()` receives a context:
+
+| Property | Meaning |
+|---|---|
+| `mode` | `'draft'` or `'publish'`. Enforce "completeness" rules, such as a minimum item count, only when publishing |
+| `depth` | the nesting depth of the value (0 on the entry, +1 per `blocks` level) |
+| `component(apiId)` | resolves a component; used by `blocks`. Most types ignore it |
+
+```ts
+value: (settings, { mode }) => {
+  let list = z.array(slotSchema).max(settings.maxSlots)
+  if (mode === 'publish') list = list.min(1)
+  return list
+}
+```
+
+Zod issue paths become part of the error path, so a nested error inside your value is reported as `fields.hours.en-US.2.closes`.
+
+## Register it
+
+Pass your types to the content module in the app's module list:
+
+```ts title="apps/api/src/blixis.config.ts"
+import { contentModule } from '@blixis/content'
+import { colorField } from '@acme/blixis-fields'
+
+export const modules = [
+  // …
+  contentModule({ fieldTypes: [colorField] }),
+]
+```
+
+Content types can then use `"type": "acme.color"`. Registration fails at startup if an id is not namespaced, or if two types share an id.
+
+<Aside type="tip">
+Ship reusable field types as a package, e.g. `@acme/blixis-fields`, exporting the definitions. Keep `@blixis/content` and `zod` as peer dependencies, so the app decides the versions.
+</Aside>
+
+## Test it
+
+Field types are plain objects, so test them without a database:
+
+```ts
+import { colorField } from '../src/color-field.ts'
+
+const check = (settings: unknown, value: unknown) =>
+  colorField
+    .value(colorField.settings.parse(settings), { mode: 'publish', depth: 0, component: () => undefined })
+    .safeParse(value).success
+
+it('validates hex colors and palettes', () => {
+  expect(check({}, '#ff6600')).toBe(true)
+  expect(check({}, 'orange')).toBe(false)
+  expect(check({ allowAlpha: true }, '#ff6600cc')).toBe(true)
+  expect(check({ palette: ['#000000'] }, '#ff6600')).toBe(false)
+  expect(colorField.settings.safeParse({ unknown: 1 }).success).toBe(false)
+})
+```
+
+To test a whole entry, compile a schema like the API does:
+
+```ts
+import { BUILT_IN_FIELD_TYPES, compileEntrySchema, createFieldTypeRegistry } from '@blixis/content'
+
+const registry = createFieldTypeRegistry(BUILT_IN_FIELD_TYPES, [colorField])
+const schema = compileEntrySchema({ contentType, types: [contentType], locales: ['en-US'],
+  defaultLocale: 'en-US', mode: 'publish', registry })
+expect(schema.validate({ brandColor: '#ff6600' })).toEqual({ ok: true, fields: { brandColor: '#ff6600' } })
+```
+
+## Rules of thumb
+
+- **Validate structure, not the outside world.** `value()` runs synchronously on every save. Checks that need the database or network, such as "does this product exist in the shop?", belong in a service that listens to entry events.
+- **Keep values small and JSON.** Values are stored in the entry's JSON document, which is limited to 1 MiB per version.
+- **Be careful with regular expressions from settings.** Never compile patterns that editors provide without the same safeguards as the built-in `text` type.
+- **Never change a type's value format incompatibly.** Stored entries keep old values. Add a setting, or ship a new type id (`acme.color2`).
+- **Choose settings defaults** so that existing fields keep their meaning when you add a new setting.
+
+## Other extension points
+
+| You want to… | Use |
+|---|---|
+| reusable building blocks for pages | [components](/extending/components/): no code, created through the API |
+| validation across entries, side effects | a module that subscribes to content events ([Events](/concepts/events/)) |
+| new permissions or REST routes | a [module](/concepts/modules/) |

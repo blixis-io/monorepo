@@ -1,0 +1,123 @@
+---
+title: Designing components
+description: Build a component library for page building — patterns for heroes, sections, grids, conditional fields, nesting, and rendering.
+sidebar:
+  order: 1
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+Components are content types with `kind: "component"`. Editors combine them in `blocks` fields to build pages, much like a page builder. Each component maps to one component in your frontend (Astro, React, Vue, …).
+
+You create components through the [Content types API](/content/content-types-api/), no code needed. Frontend developers then write one renderer per component.
+
+## A starter library
+
+The library below covers most marketing and information sites. The ids in `componentIds` are the component ids returned when you create them.
+
+| Component | Fields | Notes |
+|---|---|---|
+| `hero` | `heading` (text, required), `intro` (longText), `image` (asset `image/*`), `hasButton` (boolean), `button` (link, `showWhen` hasButton) | top of a page |
+| `section` | `title` (text), `text` (richText), `children` (blocks: card, image, faqList) | generic content section |
+| `card` | `title` (text, required), `text` (longText), `image` (asset), `link` (link) | used inside sections and grids |
+| `grid` | `columns` (select 2/3/4), `items` (blocks: card, max 12) | card grids |
+| `faqList` | `items` (blocks: faqItem) | FAQ block |
+| `faqItem` | `question` (text, required), `answer` (richText, `nodes: []`, `marks: ["bold","italic","link"]`) | only inside faqList |
+| `callToAction` | `text` (text), `link` (link, `text: "required"`) | banner with button |
+
+The page type then allows the top-level blocks:
+
+```json
+{ "apiId": "body", "name": "Body", "type": "blocks", "localized": true,
+  "settings": { "componentIds": ["<hero>", "<section>", "<grid>", "<faqList>", "<callToAction>"] } }
+```
+
+## Patterns
+
+### Conditional fields with `showWhen`
+
+Keep editors focused: show a field only when it matters. A hidden field is **not required**, even when marked `required`.
+
+```json
+[
+  { "apiId": "hasButton", "name": "Show a button", "type": "boolean" },
+  { "apiId": "button", "name": "Button", "type": "link", "required": true,
+    "settings": { "text": "required" }, "showWhen": { "field": "hasButton", "equals": true } }
+]
+```
+
+The condition field must be a non-localized sibling in the same component. `select` fields work well as conditions too, e.g. `"showWhen": { "field": "mode", "equals": "manual" }`.
+
+### Tabs with `groups`
+
+Group secondary settings, such as styling or SEO, into tabs:
+
+```json
+{ "groups": [ { "id": "style", "name": "Style" } ],
+  "fields": [ { "apiId": "background", "name": "Background", "type": "select", "group": "style",
+                "settings": { "options": [ { "value": "light", "label": "Light" }, { "value": "dark", "label": "Dark" } ] } } ] }
+```
+
+### Nesting
+
+A component's own `blocks` field can allow other components, including itself (a `section` inside a `section`). Nesting stops at 5 levels.
+
+<Aside type="caution">
+Keep nesting shallow. Two or three levels (page → section → card) is easy to edit. Deep trees are hard for editors and slow to render.
+</Aside>
+
+### Components or references?
+
+| Use a component when… | Use a `reference` when… |
+|---|---|
+| the block belongs to one page | the content is shared (author, product, testimonial) |
+| it should be published together with the page | it has its own publishing lifecycle |
+| each locale may have different blocks | the same item appears in many places |
+
+You can combine both: a `testimonials` component whose `items` field is a `reference` to `testimonial` entries.
+
+### Dynamic blocks
+
+Some blocks show data instead of content, like "latest 3 blog posts" or "upcoming courses". Model them as a component with settings only, and let the frontend fetch the data:
+
+```json
+{ "kind": "component", "apiId": "latestPosts", "name": "Latest posts",
+  "fields": [ { "apiId": "count", "name": "Number of posts", "type": "number",
+                "settings": { "integer": true, "min": 1, "max": 12 } } ] }
+```
+
+## Localization
+
+Component fields are never localized on their own. Instead, localize the **`blocks` field** that holds them. Each locale then gets its own list of blocks, so a translated page can differ in structure as well as text. Missing locales fall back along the space's fallback chain.
+
+## Rendering
+
+Every block arrives as `{ _id, _type, …fields }`, where `_type` is the component's `apiId`. Map types to components, and use `_id` as a stable key:
+
+```astro
+---
+// src/components/Blocks.astro
+import Hero from './blocks/Hero.astro'
+import Section from './blocks/Section.astro'
+import Grid from './blocks/Grid.astro'
+import FaqList from './blocks/FaqList.astro'
+
+const renderers = { hero: Hero, section: Section, grid: Grid, faqList: FaqList } as const
+const { blocks = [] } = Astro.props
+---
+{blocks.map((block) => {
+  const Component = renderers[block._type as keyof typeof renderers]
+  return Component ? <Component {...block} /> : null
+})}
+```
+
+A section renders its own children with the same `Blocks` component, which gives you recursion for free. Unknown types render nothing, so adding a component in the CMS never breaks an older frontend.
+
+## Changing components later
+
+The usual [safe-change rules](/concepts/content-modeling/#changing-a-model-safely) apply:
+- adding fields and renaming `apiId`s is always safe;
+- changing a field's type is blocked while entries use the component;
+- a component can't be deleted while a `blocks` field allows it.
+
+Remove it from `componentIds` first, then delete it.
