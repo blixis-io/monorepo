@@ -1,3 +1,4 @@
+import { tenantColumns } from '@blixis/database'
 import { pgSchema, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 export const authSchema = pgSchema('auth')
@@ -34,5 +35,19 @@ export const apiTokens = authSchema.table('api_tokens', {
   expiresAt: timestamp('expires_at', { withTimezone: true }),
   lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  revokedAt: timestamp('revoked_at', { withTimezone: true }),
+})
+
+export const deliveryKeys = authSchema.table('delivery_keys', {
+  id: uuid('id').primaryKey(),
+  ...tenantColumns(),
+  kind: text('kind').$type<'delivery' | 'preview'>().notNull(),
+  name: text('name').notNull(),
+  prefix: text('prefix').notNull(),
+  keyHash: text('key_hash').notNull(),
+  environmentIds: uuid('environment_ids').array(),
+  createdBy: text('created_by').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
   revokedAt: timestamp('revoked_at', { withTimezone: true }),
 })

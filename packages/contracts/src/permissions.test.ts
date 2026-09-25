@@ -17,7 +17,17 @@ describe('actors', () => {
   const actors: [Actor, string][] = [
     [{ type: 'user', userId: 'u1' }, 'user:u1'],
     [{ type: 'apiToken', tokenId: 't1', ownerId: 'u1', scopes: ['content.read'] }, 'apiToken:t1'],
-    [{ type: 'deliveryKey', keyId: 'k1', spaceId: 's1', kind: 'preview' }, 'deliveryKey:k1'],
+    [
+      {
+        type: 'deliveryKey',
+        keyId: 'k1',
+        organizationId: 'o1',
+        spaceId: 's1',
+        kind: 'preview',
+        environmentIds: null,
+      },
+      'deliveryKey:k1',
+    ],
     [{ type: 'system', component: '@blixis/events.outbox' }, 'system:@blixis/events.outbox'],
     [ANONYMOUS_ACTOR, 'anonymous'],
   ]

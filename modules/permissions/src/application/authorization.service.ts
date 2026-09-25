@@ -124,8 +124,14 @@ export function createAuthorizer(deps: {
         return check.allowSystem === true
           ? { allowed: true }
           : { allowed: false, denial: 'forbidden' }
-      case 'deliveryKey':
-        return { allowed: false, denial: 'forbidden' }
+      case 'deliveryKey': {
+        // A key reads its own space only, and only what permissions grant its kind.
+        if (resource.spaceId !== actor.spaceId || resource.organizationId !== actor.organizationId)
+          return { allowed: false, denial: 'no-access' }
+        return permission.deliveryKeys.includes(actor.kind)
+          ? { allowed: true }
+          : { allowed: false, denial: 'forbidden' }
+      }
       case 'user':
       case 'apiToken':
         break

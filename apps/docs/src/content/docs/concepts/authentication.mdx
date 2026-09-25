@@ -82,3 +82,23 @@ Profiles live in `@blixis/users`: `c.var.services.get(USER_SERVICE).getById(acto
 
 - **Signing keys:** the `AUTH_SIGNING_KEYS` Worker secret holds a JSON array of Ed25519 private JWKs. `pnpm auth:generate-key` creates one. To rotate, put a new key first and remove the old one after 15 minutes.
 - **Cleanup:** expired refresh tokens are deleted by the minute cron.
+
+## Delivery and preview keys
+
+Websites and apps read content with **space keys** instead of a user's credentials:
+
+| Key | Prefix | Can read |
+|---|---|---|
+| delivery key | `blx_dk_` | published content of its space |
+| preview key | `blx_pk_` | published **and draft** content of its space |
+
+- **Managing keys:** space admins manage them at `GET/POST /api/v1/spaces/:spaceId/delivery-keys` and `DELETE …/delivery-keys/:keyId`, which needs `auth.deliveryKeys.manage`.
+- **The key is shown once** when it's created; Blixis stores only its hash.
+- **Environments:** a key can be limited to certain environments (`environmentIds`).
+- **Using a key:** send it as `Authorization: Bearer blx_dk_…`. Requests then act as `{ type: 'deliveryKey', keyId, organizationId, spaceId, kind, environmentIds }`.
+- **Permissions:** a key holds only the permissions granted to its kind, in its own space. Modules grant them declaratively with `deliveryKeys` on the permission definition (`content.delivery.read` for both kinds, `content.preview.read` for preview keys). Every Management API route answers `403` or `404` to a key.
+- **Revoking** takes effect immediately, and deleting a space deletes its keys.
+
+<Aside type="caution">
+Delivery keys are meant for public frontends, but preview keys expose drafts: keep them on the server, for example in your site's preview mode. Never put them in browser code.
+</Aside>
