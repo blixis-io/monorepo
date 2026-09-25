@@ -73,3 +73,19 @@ export interface CancellationSignal {
 export const REQUEST_CONTEXT: ServiceToken<RequestContext> = createServiceToken<RequestContext>(
   '@blixis/contracts.request-context',
 )
+
+/**
+ * Binds a **verified** tenant to the current request scope (plan 008): updates `REQUEST_CONTEXT`
+ * (and its logger's fields) and returns the new context. Used by tenant resolution such as
+ * `@blixis/spaces`' `spaceScoped()`; never call it with unverified ids. Services that need the
+ * tenant must read `REQUEST_CONTEXT` when they use it, not when they are created: services are
+ * often created earlier in the request (e.g. while resolving the tenant itself).
+ */
+export interface TenantBinder {
+  bind(tenant: TenantContext): RequestContext
+}
+
+/** Request-scoped {@link TenantBinder}, provided by the kernel for every request scope. */
+export const TENANT_BINDER: ServiceToken<TenantBinder> = createServiceToken<TenantBinder>(
+  '@blixis/contracts.tenant-binder',
+)

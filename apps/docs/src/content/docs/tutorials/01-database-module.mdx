@@ -122,7 +122,7 @@ The complete module is compiled and tested with every Blixis build: [`packages/t
    ```
 
    <Aside type="note">
-   Until spaces and memberships exist (roadmap plan 008), the space comes from the URL. After that it comes from the request's tenant context, `requireTenant(ctx, 'spaceId')`, which the kernel fills in only after checking access.
+   To keep this tutorial self-contained, the space comes from the URL without an access check. In a real module, put [`spaceScoped()`](/concepts/tenancy/) on these routes: it verifies that the caller may access the space and gives you `requireTenant(c.var.requestContext, 'spaceId')`.
    </Aside>
 
 4. **Define the module.**

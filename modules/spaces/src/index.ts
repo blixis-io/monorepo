@@ -19,6 +19,12 @@ export {
   type TenancyService,
 } from './application/tenancy.service.ts'
 export {
+  type ResolvedTenant,
+  spaceScoped,
+  TENANT_RESOLVER,
+  type TenantResolver,
+} from './application/tenant-resolver.ts'
+export {
   canonicalLocale,
   DEFAULT_ENVIRONMENT_KEY,
   type Environment,

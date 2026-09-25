@@ -71,7 +71,12 @@ export const eventsModule = defineModule((options: EventsModuleOptions) => ({
     ctx.services.provideFactory(
       EVENT_BUS,
       ({ services }) =>
-        createEventBus({ registry, transport, context: services.get(REQUEST_CONTEXT), services }),
+        createEventBus({
+          registry,
+          transport,
+          context: () => services.get(REQUEST_CONTEXT),
+          services,
+        }),
       { scope: 'request' },
     )
   },

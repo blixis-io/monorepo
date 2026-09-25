@@ -1,4 +1,4 @@
-import { ForbiddenError, type TenantContext } from '@blixis/contracts'
+import { ForbiddenError, NotFoundError, type TenantContext } from '@blixis/contracts'
 import { and, eq, type SQL } from 'drizzle-orm'
 import { type PgColumn, uuid } from 'drizzle-orm/pg-core'
 
@@ -78,4 +78,26 @@ export function tenantScope(table: TenantTable, tenant: TenantContext): SQL {
     throw new TypeError('tenantScope: the table has no tenant columns')
   }
   return and(...conditions) as SQL
+}
+
+/**
+ * Double-checks that a loaded resource belongs to the request's tenant (§31) — for resources
+ * loaded by id through another path (e.g. another module's service). Throws `NotFoundError` (never
+ * reveal that it exists elsewhere) when any tenant id the resource carries differs, or when the
+ * tenant lacks one the resource has.
+ */
+export function assertSameTenant(
+  resource: {
+    readonly organizationId?: string | null
+    readonly spaceId?: string | null
+    readonly environmentId?: string | null
+  },
+  tenant: TenantContext,
+  what = 'Resource',
+): void {
+  for (const key of ['organizationId', 'spaceId', 'environmentId'] as const) {
+    const own = resource[key]
+    if (own === undefined || own === null) continue
+    if (tenant[key] !== own) throw new NotFoundError(`${what} not found`)
+  }
 }
