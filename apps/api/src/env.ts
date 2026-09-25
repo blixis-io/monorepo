@@ -7,6 +7,10 @@ export interface ApiEnv extends CloudflareEnvBase {
   readonly SENTRY_DSN?: string
   /** Hyperdrive binding to Neon (local: Docker Postgres). Read by `databaseModule()`. */
   readonly HYPERDRIVE: { readonly connectionString: string }
+  /** Ed25519 private JWKs (JSON array) signing access tokens — secret (ADR 0009). */
+  readonly AUTH_SIGNING_KEYS?: string
+  /** Comma-separated origins allowed for cookie-based refresh/sign-out. */
+  readonly AUTH_ALLOWED_ORIGINS?: string
   /** Events queue producer, used only through `@blixis/events` (§15). */
   readonly EVENTS: { sendBatch(messages: Iterable<unknown>): Promise<unknown> }
 }
@@ -17,6 +21,9 @@ export const apiEnvSchema = defineEnvSchema(
     BLIXIS_ENV: z.enum(['local', 'preview', 'staging', 'production']),
     LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).optional(),
     SENTRY_DSN: z.url().optional(),
+    // Optional so a missing key only breaks auth routes, not the whole API; checked when used.
+    AUTH_SIGNING_KEYS: z.string().min(1).optional(),
+    AUTH_ALLOWED_ORIGINS: z.string().optional(),
     // Shape check only; the connection string is never logged.
     HYPERDRIVE: z.looseObject({ connectionString: z.string().min(1) }),
     EVENTS: z.custom<unknown>(

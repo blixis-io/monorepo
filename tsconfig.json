@@ -59,6 +59,12 @@
       "path": "modules/users/tsconfig.test.json"
     },
     {
+      "path": "modules/auth"
+    },
+    {
+      "path": "modules/auth/tsconfig.test.json"
+    },
+    {
       "path": "apps/api"
     }
   ]

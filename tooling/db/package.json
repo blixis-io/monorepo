@@ -2,7 +2,7 @@
   "name": "@blixis/db-tooling",
   "version": "0.0.0",
   "private": true,
-  "description": "Database CLI for Blixis: apply and inspect module migrations, scaffold new ones (Node, CI)",
+  "description": "Database and auth CLI for Blixis: migrations, scaffolding, first-user bootstrap, signing keys (Node, CI)",
   "type": "module",
   "bin": {
     "blixis-db": "./src/cli.ts"
@@ -11,8 +11,10 @@
     "test": "vitest run --root ../.. tooling/db"
   },
   "dependencies": {
+    "@blixis/auth": "workspace:*",
     "@blixis/contracts": "workspace:*",
     "@blixis/database": "workspace:*",
+    "@blixis/events": "workspace:*",
     "@blixis/kernel": "workspace:*"
   },
   "devDependencies": {

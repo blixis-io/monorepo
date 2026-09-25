@@ -19,6 +19,8 @@
     "db:migrate": "node tooling/db/src/cli.ts migrate",
     "db:status": "node tooling/db/src/cli.ts status",
     "db:new": "node tooling/db/src/cli.ts new",
+    "auth:create-user": "node tooling/db/src/cli.ts create-user",
+    "auth:generate-key": "node tooling/db/src/cli.ts generate-signing-key",
     "format": "biome format --write .",
     "format:check": "biome format .",
     "check": "biome check --write .",

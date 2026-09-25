@@ -182,6 +182,9 @@ catalogs:
     '@commitlint/config-conventional':
       specifier: 21.2.3
       version: 21.2.3
+    '@noble/hashes':
+      specifier: 2.4.0
+      version: 2.4.0
     '@sentry/cloudflare':
       specifier: 11.0.0
       version: 11.0.0
@@ -253,6 +256,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@blixis/auth':
+        specifier: workspace:*
+        version: link:../../modules/auth
       '@blixis/cloudflare':
         specifier: workspace:*
         version: link:../../packages/cloudflare
@@ -324,6 +330,52 @@ importers:
       wrangler:
         specifier: 'catalog:'
         version: 4.137.0(@cloudflare/workers-types@5.20260924.1)(@types/node@24.13.6)
+
+  modules/auth:
+    dependencies:
+      '@noble/hashes':
+        specifier: 'catalog:'
+        version: 2.4.0
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.5
+    devDependencies:
+      '@blixis/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@blixis/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@blixis/events':
+        specifier: workspace:*
+        version: link:../../packages/events
+      '@blixis/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@blixis/testing':
+        specifier: workspace:*
+        version: link:../../packages/testing
+      '@blixis/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/tsconfig
+      '@blixis/users':
+        specifier: workspace:*
+        version: link:../users
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.13.6
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.3(@cloudflare/workers-types@5.20260924.1)(@opentelemetry/api@1.9.1)(@types/pg@8.23.0)(pg@8.23.0)
+      hono:
+        specifier: 'catalog:'
+        version: 4.13.9
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.6)(@vitest/coverage-v8@4.1.11)(esbuild@0.28.2)(jiti@2.6.1)(yaml@2.9.1)
 
   modules/users:
     dependencies:
@@ -588,12 +640,18 @@ importers:
 
   tooling/db:
     dependencies:
+      '@blixis/auth':
+        specifier: workspace:*
+        version: link:../../modules/auth
       '@blixis/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
       '@blixis/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@blixis/events':
+        specifier: workspace:*
+        version: link:../../packages/events
       '@blixis/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
@@ -1738,6 +1796,10 @@ packages:
     peerDependencies:
       '@emnapi/core': ^1.7.1 || ^2.0.0-alpha.4
       '@emnapi/runtime': ^1.7.1 || ^2.0.0-alpha.4
+
+  '@noble/hashes@2.4.0':
+    resolution: {integrity: sha512-X5XaVWZIBCT7HHZGm5I7ZQXDwLG+bGXuSrMQAW+7Zvl87h1kmc1ZB1VSRJcpUfoUrGQp4Fkoxm5kZ+Ms+aW+eA==}
+    engines: {node: '>= 20.19.0'}
 
   '@opentelemetry/api@1.9.1':
     resolution: {integrity: sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q==}
@@ -4660,6 +4722,8 @@ snapshots:
       '@emnapi/runtime': 1.11.3
       '@tybys/wasm-util': 0.10.4
     optional: true
+
+  '@noble/hashes@2.4.0': {}
 
   '@opentelemetry/api@1.9.1': {}
 

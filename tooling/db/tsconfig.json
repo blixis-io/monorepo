@@ -3,6 +3,8 @@
   "references": [
     { "path": "../../packages/contracts" },
     { "path": "../../packages/kernel" },
-    { "path": "../../packages/database" }
+    { "path": "../../packages/database" },
+    { "path": "../../packages/events" },
+    { "path": "../../modules/auth" }
   ]
 }

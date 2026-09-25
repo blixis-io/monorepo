@@ -150,6 +150,12 @@ pnpm --filter @blixis/api exec wrangler secret put WEBHOOK_SECRET_KEY --env stag
 pnpm --filter @blixis/api exec wrangler secret list --env production
 ```
 
+- **`AUTH_SIGNING_KEYS`** (ADR 0009), per environment, without passing through shell history:
+  ```bash
+  cd apps/api
+  pnpm -s auth:generate-key staging-2026-09 | npx wrangler secret put AUTH_SIGNING_KEYS --env staging
+  ```
+  Rotation: prepend a new key to the JSON array (it signs from then on) and keep the old one for at least 15 minutes, until old access tokens have expired; then remove it.
 - Local secrets in `apps/api/.dev.vars` (git-ignored); keep `.dev.vars.example` updated.
 - Never put secrets in `wrangler.jsonc` `vars`.
 - Hyperdrive stores the database credentials inside its configuration; the Worker never receives the Neon password directly. Create Hyperdrive configs from the Neon **direct** host (no `-pooler`), region `eu-central-1`, using the application role — never the owner role.
