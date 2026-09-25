@@ -20,6 +20,7 @@ import {
 import { userSignedIn, userSignedOut } from '../events.ts'
 import { credentialRepository, refreshTokenRepository } from '../infrastructure/repositories.ts'
 import { type AuthConfig, signingKeysFor } from './config.ts'
+import { createSignInThrottle, DEFAULT_THROTTLE_POLICY, type ThrottlePolicy } from './throttle.ts'
 
 /** Lifetimes and rules (ADR 0009). */
 export interface AuthPolicy {
@@ -29,6 +30,7 @@ export interface AuthPolicy {
   /** Window in which an already-rotated refresh token is still accepted (concurrent tabs). */
   readonly rotationGraceSeconds: number
   readonly blockedPasswords?: ReadonlySet<string>
+  readonly throttle?: ThrottlePolicy
 }
 
 export const DEFAULT_AUTH_POLICY: AuthPolicy = Object.freeze({
@@ -57,6 +59,8 @@ export interface Authentication {
 /** Client metadata stored with refresh tokens (no IPs). */
 export interface ClientInfo {
   readonly userAgent?: string
+  /** Client IP (`CF-Connecting-IP`), used only for throttling and only as a hash. */
+  readonly ip?: string
 }
 
 /** Authentication flows (ADR 0009). Request-scoped: `services.get(AUTH_SERVICE)`. */
@@ -89,6 +93,8 @@ export interface AuthService {
   assertActiveSession(accessToken: string): Promise<string>
   /** Revokes all refresh-token families of a user (sign out everywhere). */
   revokeAllSessions(userId: string): Promise<void>
+  /** Deletes stale throttle counters (cron). */
+  cleanupThrottle(): Promise<void>
 }
 
 /** Request-scoped {@link AuthService}, provided by `authModule()`. */
@@ -124,6 +130,7 @@ export function createAuthService(deps: {
 }): AuthService {
   const { db, users, events, config, policy, logger, now } = deps
   const issuer = () => config().issuer ?? 'blixis'
+  const throttle = createSignInThrottle(db, policy.throttle ?? DEFAULT_THROTTLE_POLICY)
 
   async function issue(
     user: User,
@@ -203,15 +210,22 @@ export function createAuthService(deps: {
 
     async signIn(input, client = {}) {
       const values = await validate(signInSchema, input, { message: 'Invalid sign-in' })
+      // Checked before any password work, so a locked-out attacker costs no scrypt time.
+      await throttle.assertAllowed(values.email, client.ip)
       const user = await users.findByEmail(values.email)
       const stored =
         user === undefined ? undefined : await credentialRepository.passwordHash(db, user.id)
       if (user === undefined || stored === undefined) {
         await burnPasswordCheck(values.password)
+        await throttle.recordFailure(values.email, client.ip)
         throw invalidCredentials()
       }
       const { valid, needsRehash } = await verifyPassword(values.password, stored)
-      if (!valid || user.status !== 'active') throw invalidCredentials()
+      if (!valid || user.status !== 'active') {
+        await throttle.recordFailure(values.email, client.ip)
+        throw invalidCredentials()
+      }
+      await throttle.recordSuccess(values.email)
       if (needsRehash)
         await credentialRepository.upsert(db, user.id, await hashPassword(values.password))
       return { user, tokens: await startFamily(user, client) }
@@ -274,6 +288,7 @@ export function createAuthService(deps: {
     },
 
     revokeAllSessions: (userId) => refreshTokenRepository.revokeAllForUser(db, userId),
+    cleanupThrottle: () => throttle.cleanup(),
   }
   return service
 }

@@ -54,6 +54,16 @@ Use a token as `Authorization: Bearer blx_pat_…`. Your routes then see `{ type
 
 Passwords must be 12 to 256 characters and not on a list of common passwords. There are no composition rules; this follows NIST SP 800-63B. They are hashed with **scrypt** (32 MiB, about 90 ms). Error messages never reveal whether an email exists, and an unknown email takes as long to reject as a wrong password.
 
+## Brute-force protection
+
+Failed sign-ins are counted per email and per client IP (`CF-Connecting-IP`) over 15 minutes:
+- **Limits:** after 5 failures for an email, or 30 for an IP, sign-in answers `429 Too Many Requests` with `Retry-After`, even for the correct password.
+- **Backoff:** the lock starts at 1 minute and doubles with every further failure, up to 1 hour.
+- **Reset:** a successful sign-in resets the email's counter.
+- **No enumeration:** unknown emails are counted the same way, so a lock never reveals whether an account exists.
+
+Counters live in Postgres as hashes (`auth.sign_in_throttle`). Tune them with `authModule({ throttle: { … } })`.
+
 ## In your module
 
 Read the caller from the request context. Never read tokens or cookies yourself:
