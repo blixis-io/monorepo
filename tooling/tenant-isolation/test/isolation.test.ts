@@ -122,8 +122,20 @@ describe.skipIf(!databaseTestsEnabled())(
           },
           { contentType: 'page', fields: { title: 'Victim page' } },
         )
+        const [firstVersion] = (
+          await services.get(CONTENT_SERVICE).listVersions(
+            asUser(owner.id),
+            {
+              organizationId: orgB.id,
+              spaceId: spaceB1.id,
+              environmentId: spaceB1.environments[0]?.id ?? '',
+            },
+            entry.sys.id,
+          )
+        ).versions
         return {
           entry,
+          entryVersionId: firstVersion?.sys.id ?? '',
           contentType,
           owner,
           attacker,
@@ -147,6 +159,7 @@ describe.skipIf(!databaseTestsEnabled())(
         roleId: seeded.role.id,
         contentTypeId: seeded.contentType.id,
         entryId: seeded.entry.sys.id,
+        versionId: seeded.entryVersionId,
       }
       intruders = [
         { name: 'owner of another organization', actor: asUser(seeded.attacker.id) },

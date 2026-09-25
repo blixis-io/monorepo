@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -36,7 +36,7 @@ Allow listing an entry's versions, reading a specific version, and restoring an 
 ### Create
 
 ```text
-modules/content/test/versions.test.ts
+modules/content/test/versions.api.test.ts
 ```
 
 ### Modify
@@ -44,7 +44,14 @@ modules/content/test/versions.test.ts
 ```text
 modules/content/src/application/content.service.ts
 modules/content/src/rest/entry.routes.ts
-apps/api/test/tenant-routes.allowlist.ts
+modules/content/src/index.ts
+tooling/tenant-isolation/test/routes.ts
+tooling/tenant-isolation/test/isolation.test.ts
+tooling/tenant-isolation/test/authz-routes.ts
+tooling/tenant-isolation/test/authz-matrix.test.ts
+tooling/postman/blixis.postman_collection.json
+tooling/postman/{local,staging,production}.postman_environment.json
+docs/development/postman.md
 ```
 
 ### Delete
@@ -67,7 +74,7 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Restore produces a new version whose fields equal the restored version (modulo incompatible fields, reported).
+- [x] Restore produces a new version whose fields equal the restored version (modulo incompatible fields, reported).
 
 ## Validation
 
@@ -78,15 +85,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] No path mutates old versions.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] No path mutates old versions.
 
 ## Completion conditions
 
@@ -103,4 +110,19 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Service:**
+  - `listVersions(actor, tenant, id, { limit, before })`: newest first, paged by version number (`nextBefore`), limit 1–100.
+  - `getVersion`.
+  - `restoreVersion(actor, tenant, id, versionId, expectedVersion)`.
+  - Reading needs `content.entries.read`; restoring needs `content.entries.write`.
+- **`EntryVersionView`:** `sys { id, entryId, number, contentTypeVersion, restoredFrom, isCurrent, isPublished, createdAt, createdBy }` and `fields` keyed by `apiId`. Old versions are read through the **current** type's mapping, so renamed fields appear under their new `apiId`, and removed fields are dropped.
+- **Restore:**
+  - Appends a new version with `restored_from`, so history is never rewritten; a stale `expectedVersion` gives `409`, a missing one `400`.
+  - The old fields are validated as a draft against the current content type. Values that no longer fit (e.g. after a `maxLength` was tightened) are reported with paths (`400`).
+  - Emits `entry.updated` with `restoredFrom`.
+  - A restore after publishing makes the entry `changed`. The live version stays until it's published again.
+- **Routes:** `GET /entries/:entryId/versions`, `GET /entries/:entryId/versions/:versionId`, `POST /entries/:entryId/versions/:versionId/restore` (with `If-Match` or `expectedVersion`).
+- **Coverage:**
+  - the isolation suite and authorization matrix cover the 3 routes (matrix restore body `expectedVersion: 2`, after the `PATCH` row);
+  - Postman has list, get and "restore first version";
+  - the drift test caught a missing request for the version-by-id route before shipping.
