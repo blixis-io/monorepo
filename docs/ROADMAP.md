@@ -297,7 +297,7 @@ Decides the content storage model (ADR), then builds the `@blixis/content` modul
 - [x] [010.002 — Scaffold the content module and content type schema](./plans/010-content-modeling/002-content-module-scaffold-and-type-schema.md)
 - [x] [010.003 — Implement the built-in field type system](./plans/010-content-modeling/003-field-type-system.md)
 - [x] [010.004 — Compile entry validators from content types](./plans/010-content-modeling/004-entry-schema-compiler.md)
-- [ ] [010.005 — Implement the content type service and REST routes](./plans/010-content-modeling/005-content-type-service-and-routes.md)
+- [R] [010.005 — Implement the content type service and REST routes](./plans/010-content-modeling/005-content-type-service-and-routes.md)
 
 #### 011 — Entries, Versions & Publishing
 

@@ -1,7 +1,19 @@
-import { BLIXIS_CAPABILITIES, subscribe } from '@blixis/contracts'
+import {
+  AUTHORIZATION_SERVICE,
+  BLIXIS_CAPABILITIES,
+  EVENT_BUS,
+  type ModuleHonoEnv,
+  subscribe,
+} from '@blixis/contracts'
 import { DATABASE } from '@blixis/database'
 import { defineModule } from '@blixis/kernel'
 import { spaceDeleted } from '@blixis/spaces'
+import { Hono } from 'hono'
+import {
+  CONTENT_TYPE_SERVICE,
+  createContentTypeService,
+  ENTRY_USAGE,
+} from './application/content-type.service.ts'
 import { BUILT_IN_FIELD_TYPES } from './field-types/built-in/index.ts'
 import {
   createFieldTypeRegistry,
@@ -11,6 +23,7 @@ import {
 import { contentTypeRepository } from './infrastructure/content-type.repository.ts'
 import { createContentTypes } from './infrastructure/migrations/0001_create_content_types.ts'
 import { CONTENT_PERMISSIONS } from './permissions.ts'
+import { contentTypeRoutes } from './rest/content-type.routes.ts'
 import { fieldTypeRoutes } from './rest/field-types.routes.ts'
 
 /** Options for {@link contentModule}. */
@@ -48,13 +61,28 @@ export const contentModule = defineModule((options: ContentModuleOptions) => ({
     }),
   ],
   setup(ctx) {
-    ctx.services.provide(
-      FIELD_TYPES,
-      createFieldTypeRegistry(
-        BUILT_IN_FIELD_TYPES,
-        (options.fieldTypes ?? []) as readonly FieldTypeDefinition<never>[],
-      ),
+    const registry = createFieldTypeRegistry(
+      BUILT_IN_FIELD_TYPES,
+      (options.fieldTypes ?? []) as readonly FieldTypeDefinition<never>[],
     )
+    ctx.services.provide(FIELD_TYPES, registry)
+    ctx.services.provideFactory(
+      CONTENT_TYPE_SERVICE,
+      ({ services }) =>
+        createContentTypeService({
+          db: services.get(DATABASE),
+          authz: services.get(AUTHORIZATION_SERVICE),
+          events: services.get(EVENT_BUS),
+          registry,
+          entryUsage: services.get(ENTRY_USAGE),
+        }),
+      { scope: 'request' },
+    )
+    // TODO(011.001): count entries once the entries table exists; no entries exist before 011.
+    ctx.services.provideFactory(ENTRY_USAGE, () => async () => 0, { scope: 'request' })
   },
-  rest: { path: '/field-types', app: fieldTypeRoutes },
+  rest: {
+    path: '/',
+    app: new Hono<ModuleHonoEnv>().route('/', fieldTypeRoutes).route('/', contentTypeRoutes),
+  },
 }))

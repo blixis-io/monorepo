@@ -1,3 +1,4 @@
+import { CONTENT_TYPE_SERVICE } from '@blixis/content'
 import type { Actor, PermissionId, ServiceRegistry, UserActor } from '@blixis/contracts'
 import { QUEUE_SENDER } from '@blixis/events'
 import { serviceOverride } from '@blixis/kernel'
@@ -94,6 +95,15 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
         const role = await services
           .get(ROLE_SERVICE)
           .create(owner, org.id, { name: 'Unused', permissions: ['spaces.read'] })
+        const contentType = await services.get(CONTENT_TYPE_SERVICE).create(
+          owner,
+          {
+            organizationId: org.id,
+            spaceId: space.id,
+            environmentId: space.environments[0]?.id ?? '',
+          },
+          { apiId: 'page', name: 'Page' },
+        )
         const actor = await join({ ...ids, owner, services })
         return {
           actor,
@@ -103,6 +113,7 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
             spaceMembershipId: spaceMember.id,
             localeId: locale.id,
             roleId: role.id,
+            contentTypeId: contentType.id,
           },
         }
       })

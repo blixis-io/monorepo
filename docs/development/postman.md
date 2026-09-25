@@ -40,6 +40,7 @@ Postman uses `"tokenDelivery": "body"`, so the refresh token comes back in the J
 | `localeId` | Create locale script | For update and delete |
 | `orgMembershipId`, `spaceMembershipId` | Add member scripts | For change-role and remove |
 | `roleId` | Create custom role script | For update and delete in *Roles* |
+| `componentId`, `contentTypeId`, `contentTypeVersion` | Create component / Create content type / Update scripts | The *Content model* requests; `contentTypeVersion` is sent back on update (optimistic concurrency) |
 | `apiToken`, `apiTokenId` | Create API token script | The last created personal API token, shown once and stored as a secret, and its ID for *Revoke* |
 
 ## Command line
