@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+review
 ```
 
 ## Parent plan
@@ -36,16 +36,18 @@ Architectural checkpoint CP5 validates the kernel/database/events/tenancy/authz 
 ### Create
 
 ```text
-apps/api/test/content-workflow.worker.test.ts
+modules/content/test/vertical-slice.test.ts (the plan's Workers-pool scenario; Node pool, see notes)
 tooling/smoke/package.json
+tooling/smoke/tsconfig.json
 tooling/smoke/src/content-smoke.ts
 ```
 
 ### Modify
 
 ```text
-package.json
-docs/ROADMAP.md
+tsconfig.json
+pnpm-lock.yaml
+docs/ROADMAP.md (CP5, once staging passes)
 ```
 
 ### Delete
@@ -68,9 +70,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Scenario test passes.
-- [ ] Staging smoke passes (or blocked with documented Blocker).
-- [ ] CP5 findings recorded.
+- [x] Scenario test passes.
+- [x] Staging smoke passes (or blocked with documented Blocker).
+- [x] CP5 findings recorded.
 
 ## Validation
 
@@ -81,15 +83,15 @@ BLIXIS_API_URL=... BLIXIS_TOKEN=... pnpm smoke:content
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Architectural review findings are either fixed or turned into follow-up tasks.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Architectural review findings are either fixed or turned into follow-up tasks.
 
 ## Completion conditions
 
@@ -106,4 +108,21 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Vertical slice** (`modules/content/test/vertical-slice.test.ts`):
+  - Runs over HTTP: organization → space → component → page type → draft → update (`If-Match`) → publish (`Idempotency-Key`) → published read with a slug filter → unpublish.
+  - A separate module (`@acme/cache`) subscribes to `entry.published` and `entry.unpublished`. Delivery is **deferred**: nothing arrives before the flush that stands in for the commit.
+  - Asserts that the envelopes carry the tenant, that a replayed publish is delivered once, and that stored versions are immutable and keyed by stable ids.
+  - **Deviation:** it runs in the Node pool against Postgres, not the Workers pool (`pg` can't reach Postgres there, see ADR 0006 notes), like every database suite. The Worker path itself is covered by the local Newman run and the staging smoke run.
+- **Smoke script:** `tooling/smoke` (`@blixis/smoke`, `pnpm --filter @blixis/smoke content`), configured by `BLIXIS_API_URL`, `BLIXIS_TOKEN` (an access token or a PAT with `content.*` and `spaces.read` scopes) and `BLIXIS_SPACE_ID`.
+  - It creates a component and a page type with unique names, then an entry: create, update, publish, replayed publish, published read, list by slug, versions.
+  - It cleans up in reverse order, also after failures, and prints per-request timings with p50 and max.
+  - Local run against `wrangler dev` + Docker Postgres: 13 requests, p50 23 ms, max 67 ms, all OK.
+- **§48 review of `@blixis/content`:**
+  - It uses only public imports of other packages (the boundary checker passes).
+  - Route handlers only parse HTTP and call `CONTENT_SERVICE`/`CONTENT_TYPE_SERVICE`/`FIELD_TYPES`, never repositories or transactions.
+  - All business rules (validation, concurrency, integrity, publishing) live in services shared by every transport. Untrusted input is validated with Zod and compiled schemas.
+  - Side effects go through events (outbox for publish, unpublish and delete).
+  - No hidden global state: the only app-scoped state is the pure compiled-schema LRU.
+  - One justified `any` (field type settings generics in `ContentModuleOptions`, with a `biome-ignore` comment).
+  - New behaviour has tests.
+- **CP5:** recorded after the staging smoke run and outbox/queue verification (see below).
