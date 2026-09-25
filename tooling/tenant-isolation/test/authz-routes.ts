@@ -158,6 +158,39 @@ export const AUTHZ_ROUTES = defineAuthzMatrix([
     permission: 'spaces.members.manage',
     level: 'space',
   },
+  // Content types
+  {
+    method: 'GET',
+    path: '/api/v1/spaces/:spaceId/content-types',
+    permission: 'content.types.read',
+    level: 'space',
+  },
+  {
+    method: 'GET',
+    path: '/api/v1/spaces/:spaceId/content-types/:contentTypeId',
+    permission: 'content.types.read',
+    level: 'space',
+  },
+  {
+    method: 'POST',
+    path: '/api/v1/spaces/:spaceId/content-types',
+    body: { apiId: 'matrix', name: 'Matrix' },
+    permission: 'content.types.write',
+    level: 'space',
+  },
+  {
+    method: 'PATCH',
+    path: '/api/v1/spaces/:spaceId/content-types/:contentTypeId',
+    body: { version: 1, name: 'Renamed' },
+    permission: 'content.types.write',
+    level: 'space',
+  },
+  {
+    method: 'DELETE',
+    path: '/api/v1/spaces/:spaceId/content-types/:contentTypeId',
+    permission: 'content.types.write',
+    level: 'space',
+  },
   // Last: deletes the case's space.
   {
     method: 'DELETE',

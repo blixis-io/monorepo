@@ -4,6 +4,15 @@
  *
  * @packageDocumentation
  */
+
+export {
+  CONTENT_TYPE_SERVICE,
+  type ContentTypeService,
+  type ContentTypeView,
+  ENTRY_USAGE,
+  type EntryUsage,
+  type FieldView,
+} from './application/content-type.service.ts'
 export {
   type ApiFields,
   compileEntrySchema,
@@ -28,6 +37,7 @@ export {
   type ShowWhen,
   type UpdateContentTypeInput,
 } from './domain/content-type.ts'
+export { contentTypeCreated, contentTypeDeleted, contentTypeUpdated } from './events.ts'
 export {
   assetField,
   BUILT_IN_FIELD_TYPES,
@@ -59,5 +69,6 @@ export {
   type ResolvedComponent,
   type ValidationMode,
 } from './field-types/define.ts'
+export type { EnvironmentTenant } from './infrastructure/content-type.repository.ts'
 export { type ContentModuleOptions, contentModule } from './module.ts'
 export { CONTENT_PERMISSIONS } from './permissions.ts'

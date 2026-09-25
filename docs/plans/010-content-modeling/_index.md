@@ -66,7 +66,7 @@ Depends on:
 - [x] [002 — Scaffold the content module and content type schema](./002-content-module-scaffold-and-type-schema.md)
 - [x] [003 — Implement the built-in field type system](./003-field-type-system.md)
 - [x] [004 — Compile entry validators from content types](./004-entry-schema-compiler.md)
-- [ ] [005 — Implement the content type service and REST routes](./005-content-type-service-and-routes.md)
+- [R] [005 — Implement the content type service and REST routes](./005-content-type-service-and-routes.md)
 
 ## Completion criteria
 
