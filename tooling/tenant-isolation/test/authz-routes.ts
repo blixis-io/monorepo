@@ -213,6 +213,18 @@ export const AUTHZ_ROUTES = defineAuthzMatrix([
     level: 'space',
   },
   {
+    method: 'POST',
+    path: '/api/v1/entries/:entryId/publish',
+    permission: 'content.entries.publish',
+    level: 'space',
+  },
+  {
+    method: 'POST',
+    path: '/api/v1/entries/:entryId/unpublish',
+    permission: 'content.entries.publish',
+    level: 'space',
+  },
+  {
     method: 'DELETE',
     path: '/api/v1/entries/:entryId',
     permission: 'content.entries.delete',

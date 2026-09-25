@@ -1600,6 +1600,119 @@
           ]
         },
         {
+          "name": "Publish entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/entries/{{entryId}}/publish",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "entries", "{{entryId}}", "publish"]
+            },
+            "description": "Validates strictly and publishes the current version. Send an `Idempotency-Key` so a retry never publishes twice.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('published', () => pm.expect(pm.response.json().sys.status).to.eql('published'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get published entry",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/entries/{{entryId}}?state=published",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "entries", "{{entryId}}"],
+              "query": [
+                {
+                  "key": "state",
+                  "value": "published"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unpublish entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/entries/{{entryId}}/unpublish",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "entries", "{{entryId}}", "unpublish"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('draft again', () => pm.expect(pm.response.json().sys.status).to.eql('draft'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Delete entry",
           "request": {
             "method": "DELETE",

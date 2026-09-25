@@ -1,5 +1,6 @@
 import { type ModuleHonoEnv, TENANT_BINDER, ValidationError } from '@blixis/contracts'
 import { requireTenant } from '@blixis/database'
+import { idempotent } from '@blixis/database/idempotency'
 import { spaceScoped } from '@blixis/spaces'
 import type { Context, Next } from 'hono'
 import { Hono } from 'hono'
@@ -120,4 +121,25 @@ export const entryRoutes = new Hono<ModuleHonoEnv>()
         version === undefined ? {} : { expectedVersion: version },
       )
     return c.body(null, 204)
+  })
+  // Commands (011.004): tenant bound first, so idempotency keys are scoped to it.
+  .post('/entries/:entryId/publish', entryScoped(), idempotent(), async (c) => {
+    const body = await json(c)
+    const version = expectedVersion(c, body)
+    const entry = await c.var.services
+      .get(CONTENT_SERVICE)
+      .publish(actorOf(c), tenantOf(c), entryId(c), {
+        versionId: typeof body['versionId'] === 'string' ? body['versionId'] : undefined,
+        expectedVersion: version,
+      })
+    withEtag(c, entry)
+    return c.json(entry)
+  })
+  .post('/entries/:entryId/unpublish', entryScoped(), idempotent(), async (c) => {
+    const body = await json(c)
+    const entry = await c.var.services
+      .get(CONTENT_SERVICE)
+      .unpublish(actorOf(c), tenantOf(c), entryId(c), { force: body['force'] === true })
+    withEtag(c, entry)
+    return c.json(entry)
   })
