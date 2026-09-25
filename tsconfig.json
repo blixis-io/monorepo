@@ -11,6 +11,9 @@
       "path": "tooling/db"
     },
     {
+      "path": "tooling/postman"
+    },
+    {
       "path": "packages/shared"
     },
     {

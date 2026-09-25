@@ -96,6 +96,12 @@ Covers resource naming, the `wrangler.jsonc` structure per environment, secrets,
 
 → [docs/operations/cloudflare.md](docs/operations/cloudflare.md)
 
+## Postman
+
+Postman collection and environments (local, staging, production) with automatic token refresh.
+
+→ [docs/development/postman.md](docs/development/postman.md)
+
 ## Database
 
 Neon branches and roles, Hyperdrive, where connection strings live, local Postgres, rotation.
