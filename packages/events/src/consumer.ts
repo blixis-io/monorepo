@@ -57,7 +57,7 @@ async function consumeMessage(message: QueueMessageLike, options: ConsumeOptions
   ) {
     // Nobody in this app subscribes to the type: nothing to deliver (e.g. events only other
     // consumers care about). Retrying would only move the message to the DLQ.
-    options.logger.debug('event.unrouted', { ...base, status: 'skipped' })
+    options.logger.info('event.unrouted', { ...base, status: 'skipped' })
     message.ack()
     return
   }

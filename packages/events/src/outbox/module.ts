@@ -146,13 +146,21 @@ export const outboxModule = defineModule((options: OutboxModuleOptions) => ({
           const collector = pending as OutboxPending & {
             ids: string[]
             dispatch(): Promise<void>
-            logger: { warn(message: string, fields?: Record<string, unknown>): void }
+            logger: {
+              info(message: string, fields?: Record<string, unknown>): void
+              warn(message: string, fields?: Record<string, unknown>): void
+            }
           }
           if (collector.ids.length === 0) return
-          await collector.dispatch().catch((error: unknown) => {
-            // The sweep delivers whatever the post-commit attempt could not.
-            collector.logger.warn('outbox.post_commit_failed', { error: String(error) })
-          })
+          await collector
+            .dispatch()
+            .then(() =>
+              collector.logger.info('outbox.dispatched', { events: collector.ids.length }),
+            )
+            .catch((error: unknown) => {
+              // The sweep delivers whatever the post-commit attempt could not.
+              collector.logger.warn('outbox.post_commit_failed', { error: String(error) })
+            })
         },
       },
     )
