@@ -274,6 +274,9 @@ importers:
       '@blixis/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
+      '@blixis/spaces':
+        specifier: workspace:*
+        version: link:../../modules/spaces
       '@blixis/users':
         specifier: workspace:*
         version: link:../../modules/users
@@ -720,24 +723,15 @@ importers:
 
   tooling/postman:
     devDependencies:
-      '@blixis/auth':
+      '@blixis/contracts':
         specifier: workspace:*
-        version: link:../../modules/auth
-      '@blixis/database':
-        specifier: workspace:*
-        version: link:../../packages/database
-      '@blixis/events':
-        specifier: workspace:*
-        version: link:../../packages/events
+        version: link:../../packages/contracts
       '@blixis/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
       '@blixis/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
-      '@blixis/users':
-        specifier: workspace:*
-        version: link:../../modules/users
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.6

@@ -14,6 +14,7 @@ Every event is listed here with its delivery class. Rows are added by the task t
 | `user.invited` | — | *reserved* | `@blixis/users` | email invitations (deferred until an email provider is chosen) | — |
 | `organization.created` | 1 | best-effort | `@blixis/spaces` | audit (020) | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |
 | `space.created` | 1 | **transactional** | `@blixis/spaces` | provisioning: content defaults (010), delivery keys (012), search indexes | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |
+| `space.deleted` | 1 | **transactional** | `@blixis/spaces` | **every module storing space data deletes its rows** (no cross-module FKs) | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |
 | `space.updated` | 1 | best-effort | `@blixis/spaces` | caches of space names | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |
 | `user.signed-in` | 1 | best-effort | `@blixis/auth` | audit (020), analytics | [`modules/auth/src/events.ts`](../../modules/auth/src/events.ts) |
 | `user.signed-out` | 1 | best-effort | `@blixis/auth` | audit (020) | [`modules/auth/src/events.ts`](../../modules/auth/src/events.ts) |

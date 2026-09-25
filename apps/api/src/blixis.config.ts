@@ -5,6 +5,7 @@ import { databaseModule } from '@blixis/database'
 import { idempotencyModule } from '@blixis/database/idempotency'
 import { eventsModule, queueTransport } from '@blixis/events'
 import { outboxModule, outboxTransport } from '@blixis/events/outbox'
+import { spacesModule } from '@blixis/spaces'
 import { usersModule } from '@blixis/users'
 import { authConfigModule } from './auth-config.ts'
 
@@ -29,4 +30,5 @@ export const modules: readonly BlixisModule[] = [
   authConfigModule(),
   // Public sign-up is off: create users with `pnpm auth:create-user` (ADR 0009).
   authModule(),
+  spacesModule(),
 ]
