@@ -47,3 +47,4 @@ What becomes easier or harder; follow-up tasks; risks.
 | [0009](./0009-authentication.md) | Authentication: custom, EdDSA JWT access tokens (15 min) + rotating refresh tokens, scrypt passwords, opaque API tokens | accepted |
 | 0010–0017 | Reserved by roadmap decision tasks (see ROADMAP register) | — |
 | [0018](./0018-api-reference-generator.md) | API reference generator (TypeDoc with isolated TypeScript 6) | accepted |
+| [0019](./0019-hyperdrive-query-caching-disabled.md) | Hyperdrive query caching is disabled (read-your-writes for auth and tenancy) | accepted |
