@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -39,17 +39,17 @@ Add migrations, domain types, and repositories for entries, immutable entry vers
 ### Create
 
 ```text
-modules/content/src/infrastructure/migrations/0002_create_entries.sql
+modules/content/src/infrastructure/migrations/0002_create_entries.ts
 modules/content/src/domain/entry.ts
-modules/content/src/domain/entry-version.ts
 modules/content/src/infrastructure/entry.repository.ts
-modules/content/src/infrastructure/entry-version.repository.ts
 modules/content/test/entry.repository.test.ts
 ```
 
 ### Modify
 
 ```text
+modules/content/src/infrastructure/schema.ts
+modules/content/src/module.ts
 modules/content/src/application/content-type.service.ts
 ```
 
@@ -74,8 +74,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Repository tests prove versions are append-only and pagination is stable.
-- [ ] Content type deletion is rejected when entries exist.
+- [x] Repository tests prove versions are append-only and pagination is stable.
+- [x] Content type deletion is rejected when entries exist.
 
 ## Validation
 
@@ -86,15 +86,15 @@ pnpm --filter @blixis/content test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Index choices justified with EXPLAIN output in Technical notes.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Index choices justified with EXPLAIN output in Technical notes.
 
 ## Completion conditions
 
@@ -111,4 +111,22 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Tables** (content migration `0002_create_entries`):
+  - `entries`: tenant columns, `content_type_id` (FK restrict), `current_version_id`, `version` (optimistic counter), `published_version_id`, `published_at`, `first_published_at`, `created_by`/`updated_by` (actor ids);
+  - `entry_versions`: immutable, `unique(entry_id, number)`, `fields` JSONB with a `jsonb_path_ops` GIN index (ADR 0010 §9), `content_type_version`, `restored_from`;
+  - `entry_publications`: publish/unpublish history;
+  - `entry_references`: outgoing links per version, indexed by target.
+- **Decisions:**
+  - Publication history uses a table (the task left it open).
+  - Links are stored for **every** version. They're immutable like versions, and `referrers()` joins on the entry's current or published version, so older versions never count.
+  - There is no FK from `entries.current_version_id` to versions (circular). The repository always writes both in one transaction.
+- **Repository:**
+  - `create` inserts the entry and version 1.
+  - `append` updates the entry row first (which locks it and checks `version`), then inserts the version; `undefined` means stale.
+  - Lookups: `findById` (tenant-scoped), `findForResolution` (id only, for entry-id routes before authorization), `findManyByIds`, `version`, `versionsByIds`, `versions` (newest first, paged by number).
+  - `list` uses keyset order `updated_at desc, id desc` with a cursor, content type, `updatedSince`, and stored-shape JSONB containment filters, and joins the current or published version.
+  - Also `setPublished` (with a history row), `delete` (versions, references and history cascade), `referrers`, `countByContentType` and `countContainingComponent` (`jsonb_path_exists('$.** ? (@._type == $t)')`).
+  - There is no update path for versions.
+- **`ENTRY_USAGE`** (010.005's stub, TODO removed) now counts real entries: by type for entry types, by contained blocks for components. The content type safe-change rules are therefore live.
+- **`space.deleted`** deletes entries before content types, because of the FK.
+- **`entryStatus()`:** `draft` / `published` / `changed`.

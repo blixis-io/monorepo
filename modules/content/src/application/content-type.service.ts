@@ -93,9 +93,8 @@ export const CONTENT_TYPE_SERVICE: ServiceToken<ContentTypeService> =
   createServiceToken<ContentTypeService>('@blixis/content.content-types')
 
 /**
- * How many entries use a content type (or, for components, entries containing it). Plan 011
- * replaces the default, which reports none because no entries exist yet.
- * TODO(011.001): count entries once the entries table exists.
+ * How many entries use a content type — for components, how many entries contain one of its
+ * blocks in their current or published version. Provided by `contentModule()`.
  */
 export type EntryUsage = (tenant: EnvironmentTenant, contentTypeId: string) => Promise<number>
 
