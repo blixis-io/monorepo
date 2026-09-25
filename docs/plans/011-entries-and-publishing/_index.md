@@ -66,7 +66,7 @@ Depends on:
 - [x] [004 — Implement publish and unpublish commands](./004-publish-and-unpublish-commands.md)
 - [x] [005 — Implement version history and restore](./005-version-history-and-restore.md)
 - [x] [006 — Implement entry references and link resolution](./006-references-and-link-resolution.md)
-- [ ] [007 — Verify the content management vertical slice end to end](./007-content-vertical-slice-end-to-end.md)
+- [R] [007 — Verify the content management vertical slice end to end](./007-content-vertical-slice-end-to-end.md)
 
 ## Completion criteria
 

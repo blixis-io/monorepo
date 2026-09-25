@@ -313,7 +313,7 @@ Completes `@blixis/content` with entries, immutable entry versions, publications
 - [x] [011.004 — Implement publish and unpublish commands](./plans/011-entries-and-publishing/004-publish-and-unpublish-commands.md)
 - [x] [011.005 — Implement version history and restore](./plans/011-entries-and-publishing/005-version-history-and-restore.md)
 - [x] [011.006 — Implement entry references and link resolution](./plans/011-entries-and-publishing/006-references-and-link-resolution.md)
-- [ ] [011.007 — Verify the content management vertical slice end to end](./plans/011-entries-and-publishing/007-content-vertical-slice-end-to-end.md)
+- [R] [011.007 — Verify the content management vertical slice end to end](./plans/011-entries-and-publishing/007-content-vertical-slice-end-to-end.md)
 
 ### Milestone 6 — Content delivery
 
