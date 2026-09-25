@@ -1,0 +1,50 @@
+---
+title: 3. Idempotent commands
+description: Let clients safely retry note creation with the Idempotency-Key header.
+sidebar:
+  order: 3
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+A client creates a note, and the network drops before the response arrives. Should it retry? Without protection, a retry creates a **second** note and a second `note.created` event. With the `Idempotency-Key` header, the retry gets the original response instead.
+
+## Add the middleware
+
+```ts title="src/routes.ts"
+import { idempotent } from '@blixis/database/idempotency'
+
+export const routes = new Hono<ModuleHonoEnv>()
+  .post('/:spaceId/notes', idempotent(), async (c) => {
+    // … unchanged: validate, insert + emit in one transaction …
+  })
+```
+
+The app needs `idempotencyModule()` (from `@blixis/database/idempotency`) in its module list.
+
+## What clients see
+
+```bash
+curl -X POST https://api.example.com/api/v1/spaces/$SPACE/notes \
+  -H 'content-type: application/json' \
+  -H 'Idempotency-Key: 7c1e9a52-create-note' \
+  -d '{"title":"Hello"}'
+```
+
+| Situation | Response |
+|---|---|
+| First request | `201`, and the note is created |
+| Same key, same request | the **same** `201` body, with `Idempotent-Replayed: true`. Nothing new is created and no event is emitted |
+| Same key, different body | `409 Conflict` |
+| Same key while the first is still running | `409 Conflict` (retry later) |
+| First request failed with `5xx` | not stored, so the retry runs normally |
+
+- **Scope:** keys are scoped by tenant, actor, method and route, so two users can use the same key without collisions.
+- **Lifetime:** keys are remembered for 24 hours.
+- **Requiring a key:** use `idempotent({ required: true })` to make the header mandatory.
+
+<Aside type="tip">
+Use idempotency keys on commands that create things or trigger side effects (payments, publishing, invitations). Reads and naturally idempotent updates (`PUT` with the full state) don't need them.
+</Aside>
+
+**Next:** [4. Test your module](/tutorials/04-testing/)

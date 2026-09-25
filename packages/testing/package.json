@@ -29,6 +29,7 @@
     "pg": "catalog:"
   },
   "devDependencies": {
+    "@blixis/shared": "workspace:*",
     "@blixis/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
