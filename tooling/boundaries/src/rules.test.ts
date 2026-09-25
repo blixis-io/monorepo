@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   checkImports,
   checkPackages,
+  checkRoleNames,
   findWorkspaceCycles,
   splitSpecifier,
   type WorkspacePackage,
@@ -129,5 +130,35 @@ describe('checkPackages', () => {
       'workspace-cycle',
       'contracts-runtime-dependency',
     ])
+  })
+})
+
+describe('checkRoleNames', () => {
+  const file = (path: string, content: string) => ({ path, content })
+
+  it('flags role-name comparisons outside @blixis/permissions', () => {
+    const offenders = [
+      "if (role === 'admin') return",
+      'if (membership.roleKey !== "owner") throw error',
+      "const ok = 'owner' == access.organizationRole",
+      "where(eq(memberships.roleKey, 'owner'))",
+      "const manager = ['owner', 'admin'].includes(role)",
+    ]
+    const violations = checkRoleNames([file('modules/spaces/src/a.ts', offenders.join('\n'))])
+    expect(violations.map((v) => [v.rule, v.line])).toEqual(
+      offenders.map((_, i) => ['role-name-check', i + 1]),
+    )
+  })
+
+  it('allows permissions, constants, the permissions module, and tests', () => {
+    expect(
+      checkRoleNames([
+        file('modules/spaces/src/a.ts', "await authz.require({ action: 'spaces.delete' })"),
+        file('modules/users/src/b.ts', 'if (row.roleKey === OWNER_ROLE) await assertOwner()'),
+        file('modules/permissions/src/c.ts', "if (key === 'owner') return all"),
+        file('modules/spaces/test/d.test.ts', "expect(role === 'admin').toBe(true)"),
+        file('modules/spaces/src/e.ts', "  // never write role === 'admin'"),
+      ]),
+    ).toEqual([])
   })
 })

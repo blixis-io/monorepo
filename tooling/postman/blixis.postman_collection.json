@@ -1312,10 +1312,10 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "tokens"]
             },
-            "description": "Returns the plaintext token **once**. Stored as `apiToken`; use it as `Bearer {{apiToken}}` in scripts.",
+            "description": "Returns the plaintext token **once**. Stored as `apiToken`; use it as `Bearer {{apiToken}}` in scripts. A token can do only what its `scopes` (permission ids, see *List permissions*) allow, and never more than its owner.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Postman\",\n  \"expiresInDays\": 30\n}",
+              "raw": "{\n  \"name\": \"Postman\",\n  \"scopes\": [\"organizations.read\", \"spaces.read\"],\n  \"expiresInDays\": 30\n}",
               "options": {
                 "raw": {
                   "language": "json"

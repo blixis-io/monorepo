@@ -95,6 +95,12 @@ export const SYSTEM_ROLES = ['owner', 'admin', 'editor', 'viewer'] as const
 /** Key of a {@link SYSTEM_ROLES | system role}. */
 export type SystemRoleKey = (typeof SYSTEM_ROLES)[number]
 
+/**
+ * The `owner` role key. Only for data invariants that are about ownership itself (an
+ * organization keeps at least one owner) — never for access decisions.
+ */
+export const OWNER_ROLE = 'owner' satisfies SystemRoleKey
+
 /** Whether `value` is a system role key. */
 export function isSystemRoleKey(value: string): value is SystemRoleKey {
   return (SYSTEM_ROLES as readonly string[]).includes(value)

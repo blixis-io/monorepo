@@ -1,5 +1,6 @@
 import { databaseModule } from '@blixis/database'
 import { eventsModule } from '@blixis/events'
+import { permissionsModule } from '@blixis/permissions'
 import { newId } from '@blixis/shared'
 import {
   asAnonymous,
@@ -32,7 +33,13 @@ describe.skipIf(!databaseTestsEnabled())('spaces API (Postgres)', () => {
   let db: TestDatabase
   beforeAll(async () => {
     db = await createTestDatabase({
-      modules: [databaseModule(), eventsModule(), usersModule(), spacesModule()],
+      modules: [
+        databaseModule(),
+        eventsModule(),
+        usersModule(),
+        permissionsModule(),
+        spacesModule(),
+      ],
     })
   })
   beforeEach(() => db.reset())
@@ -41,7 +48,13 @@ describe.skipIf(!databaseTestsEnabled())('spaces API (Postgres)', () => {
   async function setup(options: SpacesModuleOptions = {}) {
     const events = captureEvents()
     const t = await createTestBlixis({
-      modules: [databaseModule(), events.module(), usersModule(), spacesModule(options)],
+      modules: [
+        databaseModule(),
+        events.module(),
+        usersModule(),
+        permissionsModule(),
+        spacesModule(options),
+      ],
       database: db,
     })
     const user = async (email: string) =>
@@ -183,10 +196,11 @@ describe.skipIf(!databaseTestsEnabled())('spaces API (Postgres)', () => {
       ).status,
     ).toBe(201)
     expect((await call(t, 'GET', `/spaces/${space.id}`, editor)).status).toBe(200)
+    // Members without the permission get 403 (non-members get 404).
     expect((await call(t, 'PATCH', `/spaces/${space.id}`, editor, { name: 'Mine' })).status).toBe(
-      404,
+      403,
     )
-    expect((await call(t, 'DELETE', `/spaces/${space.id}`, editor)).status).toBe(404)
+    expect((await call(t, 'DELETE', `/spaces/${space.id}`, editor)).status).toBe(403)
     // The editor sees the organization in their list (through the space membership).
     expect(
       ((await (await call(t, 'GET', '/organizations', editor)).json()) as { organizations: Org[] })
@@ -269,6 +283,60 @@ describe.skipIf(!databaseTestsEnabled())('spaces API (Postgres)', () => {
     expect((await call(t, 'POST', '/organizations', u, { name: 'X', slug: 'x' })).status).toBe(403)
   })
 
+  it('members: custom roles, 403 for members without the permission, no escalation', async () => {
+    const { t, user } = await setup()
+    const owner = await user('owner@example.com')
+    const admin = await user('admin@example.com')
+    const viewer = await user('viewer@example.com')
+    await user('new@example.com')
+    const org = await createOrg(t, owner)
+    const space = (await (await createSpace(t, owner, org.id)).json()) as SpaceBody
+    const add = (actor: string, email: string, role: string, path = `/organizations/${org.id}`) =>
+      call(t, 'POST', `${path}/members`, actor, { email, role })
+    expect((await add(owner, 'admin@example.com', 'admin')).status).toBe(201)
+    const viewerMembership = (await (await add(owner, 'viewer@example.com', 'viewer')).json()) as {
+      id: string
+    }
+    // Viewers are members: 403, not 404.
+    expect((await add(viewer, 'new@example.com', 'viewer')).status).toBe(403)
+    expect(
+      (
+        await call(t, 'PATCH', `/organizations/${org.id}/members/${viewerMembership.id}`, viewer, {
+          role: 'admin',
+        })
+      ).status,
+    ).toBe(403)
+    // Custom roles are assignable by id; unknown and foreign roles are rejected.
+    const role = (await (
+      await call(t, 'POST', `/organizations/${org.id}/roles`, owner, {
+        name: 'Space manager',
+        permissions: ['spaces.read', 'spaces.settings.write'],
+      })
+    ).json()) as { id: string }
+    const assigned = await add(admin, 'new@example.com', role.id, `/spaces/${space.id}`)
+    expect(assigned.status).toBe(201)
+    expect(((await assigned.json()) as { role: string }).role).toBe(role.id)
+    expect((await add(admin, 'new@example.com', 'member')).status).toBe(400)
+    expect((await add(admin, 'new@example.com', newId())).status).toBe(400)
+    expect((await add(owner, 'new@example.com', 'owner', `/spaces/${space.id}`)).status).toBe(400)
+    // Admins cannot take the owner role away either.
+    const members = (await (
+      await call(t, 'GET', `/organizations/${org.id}/members`, admin)
+    ).json()) as { members: { id: string; role: string }[] }
+    const ownerMembership = members.members.find((m) => m.role === 'owner')
+    expect(
+      (
+        await call(t, 'PATCH', `/organizations/${org.id}/members/${ownerMembership?.id}`, admin, {
+          role: 'viewer',
+        })
+      ).status,
+    ).toBe(403)
+    expect(
+      (await call(t, 'DELETE', `/organizations/${org.id}/members/${ownerMembership?.id}`, admin))
+        .status,
+    ).toBe(403)
+  })
+
   describe('environments and locales', () => {
     async function withSpace() {
       const ctx = await setup()
@@ -300,7 +368,7 @@ describe.skipIf(!databaseTestsEnabled())('spaces API (Postgres)', () => {
       expect((await call(t, 'GET', `/spaces/${space.id}/locales`, viewer)).status).toBe(200)
       expect(
         (await call(t, 'POST', `/spaces/${space.id}/locales`, viewer, { code: 'de' })).status,
-      ).toBe(404)
+      ).toBe(403)
       expect(
         (
           await call(t, 'POST', `/spaces/${space.id}/locales`, owner, {

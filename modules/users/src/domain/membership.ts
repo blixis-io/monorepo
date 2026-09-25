@@ -1,5 +1,4 @@
 import { SYSTEM_ROLES, type SystemRoleKey } from '@blixis/contracts'
-import { z } from 'zod'
 
 /**
  * System roles assignable per level (`role_key`). Roles are defined and evaluated by
@@ -26,12 +25,3 @@ export interface MembershipScope {
   readonly organizationId: string
   readonly spaceId?: string
 }
-
-/** A user's access to a space: via the organization, the space itself, or both. */
-export interface SpaceAccess {
-  readonly organizationRole: OrganizationRole | null
-  readonly spaceRole: SpaceRole | null
-}
-
-export const organizationRoleSchema = z.enum(ORGANIZATION_ROLES)
-export const spaceRoleSchema = z.enum(SPACE_ROLES)
