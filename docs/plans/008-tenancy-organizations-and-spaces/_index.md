@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 Milestone: Milestone 4 — Identity, tenancy & authorization  
 Roadmap scope: MVP / initial platform  
-Progress: 0/6 tasks completed
+Progress: 1/6 tasks completed
 
 ## Objective
 
@@ -60,7 +60,7 @@ Depends on:
 
 ## Tasks
 
-- [ ] [001 — Create the spaces module with organization and space schema](./001-organizations-and-spaces-schema.md)
+- [x] [001 — Create the spaces module with organization and space schema](./001-organizations-and-spaces-schema.md)
 - [ ] [002 — Implement organization and space memberships](./002-memberships.md)
 - [ ] [003 — Implement organization/space services and management routes](./003-space-service-and-management-routes.md)
 - [ ] [004 — Implement environment and locale management](./004-environments-and-locales.md)
