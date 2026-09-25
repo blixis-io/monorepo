@@ -44,5 +44,6 @@ What becomes easier or harder; follow-up tasks; risks.
 | [0006](./0006-database-stack.md) | Database stack (pg + Drizzle, SQL-file migrations) | accepted |
 | [0007](./0007-ids-and-tenancy-conventions.md) | IDs (UUIDv7), timestamps, tenancy columns and scoping, cross-module FKs | accepted |
 | [0008](./0008-outbox-dispatch.md) | Transactional outbox: post-commit dispatch + 1-minute sweep, SKIP LOCKED, 7-day retention | accepted |
-| 0009–0017 | Reserved by roadmap decision tasks (see ROADMAP register) | — |
+| [0009](./0009-authentication.md) | Authentication: custom, EdDSA JWT access tokens (15 min) + rotating refresh tokens, scrypt passwords, opaque API tokens | accepted |
+| 0010–0017 | Reserved by roadmap decision tasks (see ROADMAP register) | — |
 | [0018](./0018-api-reference-generator.md) | API reference generator (TypeDoc with isolated TypeScript 6) | accepted |

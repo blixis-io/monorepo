@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -45,7 +45,9 @@ docs/decisions/0009-authentication.md
 ### Modify
 
 ```text
-None.
+docs/decisions/README.md
+docs/ROADMAP.md
+docs/plans/007-identity-and-authentication/_index.md
 ```
 
 ### Delete
@@ -68,7 +70,7 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] ADR 0009 accepted with measured hashing cost and explicit session/token/CSRF decisions.
+- [x] ADR 0009 accepted with measured hashing cost and explicit session/token/CSRF decisions.
 
 ## Validation
 
@@ -76,15 +78,15 @@ Requires:
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Decision keeps authorization out of the auth module.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Decision keeps authorization out of the auth module.
 
 ## Completion conditions
 
@@ -101,4 +103,11 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Owner decisions (2026-09-25):** a custom implementation with **JWT authentication and refresh tokens** (the owner's requirement), and **scrypt N=2^15, r=8** for passwords. The rest follows from the spike and is recorded in ADR 0009: EdDSA/Ed25519, 15-minute access tokens, rotating hashed refresh tokens with family revocation and a 10 s grace window, an Origin check on cookie endpoints, and opaque `blx_pat_` API tokens.
+- **Spike (scratch project, workerd via `wrangler dev`, client-side timing minus a ~2 ms baseline, because Workers freeze clocks during execution):**
+  - Better Auth 1.7.6 + Drizzle adapter: 413 KiB gzip (+~330 KiB).
+  - PBKDF2: 100k ~7.5 ms, 600k ~46 ms. The local runtime did not enforce Cloudflare's production 100k cap.
+  - scrypt r=8: N=2^14 ~48 ms, 2^15 ~91 ms, 2^16 ~187 ms. The r=16 variant Better Auth uses: ~91 ms.
+  - Argon2id via hash-wasm: runtime WASM compilation is disallowed.
+  - Ed25519 via Web Crypto: OK in workerd and Node 24.
+- **Deviation from the plan:** the roadmap recommended opaque server-side sessions. The owner chose JWT, so the plan index now notes that "session" in tasks 003/004 means a refresh-token family.
