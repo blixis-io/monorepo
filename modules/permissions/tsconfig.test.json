@@ -1,0 +1,9 @@
+{
+  "extends": "@blixis/tsconfig/test.json",
+  "compilerOptions": { "lib": ["es2023", "webworker"], "types": ["node"] },
+  "references": [
+    { "path": "./tsconfig.json" },
+    { "path": "../../packages/events" },
+    { "path": "../../packages/testing" }
+  ]
+}

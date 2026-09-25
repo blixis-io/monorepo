@@ -11,6 +11,7 @@ import {
 import { createTenancyService, TENANCY_SERVICE } from './application/tenancy.service.ts'
 import { createTenantResolver, TENANT_RESOLVER } from './application/tenant-resolver.ts'
 import { createSpaces } from './infrastructure/migrations/0001_create_spaces.ts'
+import { SPACES_PERMISSIONS } from './permissions.ts'
 import { spacesRoutes } from './rest/routes.ts'
 
 /** Options for {@link spacesModule}. */
@@ -31,6 +32,7 @@ export const spacesModule = defineModule((options: SpacesModuleOptions) => ({
     requires: { '@blixis/users': '>=0.0.0' },
     requiresCapabilities: [BLIXIS_CAPABILITIES.database, BLIXIS_CAPABILITIES.events],
   },
+  permissions: Object.values(SPACES_PERMISSIONS),
   migrations: [createSpaces],
   setup(ctx) {
     ctx.services.provideFactory(

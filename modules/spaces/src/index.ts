@@ -45,3 +45,4 @@ export {
   spaceUpdated,
 } from './events.ts'
 export { type SpacesModuleOptions, spacesModule } from './module.ts'
+export { SPACES_PERMISSIONS } from './permissions.ts'

@@ -19,6 +19,7 @@
     "@blixis/database": "workspace:*",
     "@blixis/events": "workspace:*",
     "@blixis/kernel": "workspace:*",
+    "@blixis/permissions": "workspace:*",
     "@blixis/spaces": "workspace:*",
     "@blixis/users": "workspace:*",
     "@sentry/cloudflare": "catalog:",
