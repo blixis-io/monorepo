@@ -2,6 +2,12 @@ import { BLIXIS_CAPABILITIES, EVENT_BUS } from '@blixis/contracts'
 import { DATABASE } from '@blixis/database'
 import { defineModule } from '@blixis/kernel'
 import { MEMBERSHIP_SERVICE } from '@blixis/users'
+import {
+  createEnvironmentService,
+  createLocaleService,
+  ENVIRONMENT_SERVICE,
+  LOCALE_SERVICE,
+} from './application/locales.service.ts'
 import { createTenancyService, TENANCY_SERVICE } from './application/tenancy.service.ts'
 import { createSpaces } from './infrastructure/migrations/0001_create_spaces.ts'
 import { spacesRoutes } from './rest/routes.ts'
@@ -34,6 +40,19 @@ export const spacesModule = defineModule((options: SpacesModuleOptions) => ({
           memberships: services.get(MEMBERSHIP_SERVICE),
           events: services.get(EVENT_BUS),
         }),
+      { scope: 'request' },
+    )
+    ctx.services.provideFactory(
+      ENVIRONMENT_SERVICE,
+      ({ services }) => createEnvironmentService(services.get(DATABASE)),
+      {
+        scope: 'request',
+      },
+    )
+    ctx.services.provideFactory(
+      LOCALE_SERVICE,
+      ({ services }) =>
+        createLocaleService({ db: services.get(DATABASE), events: services.get(EVENT_BUS) }),
       { scope: 'request' },
     )
   },

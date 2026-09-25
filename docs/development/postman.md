@@ -10,7 +10,7 @@ Related: [Getting started](./getting-started.md) · [Authentication (manual)](..
 
 | File | Contents |
 |---|---|
-| `blixis.postman_collection.json` | All `/api/v1` endpoints, in run order: Health, Auth, Users, Organizations, Spaces, Members, Cleanup (deletes the space it created), API tokens, and Sign out |
+| `blixis.postman_collection.json` | All `/api/v1` endpoints, in run order: Health, Auth, Users, Organizations, Spaces, Environments & locales, Members, Cleanup (deletes the space it created), API tokens, and Sign out |
 | `local.postman_environment.json` | `baseUrl = http://localhost:8787` (`pnpm dev`) |
 | `staging.postman_environment.json` | `baseUrl = https://blixis-api-staging.frosty-hill-6079.workers.dev` |
 | `production.postman_environment.json` | `baseUrl` empty until the custom domain exists |
@@ -37,6 +37,7 @@ Postman uses `"tokenDelivery": "body"`, so the refresh token comes back in the J
 | `userId` | Sign in script | Your user's ID |
 | `organizationId`, `spaceId` | Create organization / Create space scripts | The organization and space the later requests use |
 | `memberEmail` | you (current value) | Email of **another existing user** to add in *Members*. Without it those requests are skipped with 404/400 |
+| `localeId` | Create locale script | For update and delete |
 | `orgMembershipId`, `spaceMembershipId` | Add member scripts | For change-role and remove |
 | `apiToken`, `apiTokenId` | Create API token script | The last created personal API token, shown once and stored as a secret, and its ID for *Revoke* |
 

@@ -52,3 +52,37 @@ export const spaceDeleted = defineEvent({
   schema: z.object({ spaceId: z.string(), organizationId: z.string() }),
   description: 'A space was deleted; modules must delete their data for it.',
 })
+
+const localeEventSchema = z.object({
+  spaceId: z.string(),
+  organizationId: z.string(),
+  localeId: z.string(),
+  code: z.string(),
+})
+
+/** A locale was added to a space. Best-effort: content may subscribe later. */
+export const localeCreated = defineEvent({
+  type: 'locale.created',
+  version: 1,
+  delivery: 'best-effort',
+  schema: localeEventSchema,
+  description: 'A locale was added to a space.',
+})
+
+/** A locale's name, fallback, or default flag changed. Best-effort. */
+export const localeUpdated = defineEvent({
+  type: 'locale.updated',
+  version: 1,
+  delivery: 'best-effort',
+  schema: localeEventSchema,
+  description: 'A locale changed.',
+})
+
+/** A locale was removed from a space. Best-effort. */
+export const localeDeleted = defineEvent({
+  type: 'locale.deleted',
+  version: 1,
+  delivery: 'best-effort',
+  schema: localeEventSchema,
+  description: 'A locale was removed from a space.',
+})

@@ -7,6 +7,13 @@
  */
 
 export {
+  ENVIRONMENT_SERVICE,
+  type EnvironmentService,
+  LOCALE_SERVICE,
+  type LocaleService,
+  type SpaceTenant,
+} from './application/locales.service.ts'
+export {
   type SpaceDetails,
   TENANCY_SERVICE,
   type TenancyService,
@@ -22,5 +29,13 @@ export {
   type Space,
   slugSchema,
 } from './domain/tenancy.ts'
-export { organizationCreated, spaceCreated, spaceDeleted, spaceUpdated } from './events.ts'
+export {
+  localeCreated,
+  localeDeleted,
+  localeUpdated,
+  organizationCreated,
+  spaceCreated,
+  spaceDeleted,
+  spaceUpdated,
+} from './events.ts'
 export { type SpacesModuleOptions, spacesModule } from './module.ts'

@@ -211,6 +211,41 @@ export const localeRepository = {
       return toLocale(row ?? fail())
     })
   },
+  async findById(db: Queryable, tenant: Tenant, id: string): Promise<Locale | undefined> {
+    const [row] = await db
+      .select()
+      .from(locales)
+      .where(and(tenantScope(locales, tenant), eq(locales.id, id)))
+    return row === undefined ? undefined : toLocale(row)
+  },
+  async clearDefault(db: Queryable, tenant: Tenant): Promise<void> {
+    await db
+      .update(locales)
+      .set({ isDefault: false })
+      .where(and(tenantScope(locales, tenant), eq(locales.isDefault, true)))
+  },
+  update(
+    db: Queryable,
+    tenant: Tenant,
+    id: string,
+    values: {
+      name?: string | undefined
+      fallbackCode?: string | null | undefined
+      isDefault?: boolean | undefined
+    },
+  ): Promise<Locale | undefined> {
+    return write(async () => {
+      const [row] = await db
+        .update(locales)
+        .set(values)
+        .where(and(tenantScope(locales, tenant), eq(locales.id, id)))
+        .returning()
+      return row === undefined ? undefined : toLocale(row)
+    })
+  },
+  async delete(db: Queryable, tenant: Tenant, id: string): Promise<void> {
+    await db.delete(locales).where(and(tenantScope(locales, tenant), eq(locales.id, id)))
+  },
 }
 
 function fail(): never {

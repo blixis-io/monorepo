@@ -268,4 +268,124 @@ describe.skipIf(!databaseTestsEnabled())('spaces API (Postgres)', () => {
     const u = await user('u@example.com')
     expect((await call(t, 'POST', '/organizations', u, { name: 'X', slug: 'x' })).status).toBe(403)
   })
+
+  describe('environments and locales', () => {
+    async function withSpace() {
+      const ctx = await setup()
+      const owner = await ctx.user('owner@example.com')
+      const viewer = await ctx.user('viewer@example.com')
+      const org = await createOrg(ctx.t, owner)
+      const space = (await (
+        await createSpace(ctx.t, owner, org.id, { name: 'Blog', slug: 'blog', defaultLocale: 'en' })
+      ).json()) as SpaceBody
+      await call(ctx.t, 'POST', `/spaces/${space.id}/members`, owner, {
+        email: 'viewer@example.com',
+        role: 'viewer',
+      })
+      const locales = async () =>
+        (
+          (await (await call(ctx.t, 'GET', `/spaces/${space.id}/locales`, owner)).json()) as {
+            locales: { id: string; code: string; isDefault: boolean; fallbackCode: string | null }[]
+          }
+        ).locales
+      return { ...ctx, owner, viewer, space, locales }
+    }
+
+    it('lists the main environment; viewers read, only managers change locales', async () => {
+      const { t, owner, viewer, space } = await withSpace()
+      const envs = (await (
+        await call(t, 'GET', `/spaces/${space.id}/environments`, viewer)
+      ).json()) as { environments: { key: string }[] }
+      expect(envs.environments.map((e) => e.key)).toEqual(['main'])
+      expect((await call(t, 'GET', `/spaces/${space.id}/locales`, viewer)).status).toBe(200)
+      expect(
+        (await call(t, 'POST', `/spaces/${space.id}/locales`, viewer, { code: 'de' })).status,
+      ).toBe(404)
+      expect(
+        (
+          await call(t, 'POST', `/spaces/${space.id}/locales`, owner, {
+            code: 'de-de',
+            name: 'German',
+          })
+        ).status,
+      ).toBe(201)
+    })
+
+    it('keeps exactly one default: making another default swaps; unsetting the default is rejected', async () => {
+      const { t, owner, space, locales } = await withSpace()
+      const nl = (await (
+        await call(t, 'POST', `/spaces/${space.id}/locales`, owner, { code: 'nl', isDefault: true })
+      ).json()) as { id: string }
+      expect((await locales()).filter((l) => l.isDefault).map((l) => l.code)).toEqual(['nl'])
+      expect(
+        (
+          await call(t, 'PATCH', `/spaces/${space.id}/locales/${nl.id}`, owner, {
+            isDefault: false,
+          })
+        ).status,
+      ).toBe(400)
+      const en = (await locales()).find((l) => l.code === 'en')
+      expect(
+        (
+          await call(t, 'PATCH', `/spaces/${space.id}/locales/${en?.id}`, owner, {
+            isDefault: true,
+          })
+        ).status,
+      ).toBe(200)
+      expect((await locales()).filter((l) => l.isDefault).map((l) => l.code)).toEqual(['en'])
+    })
+
+    it('validates fallbacks: existing, not self, no cycles; protects default and fallback targets from deletion', async () => {
+      const { t, owner, space, locales, events } = await withSpace()
+      const post = (body: object) => call(t, 'POST', `/spaces/${space.id}/locales`, owner, body)
+      expect((await post({ code: 'fr', fallbackCode: 'xx' })).status).toBe(409)
+      const de = (await (await post({ code: 'de', fallbackCode: 'en' })).json()) as { id: string }
+      const at = (await (await post({ code: 'de-AT', fallbackCode: 'de' })).json()) as {
+        id: string
+      }
+      // de → at would close the loop de-AT → de → de-AT.
+      expect(
+        (
+          await call(t, 'PATCH', `/spaces/${space.id}/locales/${de.id}`, owner, {
+            fallbackCode: 'de-AT',
+          })
+        ).status,
+      ).toBe(409)
+      expect(
+        (
+          await call(t, 'PATCH', `/spaces/${space.id}/locales/${de.id}`, owner, {
+            fallbackCode: 'de',
+          })
+        ).status,
+      ).toBe(409)
+      expect((await post({ code: 'de' })).status).toBe(409)
+      const en = (await locales()).find((l) => l.code === 'en')
+      expect((await call(t, 'DELETE', `/spaces/${space.id}/locales/${en?.id}`, owner)).status).toBe(
+        409,
+      )
+      expect((await call(t, 'DELETE', `/spaces/${space.id}/locales/${de.id}`, owner)).status).toBe(
+        409,
+      )
+      expect((await call(t, 'DELETE', `/spaces/${space.id}/locales/${at.id}`, owner)).status).toBe(
+        204,
+      )
+      expect((await call(t, 'DELETE', `/spaces/${space.id}/locales/${de.id}`, owner)).status).toBe(
+        204,
+      )
+      expect((await locales()).map((l) => l.code)).toEqual(['en'])
+      expect(events.emitted.filter((e) => e.type.startsWith('locale.')).map((e) => e.type)).toEqual(
+        ['locale.created', 'locale.created', 'locale.deleted', 'locale.deleted'],
+      )
+    })
+
+    it('canonicalizes codes and rejects invalid ones', async () => {
+      const { t, owner, space } = await withSpace()
+      const res = await call(t, 'POST', `/spaces/${space.id}/locales`, owner, { code: 'pt-br' })
+      expect(((await res.json()) as { code: string }).code).toBe('pt-BR')
+      expect(
+        (await call(t, 'POST', `/spaces/${space.id}/locales`, owner, { code: 'not valid!' }))
+          .status,
+      ).toBe(400)
+    })
+  })
 })
