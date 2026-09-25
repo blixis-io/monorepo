@@ -58,6 +58,11 @@ export interface LocaleService {
   ): Promise<Locale>
   /** @throws NotFoundError, ConflictError (default locale, or another locale's fallback) */
   delete(actor: Actor, tenant: SpaceTenant, localeId: string): Promise<void>
+  /**
+   * Locale codes and the default, for platform code such as entry validation — no authorization:
+   * the caller passes a tenant it already verified.
+   */
+  codes(tenant: SpaceTenant): Promise<{ codes: string[]; defaultCode: string }>
 }
 
 export const ENVIRONMENT_SERVICE: ServiceToken<EnvironmentService> =
@@ -135,6 +140,13 @@ export function createLocaleService(deps: {
     async list(actor, tenant) {
       await authz.require({ actor, action: read, resource: spaceResource(tenant) })
       return localeRepository.list(db, tenant)
+    },
+
+    async codes(tenant) {
+      const all = await localeRepository.list(db, tenant)
+      const fallback = all.find((l) => l.isDefault) ?? all[0]
+      if (fallback === undefined) throw new NotFoundError('The space has no locales')
+      return { codes: all.map((l) => l.code), defaultCode: fallback.code }
     },
 
     async create(actor, tenant, input) {

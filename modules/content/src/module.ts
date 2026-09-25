@@ -7,13 +7,15 @@ import {
 } from '@blixis/contracts'
 import { DATABASE } from '@blixis/database'
 import { defineModule } from '@blixis/kernel'
-import { spaceDeleted } from '@blixis/spaces'
+import { LOCALE_SERVICE, spaceDeleted } from '@blixis/spaces'
 import { Hono } from 'hono'
+import { CONTENT_SERVICE, createContentService } from './application/content.service.ts'
 import {
   CONTENT_TYPE_SERVICE,
   createContentTypeService,
   ENTRY_USAGE,
 } from './application/content-type.service.ts'
+import { createEntrySchemaCache } from './application/entry-schema.ts'
 import { BUILT_IN_FIELD_TYPES } from './field-types/built-in/index.ts'
 import {
   createFieldTypeRegistry,
@@ -67,6 +69,21 @@ export const contentModule = defineModule((options: ContentModuleOptions) => ({
       (options.fieldTypes ?? []) as readonly FieldTypeDefinition<never>[],
     )
     ctx.services.provide(FIELD_TYPES, registry)
+    // Compiled entry validators are pure data: one isolate-level cache (010.004).
+    const schemas = createEntrySchemaCache()
+    ctx.services.provideFactory(
+      CONTENT_SERVICE,
+      ({ services }) =>
+        createContentService({
+          db: services.get(DATABASE),
+          authz: services.get(AUTHORIZATION_SERVICE),
+          events: services.get(EVENT_BUS),
+          registry,
+          schemas,
+          locales: services.get(LOCALE_SERVICE),
+        }),
+      { scope: 'request' },
+    )
     ctx.services.provideFactory(
       CONTENT_TYPE_SERVICE,
       ({ services }) =>

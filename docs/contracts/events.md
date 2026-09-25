@@ -26,3 +26,8 @@ Every event is listed here with its delivery class. Rows are added by the task t
 | `content-type.created` | 1 | best-effort | `@blixis/content` | GraphQL schema cache (012), webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
 | `content-type.updated` | 1 | best-effort | `@blixis/content` | GraphQL schema cache (012): payload carries the new `version`; webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
 | `content-type.deleted` | 1 | best-effort | `@blixis/content` | GraphQL schema cache (012), webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
+| `entry.created` | 1 | best-effort | `@blixis/content` | search indexing, audit (020) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
+| `entry.updated` | 1 | best-effort | `@blixis/content` | preview caches, search; payload may carry `restoredFrom` | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
+| `entry.deleted` | 1 | **transactional** | `@blixis/content` | delivery cache invalidation (013), webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
+| `entry.published` | 1 | **transactional** | `@blixis/content` | delivery cache invalidation (013), webhooks (015), search | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
+| `entry.unpublished` | 1 | **transactional** | `@blixis/content` | delivery cache invalidation (013), webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
