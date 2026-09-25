@@ -54,7 +54,7 @@ describe.skipIf(!databaseTestsEnabled())('memberships (Postgres)', () => {
     expect(editor).toMatchObject({ spaceId: space, role: 'editor' })
     // Organization-level duplicates are caught too (NULLS NOT DISTINCT).
     await expect(
-      run((m) => m.addOrganizationMember({ userId: ada.id, organizationId: org, role: 'member' })),
+      run((m) => m.addOrganizationMember({ userId: ada.id, organizationId: org, role: 'viewer' })),
     ).rejects.toThrowError(new ConflictError('The user is already a member here'))
     expect((await run((m) => m.listMembers({ organizationId: org }))).map((x) => x.id)).toEqual([
       owner.id,
@@ -77,17 +77,23 @@ describe.skipIf(!databaseTestsEnabled())('memberships (Postgres)', () => {
     const { run, user } = await setup()
     const u = await user('r@example.com')
     await expect(
-      run((m) =>
-        m.addOrganizationMember({ userId: u.id, organizationId: org, role: 'editor' as never }),
-      ),
+      run((m) => m.addOrganizationMember({ userId: u.id, organizationId: org, role: 'member' })),
     ).rejects.toBeInstanceOf(ValidationError)
+    // Custom roles are referenced by id; @blixis/permissions verifies they exist.
+    expect(
+      (
+        await run((m) =>
+          m.addOrganizationMember({ userId: u.id, organizationId: org, role: newId() }),
+        )
+      ).role,
+    ).toMatch(/^[0-9a-f-]{36}$/)
     await expect(
       run((m) =>
         m.addSpaceMember({
           userId: u.id,
           organizationId: org,
           spaceId: space,
-          role: 'owner' as never,
+          role: 'owner',
         }),
       ),
     ).rejects.toBeInstanceOf(ValidationError)

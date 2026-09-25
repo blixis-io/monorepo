@@ -24,7 +24,7 @@ export const ISOLATION_ROUTES: readonly IsolationRoute[] = [
   {
     method: 'PATCH',
     path: '/api/v1/organizations/:orgId/members/:membershipId',
-    body: { role: 'member' },
+    body: { role: 'viewer' },
     paramsFrom: { membershipId: 'orgMembershipId' },
   },
   {
