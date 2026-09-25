@@ -63,6 +63,22 @@ export interface EntryView {
   readonly fields: ApiFields
 }
 
+/** One version of an entry, as the API returns it. */
+export interface EntryVersionView {
+  readonly sys: {
+    readonly id: string
+    readonly entryId: string
+    readonly number: number
+    readonly contentTypeVersion: number
+    readonly restoredFrom: string | null
+    readonly isCurrent: boolean
+    readonly isPublished: boolean
+    readonly createdAt: string
+    readonly createdBy: string
+  }
+  readonly fields: ApiFields
+}
+
 /** Options for {@link ContentService.list}. */
 export interface EntryListQuery {
   /** Content type `apiId` (or id). Required for field filters. */
@@ -146,6 +162,33 @@ export interface ContentService {
     tenant: EnvironmentTenant,
     id: string,
     options?: { force?: boolean | undefined },
+  ): Promise<EntryView>
+  /** Versions newest first; pass `nextBefore` as `before` for the next page (limit 1–100). */
+  listVersions(
+    actor: Actor,
+    tenant: EnvironmentTenant,
+    id: string,
+    page?: { limit?: number | undefined; before?: number | undefined },
+  ): Promise<{ versions: EntryVersionView[]; nextBefore: number | null }>
+  /** @throws NotFoundError */
+  getVersion(
+    actor: Actor,
+    tenant: EnvironmentTenant,
+    id: string,
+    versionId: string,
+  ): Promise<EntryVersionView>
+  /**
+   * Saves an old version's fields as a new version (history is never rewritten). The fields are
+   * checked as a draft against the **current** content type; incompatible values are reported.
+   * Emits `entry.updated` with `restoredFrom`.
+   * @throws NotFoundError, ValidationError, ConflictError (stale `expectedVersion`)
+   */
+  restoreVersion(
+    actor: Actor,
+    tenant: EnvironmentTenant,
+    id: string,
+    versionId: string,
+    expectedVersion: number,
   ): Promise<EntryView>
 }
 
@@ -294,6 +337,28 @@ export function createContentService(deps: ContentServiceDeps): ContentService {
     versionId: version.id,
   })
 
+  async function versionView(
+    tenant: EnvironmentTenant,
+    entry: Entry,
+    version: EntryVersion,
+  ): Promise<EntryVersionView> {
+    const contentType = await kit.typeOf(tenant, entry.contentTypeId)
+    return {
+      sys: {
+        id: version.id,
+        entryId: entry.id,
+        number: version.number,
+        contentTypeVersion: version.contentTypeVersion,
+        restoredFrom: version.restoredFrom,
+        isCurrent: version.id === entry.currentVersionId,
+        isPublished: version.id === entry.publishedVersionId,
+        createdAt: version.createdAt,
+        createdBy: version.createdBy,
+      },
+      fields: (await kit.schema(tenant, contentType, 'draft')).fromStorage(version.fields),
+    }
+  }
+
   const service: ContentService = {
     async resolveTenant(actor, entryId) {
       const entry = isId(entryId) ? await entryRepository.findForResolution(db, entryId) : undefined
@@ -418,6 +483,76 @@ export function createContentService(deps: ContentServiceDeps): ContentService {
           { transaction: toTransactionScope(tx) },
         )
       })
+    },
+    async listVersions(actor, tenant, id, page = {}) {
+      await kit.require(actor, P.entriesRead.id, tenant, id)
+      const limit = page.limit ?? 25
+      if (!Number.isInteger(limit) || limit < 1 || limit > 100)
+        throw new ValidationError('Invalid limit', [{ path: ['limit'], message: 'Use 1–100' }])
+      if (page.before !== undefined && !Number.isInteger(page.before))
+        throw new ValidationError('Invalid page', [
+          { path: ['before'], message: 'Use nextBefore from the previous page' },
+        ])
+      const entry = await kit.load(tenant, id)
+      const rows = await entryRepository.versions(db, tenant, entry.id, {
+        limit: limit + 1,
+        before: page.before,
+      })
+      const versions = rows.slice(0, limit)
+      return {
+        versions: await Promise.all(versions.map((v) => versionView(tenant, entry, v))),
+        nextBefore: rows.length > limit ? (versions.at(-1)?.number ?? null) : null,
+      }
+    },
+
+    async getVersion(actor, tenant, id, versionId) {
+      await kit.require(actor, P.entriesRead.id, tenant, id)
+      const entry = await kit.load(tenant, id)
+      const version = isId(versionId)
+        ? await entryRepository.version(db, tenant, entry.id, versionId)
+        : undefined
+      if (version === undefined) throw new NotFoundError('Entry version not found')
+      return versionView(tenant, entry, version)
+    },
+
+    async restoreVersion(actor, tenant, id, versionId, expectedVersion) {
+      await kit.require(actor, P.entriesWrite.id, tenant, id)
+      if (!Number.isInteger(expectedVersion))
+        throw new ValidationError('Invalid restore', [
+          {
+            path: ['expectedVersion'],
+            message: 'Send the version you edited (sys.version or If-Match)',
+          },
+        ])
+      const entry = await kit.load(tenant, id)
+      if (entry.version !== expectedVersion) throw kit.stale(entry.version)
+      const old = isId(versionId)
+        ? await entryRepository.version(db, tenant, entry.id, versionId)
+        : undefined
+      if (old === undefined) throw new NotFoundError('Entry version not found')
+      const contentType = await kit.typeOf(tenant, entry.contentTypeId)
+      const draft = await kit.schema(tenant, contentType, 'draft')
+      const { stored, links } = await kit.prepare(
+        tenant,
+        contentType,
+        draft.fromStorage(old.fields),
+        'draft',
+      )
+      const saved = await withTransaction(db, (tx) =>
+        entryRepository.append(tx, tenant, entry.id, expectedVersion, {
+          fields: stored,
+          contentTypeVersion: contentType.version,
+          actor: actorId(actor),
+          links,
+          restoredFrom: old.id,
+        }),
+      )
+      if (saved === undefined) throw kit.stale((await kit.load(tenant, id)).version)
+      await events.emit(entryUpdated, {
+        ...payload(saved.entry, saved.version),
+        restoredFrom: old.id,
+      })
+      return kit.view(tenant, saved.entry, saved.version)
     },
     async publish(actor, tenant, id, options = {}) {
       await kit.require(actor, P.entriesPublish.id, tenant, id)

@@ -10,6 +10,7 @@ export {
   type ContentService,
   type EntryListQuery,
   type EntrySys,
+  type EntryVersionView,
   type EntryView,
 } from './application/content.service.ts'
 export {

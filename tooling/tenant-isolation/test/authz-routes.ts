@@ -199,6 +199,18 @@ export const AUTHZ_ROUTES = defineAuthzMatrix([
     level: 'space',
   },
   {
+    method: 'GET',
+    path: '/api/v1/entries/:entryId/versions',
+    permission: 'content.entries.read',
+    level: 'space',
+  },
+  {
+    method: 'GET',
+    path: '/api/v1/entries/:entryId/versions/:versionId',
+    permission: 'content.entries.read',
+    level: 'space',
+  },
+  {
     method: 'POST',
     path: '/api/v1/spaces/:spaceId/entries',
     body: { contentType: 'article', fields: {} },
@@ -209,6 +221,14 @@ export const AUTHZ_ROUTES = defineAuthzMatrix([
     method: 'PATCH',
     path: '/api/v1/entries/:entryId',
     body: { expectedVersion: 1, fields: {} },
+    permission: 'content.entries.write',
+    level: 'space',
+  },
+  {
+    // After the PATCH row above, an allowed actor's entry is at version 2.
+    method: 'POST',
+    path: '/api/v1/entries/:entryId/versions/:versionId/restore',
+    body: { expectedVersion: 2 },
     permission: 'content.entries.write',
     level: 'space',
   },

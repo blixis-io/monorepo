@@ -143,3 +143,34 @@ export const entryRoutes = new Hono<ModuleHonoEnv>()
     withEtag(c, entry)
     return c.json(entry)
   })
+  // Version history (011.005)
+  .get('/entries/:entryId/versions', entryScoped(), async (c) => {
+    const limit = c.req.query('limit')
+    const before = c.req.query('before')
+    return c.json(
+      await c.var.services.get(CONTENT_SERVICE).listVersions(actorOf(c), tenantOf(c), entryId(c), {
+        limit: limit === undefined ? undefined : Number(limit),
+        before: before === undefined ? undefined : Number(before),
+      }),
+    )
+  })
+  .get('/entries/:entryId/versions/:versionId', entryScoped(), async (c) =>
+    c.json(
+      await c.var.services
+        .get(CONTENT_SERVICE)
+        .getVersion(actorOf(c), tenantOf(c), entryId(c), c.req.param('versionId') ?? ''),
+    ),
+  )
+  .post('/entries/:entryId/versions/:versionId/restore', entryScoped(), async (c) => {
+    const entry = await c.var.services
+      .get(CONTENT_SERVICE)
+      .restoreVersion(
+        actorOf(c),
+        tenantOf(c),
+        entryId(c),
+        c.req.param('versionId') ?? '',
+        expectedVersion(c, await json(c)) ?? Number.NaN,
+      )
+    withEtag(c, entry)
+    return c.json(entry)
+  })
