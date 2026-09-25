@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,19 +37,18 @@ Implement `publish` and `unpublish` on `ContentService` and their REST routes wi
 ### Create
 
 ```text
-modules/content/src/application/publishing.ts
-modules/content/test/publishing.test.ts
-apps/api/test/publishing.worker.test.ts
+modules/content/test/publishing.api.test.ts
 ```
 
 ### Modify
 
 ```text
 modules/content/src/application/content.service.ts
+modules/content/src/domain/links.ts (collectLinkUsages with API paths and allowed types)
 modules/content/src/rest/entry.routes.ts
-modules/content/src/permissions.ts
-modules/content/src/events.ts
-docs/contracts/events.md
+tooling/tenant-isolation/test/routes.ts
+tooling/tenant-isolation/test/authz-routes.ts
+tooling/postman/blixis.postman_collection.json
 ```
 
 ### Delete
@@ -72,9 +71,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Publishing emits exactly one `entry.published` through outbox → queue in the Workers pool test.
-- [ ] Invalid content cannot be published.
-- [ ] Idempotent replays return the original result.
+- [x] Publishing emits exactly one `entry.published` through outbox → queue in the Workers pool test.
+- [x] Invalid content cannot be published.
+- [x] Idempotent replays return the original result.
 
 ## Validation
 
@@ -85,15 +84,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Events payloads contain IDs only (no content bodies).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Events payloads contain IDs only (no content bodies).
 
 ## Completion conditions
 
@@ -110,4 +109,24 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **`publish(actor, tenant, id, { versionId?, expectedVersion? })`:**
+  - Validates the chosen version (default: current) in `publish` mode against the **current** content type, via `fromStorage` → `validate`.
+  - Adds **reference-integrity issues** (`collectLinkUsages`, with API paths): the target doesn't exist, isn't published, or has a type outside the field's `contentTypeIds`. Self-links are ignored.
+  - All problems come back in one `400` with paths.
+  - Republishing the live version is a no-op, with no event.
+  - Otherwise it runs `setPublished` and a history row, and emits `entry.published` **in the same transaction** (outbox).
+- **`unpublish(actor, tenant, id, { force? })`:**
+  - **Decision:** block with `409` (listing the referrer ids) while other *published* entries link to it; `force: true` overrides. Holders of `content.entries.publish` may force; no extra permission was added.
+  - Unpublishing a draft is a no-op.
+  - Emits `entry.unpublished` transactionally with the version that was live.
+- **Asset links** aren't checked yet; plan 014 validates them.
+- **Routes:** `POST /entries/:entryId/publish` and `/unpublish` with `entryScoped()` **then** `idempotent()`, so keys are scoped to the entry's tenant and the actor. `If-Match` or `expectedVersion` guards publish.
+- **Tests:**
+  - an invalid draft gives `400` with `fields.title.en-US`;
+  - the same key gives a replay (`Idempotent-Replayed: true`, identical body), and the same key with a different body gives `409`;
+  - the event is emitted once;
+  - the published version is still served while a draft is `changed`;
+  - link integrity and the unpublish block with `force`;
+  - delete is blocked while published;
+  - viewers get `403`.
+- The isolation suite and authorization matrix cover the two command routes. Postman has publish (with an `Idempotency-Key` `{{$guid}}`), a published read, and unpublish.

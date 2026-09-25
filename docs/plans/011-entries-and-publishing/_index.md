@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 5 — Content management core  
 Roadmap scope: MVP / initial platform  
-Progress: 3/7 tasks completed
+Progress: 4/7 tasks completed
 
 ## Objective
 
@@ -63,7 +63,7 @@ Depends on:
 - [x] [001 — Create entry, version, and publication schema](./001-entry-and-version-schema.md)
 - [x] [002 — Implement ContentService draft lifecycle](./002-content-service-draft-lifecycle.md)
 - [x] [003 — Implement entry management REST routes](./003-entry-management-routes.md)
-- [ ] [004 — Implement publish and unpublish commands](./004-publish-and-unpublish-commands.md)
+- [x] [004 — Implement publish and unpublish commands](./004-publish-and-unpublish-commands.md)
 - [ ] [005 — Implement version history and restore](./005-version-history-and-restore.md)
 - [ ] [006 — Implement entry references and link resolution](./006-references-and-link-resolution.md)
 - [ ] [007 — Verify the content management vertical slice end to end](./007-content-vertical-slice-end-to-end.md)

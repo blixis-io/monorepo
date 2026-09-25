@@ -72,6 +72,8 @@ export const ISOLATION_ROUTES: readonly IsolationRoute[] = [
     path: '/api/v1/entries/:entryId',
     body: { expectedVersion: 1, fields: { title: 'Hijacked' } },
   },
+  { method: 'POST', path: '/api/v1/entries/:entryId/publish' },
+  { method: 'POST', path: '/api/v1/entries/:entryId/unpublish', body: { force: true } },
   { method: 'DELETE', path: '/api/v1/entries/:entryId' },
   // @blixis/spaces — spaces
   { method: 'GET', path: '/api/v1/spaces/:spaceId' },

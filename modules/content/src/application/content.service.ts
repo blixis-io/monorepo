@@ -20,8 +20,14 @@ import {
   type EntryVersion,
   entryStatus,
 } from '../domain/entry.ts'
-import { collectLinks } from '../domain/links.ts'
-import { entryCreated, entryDeleted, entryUpdated } from '../events.ts'
+import { collectLinks, collectLinkUsages } from '../domain/links.ts'
+import {
+  entryCreated,
+  entryDeleted,
+  entryPublished,
+  entryUnpublished,
+  entryUpdated,
+} from '../events.ts'
 import type { FieldTypeRegistry } from '../field-types/define.ts'
 import {
   contentTypeRepository,
@@ -118,6 +124,29 @@ export interface ContentService {
     id: string,
     options?: { expectedVersion?: number },
   ): Promise<void>
+  /**
+   * Publishes a version (default: the current one). It is validated strictly (`publish` mode) and
+   * every linked entry must exist, be published, and have an allowed type. Publishing the version
+   * that is already live changes nothing. Emits `entry.published` in the same transaction.
+   * @throws ValidationError (with paths), ConflictError (stale `expectedVersion`)
+   */
+  publish(
+    actor: Actor,
+    tenant: EnvironmentTenant,
+    id: string,
+    options?: { versionId?: string | undefined; expectedVersion?: number | undefined },
+  ): Promise<EntryView>
+  /**
+   * Takes the entry offline. Refused while other published entries link to it, unless `force`.
+   * Unpublishing a draft changes nothing. Emits `entry.unpublished` in the same transaction.
+   * @throws ConflictError (linked from published entries)
+   */
+  unpublish(
+    actor: Actor,
+    tenant: EnvironmentTenant,
+    id: string,
+    options?: { force?: boolean | undefined },
+  ): Promise<EntryView>
 }
 
 /** Request-scoped {@link ContentService}, provided by `contentModule()`. */
@@ -265,7 +294,7 @@ export function createContentService(deps: ContentServiceDeps): ContentService {
     versionId: version.id,
   })
 
-  return {
+  const service: ContentService = {
     async resolveTenant(actor, entryId) {
       const entry = isId(entryId) ? await entryRepository.findForResolution(db, entryId) : undefined
       if (entry === undefined) throw new NotFoundError('Entry not found')
@@ -390,6 +419,116 @@ export function createContentService(deps: ContentServiceDeps): ContentService {
         )
       })
     },
+    async publish(actor, tenant, id, options = {}) {
+      await kit.require(actor, P.entriesPublish.id, tenant, id)
+      const entry = await kit.load(tenant, id)
+      if (options.expectedVersion !== undefined && entry.version !== options.expectedVersion)
+        throw kit.stale(entry.version)
+      const versionId = options.versionId ?? entry.currentVersionId
+      const version = isId(versionId)
+        ? await entryRepository.version(db, tenant, entry.id, versionId)
+        : undefined
+      if (version === undefined) throw new NotFoundError('Entry version not found')
+      if (entry.publishedVersionId === version.id) return kit.view(tenant, entry, version)
+
+      const contentType = await kit.typeOf(tenant, entry.contentTypeId)
+      const strict = await kit.schema(tenant, contentType, 'publish')
+      const checked = strict.validate(strict.fromStorage(version.fields))
+      const issues = checked.ok ? [] : [...checked.issues]
+      issues.push(...(await linkIssues(tenant, contentType, version.fields, entry.id)))
+      if (issues.length > 0) throw new ValidationError('The entry cannot be published', issues)
+
+      const published = await withTransaction(db, async (tx) => {
+        const updated = await entryRepository.setPublished(
+          tx,
+          tenant,
+          entry.id,
+          version.id,
+          actorId(actor),
+        )
+        await events.emit(entryPublished, payload(updated, version), {
+          transaction: toTransactionScope(tx),
+        })
+        return updated
+      })
+      return kit.view(tenant, published, version)
+    },
+
+    async unpublish(actor, tenant, id, options = {}) {
+      await kit.require(actor, P.entriesPublish.id, tenant, id)
+      const entry = await kit.load(tenant, id)
+      const current = await entryRepository.version(db, tenant, entry.id, entry.currentVersionId)
+      if (current === undefined) throw new NotFoundError('Entry version not found')
+      const liveVersionId = entry.publishedVersionId
+      if (liveVersionId === null) return kit.view(tenant, entry, current)
+      if (options.force !== true) {
+        const referrers = (
+          await entryRepository.referrers(db, tenant, { type: 'entry', id: entry.id }, 'published')
+        ).filter((r) => r.id !== entry.id)
+        if (referrers.length > 0)
+          throw new ConflictError(
+            `Published entries link to this entry (${referrers.map((r) => r.id).join(', ')}): unpublish or change them first, or unpublish with force`,
+          )
+      }
+      const unpublished = await withTransaction(db, async (tx) => {
+        const updated = await entryRepository.setPublished(
+          tx,
+          tenant,
+          entry.id,
+          null,
+          actorId(actor),
+        )
+        await events.emit(
+          entryUnpublished,
+          {
+            entryId: entry.id,
+            environmentId: entry.environmentId,
+            contentTypeId: entry.contentTypeId,
+            versionId: liveVersionId,
+          },
+          { transaction: toTransactionScope(tx) },
+        )
+        return updated
+      })
+      return kit.view(tenant, unpublished, current)
+    },
+  }
+
+  return service
+
+  /**
+   * Links that block publishing: missing or unpublished entries, and targets of a type the field
+   * does not allow. Assets are checked once assets exist (plan 014).
+   */
+  async function linkIssues(
+    tenant: EnvironmentTenant,
+    contentType: ContentType,
+    fields: Readonly<Record<string, unknown>>,
+    self: string,
+  ) {
+    const usages = collectLinkUsages(contentType, await kit.types(tenant), fields).filter(
+      (u) => u.link.type === 'entry' && u.link.id !== self,
+    )
+    const targets = new Map(
+      (
+        await entryRepository.findManyByIds(db, tenant, [...new Set(usages.map((u) => u.link.id))])
+      ).map((e) => [e.id, e]),
+    )
+    const issues: { path: (string | number)[]; message: string }[] = []
+    for (const usage of usages) {
+      const target = targets.get(usage.link.id)
+      const message =
+        target === undefined
+          ? 'Links to an entry that does not exist'
+          : target.publishedVersionId === null
+            ? 'Links to an unpublished entry: publish it first'
+            : usage.contentTypeIds.length > 0 &&
+                !usage.contentTypeIds.includes(target.contentTypeId)
+              ? 'Links to an entry of a type this field does not allow'
+              : undefined
+      if (message !== undefined) issues.push({ path: [...usage.path], message })
+    }
+    return issues
   }
 }
 
