@@ -124,6 +124,44 @@ describe.skipIf(!databaseTestsEnabled())('content types API (Postgres)', () => {
     ])
   })
 
+  it('creates a type with every built-in field type', async () => {
+    const { t, owner, spaceId } = await setup()
+    const hero = (
+      await create(t, spaceId, owner, { kind: 'component', apiId: 'hero', name: 'Hero' })
+    ).body
+    const settings: Record<string, object> = {
+      select: { options: [{ value: 'a', label: 'A' }] },
+      blocks: { componentIds: [hero.id] },
+    }
+    const types = [
+      'text',
+      'longText',
+      'richText',
+      'number',
+      'boolean',
+      'date',
+      'dateTime',
+      'select',
+      'reference',
+      'asset',
+      'link',
+      'blocks',
+      'json',
+    ]
+    const { status, body } = await create(t, spaceId, owner, {
+      apiId: 'kitchenSink',
+      name: 'Kitchen sink',
+      fields: types.map((type) => ({
+        apiId: `f${type}`,
+        name: type,
+        type,
+        settings: settings[type] ?? {},
+      })),
+    })
+    expect(status).toBe(201)
+    expect(body.fields.map((f) => f.type)).toEqual(types)
+  })
+
   it('builds pages from components through a blocks field', async () => {
     const { t, owner, spaceId } = await setup()
     const hero = (

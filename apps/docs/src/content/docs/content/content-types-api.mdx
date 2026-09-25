@@ -1,0 +1,148 @@
+---
+title: Content types API
+description: REST endpoints for content types, components, and field types — requests, responses, errors, and safe changes.
+sidebar:
+  order: 3
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+All endpoints need a signed-in user, or an API token with the listed scope. Paths are relative to `/api/v1`.
+
+**Choosing an environment:** content types belong to one environment. Pick it with `?environment=<key>`; without it, requests use the space's default environment (`main`). An unknown environment answers `404`.
+
+| Method | Path | Permission |
+|---|---|---|
+| `GET` | `/field-types` | signed in |
+| `GET` | `/spaces/:spaceId/content-types` (`?kind=entry\|component`) | `content.types.read` |
+| `POST` | `/spaces/:spaceId/content-types` | `content.types.write` |
+| `GET` | `/spaces/:spaceId/content-types/:contentTypeId` | `content.types.read` |
+| `PATCH` | `/spaces/:spaceId/content-types/:contentTypeId` | `content.types.write` |
+| `DELETE` | `/spaces/:spaceId/content-types/:contentTypeId` | `content.types.write` |
+
+## Create
+
+```http
+POST /api/v1/spaces/{spaceId}/content-types
+Content-Type: application/json
+
+{
+  "kind": "entry",
+  "apiId": "page",
+  "name": "Page",
+  "description": "Website pages built from blocks",
+  "displayField": "title",
+  "groups": [ { "id": "seo", "name": "SEO" } ],
+  "fields": [
+    { "apiId": "title", "name": "Title", "type": "text", "required": true, "localized": true },
+    { "apiId": "slug", "name": "Slug", "type": "text", "required": true, "settings": { "format": "slug" } },
+    { "apiId": "body", "name": "Body", "type": "blocks", "localized": true,
+      "settings": { "componentIds": ["01a0d8f9-…"] } },
+    { "apiId": "metaDescription", "name": "Meta description", "type": "longText",
+      "group": "seo", "settings": { "maxLength": 160 } }
+  ]
+}
+```
+
+**`201 Created`** returns the content type. Fields get their stable `id`, and settings have their defaults filled in:
+
+```json
+{
+  "id": "01a0d8fa-…",
+  "environmentId": "01a0d8f8-…",
+  "kind": "entry",
+  "apiId": "page",
+  "name": "Page",
+  "description": "Website pages built from blocks",
+  "displayField": "title",
+  "groups": [ { "id": "seo", "name": "SEO" } ],
+  "fields": [
+    { "id": "k3J9aQ2x", "apiId": "title", "name": "Title", "type": "text", "required": true,
+      "localized": true, "disabled": false, "settings": { "maxLength": 256, "format": "plain" } },
+    …
+  ],
+  "version": 1,
+  "createdAt": "2026-09-25T14:30:00.000Z",
+  "updatedAt": "2026-09-25T14:30:00.000Z"
+}
+```
+
+- **Defaults:** `kind` defaults to `entry`, `description` to `""`, and `groups` and `fields` to `[]`.
+- **API ids:** a type's `apiId` must be unique in the environment across content types *and* components. The response uses `apiId`s for `displayField` and for `showWhen.field`.
+- **Limits:** 100 fields per type, 500 types per environment.
+
+## Update
+
+`PATCH` takes the properties to change, plus the `version` you edited:
+
+```json
+{
+  "version": 3,
+  "name": "Landing page",
+  "fields": [
+    { "id": "k3J9aQ2x", "apiId": "headline", "name": "Headline", "type": "text", "required": true, "localized": true },
+    { "apiId": "subtitle", "name": "Subtitle", "type": "text", "localized": true }
+  ]
+}
+```
+
+- `fields`, when present, is the **complete, ordered list**. Existing fields are matched by `id` (so `title` → `headline` above is a rename that keeps its content), fields without `id` are new, and fields left out are removed.
+- A **stale `version`** answers `409`: reload the type, reapply your change, and send the new version.
+- The response is the updated type with `version` + 1. Clients see a renamed `apiId` immediately.
+
+<Aside type="caution">
+While a type has entries, some changes are refused with `409` and an explanation: changing a field's `type` or `localized`, removing a field that isn't disabled, or changing `kind`. To retire a field, first `PATCH` it with `"disabled": true`, then remove it in a later change. See [Content modeling](/concepts/content-modeling/#changing-a-model-safely).
+</Aside>
+
+## Delete
+
+`DELETE` answers `204`. It is refused with `409` while the type has entries, or while another type uses it: in a `blocks` field's `componentIds`, or in a `reference` or `link` field's `contentTypeIds`. Remove those uses first.
+
+## Errors
+
+Errors are [problem details](/concepts/errors/). Validation errors list every problem at once, with the path to the offending setting:
+
+```json
+{
+  "type": "urn:blixis:problem:VALIDATION_FAILED",
+  "status": 400,
+  "detail": "Invalid fields",
+  "errors": [
+    { "path": ["fields", 0, "type"], "message": "Unknown field type \"colour\" (see GET /api/v1/field-types)" },
+    { "path": ["fields", 1, "settings", "maxLength"], "message": "Too big: expected number to be <=256" },
+    { "path": ["fields", 2, "showWhen", "field"], "message": "Must name another field of this type" }
+  ]
+}
+```
+
+| Status | When |
+|---|---|
+| `400` | invalid body, settings, groups, `showWhen`, references to other types, or reserved/duplicate `apiId`s |
+| `401` | not signed in |
+| `403` | a member without `content.types.write` (or a token without the scope) |
+| `404` | unknown space, environment or type, or a space you aren't a member of |
+| `409` | `apiId` taken, stale `version`, unsafe change, or type still in use |
+
+## Events
+
+| Event | Payload |
+|---|---|
+| `content-type.created` | `{ contentTypeId, environmentId, apiId, kind, version }` |
+| `content-type.updated` | same, with the new `version` |
+| `content-type.deleted` | same, with the last `version` |
+
+Events are best-effort, and envelopes carry the organization and space ids. See [Events](/concepts/events/).
+
+## Field types
+
+`GET /api/v1/field-types` lists every field type your app supports, including those added by modules:
+
+```json
+{ "fieldTypes": [
+  { "id": "text", "name": "Text", "description": "Single line of text …", "localizable": true, "builtIn": true,
+    "settingsSchema": { "type": "object", "properties": { "maxLength": { "type": "integer", "default": 256, … } } } },
+  { "id": "acme.color", "name": "Color", "builtIn": false, … }
+] }
+```
+
+`settingsSchema` is JSON Schema (draft 2020-12, input side). Editors can generate settings forms from it.

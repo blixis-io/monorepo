@@ -1,0 +1,87 @@
+---
+title: Rich text format
+description: The JSON document format of richText fields — nodes, marks, nesting rules, and how to render it.
+sidebar:
+  order: 2
+---
+
+`richText` values are JSON documents with the same structure as [ProseMirror](https://prosemirror.net/) and [TipTap](https://tiptap.dev/) documents, so editors built on them can load and save values directly. Documents are stored as JSON, never as HTML, so your frontend decides how each node renders and no HTML needs sanitising.
+
+## Document
+
+```json
+{
+  "type": "doc",
+  "content": [
+    { "type": "paragraph", "content": [ { "type": "text", "text": "Hello " },
+      { "type": "text", "text": "world", "marks": [ { "type": "bold" } ] } ] }
+  ]
+}
+```
+
+- Every node has a `type`, and optionally `attrs` and `content` (child nodes).
+- Text lives in `text` nodes, which may carry `marks`.
+- Documents nest at most 20 levels deep.
+
+## Nodes
+
+| Node | Contains | Attributes | Setting gate |
+|---|---|---|---|
+| `paragraph` | inline | — | always allowed |
+| `heading` | inline | `level` (1–6, limited by `headingLevels`) | `heading` |
+| `bulletList`, `orderedList` | `listItem` | `orderedList`: optional `start` | `bulletList`, `orderedList` |
+| `listItem` | blocks | — | with its list |
+| `blockquote` | blocks | — | `blockquote` |
+| `codeBlock` | `text` only | optional `language` | `codeBlock` |
+| `horizontalRule` | — | — | `horizontalRule` |
+| `table` | `tableRow` | — | `table` |
+| `tableRow` | `tableHeader` / `tableCell` | — | with `table` |
+| `tableHeader`, `tableCell` | blocks | optional `colspan`, `rowspan` | with `table` |
+| `embeddedEntry` | — | `id` (entry UUID) | `embeddedEntry` |
+| `embeddedAsset` | — | `id` (asset UUID) | `embeddedAsset` |
+| `text` | — (inline) | `text` (non-empty), `marks` | always allowed |
+| `hardBreak` | — (inline) | — | `hardBreak` |
+
+"Inline" means `text` and `hardBreak`. "Blocks" means any block node above except list items, rows and cells.
+
+## Marks
+
+| Mark | Attributes |
+|---|---|
+| `bold`, `italic`, `underline`, `strike`, `code` | — |
+| `link` | `href`: `http(s)://…`, `mailto:`, `tel:`, `/relative` or `#anchor`. Optional `entryId` for links to entries |
+
+`javascript:` and other schemes are rejected. Fields can narrow the allowed nodes, marks and heading levels with their [settings](/content/field-types/#richtext).
+
+## Rendering
+
+Walk the tree and map each node type to your framework's elements. In Astro or React, a small recursive component is enough:
+
+```tsx
+const marks = { bold: 'strong', italic: 'em', underline: 'u', strike: 's', code: 'code' } as const
+
+function Node({ node }: { node: RichTextNode }) {
+  const children = node.content?.map((child, i) => <Node key={i} node={child} />)
+  switch (node.type) {
+    case 'paragraph': return <p>{children}</p>
+    case 'heading': { const H = `h${node.attrs.level}` as 'h2'; return <H>{children}</H> }
+    case 'bulletList': return <ul>{children}</ul>
+    case 'orderedList': return <ol start={node.attrs?.start}>{children}</ol>
+    case 'listItem': return <li>{children}</li>
+    case 'blockquote': return <blockquote>{children}</blockquote>
+    case 'hardBreak': return <br />
+    case 'embeddedEntry': return <EntryCard id={node.attrs.id} />
+    case 'text': return node.marks?.reduce<React.ReactNode>((inner, mark) =>
+      mark.type === 'link'
+        ? <a href={mark.attrs.href}>{inner}</a>
+        : (() => { const T = marks[mark.type]; return <T>{inner}</T> })(), node.text) ?? node.text
+    default: return <>{children}</>
+  }
+}
+```
+
+Unknown node types should render their children, so older frontends keep working when an editor gains a node type.
+
+## Emptiness
+
+For `required`, a document counts as empty when it has no text, embeds, or horizontal rules. For example, `{ "type": "doc", "content": [ { "type": "paragraph" } ] }` is empty.

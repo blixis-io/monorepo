@@ -1,0 +1,190 @@
+---
+title: Field types
+description: Reference for every built-in field type — purpose, settings, value format, and examples.
+sidebar:
+  order: 1
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+Blixis has 13 built-in field types. Modules can add more; see [Custom field types](/extending/custom-field-types/).
+
+`GET /api/v1/field-types` lists every type available in your app, with its settings as JSON Schema.
+
+**Common to every field:** `required`, `localized`, `description`, `group`, `hidden`, `showWhen` and `disabled` (see [Content modeling](/concepts/content-modeling/#fields)).
+
+**Values on this page:** the examples show one value. For a localized field, wrap it per locale: `{ "en-US": value }`.
+
+| Type | For | Value |
+|---|---|---|
+| [`text`](#text) | titles, labels, slugs, emails, URLs | string |
+| [`longText`](#longtext) | descriptions, excerpts | string |
+| [`richText`](#richtext) | formatted body text | document |
+| [`number`](#number) | prices, counts, ratings | number |
+| [`boolean`](#boolean) | switches | boolean |
+| [`date`](#date) | birthdays, deadlines | `"2026-09-25"` |
+| [`dateTime`](#datetime) | event start, publish at | `"2026-09-25T14:30:00+02:00"` |
+| [`select`](#select) | categories, variants | string or string[] |
+| [`reference`](#reference) | authors, related posts | entry link(s) |
+| [`asset`](#asset) | images, downloads | asset link(s) |
+| [`link`](#link) | buttons, navigation | link object |
+| [`blocks`](#blocks) | page building | component instances |
+| [`json`](#json) | structured data without a model | any JSON |
+
+## `text`
+
+A single line of text, up to 256 characters.
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `maxLength` | `256` | 1–256 |
+| `minLength` | — | minimum characters |
+| `format` | `plain` | `plain`, `slug` (`hello-world`), `email`, or `url` (http/https only) |
+| `pattern` | — | a JavaScript regular expression the value must match, e.g. `^[A-Z]{2}-\d{4}$` |
+| `patternMessage` | — | error shown when `pattern` doesn't match |
+
+```json
+{ "apiId": "slug", "name": "Slug", "type": "text", "required": true, "settings": { "format": "slug" } }
+```
+
+Value: `"hello-world"`.
+
+<Aside type="caution">
+Patterns longer than 200 characters, patterns that don't compile, and patterns with nested quantifiers such as `(a+)+` are rejected. They can make validation take exponential time (ReDoS).
+</Aside>
+
+## `longText`
+
+Multiple lines of plain text, up to 50,000 characters. Settings: `minLength`, and `maxLength` (default and maximum 50 000). Value: `"First line\nSecond line"`.
+
+## `richText`
+
+Formatted text as a JSON document, compatible with ProseMirror and TipTap: paragraphs, headings, lists, quotes, code, tables, embedded entries and assets, and marks such as bold and links.
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `nodes` | all | allowed optional nodes: `heading`, `bulletList`, `orderedList`, `blockquote`, `codeBlock`, `horizontalRule`, `hardBreak`, `table`, `embeddedEntry`, `embeddedAsset`. `paragraph` and `text` are always allowed |
+| `marks` | all | allowed marks: `bold`, `italic`, `underline`, `strike`, `code`, `link` |
+| `headingLevels` | `[1,2,3,4,5,6]` | allowed heading levels |
+
+```json
+{ "type": "doc", "content": [
+  { "type": "heading", "attrs": { "level": 2 }, "content": [ { "type": "text", "text": "About us" } ] },
+  { "type": "paragraph", "content": [
+    { "type": "text", "text": "Read our " },
+    { "type": "text", "text": "story", "marks": [ { "type": "link", "attrs": { "href": "/story" } } ] }
+  ] }
+] }
+```
+
+A document with only empty paragraphs counts as empty for `required`. The full format is described in [Rich text format](/content/rich-text/).
+
+## `number`
+
+An integer or decimal number.
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `integer` | `false` | whole numbers only (GraphQL `Int` instead of `Float`) |
+| `min`, `max` | — | inclusive range |
+
+Value: `19.95`.
+
+## `boolean`
+
+A yes/no switch. It has no settings. Value: `true`. It is a good condition field for `showWhen`.
+
+## `date`
+
+A calendar date without time or time zone, `YYYY-MM-DD`, checked against the calendar (so `2026-02-30` is rejected). Settings: `min` and `max` (dates). Value: `"2026-09-25"`.
+
+## `dateTime`
+
+A moment in time: ISO 8601 with a UTC offset or `Z`. It has no settings. Value: `"2026-09-25T14:30:00+02:00"`.
+
+## `select`
+
+One value from a fixed list, or several with `multiple`.
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `options` | (required) | `[{ "value": "news", "label": "News" }, …]`, 1–500 options with unique values |
+| `multiple` | `false` | allow several values (no duplicates) |
+| `min`, `max` | — | item count when `multiple`. `min` is checked on publish |
+
+Values: `"news"`, or `["news", "events"]` with `multiple`.
+
+## `reference`
+
+Links to other entries. Drafts may link to entries that don't exist yet: publishing checks that the targets exist and have an allowed type.
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `contentTypeIds` | `[]` (any) | allowed target content types (ids of `entry` types) |
+| `multiple` | `false` | a list of links |
+| `min`, `max` | — | item count when `multiple` (max ≤ 100) |
+
+Values: `{ "type": "entry", "id": "01a0d8f9-…" }`, or a list of them.
+
+## `asset`
+
+Links to assets such as images and documents, stored in R2 (assets arrive in plan 014).
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `mimeTypes` | `[]` (any) | e.g. `["image/*", "application/pdf"]` |
+| `multiple`, `min`, `max` | — | as for `reference` |
+
+Value: `{ "type": "asset", "id": "01a0d8f9-…" }`.
+
+## `link`
+
+A link for buttons and navigation. It can point to an entry in your space, an external URL, an email address, or a phone number, and can carry its own text and title.
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `kinds` | `["entry", "url"]` | allowed kinds: `entry`, `url`, `email`, `phone` |
+| `contentTypeIds` | `[]` (any) | allowed entry types for `entry` links |
+| `text` | `optional` | `none`, `optional`, or `required` link text |
+| `allowNewTab` | `true` | whether `newTab: true` is allowed |
+
+```json
+{ "kind": "entry", "id": "01a0d8f9-…", "text": "Read more" }
+{ "kind": "url", "url": "https://example.com", "text": "Visit", "title": "Opens example.com", "newTab": true }
+{ "kind": "email", "email": "info@example.com", "text": "Mail us" }
+{ "kind": "phone", "phone": "+31 6 1234 5678" }
+```
+
+Only `http` and `https` URLs are accepted, never `javascript:`.
+
+## `blocks`
+
+An ordered list of **components**: the page-building field. Each item is an instance of an allowed component, with a unique 8-character `_id` and the component's `apiId` as `_type`:
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `componentIds` | (required) | ids of the components allowed here (at least one) |
+| `min` | — | minimum items, checked on publish |
+| `max` | `100` | maximum items (≤ 100) |
+
+```json
+[
+  { "_id": "k3J9aQ2x", "_type": "hero", "heading": "Welcome", "hasButton": true,
+    "button": { "kind": "url", "url": "https://example.com/start", "text": "Get started" } },
+  { "_id": "Pq81sLm0", "_type": "section", "title": "Our courses",
+    "children": [ { "_id": "c0lUmn01", "_type": "card", "title": "Yoga" } ] }
+]
+```
+
+- Every item is validated by its component, with error paths such as `fields.body.en-US.0.heading`.
+- Items nest at most 5 levels deep.
+- Components are published and translated together with the entry: localize the `blocks` field itself.
+- See [Designing components](/extending/components/).
+
+## `json`
+
+Any JSON value up to 64 KiB, for structured data that has no content model, e.g. a map configuration or data imported from another system. It has no settings. It is empty only when `null`.
+
+<Aside type="tip">
+Prefer a real model where you can. `json` has no field-level validation, no editor UI beyond a code editor, and appears in GraphQL as the untyped `JSON` scalar.
+</Aside>
