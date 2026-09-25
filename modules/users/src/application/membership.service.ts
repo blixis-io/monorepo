@@ -10,12 +10,13 @@ import {
 import {
   type Database,
   fromTransactionScope,
+  isId,
   newId,
   type Transaction,
   translateDatabaseError,
   withTransaction,
 } from '@blixis/database'
-import { and, asc, eq, isNull, type SQL } from 'drizzle-orm'
+import { and, asc, count, eq, isNull, type SQL } from 'drizzle-orm'
 import {
   type Membership,
   type MembershipScope,
@@ -32,12 +33,12 @@ import { memberships } from '../infrastructure/schema.ts'
 export interface MembershipService {
   /** @throws ValidationError (unknown role), ConflictError (already a member) */
   addOrganizationMember(
-    input: { userId: string; organizationId: string; role: OrganizationRole },
+    input: { userId: string; organizationId: string; role: string },
     options?: { readonly transaction?: TransactionScope },
   ): Promise<Membership>
   /** @throws ValidationError, ConflictError */
   addSpaceMember(
-    input: { userId: string; organizationId: string; spaceId: string; role: SpaceRole },
+    input: { userId: string; organizationId: string; spaceId: string; role: string },
     options?: { readonly transaction?: TransactionScope },
   ): Promise<Membership>
   /** Members at exactly this level (organization-level or space-level), oldest first. */
@@ -46,6 +47,8 @@ export interface MembershipService {
   getMembership(userId: string, scope: MembershipScope): Promise<Membership | undefined>
   /** All memberships of a user (organizations and spaces). */
   listMembershipsForUser(userId: string): Promise<Membership[]>
+  /** How many memberships (organization- and space-level) in the organization use `roleKey`. */
+  countWithRole(organizationId: string, roleKey: string): Promise<number>
   /** Roles a user holds for a space, through its organization and/or the space. */
   getSpaceAccess(userId: string, organizationId: string, spaceId: string): Promise<SpaceAccess>
   /** @throws NotFoundError, ValidationError, ConflictError (would leave no owner) */
@@ -83,9 +86,19 @@ const levelOf = (scope: MembershipScope): SQL =>
       : eq(memberships.spaceId, scope.spaceId),
   ) as SQL
 
+/**
+ * System role keys valid at the level, or a custom role id. Whether a custom role exists in the
+ * organization is verified by `@blixis/permissions` before assignment.
+ */
+const assignable = (role: string, allowed: readonly string[]) =>
+  allowed.includes(role) || isId(role)
+
 const invalidRole = (role: string, allowed: readonly string[]) =>
   new ValidationError('Unknown role', [
-    { path: ['role'], message: `Use one of: ${allowed.join(', ')} (got ${role})` },
+    {
+      path: ['role'],
+      message: `Use one of: ${allowed.join(', ')}, or a custom role id (got ${role})`,
+    },
   ])
 
 /** Creates the {@link MembershipService} of one request scope. */
@@ -161,7 +174,7 @@ export function createMembershipService(deps: {
 
   return {
     async addOrganizationMember(input, options = {}) {
-      if (!(ORGANIZATION_ROLES as readonly string[]).includes(input.role))
+      if (!assignable(input.role, ORGANIZATION_ROLES))
         throw invalidRole(input.role, ORGANIZATION_ROLES)
       const q = options.transaction === undefined ? db : fromTransactionScope(options.transaction)
       const membership = await insert(q, {
@@ -175,8 +188,7 @@ export function createMembershipService(deps: {
     },
 
     async addSpaceMember(input, options = {}) {
-      if (!(SPACE_ROLES as readonly string[]).includes(input.role))
-        throw invalidRole(input.role, SPACE_ROLES)
+      if (!assignable(input.role, SPACE_ROLES)) throw invalidRole(input.role, SPACE_ROLES)
       const q = options.transaction === undefined ? db : fromTransactionScope(options.transaction)
       const membership = await insert(q, {
         userId: input.userId,
@@ -214,6 +226,16 @@ export function createMembershipService(deps: {
       return rows.map(toMembership)
     },
 
+    async countWithRole(organizationId, roleKey) {
+      const [row] = await db
+        .select({ count: count() })
+        .from(memberships)
+        .where(
+          and(eq(memberships.organizationId, organizationId), eq(memberships.roleKey, roleKey)),
+        )
+      return row?.count ?? 0
+    },
+
     async getSpaceAccess(userId, organizationId, spaceId) {
       const rows = await db
         .select()
@@ -230,7 +252,7 @@ export function createMembershipService(deps: {
     async changeRole(membershipId, scope, role) {
       const allowed: readonly string[] =
         scope.spaceId === undefined ? ORGANIZATION_ROLES : SPACE_ROLES
-      if (!allowed.includes(role)) throw invalidRole(role, allowed)
+      if (!assignable(role, allowed)) throw invalidRole(role, allowed)
       return withTransaction(db, async (tx) => {
         const row = await locked(tx, membershipId, scope)
         if (scope.spaceId === undefined && row.roleKey === 'owner' && role !== 'owner') {

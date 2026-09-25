@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -40,22 +40,34 @@ Implement system roles with module-contributed default grants, custom organizati
 ```text
 modules/permissions/src/domain/role.ts
 modules/permissions/src/application/role.service.ts
+modules/permissions/src/infrastructure/schema.ts
 modules/permissions/src/infrastructure/role.repository.ts
-modules/permissions/src/infrastructure/migrations/0001_create_roles.sql
+modules/permissions/src/infrastructure/migrations/0001_create_roles.ts
 modules/permissions/test/role.service.test.ts
+modules/users/src/infrastructure/migrations/0003_system_role_keys.ts
 ```
 
 ### Modify
 
 ```text
 packages/contracts/src/permissions.ts
+packages/contracts/src/permissions.test.ts
+modules/permissions/src/application/catalog.ts
 modules/permissions/src/rest/routes.ts
 modules/permissions/src/module.ts
-modules/users/src/infrastructure/migrations/ (new migration if needed)
+modules/permissions/src/index.ts
+modules/permissions/src/permissions.ts
+modules/permissions/test/catalog.test.ts
+modules/spaces/src/permissions.ts
+modules/spaces/test/api.test.ts
+modules/users/src/domain/membership.ts
+modules/users/src/application/membership.service.ts
 modules/users/src/module.ts
-modules/spaces/src/module.ts
-modules/auth/src/module.ts
-docs/contracts/README.md
+modules/users/test/memberships.test.ts
+tooling/tenant-isolation/test/routes.ts
+tooling/tenant-isolation/test/isolation.test.ts
+tooling/postman/blixis.postman_collection.json
+apps/docs/src/content/docs/concepts/permissions.mdx
 ```
 
 ### Delete
@@ -79,9 +91,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Custom role with `spaces.settings.read` only can be created and assigned.
-- [ ] Deleting an assigned role fails with `CONFLICT`.
-- [ ] Owner role grants every registered permission, including those added later by new modules.
+- [x] Custom role with `spaces.settings.read` only can be created and assigned.
+- [x] Deleting an assigned role fails with `CONFLICT`.
+- [x] Owner role grants every registered permission, including those added later by new modules.
 
 ## Validation
 
@@ -91,15 +103,15 @@ pnpm --filter @blixis/permissions --filter @blixis/users test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Contract change is additive and documented.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Contract change is additive and documented.
 
 ## Completion conditions
 
@@ -116,4 +128,20 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Contract changes:**
+  - `SYSTEM_ROLES` (`owner`, `admin`, `editor`, `viewer`), `SystemRoleKey`, `isSystemRoleKey`.
+  - `PermissionDefinition.defaultRoles?: readonly SystemRoleKey[]`, validated and frozen by `definePermission`.
+  - `owner` implicitly holds every permission.
+- **Decisions:**
+  - System roles are **derived in code** from the catalog at setup and never stored. Custom roles live in `permissions.roles`, per organization, with names unique case-insensitively and system names reserved.
+  - Permissions are stored as a `text[]` column instead of a `role_permissions` table: roles are always read and written whole. Ids no installed module declares are ignored when evaluating (`permissionsOf`) and rejected on write (`ValidationError`).
+  - `memberships.role_key` holds a system role key or a custom role UUID. Users migration `0003_system_role_keys` renames the plan-008 organization role `member` to `viewer` (same access: it reads the organization and all its spaces) and adds an `(organization_id, role_key)` index for `countWithRole`.
+  - The membership service accepts custom role ids; `@blixis/permissions` verifies they exist before assignment (009.004).
+  - `owner` is assignable only to organization memberships (`assignableTo`).
+- **Permission grants:**
+  - `admin`: every permission except `organizations.owners.manage`.
+  - `editor` and `viewer`: `organizations.read`, `spaces.read`, `roles.read`.
+- **Owner-only permission:** `organizations.owners.manage` was added. Because the escalation guard (009.004) requires holding every permission of a role before granting it, only owners can grant `owner`, without any role-name comparison.
+- **Deferred:** the role management routes move to 009.003, because they need the authorization service to check `roles.read` and `roles.manage`. `ROLE_SERVICE` itself is authorization-free data access, memoised per organization and request.
+- `GET /api/v1/permissions` now also returns `defaultRoles`.
+- **Staging:** run `pnpm db:migrate` (users `0003`, permissions `0001`) before deploying.

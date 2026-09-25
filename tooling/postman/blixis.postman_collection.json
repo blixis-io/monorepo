@@ -899,7 +899,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{memberEmail}}\",\n  \"role\": \"member\"\n}",
+              "raw": "{\n  \"email\": \"{{memberEmail}}\",\n  \"role\": \"viewer\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

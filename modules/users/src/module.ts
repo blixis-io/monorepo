@@ -5,6 +5,7 @@ import { createMembershipService, MEMBERSHIP_SERVICE } from './application/membe
 import { createUserService, USER_SERVICE } from './application/user.service.ts'
 import { createUsers } from './infrastructure/migrations/0001_create_users.ts'
 import { createMemberships } from './infrastructure/migrations/0002_create_memberships.ts'
+import { systemRoleKeys } from './infrastructure/migrations/0003_system_role_keys.ts'
 import { usersRoutes } from './rest/routes.ts'
 
 /**
@@ -19,7 +20,7 @@ export const usersModule = defineModule({
     capabilities: [BLIXIS_CAPABILITIES.users],
     requiresCapabilities: [BLIXIS_CAPABILITIES.database, BLIXIS_CAPABILITIES.events],
   },
-  migrations: [createUsers, createMemberships],
+  migrations: [createUsers, createMemberships, systemRoleKeys],
   setup(ctx) {
     ctx.services.provideFactory(
       USER_SERVICE,

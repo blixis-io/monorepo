@@ -27,12 +27,32 @@ Use [`actorId(actor)`](/api/contracts/functions/actorid/) for logs and metadata 
 import { definePermission } from '@blixis/contracts'
 
 permissions: [
-  definePermission({ id: 'seo.read', description: 'Read SEO metadata' }),
-  definePermission({ id: 'seo.write', description: 'Edit SEO metadata' }),
+  definePermission({
+    id: 'seo.read',
+    description: 'Read SEO metadata',
+    defaultRoles: ['admin', 'editor', 'viewer'],
+  }),
+  definePermission({ id: 'seo.write', description: 'Edit SEO metadata', defaultRoles: ['admin', 'editor'] }),
 ]
 ```
 
+- `scope` is `'space'` (the default) or `'organization'`. Space permissions come from organization and space memberships. Organization permissions come from organization memberships only.
+- `defaultRoles` grants the permission to [system roles](#roles). `owner` always holds every permission, so a permission without `defaultRoles` is owner-only unless a custom role grants it.
+
 IDs are `<module>.<action>` or `<module>.<resource>.<action>`, lowercase, with your module's namespace first. Each namespace belongs to **one** module: if another module already declared `seo.*` permissions, declaring `seo.write` in yours fails startup. Duplicate IDs fail too, naming both modules.
+
+## Roles
+
+Roles group permissions. They are configuration, owned by `@blixis/permissions`:
+
+| Role | Permissions | Assignable to |
+|---|---|---|
+| `owner` | every permission | organization memberships |
+| `admin` | permissions listing `admin` in `defaultRoles` | organization and space memberships |
+| `editor` | permissions listing `editor` | organization and space memberships |
+| `viewer` | permissions listing `viewer` | organization and space memberships |
+
+Organizations can also define **custom roles**: a name plus a list of permission IDs, stored per organization. A membership stores a system role key or a custom role ID. `GET /api/v1/permissions` lists the catalog, including each permission's `scope` and `defaultRoles`, for role editors.
 
 ## Checking permissions
 

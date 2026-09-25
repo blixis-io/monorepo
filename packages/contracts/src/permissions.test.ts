@@ -7,7 +7,9 @@ import {
   definePermission,
   isAnonymousActor,
   isPermissionId,
+  isSystemRoleKey,
   isUserActor,
+  SYSTEM_ROLES,
 } from './permissions.ts'
 import { createServiceToken } from './services.ts'
 
@@ -46,6 +48,29 @@ describe('permissions', () => {
     expect(() => definePermission({ id: 'publish.' as never, description: 'x' })).toThrowError(
       TypeError,
     )
+  })
+
+  it('definePermission validates and freezes default roles', () => {
+    const p = definePermission({
+      id: 'content.publish',
+      description: 'Publish entries',
+      defaultRoles: ['admin', 'editor'],
+    })
+    expect(p.defaultRoles).toEqual(['admin', 'editor'])
+    expect(Object.isFrozen(p.defaultRoles)).toBe(true)
+    expect(() =>
+      definePermission({
+        id: 'content.publish',
+        description: 'x',
+        defaultRoles: ['member' as never],
+      }),
+    ).toThrowError(/unknown default roles: member/)
+  })
+
+  it('system roles', () => {
+    expect(SYSTEM_ROLES).toEqual(['owner', 'admin', 'editor', 'viewer'])
+    expect(isSystemRoleKey('viewer')).toBe(true)
+    expect(isSystemRoleKey('member')).toBe(false)
   })
 
   it('AUTHORIZATION_SERVICE token has a stable identity', () => {

@@ -209,7 +209,7 @@ describe.skipIf(!databaseTestsEnabled())('spaces API (Postgres)', () => {
     const org = await createOrg(t, owner)
     const unknown = await call(t, 'POST', `/organizations/${org.id}/members`, owner, {
       email: 'nobody@example.com',
-      role: 'member',
+      role: 'viewer',
     })
     expect(unknown.status).toBe(404)
     expect(((await unknown.json()) as { detail: string }).detail).toMatch(
@@ -233,7 +233,7 @@ describe.skipIf(!databaseTestsEnabled())('spaces API (Postgres)', () => {
     const member = (await (
       await call(t, 'POST', `/organizations/${org.id}/members`, admin, {
         email: 'member@example.com',
-        role: 'member',
+        role: 'viewer',
       })
     ).json()) as { id: string }
     expect(

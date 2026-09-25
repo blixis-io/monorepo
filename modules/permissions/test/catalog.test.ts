@@ -1,13 +1,20 @@
 import { definePermission, ModuleError } from '@blixis/contracts'
+import { databaseModule } from '@blixis/database'
+import { eventsModule } from '@blixis/events'
 import { defineModule } from '@blixis/kernel'
 import { asAnonymous, asApiToken, asUser, createTestBlixis } from '@blixis/testing'
+import { usersModule } from '@blixis/users'
 import { describe, expect, it } from 'vitest'
 import { PERMISSION_CATALOG, permissionsModule } from '../src/index.ts'
 
 const blogModule = defineModule({
   meta: { name: '@acme/blog', version: '1.0.0' },
   permissions: [
-    definePermission({ id: 'blog.posts.read', description: 'Read posts' }),
+    definePermission({
+      id: 'blog.posts.read',
+      description: 'Read posts',
+      defaultRoles: ['viewer'],
+    }),
     definePermission({
       id: 'blog.settings.write',
       description: 'Change blog settings',
@@ -17,7 +24,9 @@ const blogModule = defineModule({
 })
 
 async function setup() {
-  return createTestBlixis({ modules: [permissionsModule(), blogModule()] })
+  return createTestBlixis({
+    modules: [databaseModule(), eventsModule(), usersModule(), permissionsModule(), blogModule()],
+  })
 }
 
 describe('permission catalog', () => {
@@ -57,22 +66,30 @@ describe('permission catalog', () => {
                 id: 'roles.read',
                 description: "View the organization's roles and their permissions",
                 scope: 'organization',
+                defaultRoles: ['admin', 'editor', 'viewer'],
               },
               {
                 id: 'roles.manage',
                 description: 'Create, change, and delete custom roles',
                 scope: 'organization',
+                defaultRoles: ['admin'],
               },
             ],
           },
           {
             module: '@acme/blog',
             permissions: [
-              { id: 'blog.posts.read', description: 'Read posts', scope: 'space' },
+              {
+                id: 'blog.posts.read',
+                description: 'Read posts',
+                scope: 'space',
+                defaultRoles: ['viewer'],
+              },
               {
                 id: 'blog.settings.write',
                 description: 'Change blog settings',
                 scope: 'organization',
+                defaultRoles: [],
               },
             ],
           },

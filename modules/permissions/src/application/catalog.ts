@@ -4,6 +4,7 @@ import {
   type PermissionDefinition,
   type PermissionId,
   type ServiceToken,
+  type SystemRoleKey,
 } from '@blixis/contracts'
 import type { Attributed } from '@blixis/kernel'
 
@@ -13,6 +14,8 @@ export interface CatalogPermission {
   readonly description: string
   /** Tenant level at which the permission is granted (`space` unless declared otherwise). */
   readonly scope: 'organization' | 'space'
+  /** System roles granted this permission by default (`owner` holds every permission). */
+  readonly defaultRoles: readonly SystemRoleKey[]
   /** Name of the declaring module, e.g. `@blixis/spaces`. */
   readonly module: string
 }
@@ -48,6 +51,7 @@ export function createPermissionCatalog(
         id: value.id,
         description: value.description,
         scope: value.scope ?? 'space',
+        defaultRoles: value.defaultRoles ?? [],
         module,
       }),
     ),
