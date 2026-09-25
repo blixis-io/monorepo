@@ -1,6 +1,6 @@
 ---
 title: 5. Build a page with components
-description: Model a website page from reusable components — hero, section, cards — through the REST API, and render it in Astro.
+description: Model a website page from reusable components — hero, section, cards — create and publish it through the REST API, and render it in Astro.
 sidebar:
   order: 5
 ---
@@ -17,10 +17,6 @@ You need a space and a user allowed to change content types (the `admin` or `own
 ```bash
 API=http://localhost:8787/api/v1   # or your staging URL
 ```
-
-<Aside>
-Entries (creating the actual pages) arrive with the next roadmap plan. This tutorial builds the model and shows exactly what a page will look like.
-</Aside>
 
 <Steps>
 
@@ -111,9 +107,9 @@ Entries (creating the actual pages) arrive with the next roadmap plan. This tuto
 
 </Steps>
 
-## What a page looks like
+## Create and publish the page
 
-An English page in this model has this shape, and it's what the entries API will accept and return:
+An English page in this model looks like this. Save it as `page.json`:
 
 ```json
 {
@@ -134,11 +130,45 @@ An English page in this model has this shape, and it's what the entries API will
 }
 ```
 
-If the hero's button is enabled but empty, publishing fails with a precise error:
+<Steps>
 
-```json
-{ "path": ["fields", "body", "en-US", 0, "button"], "message": "Required" }
-```
+1. **Create the entry.** It's saved as a draft, version 1:
+
+   ```bash
+   curl -s -X POST "$API/spaces/$SPACE/entries" -H "authorization: Bearer $TOKEN" \
+     -H 'content-type: application/json' -d "{ \"contentType\": \"page\", \"fields\": $(cat page.json) }"
+   ```
+
+   Save `sys.id` as `ENTRY`.
+
+2. **Publish it.** Publishing validates strictly. If the hero's button is enabled but empty, you get a precise error:
+
+   ```json
+   { "path": ["fields", "body", "en-US", 0, "button"], "message": "Required" }
+   ```
+
+   ```bash
+   curl -s -X POST "$API/entries/$ENTRY/publish" -H "authorization: Bearer $TOKEN" \
+     -H "idempotency-key: $(uuidgen)"
+   ```
+
+3. **Read it as the website will**, published and found by slug:
+
+   ```bash
+   curl -s "$API/spaces/$SPACE/entries?state=published&contentType=page&fields.slug=courses" \
+     -H "authorization: Bearer $TOKEN"
+   ```
+
+4. **Edit it later.** Send the complete fields with the version you edited. The live page doesn't change until you publish again:
+
+   ```bash
+   curl -s -X PATCH "$API/entries/$ENTRY" -H "authorization: Bearer $TOKEN" -H 'if-match: "1"' \
+     -H 'content-type: application/json' -d "{ \"fields\": $(cat page.json) }"
+   ```
+
+</Steps>
+
+See [Entries and publishing](/concepts/entries-and-publishing/) for versions, restore, and links.
 
 ## Render it in Astro
 

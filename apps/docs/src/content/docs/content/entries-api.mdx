@@ -1,0 +1,148 @@
+---
+title: Entries API
+description: REST endpoints for entries — create, read, list, save, publish, versions, links — with requests, responses, and errors.
+sidebar:
+  order: 4
+---
+
+Paths are relative to `/api/v1`. The conventions for pagination, concurrency and errors apply to every endpoint: see [Content types API](/content/content-types-api/#errors) and [Entries and publishing](/concepts/entries-and-publishing/).
+
+| Method | Path | Permission |
+|---|---|---|
+| `GET` | `/spaces/:spaceId/entries` | `content.entries.read` |
+| `POST` | `/spaces/:spaceId/entries` | `content.entries.write` |
+| `GET` | `/entries/:entryId` | `content.entries.read` |
+| `PATCH` | `/entries/:entryId` | `content.entries.write` |
+| `DELETE` | `/entries/:entryId` | `content.entries.delete` |
+| `POST` | `/entries/:entryId/publish` | `content.entries.publish` |
+| `POST` | `/entries/:entryId/unpublish` | `content.entries.publish` |
+| `GET` | `/entries/:entryId/versions` | `content.entries.read` |
+| `GET` | `/entries/:entryId/versions/:versionId` | `content.entries.read` |
+| `POST` | `/entries/:entryId/versions/:versionId/restore` | `content.entries.write` |
+| `GET` | `/entries/:entryId/referrers` | `content.entries.read` |
+
+`/spaces/:spaceId/…` routes accept `?environment=` (default `main`). `/entries/:entryId` routes find the environment from the entry itself. Entries in spaces you aren't a member of answer `404`.
+
+## The entry object
+
+```json
+{
+  "sys": {
+    "id": "01a0db2e-…",
+    "type": "entry",
+    "contentType": { "id": "01a0db2d-…", "apiId": "page" },
+    "environmentId": "01a0db2c-…",
+    "version": 3,
+    "fieldsVersion": 3,
+    "status": "changed",
+    "publishedVersionId": "01a0db30-…",
+    "publishedAt": "2026-09-25T14:30:00.000Z",
+    "firstPublishedAt": "2026-09-24T09:00:00.000Z",
+    "createdAt": "2026-09-24T08:55:00.000Z",
+    "updatedAt": "2026-09-25T15:10:00.000Z",
+    "createdBy": "user:01a0d8df-…",
+    "updatedBy": "apiToken:01a0d9aa-…"
+  },
+  "fields": {
+    "title": { "en-US": "Home", "nl-NL": "Thuis" },
+    "slug": "home",
+    "body": { "en-US": [ { "_id": "hEro0001", "_type": "hero", "heading": "Welcome" } ] }
+  }
+}
+```
+
+| `sys` property | Meaning |
+|---|---|
+| `version` | The current version number. Send it back as `If-Match` / `expectedVersion`. Also returned as the `ETag` header |
+| `fieldsVersion` | The version these `fields` come from (the published one for `state=published`) |
+| `status` | `draft`, `published`, or `changed` |
+
+`fields` use each field's `apiId`. Values follow the [field types](/content/field-types/).
+
+## Create
+
+```http
+POST /api/v1/spaces/{spaceId}/entries
+Content-Type: application/json
+
+{ "contentType": "page", "fields": { "title": { "en-US": "Home" }, "slug": "home" } }
+```
+
+- **`contentType`** is the type's `apiId` or id. Components can't be created as entries.
+- **Validation** is as a draft. The response is `201` with the entry and `ETag: "1"`.
+
+## Read and list
+
+```http
+GET /api/v1/entries/{entryId}?state=published&include=1
+GET /api/v1/spaces/{spaceId}/entries?contentType=page&fields.slug=home&state=published&limit=25&include=2
+```
+
+| Parameter | Meaning |
+|---|---|
+| `state` | `draft` (default: latest versions) or `published` (only published entries, with their live version) |
+| `contentType` | filter by content type `apiId` (or id) |
+| `fields.<apiId>` | equality on a non-localized `text`, `select`, `number`, `boolean`, or `date` field (needs `contentType`). `select` with `multiple` matches entries containing the value |
+| `updatedSince` | ISO 8601 timestamp |
+| `limit`, `cursor` | page size (1–100, default 25), and `nextCursor` from the previous page |
+| `include` | `0`–`3`: return linked entries in `includes.entries` |
+
+Lists answer `{ "entries": [ … ], "nextCursor": "…" | null }` (plus `includes` when requested), newest first. A published read of a never-published entry answers `404`.
+
+## Save a new version
+
+```http
+PATCH /api/v1/entries/{entryId}
+If-Match: "2"
+Content-Type: application/json
+
+{ "fields": { "title": { "en-US": "Home" }, "slug": "home" } }
+```
+
+`fields` is the **complete** content of the new version: fields you leave out are empty in it. You can send `expectedVersion` in the body instead of `If-Match`. Answers:
+- `200` with the entry and the new `ETag`;
+- `409` when the version is stale;
+- `400` for invalid fields or a missing version.
+
+## Publish and unpublish
+
+```http
+POST /api/v1/entries/{entryId}/publish
+Idempotency-Key: 7f2c…
+Content-Type: application/json
+
+{ "versionId": "01a0db30-…" }
+```
+
+- **The body is optional:** without `versionId`, the current version is published. `If-Match` / `expectedVersion` make sure you publish what you reviewed.
+- **Validation errors:** `400` with every problem: required fields, and links to missing, unpublished or disallowed entries.
+- **Publishing the live version again** changes nothing.
+
+```http
+POST /api/v1/entries/{entryId}/unpublish
+Content-Type: application/json
+
+{ "force": false }
+```
+
+- **`409`** while other published entries link to this one, listing them. `force: true` overrides.
+- **Idempotency:** both commands accept `Idempotency-Key`. A repeat returns the first response with `Idempotent-Replayed: true`, and the same key with a different body answers `409`.
+
+## Delete
+
+`DELETE /api/v1/entries/{entryId}` (optionally with `If-Match`) answers `204`. It is refused with `409` while the entry is published.
+
+## Versions
+
+```http
+GET /api/v1/entries/{entryId}/versions?limit=25&before=40
+GET /api/v1/entries/{entryId}/versions/{versionId}
+POST /api/v1/entries/{entryId}/versions/{versionId}/restore     { "expectedVersion": 42 }
+```
+
+- **Listing** returns `{ "versions": [ { "sys": { id, entryId, number, contentTypeVersion, restoredFrom, isCurrent, isPublished, createdAt, createdBy }, "fields": { … } } ], "nextBefore": 15 }`, newest first. Pass `nextBefore` as `before` for the next page.
+- **Restoring** saves the old fields as a new version, checked against the current content type, and answers with the entry.
+
+## Referrers
+
+`GET /api/v1/entries/{entryId}/referrers?state=draft|published` answers `{ "entries": [ … ] }`: the entries whose current (or published) version links to this one.
