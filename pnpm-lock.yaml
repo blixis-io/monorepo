@@ -669,6 +669,36 @@ importers:
         specifier: 'catalog:'
         version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.6)(@vitest/coverage-v8@4.1.11)(esbuild@0.28.2)(jiti@2.6.1)(yaml@2.9.1)
 
+  tooling/postman:
+    devDependencies:
+      '@blixis/auth':
+        specifier: workspace:*
+        version: link:../../modules/auth
+      '@blixis/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@blixis/events':
+        specifier: workspace:*
+        version: link:../../packages/events
+      '@blixis/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      '@blixis/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      '@blixis/users':
+        specifier: workspace:*
+        version: link:../../modules/users
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.13.6
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.6)(@vitest/coverage-v8@4.1.11)(esbuild@0.28.2)(jiti@2.6.1)(yaml@2.9.1)
+
   tooling/tsconfig:
     devDependencies:
       typescript:

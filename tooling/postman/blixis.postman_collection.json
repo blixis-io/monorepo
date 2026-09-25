@@ -1,0 +1,460 @@
+{
+  "info": {
+    "_postman_id": "6c1f2a9e-7b1d-4f7e-9a33-b1a5c3d10001",
+    "name": "Blixis API",
+    "description": "Blixis REST API (`/api/v1`). Maintained in `tooling/postman/` — see `docs/development/postman.md`.\n\n1. Import this collection and the environment files.\n2. Select an environment and set the **current values** of `email` and `password` (never the initial values — they are shared).\n3. Run **Auth / Sign in**. The access token is stored and sent as `Authorization: Bearer {{accessToken}}` on every request, and refreshed automatically before it expires.\n\nPostman uses `tokenDelivery: \"body\"`: the refresh token comes in the JSON body instead of the browser cookie (ADR 0009).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Refreshes the access token when it expires within 30 s (ADR 0009), except on auth routes.",
+          "const path = pm.request.url.getPath();",
+          "const refreshToken = pm.environment.get('refreshToken');",
+          "const expiresAt = Number(pm.environment.get('accessTokenExpiresAt') || 0);",
+          "if (!path.startsWith('/api/v1/auth/') && refreshToken && Date.now() > expiresAt - 30000) {",
+          "  pm.sendRequest({",
+          "    url: pm.environment.get('baseUrl') + '/api/v1/auth/refresh',",
+          "    method: 'POST',",
+          "    header: { 'Content-Type': 'application/json' },",
+          "    body: { mode: 'raw', raw: JSON.stringify({ refreshToken }) },",
+          "  }, (error, response) => {",
+          "    if (error || response.code !== 200) {",
+          "      console.warn('Token refresh failed — run Auth / Sign in again', error || response.code);",
+          "      pm.environment.unset('accessToken');",
+          "      pm.environment.unset('refreshToken');",
+          "      return;",
+          "    }",
+          "    const body = response.json();",
+          "    pm.environment.set('accessToken', body.accessToken);",
+          "    pm.environment.set('accessTokenExpiresAt', String(Date.now() + body.expiresIn * 1000));",
+          "    pm.environment.set('refreshToken', body.refreshToken);",
+          "  });",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Health checks skip the kernel middleware (no request id); every other response has one.",
+          "if (!pm.request.url.getPath().startsWith('/api/v1/health')) {",
+          "  pm.test('responses carry a request id', () => pm.expect(pm.response.headers.get('x-request-id')).to.be.a('string'));",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "description": "Liveness (no I/O) and readiness (database through Hyperdrive).",
+      "item": [
+        {
+          "name": "Liveness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "health"]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('status ok', () => pm.expect(pm.response.json().status).to.eql('ok'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Readiness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health/ready",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "health", "ready"]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('database ok', () => pm.expect(pm.response.json().checks.database.status).to.eql('ok'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "description": "Sign-in, JWT access tokens, rotating refresh tokens (ADR 0009).",
+      "item": [
+        {
+          "name": "Sign in",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/sign-in",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "sign-in"]
+            },
+            "description": "Stores `accessToken`, `refreshToken`, and `userId` in the environment.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"tokenDelivery\": \"body\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200/201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.environment.set('accessToken', body.accessToken);",
+                  "  pm.environment.set('accessTokenExpiresAt', String(Date.now() + body.expiresIn * 1000));",
+                  "  if (body.refreshToken) pm.environment.set('refreshToken', body.refreshToken);",
+                  "  if (body.user) pm.environment.set('userId', body.user.id);",
+                  "  pm.test('received a Bearer access token', () => pm.expect(body.tokenType).to.eql('Bearer'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sign up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/sign-up",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "sign-up"]
+            },
+            "description": "Only when the app enables `authModule({ allowSignUp: true })`; otherwise 403. Passwords: 12–256 characters.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"displayName\": \"{{displayName}}\",\n  \"password\": \"{{password}}\",\n  \"tokenDelivery\": \"body\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 403 while public sign-up is disabled (default): create users with pnpm auth:create-user.",
+                  "pm.test('created, or sign-up disabled', () => pm.expect(pm.response.code).to.be.oneOf([201, 403]));",
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.environment.set('accessToken', body.accessToken);",
+                  "  pm.environment.set('accessTokenExpiresAt', String(Date.now() + body.expiresIn * 1000));",
+                  "  if (body.refreshToken) pm.environment.set('refreshToken', body.refreshToken);",
+                  "  if (body.user) pm.environment.set('userId', body.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "refresh"]
+            },
+            "description": "Rotates the refresh token: the old one stops working. Reusing an old token after 10 s revokes the whole family.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200/201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.environment.set('accessToken', body.accessToken);",
+                  "  pm.environment.set('accessTokenExpiresAt', String(Date.now() + body.expiresIn * 1000));",
+                  "  if (body.refreshToken) pm.environment.set('refreshToken', body.refreshToken);",
+                  "  if (body.user) pm.environment.set('userId', body.user.id);",
+                  "  pm.test('received a Bearer access token', () => pm.expect(body.tokenType).to.eql('Bearer'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "me"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('is the signed-in user', () => pm.expect(pm.response.json().id).to.eql(pm.environment.get('userId')));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "JWKS (public keys)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/jwks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "jwks"]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('has signing keys', () => pm.expect(pm.response.json().keys.length).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "The signed-in user's profile (`@blixis/users`).",
+      "item": [
+        {
+          "name": "Get my profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "me"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update my profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "me"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"{{displayName}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('display name updated', () => pm.expect(pm.response.json().displayName).to.eql(pm.environment.get('displayName')));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sign out",
+      "description": "Last in the run order: revokes the refresh-token family and clears the stored tokens.",
+      "item": [
+        {
+          "name": "Sign out",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/sign-out",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "sign-out"]
+            },
+            "description": "Revokes the refresh-token family. The current access token stays valid until it expires (≤ 15 min).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 204', () => pm.response.to.have.status(204));",
+                  "pm.environment.unset('accessToken');",
+                  "pm.environment.unset('refreshToken');",
+                  "pm.environment.unset('accessTokenExpiresAt');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
