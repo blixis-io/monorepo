@@ -55,6 +55,22 @@ ctx.services.provideFactory(MY_SERVICE, ({ services }) => createMyService({
 
 Queue handlers and cron jobs run as `system` actors. Pass the tenant explicitly: `runInScope({ tenant, actor })` for the whole unit of work, or `TENANT_RESOLVER.resolveSpace(systemActor, spaceId)` to verify that the space exists. Event handlers already receive the envelope's tenant in their scope.
 
+## The isolation suite (required for new routes)
+
+`tooling/tenant-isolation` loads the API's real module list (`apps/api/src/blixis.config.ts`) and seeds a victim organization with two spaces, members, and a locale. It then sends **every tenant-scoped route** as three intruders, using the victim's IDs:
+- the owner of another organization;
+- that owner's API token;
+- an admin of a sibling space only.
+
+Every probe must answer 403 or 404, and the victim's data must be unchanged.
+
+**CI fails when a route under `/organizations/:orgId/…` or `/spaces/:spaceId/…` isn't listed** in `tooling/tenant-isolation/test/routes.ts`. When you add one:
+1. Add `{ method, path, body? }`. The `path` must be the pattern exactly as registered, and `body` should be a request that *would* change or reveal data if isolation failed.
+2. If the route needs a resource ID the suite doesn't seed yet (e.g. `:entryId`), seed one for the victim in the suite's `beforeAll`, add it to `params`, and extend the `fingerprint` with the module's tables.
+3. When one parameter name means different things on different routes, map it with `paramsFrom: { membershipId: 'orgMembershipId' }`.
+
+A route may only be skipped through `ISOLATION_ALLOW_LIST`, with a reason. Keep that list empty.
+
 ## Deleting spaces
 
 `space.deleted` is **transactional**. Every module storing space data subscribes and deletes its own rows; there are no foreign keys between modules.

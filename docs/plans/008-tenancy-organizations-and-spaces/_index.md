@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 4 — Identity, tenancy & authorization  
 Roadmap scope: MVP / initial platform  
-Progress: 5/6 tasks completed
+Progress: 6/6 tasks completed
 
 ## Objective
 
@@ -65,15 +65,15 @@ Depends on:
 - [x] [003 — Implement organization/space services and management routes](./003-space-service-and-management-routes.md)
 - [x] [004 — Implement environment and locale management](./004-environments-and-locales.md)
 - [x] [005 — Resolve and verify tenant context per request](./005-tenant-context-resolution.md)
-- [ ] [006 — Add the cross-tenant isolation test suite](./006-tenancy-isolation-tests.md)
+- [x] [006 — Add the cross-tenant isolation test suite](./006-tenancy-isolation-tests.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] Isolation suite covers every tenant-scoped route registered so far and passes.
-- [ ] Creating a space creates default environment, default locale, and owner membership atomically.
+- [x] All tasks `completed`.
+- [x] Isolation suite covers every tenant-scoped route registered so far and passes.
+- [x] Creating a space creates default environment, default locale, and owner membership atomically.
 
 ## Risks
 

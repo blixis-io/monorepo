@@ -17,6 +17,7 @@ export default defineConfig({
             'modules/*/src/**/*.test.ts',
             'modules/*/test/**/*.test.ts',
             'tooling/*/src/**/*.test.ts',
+            'tooling/*/test/**/*.test.ts',
           ],
           exclude: ['**/*.worker.test.ts', '**/node_modules/**', '**/dist/**'],
         },

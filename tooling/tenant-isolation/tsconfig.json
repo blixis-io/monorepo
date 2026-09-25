@@ -1,0 +1,14 @@
+{
+  "extends": "@blixis/tsconfig/node.json",
+  // Everything lives in test/ (the boundary checker treats it as test code).
+  "include": ["test"],
+  "references": [
+    { "path": "../../packages/contracts" },
+    { "path": "../../packages/kernel" },
+    { "path": "../../packages/database" },
+    { "path": "../../packages/events" },
+    { "path": "../../packages/testing" },
+    { "path": "../../modules/users" },
+    { "path": "../../modules/spaces" }
+  ]
+}

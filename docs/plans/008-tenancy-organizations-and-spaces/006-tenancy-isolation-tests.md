@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -36,16 +36,24 @@ Create a reusable isolation test harness that, for every tenant-scoped route, se
 ### Create
 
 ```text
-packages/testing/src/tenancy.ts
-apps/api/test/tenancy-isolation.worker.test.ts
-apps/api/test/tenant-routes.allowlist.ts
+packages/testing/src/isolation.ts
+tooling/tenant-isolation/package.json
+tooling/tenant-isolation/test/isolation.test.ts
+tooling/tenant-isolation/test/routes.ts
+tooling/tenant-isolation/tsconfig.json
 ```
 
 ### Modify
 
 ```text
-packages/testing/src/index.ts
+docs/ROADMAP.md
 docs/conventions/tenancy.md
+docs/conventions/testing.md
+docs/plans/008-tenancy-organizations-and-spaces/006-tenancy-isolation-tests.md
+docs/plans/008-tenancy-organizations-and-spaces/_index.md
+packages/testing/src/index.ts
+pnpm-lock.yaml
+tsconfig.json
 ```
 
 ### Delete
@@ -68,8 +76,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] All tenant-scoped routes are covered and pass.
-- [ ] Adding an uncovered tenant-scoped route makes the suite fail (verified once).
+- [x] All tenant-scoped routes are covered and pass.
+- [x] Adding an uncovered tenant-scoped route makes the suite fail (verified once).
 
 ## Validation
 
@@ -79,15 +87,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Harness is part of the definition of done for later domain plans (noted in their completion criteria).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Harness is part of the definition of done for later domain plans (noted in their completion criteria).
 
 ## Completion conditions
 
@@ -104,4 +112,16 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Placement, decided:** the generic harness is in `@blixis/testing` (`expectIsolated`, `uncoveredTenantRoutes`, `isTenantScoped`, `isolationUrl`, `IsolationRoute` with `paramsFrom`); it knows no domain module (packages must not depend on modules). The **suite** is the private package `tooling/tenant-isolation`, which imports the API's real `blixis.config.ts` at runtime, like the Postman drift test. It runs in the Node pool because `pg` can't connect in the Workers pool (known issue).
+- **`seedTenants()` from the spec** is the suite's `beforeAll` (it needs `@blixis/spaces`/`@blixis/users` services, which `@blixis/testing` can't import).
+  - Victim organization B with spaces B1 (probed) and B2, a member with org and space memberships, and a deletable non-default locale.
+  - Intruders: the owner of organization A (email `intruder@example.com`, so the "add member" probes would really succeed if isolation failed), that owner's API token, and an admin of **only** space B2 (no org membership).
+- **Assertions:**
+  - (1) Every tenant-scoped route is covered; `ISOLATION_ALLOW_LIST` is empty.
+  - (2) Every probed route is really registered (typo guard: a misspelled path 404s and would "pass").
+  - (3) The victim owner gets 200 on every GET (the params are valid).
+  - (4) Every route as each intruder → 403/404, **and** the victim fingerprint (organizations, spaces, locales, memberships) is unchanged.
+- **The coverage check already paid off:** the first registry used `:orgMembershipId`/`:spaceMembershipId`, but the routes are registered as `:membershipId`, and the check flagged them. Hence `paramsFrom`.
+- **Mutation test (manual, not committed):** making `requireOrganizationMember` return `owner` for non-members made all three intruder tests fail, listing every leaking route (e.g. `PATCH /api/v1/organizations/:orgId → 200`, `DELETE …/members/:membershipId → 204`). Restored; `access.ts` unchanged.
+- **Docs:** `docs/conventions/tenancy.md`, "The isolation suite (required for new routes)", explains how modules register routes, seed IDs, extend the fingerprint, and use `paramsFrom`; the testing-conventions table is updated.
+- **Coverage:** 20 routes × 3 intruders. A clean build passes.

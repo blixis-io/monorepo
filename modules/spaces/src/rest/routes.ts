@@ -311,14 +311,6 @@ async function requireSpaceManager(c: Ctx): Promise<{ organizationId: string; sp
   return tenant
 }
 
-/** The space scope, if the actor can see the space (404 otherwise). */
-async function readableSpace(c: Ctx): Promise<{ organizationId: string; spaceId: string }> {
-  const space = await c.var.services
-    .get(TENANCY_SERVICE)
-    .getSpace(userOf(c), c.req.param('spaceId') ?? '')
-  return { organizationId: space.organizationId, spaceId: space.id }
-}
-
 /** The space scope, if the actor may manage the space (404 otherwise). */
 async function manageableSpace(c: Ctx): Promise<{ organizationId: string; spaceId: string }> {
   const space = await c.var.services
