@@ -22,4 +22,12 @@ export {
   type TestRequestInit,
 } from './create-test-blixis.ts'
 export { type CapturedEvents, captureEvents } from './events.ts'
+export {
+  expectIsolated,
+  type IsolationParams,
+  type IsolationRoute,
+  isolationUrl,
+  isTenantScoped,
+  uncoveredTenantRoutes,
+} from './isolation.ts'
 export { type CapturingLogger, createCapturingLogger, type LogEntry } from './logger.ts'

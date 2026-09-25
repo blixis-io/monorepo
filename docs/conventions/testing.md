@@ -15,7 +15,7 @@ Related: [Code standards](./code-standards.md) · [GitHub Actions](../operations
 | **Module integration** | A module booted with `createTestBlixis`, real repositories against Postgres | Node pool | Test Postgres | `modules/<m>/test/**/*.test.ts`, `packages/<p>/test/**/*.test.ts` |
 | **API (Workers runtime)** | The real Worker entry: routing, auth, validation, error mapping, REST/GraphQL formats, queue/scheduled handlers | Workers pool (`workerd`) | Test Postgres via Hyperdrive local connection; local Queues/KV/R2 simulation | `apps/api/test/**/*.worker.test.ts` |
 | **Infrastructure** | Adapters: Hyperdrive/Postgres, Queues, KV, R2, Cache API, Workflows | Workers pool | Local simulations; staging smoke for what cannot be simulated | `packages/cloudflare/src/**/*.test.ts`, `packages/database/**` |
-| **Cross-cutting suites** | Tenant isolation, authorization matrix, event pipeline, cache isolation | Workers pool | Test Postgres | `apps/api/test/*.worker.test.ts` |
+| **Cross-cutting suites** | Tenant isolation (`tooling/tenant-isolation`, Node pool against the API's real modules), authorization matrix, event pipeline, cache isolation | Node pool (until `pg` works in the Workers pool) | Test Postgres | `tooling/tenant-isolation`, `packages/events/test` |
 | **Contract (SDK)** | SDK against a running Workers-pool API | Workers pool / Node | Test Postgres | `packages/sdk/test/*.contract.test.ts` |
 | **End-to-end (UI)** | Admin editorial flow in a browser | Playwright | Local API + test Postgres | `apps/admin/e2e/*.spec.ts` |
 | **Smoke** | Deployed staging/production health and core workflow | Node script | Real environment | `tooling/smoke/` |

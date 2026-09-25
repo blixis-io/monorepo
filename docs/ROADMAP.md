@@ -61,7 +61,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [005 — Database Foundation](./plans/005-database-foundation/_index.md) | M3 | MVP | `completed` | 8/8 | 004 |
 | [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md) | M3 | MVP | `completed` | 7/7 | 005 |
 | [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md) | M4 | MVP | `completed` | 6/6 | 006 |
-| [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `in-progress` | 5/6 | 007 |
+| [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md) | M4 | MVP | `completed` | 6/6 | 007 |
 | [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `not-started` | 0/5 | 008 |
 | [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `not-started` | 0/5 | 009 |
 | [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `not-started` | 0/7 | 010 |
@@ -256,7 +256,7 @@ Decides the authentication approach (ADR), then builds `@blixis/users` (user rec
 
 #### 008 — Tenancy: Organizations, Spaces & Memberships
 
-Status: `in-progress` · Progress: 5/6 · Scope: MVP  
+Status: `completed` · Progress: 6/6 · Scope: MVP  
 Plan: [008-tenancy-organizations-and-spaces/_index.md](./plans/008-tenancy-organizations-and-spaces/_index.md)  
 Depends on: [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md)
 
@@ -267,7 +267,7 @@ Builds `@blixis/spaces` (organizations, spaces, default environment, locales) an
 - [x] [008.003 — Implement organization/space services and management routes](./plans/008-tenancy-organizations-and-spaces/003-space-service-and-management-routes.md)
 - [x] [008.004 — Implement environment and locale management](./plans/008-tenancy-organizations-and-spaces/004-environments-and-locales.md)
 - [x] [008.005 — Resolve and verify tenant context per request](./plans/008-tenancy-organizations-and-spaces/005-tenant-context-resolution.md)
-- [ ] [008.006 — Add the cross-tenant isolation test suite](./plans/008-tenancy-organizations-and-spaces/006-tenancy-isolation-tests.md)
+- [x] [008.006 — Add the cross-tenant isolation test suite](./plans/008-tenancy-organizations-and-spaces/006-tenancy-isolation-tests.md)
 
 #### 009 — Authorization & Permissions
 
