@@ -5,6 +5,7 @@ import { createYoga, type YogaServerInstance } from 'graphql-yoga'
 import { Hono } from 'hono'
 import { composeSchema, type SchemaPart } from './compose.ts'
 import type { GraphQLContext } from './context.ts'
+import { useBlixisErrors } from './errors.ts'
 import { GRAPHQL_SCHEMA_EXTENSION } from './extensions.ts'
 
 /** Options for {@link graphqlModule}. */
@@ -93,7 +94,10 @@ export const graphqlModule = defineModule((options: GraphqlModuleOptions) => {
       yoga = createYoga<ServerContext>({
         schema: (context) => schemaFor(context),
         graphqlEndpoint: '/graphql',
+        // Errors are mapped by useBlixisErrors (public errors keep their message and code);
+        // Yoga's masking stays on as a last line of defence for anything that slips through.
         maskedErrors: true,
+        plugins: [useBlixisErrors() as never],
         landingPage: false,
         graphiql: (_request, context) =>
           options.graphiql ?? context?.env['BLIXIS_ENV'] !== 'production',

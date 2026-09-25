@@ -33,7 +33,7 @@ export {
   serviceOverride,
 } from './create-blixis.ts'
 export { defineModule } from './define-module.ts'
-export type { ErrorReportContext, ErrorReporter } from './error-reporter.ts'
+export { ERROR_REPORTER, type ErrorReportContext, type ErrorReporter } from './error-reporter.ts'
 export { type ModuleProblem, ModuleValidationError } from './errors.ts'
 export {
   HEALTH_CHECKS,
