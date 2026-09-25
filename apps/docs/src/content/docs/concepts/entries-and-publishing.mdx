@@ -1,0 +1,101 @@
+---
+title: Entries and publishing
+description: How content is saved as immutable versions, published explicitly, linked, restored, and delivered.
+sidebar:
+  order: 13
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+An **entry** is one piece of content of an `entry` [content type](/concepts/content-modeling/), such as one page, one blog post, or one author. Blixis never overwrites content. Every save creates a new **version**, and **publishing** is a separate, explicit step that makes one version live.
+
+```text
+            save              save              publish           save
+ create ──▶ v1 ──────────────▶ v2 ─────────────▶ (v2 live) ───────▶ v3
+            status: draft      draft            published          changed (v2 still live)
+```
+
+## Versions
+
+- Each save stores the **complete** fields as a new, numbered, immutable version (`v1`, `v2`, …). Nothing is ever edited in place.
+- The entry points at its **current** version (the latest draft) and, once published, at its **published** version.
+- `sys.status` summarises the two:
+
+  | Status | Meaning |
+  |---|---|
+  | `draft` | never published, or unpublished |
+  | `published` | the latest version is live |
+  | `changed` | a version is live, and there are newer unpublished changes |
+
+- Old versions stay available: list them, read them, and **restore** one. A restore copies an old version's fields into a *new* version, so history is never rewritten. The old values are checked against the current content type, and values that no longer fit (e.g. after you shortened a `maxLength`) are reported.
+
+## Saving safely
+
+Two people editing the same entry can't overwrite each other:
+- every entry has a `sys.version`, returned as `ETag: "3"`;
+- send it back with each save, as `If-Match: "3"` or `expectedVersion: 3`;
+- if someone saved in between, you get `409`: reload, merge, and save again.
+
+Drafts are validated **leniently**: types, formats and allowed values are checked, but `required` fields may still be empty.
+
+## Publishing
+
+`POST /entries/:id/publish` makes the current version (or a chosen `versionId`) live. Publishing checks everything:
+- **Strict validation:** required fields must be filled (the default locale for localized fields), minimum item counts must be met, and `showWhen` rules apply.
+- **Link integrity:** every entry the version links to must exist, **be published**, and have a type the field allows. Publish linked entries first, such as the author before the post.
+
+All problems are reported at once, each with its path:
+
+```json
+{ "errors": [
+  { "path": ["fields", "title", "en-US"], "message": "Required" },
+  { "path": ["fields", "author"], "message": "Links to an unpublished entry: publish it first" }
+] }
+```
+
+**Commands are safe to retry.** Send an `Idempotency-Key` header with publish and unpublish: a retry after a timeout returns the original result instead of publishing twice.
+
+**Unpublishing** takes an entry offline. While other *published* entries link to it, unpublishing is refused (`409`, listing them), because it would break live pages. Send `{ "force": true }` to do it anyway.
+
+**Deleting** removes an entry with all its versions. Only unpublished entries can be deleted.
+
+## Links between entries
+
+Entries link to each other through `reference` and `link` fields, rich-text embeds, and fields inside blocks. Blixis records every link per version, which enables:
+- **`?include=1..3`** on reads, which returns the linked entries in `includes.entries`, level by level (one database query per level). Cycles are followed once, and links that don't resolve are left out.
+- **Referrers:** `GET /entries/:id/referrers?state=published` lists the entries that link to this one. Use it to find what a change affects.
+
+## Draft and published reads
+
+Every read chooses a **state**:
+- `draft` (default) returns the latest versions, for editors and previews;
+- `published` returns only published entries, with their live version.
+
+A published site always reads `state=published`. Newer drafts never leak onto it.
+
+## Events
+
+| Event | When | Delivery |
+|---|---|---|
+| `entry.created` | first version saved | best-effort |
+| `entry.updated` | new version saved or restored (`restoredFrom`) | best-effort |
+| `entry.published` | a version went live | **transactional** |
+| `entry.unpublished` | taken offline | **transactional** |
+| `entry.deleted` | deleted with its versions | **transactional** |
+
+**Transactional events** are written in the same database transaction as the change, through the outbox. A committed publish is never lost, and a rolled-back one never produces an event. Delivery caches and webhooks rely on this. See [Events](/concepts/events/).
+
+## Permissions
+
+| Permission | Default roles | Grants |
+|---|---|---|
+| `content.entries.read` | admin, editor, viewer | read entries, versions, referrers |
+| `content.entries.write` | admin, editor | create, save, restore |
+| `content.entries.publish` | admin, editor | publish, unpublish |
+| `content.entries.delete` | admin, editor | delete unpublished entries |
+
+API tokens need these as scopes. A read-only token for a website needs `content.entries.read` and `spaces.read`.
+
+<Aside type="tip">
+From your own module, use `CONTENT_SERVICE` from `@blixis/content`. It is the same service the REST API uses, with the same validation, permissions, and events. Never read the content tables directly.
+</Aside>
