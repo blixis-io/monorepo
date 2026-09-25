@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -36,23 +36,23 @@ Implement a field-type registry with the MVP built-in types, each defining its s
 ### Create
 
 ```text
-modules/content/src/domain/field-types/index.ts
-modules/content/src/domain/field-types/text.ts
-modules/content/src/domain/field-types/rich-text.ts
-modules/content/src/domain/field-types/number.ts
-modules/content/src/domain/field-types/boolean.ts
-modules/content/src/domain/field-types/date.ts
-modules/content/src/domain/field-types/select.ts
-modules/content/src/domain/field-types/json.ts
-modules/content/src/domain/field-types/reference.ts
-modules/content/src/domain/field-types/asset.ts
-modules/content/src/domain/field-types/field-types.test.ts
+modules/content/src/field-types/define.ts
+modules/content/src/field-types/built-in/index.ts
+modules/content/src/field-types/built-in/shared.ts
+modules/content/src/field-types/built-in/scalars.ts
+modules/content/src/field-types/built-in/links.ts
+modules/content/src/field-types/built-in/rich-text.ts
+modules/content/src/field-types/built-in/blocks.ts
+modules/content/src/rest/field-types.routes.ts
+modules/content/test/field-types.test.ts
 ```
 
 ### Modify
 
 ```text
-modules/content/src/domain/field.ts
+modules/content/src/module.ts
+modules/content/src/index.ts
+tooling/postman/blixis.postman_collection.json
 ```
 
 ### Delete
@@ -89,8 +89,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Every built-in type has settings and value tests including invalid inputs.
-- [ ] Registry rejects unknown field type IDs with `ValidationError`.
+- [x] Every built-in type has settings and value tests including invalid inputs.
+- [x] Registry rejects unknown field type IDs with `ValidationError`.
 
 ## Validation
 
@@ -100,15 +100,15 @@ pnpm --filter @blixis/content test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Registry design allows a future public extension point without breaking changes.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Registry design allows a future public extension point without breaking changes.
 
 ## Completion conditions
 
@@ -125,4 +125,20 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **`FieldTypeDefinition`:**
+  - `id`, `name` and `description`;
+  - `settings`: a strict Zod schema with defaults;
+  - `value(settings, context)`: the validator for one locale value;
+  - optional `isEmpty`, `localizable` and `graphql(settings)` (a hint for plan 012).
+- **`FieldValueContext`:** carries `mode` (`draft`/`publish`: minimum item counts are enforced on publish only), `depth`, and `component(apiId)` for `blocks`. The entry schema compiler (010.004) supplies it.
+- **Built-in types (13, ADR 0010 §4):**
+  - `text`, with formats `plain`/`slug`/`email`/`url` and a `pattern` that rejects unsafe regular expressions: longer than 200 characters, uncompilable, or with nested quantifiers such as `(a+)+` (ReDoS). Values are capped at 256 characters.
+  - `longText`, `number` (int/float, which drives the GraphQL hint), `boolean`, `date` (`z.iso.date`, calendar-checked, min/max), `dateTime` (ISO with offset);
+  - `select` (unique options and values, `multiple` + min/max), `reference`/`asset` (`{type,id}` links, `contentTypeIds`/`mimeTypes`), `link` (a discriminated union by `kind`, http(s) only, text/new-tab rules), `json` (≤ 64 KiB).
+  - `richText`: a ProseMirror/TipTap document walker. It checks node nesting rules, the allowed nodes, marks and heading levels per field, safe link hrefs, embeds with UUID ids, and depth ≤ 20, and it reports precise paths.
+  - `blocks`: loose `{ _id, _type }` items validated by the resolved component's schema, with unique `_id`s, allowed `componentIds`, and depth ≤ 5.
+- **Deviation from "registry internal in MVP":**
+  - The registry is **public and extensible**: `contentModule({ fieldTypes })` with `vendor.name` ids that can't shadow built-ins, and duplicates rejected (`ModuleError`).
+  - It's app-scoped under `FIELD_TYPES`.
+  - `GET /api/v1/field-types` lists each type with its settings as JSON Schema (`z.toJSONSchema`, input side), for editors and documentation.
+  - This follows the owner's request for documented extension points.
