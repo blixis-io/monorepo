@@ -10,6 +10,7 @@
     { "path": "../../packages/testing" },
     { "path": "../../modules/users" },
     { "path": "../../modules/spaces" },
-    { "path": "../../modules/permissions" }
+    { "path": "../../modules/permissions" },
+    { "path": "../../modules/content" }
   ]
 }

@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+review
 ```
 
 ## Parent plan
@@ -42,8 +42,7 @@ Implement `ContentTypeService` and REST routes for content type CRUD with author
 modules/content/src/application/content-type.service.ts
 modules/content/src/rest/content-type.routes.ts
 modules/content/src/events.ts
-modules/content/test/content-type.service.test.ts
-apps/api/test/content-types.worker.test.ts
+modules/content/test/content-types.api.test.ts
 ```
 
 ### Modify
@@ -51,8 +50,15 @@ apps/api/test/content-types.worker.test.ts
 ```text
 modules/content/src/module.ts
 modules/content/src/index.ts
-apps/api/test/tenant-routes.allowlist.ts
-apps/api/test/authz-matrix.worker.test.ts
+modules/content/src/rest/field-types.routes.ts
+tooling/tenant-isolation/test/routes.ts (isolation registry; the plan's apps/api/test/tenant-routes.allowlist.ts)
+tooling/tenant-isolation/test/isolation.test.ts
+tooling/tenant-isolation/test/authz-routes.ts (authz matrix; the plan's apps/api/test/authz-matrix.worker.test.ts)
+tooling/tenant-isolation/test/authz-matrix.test.ts
+tooling/tenant-isolation/tsconfig.json
+tooling/postman/blixis.postman_collection.json
+tooling/postman/{local,staging,production}.postman_environment.json
+docs/development/postman.md
 docs/contracts/events.md
 ```
 
@@ -77,9 +83,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Content types CRUD works end to end in the Workers pool.
-- [ ] Viewer cannot create content types (403); other tenant gets 404.
-- [ ] `content-type.updated` carries the new version.
+- [x] Content types CRUD works end to end in the Workers pool.
+- [x] Viewer cannot create content types (403); other tenant gets 404.
+- [x] `content-type.updated` carries the new version.
 
 ## Validation
 
@@ -90,15 +96,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] TODO stub for entry-existence check is tracked to 011.001.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] TODO stub for entry-existence check is tracked to 011.001.
 
 ## Completion conditions
 
@@ -115,4 +121,26 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **API ergonomics decision:**
+  - `PATCH` takes top-level properties, and `fields`, when present, is the **complete ordered list**. Fields are matched by `id`; new fields omit it and get a `newShortId()`.
+  - `version` is required on every `PATCH` (optimistic concurrency), and a stale version gets `409`.
+  - The API speaks `apiId`: `displayField` and `showWhen.field` name fields by `apiId` (`showWhen` also accepts ids), while storage keeps stable ids.
+  - `GET ?kind=entry|component` filters the list.
+- **Validation of definitions** (all issues at once, with paths such as `fields.1.settings.maxLength`):
+  - unknown field types, settings validated per type (with defaults filled in), and unique `apiId`s and ids;
+  - reserved `apiId`s and existing groups;
+  - `showWhen` must name a non-localized sibling;
+  - component fields can't be localized, and non-localizable types reject `localized`;
+  - `blocks.componentIds` must be components of the same environment, `reference`/`link` `contentTypeIds` must be entry types (a component may allow itself);
+  - `displayField` must be a `text` or `longText` field.
+- **Safe-change rules (ADR 0010 §10):**
+  - Type and `localized` changes, and removing a field that isn't disabled, are refused while entries exist (`409` with guidance).
+  - The kind can't change while entries exist or other types use the type.
+  - Delete is refused while other types reference the type, or while entries exist.
+  - The limit is 500 types per environment.
+  - Settings are validated before these conflict checks, so a type change must send settings valid for the new type.
+- **Entry usage:** the `ENTRY_USAGE` service token is provided as "no entries" until plan 011 (`TODO(011.001)`). Tests override it to exercise the rules with entries.
+- **Events** (best-effort, registered in `docs/contracts/events.md`): `content-type.created`, `content-type.updated` and `content-type.deleted`, with `{ contentTypeId, environmentId, apiId, kind, version }`.
+- **Routes:** all five use `spaceScoped()`, so the environment comes from `?environment=` (default `main`) and an unknown environment gives `404`. The module's REST app is now mounted at `/`, serving `/field-types` and the content type routes.
+- **Deviation, test location:** the isolation suite and authorization matrix live in `tooling/tenant-isolation` (Node pool), not in `apps/api/test/*.worker.test.ts`. Both now cover the 5 new routes, and the fingerprint includes `content.content_types`.
+- **Local end-to-end:** after `db:migrate` (content `0001`), Newman against `wrangler dev` ran 48 requests / 107 assertions with 0 failures.

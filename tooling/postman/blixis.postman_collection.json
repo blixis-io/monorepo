@@ -1289,6 +1289,218 @@
               }
             }
           ]
+        },
+        {
+          "name": "Create component (hero)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/content-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "content-types"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kind\": \"component\",\n  \"apiId\": \"hero\",\n  \"name\": \"Hero\",\n  \"fields\": [\n    {\n      \"apiId\": \"heading\",\n      \"name\": \"Heading\",\n      \"type\": \"text\",\n      \"required\": true\n    },\n    {\n      \"apiId\": \"image\",\n      \"name\": \"Image\",\n      \"type\": \"asset\",\n      \"settings\": {\n        \"mimeTypes\": [\n          \"image/*\"\n        ]\n      }\n    },\n    {\n      \"apiId\": \"hasButton\",\n      \"name\": \"Show button\",\n      \"type\": \"boolean\"\n    },\n    {\n      \"apiId\": \"button\",\n      \"name\": \"Button\",\n      \"type\": \"link\",\n      \"showWhen\": {\n        \"field\": \"hasButton\",\n        \"equals\": true\n      },\n      \"settings\": {\n        \"text\": \"required\"\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) pm.environment.set('componentId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create content type (page)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/content-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "content-types"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"apiId\": \"page\",\n  \"name\": \"Page\",\n  \"displayField\": \"title\",\n  \"groups\": [\n    {\n      \"id\": \"seo\",\n      \"name\": \"SEO\"\n    }\n  ],\n  \"fields\": [\n    {\n      \"apiId\": \"title\",\n      \"name\": \"Title\",\n      \"type\": \"text\",\n      \"required\": true,\n      \"localized\": true\n    },\n    {\n      \"apiId\": \"slug\",\n      \"name\": \"Slug\",\n      \"type\": \"text\",\n      \"required\": true,\n      \"settings\": {\n        \"format\": \"slug\"\n      }\n    },\n    {\n      \"apiId\": \"body\",\n      \"name\": \"Body\",\n      \"type\": \"blocks\",\n      \"localized\": true,\n      \"settings\": {\n        \"componentIds\": [\n          \"{{componentId}}\"\n        ]\n      }\n    },\n    {\n      \"apiId\": \"metaDescription\",\n      \"name\": \"Meta description\",\n      \"type\": \"longText\",\n      \"group\": \"seo\",\n      \"settings\": {\n        \"maxLength\": 160\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { pm.environment.set('contentTypeId', pm.response.json().id); pm.environment.set('contentTypeVersion', pm.response.json().version); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List content types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/content-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "content-types"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get content type",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/content-types/{{contentTypeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "content-types", "{{contentTypeId}}"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update content type",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/content-types/{{contentTypeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "content-types", "{{contentTypeId}}"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"version\": {{contentTypeVersion}},\n  \"description\": \"Website pages built from blocks\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) pm.environment.set('contentTypeVersion', pm.response.json().version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete content type",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/content-types/{{contentTypeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "content-types", "{{contentTypeId}}"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 204', () => pm.response.to.have.status(204));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete component",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/content-types/{{componentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "content-types", "{{componentId}}"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 204', () => pm.response.to.have.status(204));"]
+              }
+            }
+          ]
         }
       ]
     },

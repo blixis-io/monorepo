@@ -23,3 +23,6 @@ Every event is listed here with its delivery class. Rows are added by the task t
 | `user.signed-out` | 1 | best-effort | `@blixis/auth` | audit (020) | [`modules/auth/src/events.ts`](../../modules/auth/src/events.ts) |
 | `user.disabled` | 1 | **transactional** | `@blixis/users` | `@blixis/auth` revokes refresh tokens and API tokens | [`modules/users/src/events.ts`](../../modules/users/src/events.ts) |
 | `user.updated` | 1 | best-effort | `@blixis/users` | caches of display names; losing one only delays a refresh | [`modules/users/src/events.ts`](../../modules/users/src/events.ts) |
+| `content-type.created` | 1 | best-effort | `@blixis/content` | GraphQL schema cache (012), webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
+| `content-type.updated` | 1 | best-effort | `@blixis/content` | GraphQL schema cache (012): payload carries the new `version`; webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
+| `content-type.deleted` | 1 | best-effort | `@blixis/content` | GraphQL schema cache (012), webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
