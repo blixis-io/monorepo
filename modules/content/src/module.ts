@@ -21,7 +21,9 @@ import {
   type FieldTypeDefinition,
 } from './field-types/define.ts'
 import { contentTypeRepository } from './infrastructure/content-type.repository.ts'
+import { entryRepository } from './infrastructure/entry.repository.ts'
 import { createContentTypes } from './infrastructure/migrations/0001_create_content_types.ts'
+import { createEntries } from './infrastructure/migrations/0002_create_entries.ts'
 import { CONTENT_PERMISSIONS } from './permissions.ts'
 import { contentTypeRoutes } from './rest/content-type.routes.ts'
 import { fieldTypeRoutes } from './rest/field-types.routes.ts'
@@ -49,15 +51,14 @@ export const contentModule = defineModule((options: ContentModuleOptions) => ({
     requiresCapabilities: [BLIXIS_CAPABILITIES.database, BLIXIS_CAPABILITIES.events],
   },
   permissions: Object.values(CONTENT_PERMISSIONS),
-  migrations: [createContentTypes],
+  migrations: [createContentTypes, createEntries],
   events: [
     // Space data belongs to its modules: delete this module's rows with the space (plan 008).
     subscribe(spaceDeleted, 'delete-space-content', async ({ payload }, { services }) => {
-      await contentTypeRepository.deleteAllForSpace(
-        services.get(DATABASE),
-        payload.organizationId,
-        payload.spaceId,
-      )
+      const db = services.get(DATABASE)
+      // Entries first: they reference content types.
+      await entryRepository.deleteAllForSpace(db, payload.organizationId, payload.spaceId)
+      await contentTypeRepository.deleteAllForSpace(db, payload.organizationId, payload.spaceId)
     }),
   ],
   setup(ctx) {
@@ -78,8 +79,20 @@ export const contentModule = defineModule((options: ContentModuleOptions) => ({
         }),
       { scope: 'request' },
     )
-    // TODO(011.001): count entries once the entries table exists; no entries exist before 011.
-    ctx.services.provideFactory(ENTRY_USAGE, () => async () => 0, { scope: 'request' })
+    ctx.services.provideFactory(
+      ENTRY_USAGE,
+      ({ services }) => {
+        const db = services.get(DATABASE)
+        return async (tenant, contentTypeId) => {
+          const type = await contentTypeRepository.findById(db, tenant, contentTypeId)
+          if (type === undefined) return 0
+          return type.kind === 'component'
+            ? entryRepository.countContainingComponent(db, tenant, contentTypeId)
+            : entryRepository.countByContentType(db, tenant, contentTypeId)
+        }
+      },
+      { scope: 'request' },
+    )
   },
   rest: {
     path: '/',
