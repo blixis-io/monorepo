@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 4 — Identity, tenancy & authorization  
 Roadmap scope: MVP / initial platform  
-Progress: 4/6 tasks completed
+Progress: 5/6 tasks completed
 
 ## Objective
 
@@ -64,7 +64,7 @@ Depends on:
 - [x] [002 — Implement organization and space memberships](./002-memberships.md)
 - [x] [003 — Implement organization/space services and management routes](./003-space-service-and-management-routes.md)
 - [x] [004 — Implement environment and locale management](./004-environments-and-locales.md)
-- [ ] [005 — Resolve and verify tenant context per request](./005-tenant-context-resolution.md)
+- [x] [005 — Resolve and verify tenant context per request](./005-tenant-context-resolution.md)
 - [ ] [006 — Add the cross-tenant isolation test suite](./006-tenancy-isolation-tests.md)
 
 ## Completion criteria

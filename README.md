@@ -72,6 +72,12 @@ Tables, IDs (UUIDv7), timestamps, tenancy columns, always-scoped queries, cross-
 
 → [docs/conventions/database.md](docs/conventions/database.md)
 
+## Tenancy
+
+Verified tenant context for space-scoped routes (`spaceScoped()`), memberships, deleting spaces.
+
+→ [docs/conventions/tenancy.md](docs/conventions/tenancy.md)
+
 ## Migrations
 
 Module-owned SQL migrations: ids, checksums, expand/contract, `db:migrate` / `db:status` / `db:new`.

@@ -31,7 +31,13 @@ export interface EventTransport {
 export interface CreateEventBusOptions {
   readonly registry: EventRegistry
   readonly transport: EventTransport
-  readonly context: Pick<RequestContext, 'tenant' | 'correlationId' | 'actor' | 'now'>
+  /**
+   * The emitting request's context, read **at emit time**: a tenant bound after the bus was
+   * created (e.g. by `spaceScoped()`) must still reach the envelope.
+   */
+  readonly context:
+    | Pick<RequestContext, 'tenant' | 'correlationId' | 'actor' | 'now'>
+    | (() => Pick<RequestContext, 'tenant' | 'correlationId' | 'actor' | 'now'>)
   readonly services: ServiceRegistry
 }
 
@@ -50,7 +56,8 @@ export function createEventBus(options: CreateEventBusOptions): EventBus {
           `${definition.type} is a transactional event: pass { transaction } to emit()`,
         )
       }
-      const envelope = await createEnvelope(definition, payload, options.context, emitOptions)
+      const context = typeof options.context === 'function' ? options.context() : options.context
+      const envelope = await createEnvelope(definition, payload, context, emitOptions)
       await options.transport.publish(envelope as EventEnvelope, {
         definition: definition as EventDefinition,
         options: emitOptions,

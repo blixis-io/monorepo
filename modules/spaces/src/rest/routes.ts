@@ -1,4 +1,5 @@
 import { ForbiddenError, type ModuleHonoEnv, NotFoundError, validate } from '@blixis/contracts'
+import { requireTenant } from '@blixis/database'
 import {
   MEMBERSHIP_SERVICE,
   type Membership,
@@ -19,6 +20,7 @@ import {
 } from '../application/access.ts'
 import { ENVIRONMENT_SERVICE, LOCALE_SERVICE } from '../application/locales.service.ts'
 import { TENANCY_SERVICE } from '../application/tenancy.service.ts'
+import { spaceScoped } from '../application/tenant-resolver.ts'
 
 type Ctx = Context<ModuleHonoEnv>
 const userOf = (c: Ctx) => actingUserId(c.var.requestContext.actor)
@@ -165,17 +167,18 @@ export function spacesRoutes(options: { readonly allowOrganizationCreation: bool
         await c.var.services.get(TENANCY_SERVICE).deleteSpace(userOf(c), c.req.param('spaceId'))
         return c.body(null, 204)
       })
-      // Environments (read-only in the MVP) and locales
-      .get('/spaces/:spaceId/environments', async (c) => {
-        const tenant = await readableSpace(c)
-        return c.json({ environments: await c.var.services.get(ENVIRONMENT_SERVICE).list(tenant) })
-      })
-      .get('/spaces/:spaceId/locales', async (c) => {
-        const tenant = await readableSpace(c)
-        return c.json({ locales: await c.var.services.get(LOCALE_SERVICE).list(tenant) })
-      })
-      .post('/spaces/:spaceId/locales', async (c) => {
-        const tenant = await manageableSpace(c)
+      // Environments (read-only in the MVP) and locales — the canonical space-scoped pattern:
+      // spaceScoped() verifies access and binds the tenant; handlers read it from the context.
+      .get('/spaces/:spaceId/environments', spaceScoped(), async (c) =>
+        c.json({
+          environments: await c.var.services.get(ENVIRONMENT_SERVICE).list(spaceTenant(c)),
+        }),
+      )
+      .get('/spaces/:spaceId/locales', spaceScoped(), async (c) =>
+        c.json({ locales: await c.var.services.get(LOCALE_SERVICE).list(spaceTenant(c)) }),
+      )
+      .post('/spaces/:spaceId/locales', spaceScoped(), async (c) => {
+        const tenant = await requireSpaceManager(c)
         return c.json(
           await c.var.services
             .get(LOCALE_SERVICE)
@@ -183,17 +186,17 @@ export function spacesRoutes(options: { readonly allowOrganizationCreation: bool
           201,
         )
       })
-      .patch('/spaces/:spaceId/locales/:localeId', async (c) => {
-        const tenant = await manageableSpace(c)
+      .patch('/spaces/:spaceId/locales/:localeId', spaceScoped(), async (c) => {
+        const tenant = await requireSpaceManager(c)
         return c.json(
           await c.var.services
             .get(LOCALE_SERVICE)
-            .update(tenant, c.req.param('localeId'), (await json(c)) as object),
+            .update(tenant, c.req.param('localeId') ?? '', (await json(c)) as object),
         )
       })
-      .delete('/spaces/:spaceId/locales/:localeId', async (c) => {
-        const tenant = await manageableSpace(c)
-        await c.var.services.get(LOCALE_SERVICE).delete(tenant, c.req.param('localeId'))
+      .delete('/spaces/:spaceId/locales/:localeId', spaceScoped(), async (c) => {
+        const tenant = await requireSpaceManager(c)
+        await c.var.services.get(LOCALE_SERVICE).delete(tenant, c.req.param('localeId') ?? '')
         return c.body(null, 204)
       })
       // Organization members
@@ -283,6 +286,29 @@ export function spacesRoutes(options: { readonly allowOrganizationCreation: bool
         return c.body(null, 204)
       })
   )
+}
+
+/** The verified space tenant bound by {@link spaceScoped}. */
+function spaceTenant(c: Ctx): { organizationId: string; spaceId: string } {
+  const { organizationId, spaceId } = requireTenant(
+    c.var.requestContext,
+    'organizationId',
+    'spaceId',
+  )
+  return { organizationId, spaceId }
+}
+
+/** The space tenant, if the actor may manage the space (404 otherwise). TODO(009.004): permissions. */
+async function requireSpaceManager(c: Ctx): Promise<{ organizationId: string; spaceId: string }> {
+  const tenant = spaceTenant(c)
+  const access = await requireSpaceAccess(
+    c.var.services.get(MEMBERSHIP_SERVICE),
+    userOf(c),
+    tenant.organizationId,
+    tenant.spaceId,
+  )
+  if (!canManageSpace(access)) throw new NotFoundError('Space not found')
+  return tenant
 }
 
 /** The space scope, if the actor can see the space (404 otherwise). */

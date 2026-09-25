@@ -66,3 +66,19 @@ describe('column helpers', () => {
     expect(entries.spaceId.notNull).toBe(true)
   })
 })
+
+describe('assertSameTenant', () => {
+  it('passes for matching or absent ids and 404s on any mismatch', async () => {
+    const { assertSameTenant } = await import('./tenancy.ts')
+    const { NotFoundError } = await import('@blixis/contracts')
+    const tenant = { organizationId: 'o1', spaceId: 's1', environmentId: 'e1' }
+    expect(() => assertSameTenant({ organizationId: 'o1', spaceId: 's1' }, tenant)).not.toThrow()
+    expect(() => assertSameTenant({ spaceId: 's1', environmentId: null }, tenant)).not.toThrow()
+    expect(() =>
+      assertSameTenant({ organizationId: 'o1', spaceId: 's2' }, tenant, 'Entry'),
+    ).toThrowError(new NotFoundError('Entry not found'))
+    expect(() => assertSameTenant({ spaceId: 's1' }, { organizationId: 'o1' })).toThrow(
+      NotFoundError,
+    )
+  })
+})

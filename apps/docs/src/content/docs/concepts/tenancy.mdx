@@ -1,0 +1,47 @@
+---
+title: Organizations & spaces
+description: The tenant hierarchy, memberships, and how your routes get a verified tenant.
+sidebar:
+  order: 11
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+Blixis is multi-tenant from the start. **Organizations** contain **spaces**, and every space has an **environment** (`main` for now) and one or more **locales**. People join organizations or individual spaces through **memberships**.
+
+| Resource | Endpoints |
+|---|---|
+| Organizations | `GET/POST /api/v1/organizations`, `GET/PATCH /api/v1/organizations/:orgId` |
+| Spaces | `GET/POST /api/v1/organizations/:orgId/spaces`, `GET/PATCH/DELETE /api/v1/spaces/:spaceId` |
+| Environments | `GET /api/v1/spaces/:spaceId/environments` |
+| Locales | `GET/POST /api/v1/spaces/:spaceId/locales`, `PATCH/DELETE …/locales/:localeId` |
+| Members | `GET/POST …/members`, `PATCH/DELETE …/members/:membershipId`, for organizations and spaces |
+
+- **New organizations and spaces:** creating an organization makes you its **owner**. Creating a space gives it a `main` environment and a default locale (`en-US` unless you pick one), makes you its **admin**, and emits `space.created`.
+- **Members** are added by email and must already have an account. Email invitations come later.
+- **Invisible to outsiders:** anything you can't access answers **404**, never 403, so it doesn't reveal that it exists.
+
+## In your module: `spaceScoped()`
+
+Put `spaceScoped()` on every route under `/spaces/:spaceId/…`. It verifies the caller's access and fills in the request's tenant:
+
+```ts
+import { spaceScoped } from '@blixis/spaces'
+import { requireTenant, tenantScope } from '@blixis/database'
+
+routes.get('/spaces/:spaceId/notes', spaceScoped(), async (c) => {
+  const tenant = requireTenant(c.var.requestContext, 'organizationId', 'spaceId', 'environmentId')
+  return c.json(await db.select().from(notes).where(tenantScope(notes, tenant)))
+})
+```
+
+- **Environment:** use `?environment=main`, or a `:environment` route parameter, to choose one explicitly.
+- **Services that read `REQUEST_CONTEXT`** see the tenant too: event envelopes carry `tenantId` and `spaceId`, and log lines include them.
+
+<Aside type="caution">
+Never take `spaceId` or `organizationId` from a request body or query string for authorization. Use the tenant `spaceScoped()` verified, and filter every query by it.
+</Aside>
+
+## When a space is deleted
+
+`space.deleted` is a transactional event. Modules that store space data subscribe to it and delete their own rows.

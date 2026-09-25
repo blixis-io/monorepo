@@ -6,7 +6,7 @@ import type {
   ServiceRegistry,
   ServiceToken,
 } from '@blixis/contracts'
-import { ModuleError, REQUEST_CONTEXT, type RequestContext } from '@blixis/contracts'
+import { ModuleError, type RequestContext } from '@blixis/contracts'
 import { Hono } from 'hono'
 import { ACTOR_RESOLVERS, ActorResolverRegistry } from './actors.ts'
 import {
@@ -30,6 +30,7 @@ import { validateModuleConfigs } from './internal/config.ts'
 import { validateModuleGraph } from './internal/graph.ts'
 import { type ActorResolver, installRest } from './internal/rest.ts'
 import { ServiceContainer } from './internal/services.ts'
+import { provideRequestContext } from './internal/tenant-binder.ts'
 import { createJsonLogger } from './logger.ts'
 
 /** Minimal execution context accepted by {@link BlixisApp.fetch} (compatible with Workers). */
@@ -253,7 +254,7 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
       services: scope.services,
       now: () => new Date(),
     }
-    scope.provideValue(REQUEST_CONTEXT, context)
+    provideRequestContext(scope, context)
     try {
       return await fn(context)
     } finally {

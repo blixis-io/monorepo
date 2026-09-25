@@ -41,7 +41,8 @@
     "drizzle-orm": "catalog:",
     "hono": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "zod": "catalog:"
   },
   "repository": {
     "type": "git",

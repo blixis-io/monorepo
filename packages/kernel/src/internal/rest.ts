@@ -5,7 +5,6 @@ import {
   type Logger,
   ModuleError,
   NotFoundError,
-  REQUEST_CONTEXT,
   type RequestContext,
   type ServiceRegistry,
 } from '@blixis/contracts'
@@ -16,6 +15,7 @@ import { type HealthCheck, runHealthChecks } from '../health.ts'
 import type { BlixisHonoEnv } from '../hono-env.ts'
 import { toProblemResponse } from './errors-http.ts'
 import type { ServiceContainer } from './services.ts'
+import { provideRequestContext } from './tenant-binder.ts'
 
 /** Prefix of all module REST routes (architecture §9). */
 export const API_PREFIX = '/api/v1'
@@ -166,7 +166,7 @@ export function installRest(
         now: () => new Date(),
         signal: c.req.raw.signal,
       }
-      scope.provideValue(REQUEST_CONTEXT, context)
+      provideRequestContext(scope, context)
       c.set('requestContext', context)
       c.set('services', scope.services)
       await next()

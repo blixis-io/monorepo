@@ -9,6 +9,7 @@ import {
   LOCALE_SERVICE,
 } from './application/locales.service.ts'
 import { createTenancyService, TENANCY_SERVICE } from './application/tenancy.service.ts'
+import { createTenantResolver, TENANT_RESOLVER } from './application/tenant-resolver.ts'
 import { createSpaces } from './infrastructure/migrations/0001_create_spaces.ts'
 import { spacesRoutes } from './rest/routes.ts'
 
@@ -53,6 +54,15 @@ export const spacesModule = defineModule((options: SpacesModuleOptions) => ({
       LOCALE_SERVICE,
       ({ services }) =>
         createLocaleService({ db: services.get(DATABASE), events: services.get(EVENT_BUS) }),
+      { scope: 'request' },
+    )
+    ctx.services.provideFactory(
+      TENANT_RESOLVER,
+      ({ services }) =>
+        createTenantResolver({
+          db: services.get(DATABASE),
+          memberships: services.get(MEMBERSHIP_SERVICE),
+        }),
       { scope: 'request' },
     )
   },
