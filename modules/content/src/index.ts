@@ -6,6 +6,13 @@
  */
 
 export {
+  CONTENT_SERVICE,
+  type ContentService,
+  type EntryListQuery,
+  type EntrySys,
+  type EntryView,
+} from './application/content.service.ts'
+export {
   CONTENT_TYPE_SERVICE,
   type ContentTypeService,
   type ContentTypeView,
@@ -37,7 +44,23 @@ export {
   type ShowWhen,
   type UpdateContentTypeInput,
 } from './domain/content-type.ts'
-export { contentTypeCreated, contentTypeDeleted, contentTypeUpdated } from './events.ts'
+export type {
+  Entry,
+  EntryLink,
+  EntryState,
+  EntryStatus,
+  EntryVersion,
+} from './domain/entry.ts'
+export {
+  contentTypeCreated,
+  contentTypeDeleted,
+  contentTypeUpdated,
+  entryCreated,
+  entryDeleted,
+  entryPublished,
+  entryUnpublished,
+  entryUpdated,
+} from './events.ts'
 export {
   assetField,
   BUILT_IN_FIELD_TYPES,
