@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 4 — Identity, tenancy & authorization  
 Roadmap scope: MVP / initial platform  
-Progress: 5/6 tasks completed
+Progress: 6/6 tasks completed
 
 ## Objective
 
@@ -64,16 +64,16 @@ Depends on:
 - [x] [003 — Implement sign-up, sign-in, sign-out, and sessions](./003-auth-module-sessions.md)
 - [x] [004 — Resolve actors from sessions and bearer tokens](./004-actor-resolution.md)
 - [x] [005 — Implement personal API tokens](./005-personal-api-tokens.md)
-- [ ] [006 — Add login throttling, CSRF protection, and auth security tests](./006-auth-hardening-and-tests.md)
+- [x] [006 — Add login throttling, CSRF protection, and auth security tests](./006-auth-hardening-and-tests.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] Session cookie and bearer token both resolve to the correct `Actor` in the request context.
-- [ ] Brute-force login throttling and CSRF checks verified by tests.
-- [ ] No credential material appears in logs (log-capture test).
+- [x] All tasks `completed`.
+- [x] Session cookie and bearer token both resolve to the correct `Actor` in the request context.
+- [x] Brute-force login throttling and CSRF checks verified by tests.
+- [x] No credential material appears in logs (log-capture test).
 
 ## Risks
 

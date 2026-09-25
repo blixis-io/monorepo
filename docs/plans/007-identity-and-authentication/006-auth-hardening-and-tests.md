@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,18 +37,21 @@ Protect authentication endpoints against brute force and cookie-authenticated ro
 
 ```text
 modules/auth/src/application/throttle.ts
+modules/auth/src/infrastructure/migrations/0003_create_throttle.ts
 modules/auth/test/security.test.ts
-apps/api/test/auth-security.worker.test.ts
 ```
 
 ### Modify
 
 ```text
-modules/auth/src/rest/routes.ts
+apps/docs/src/content/docs/concepts/authentication.mdx
+docs/ROADMAP.md
+docs/plans/007-identity-and-authentication/006-auth-hardening-and-tests.md
+docs/plans/007-identity-and-authentication/_index.md
+modules/auth/src/application/auth.service.ts
+modules/auth/src/index.ts
 modules/auth/src/module.ts
-packages/kernel/src/internal/rest.ts (CSRF middleware hook, if kernel-level)
-apps/api/wrangler.jsonc
-docs/operations/configuration.md
+modules/auth/src/rest/routes.ts
 ```
 
 ### Delete
@@ -71,9 +74,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Sixth failed login in a short window returns 429 `RATE_LIMITED` with `Retry-After`.
-- [ ] Cookie-authenticated `POST` from a foreign origin returns 403.
-- [ ] Log-capture test passes with no secrets.
+- [x] Sixth failed login in a short window returns 429 `RATE_LIMITED` with `Retry-After`.
+- [x] Cookie-authenticated `POST` from a foreign origin returns 403.
+- [x] Log-capture test passes with no secrets.
 
 ## Validation
 
@@ -84,15 +87,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Choices recorded for reuse in plan 020 rate limiting.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Choices recorded for reuse in plan 020 rate limiting.
 
 ## Completion conditions
 
@@ -109,4 +112,25 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Throttling choice (feeds 020.003): Postgres counters**, not the Workers Rate Limiting binding. The binding counts per Cloudflare location and eventually, which is too loose to stop distributed guessing against one account. §14 rules out KV for strict counting.
+  - Table `auth.sign_in_throttle(key_hash, failures, window_started_at, locked_until)` (migration `0003_create_throttle`).
+  - Keys are SHA-256 of `email:<normalized>` and `ip:<CF-Connecting-IP>`: no plain emails or IPs.
+- **Policy** (`DEFAULT_THROTTLE_POLICY`, overridable via `authModule({ throttle })`):
+  - 5 failures per email / 30 per IP within 15 minutes;
+  - the lock lasts 60 s × 2^(failures − limit), capped at 1 h, and returns `RateLimitError` → 429 + `Retry-After`;
+  - `assertAllowed` runs **before** scrypt (a locked attacker costs no CPU);
+  - unknown emails are counted identically (no enumeration);
+  - success clears only the email key (the IP may be shared);
+  - the minute cron deletes stale unlocked counters.
+- **CSRF:** already enforced since 007.003. Only `/auth/refresh` and `/auth/sign-out` read a cookie, and they require an allowed `Origin` and `application/json`. Every other route authenticates via the `Authorization` header, which browsers never attach cross-site, so bearer requests are exempt by design. `AUTH_ALLOWED_ORIGINS` is documented in `configuration.md` (since 007.003).
+- **Session fixation:** sign-in always creates a new refresh-token family with a server-generated token; a presented refresh cookie is ignored (tested: new token, different `sid`).
+- **Tests (`modules/auth/test/security.test.ts`):**
+  - email lock (even the correct password → 429 + Retry-After; other emails unaffected);
+  - unknown-email lock;
+  - IP spray lock (other IPs unaffected);
+  - success resets the counter, and the stored keys are 64-hex hashes with no emails or IPs;
+  - session fixation;
+  - **log capture**: every flow including failures, refresh reuse (warning logged), PAT use, and an invalid PAT → no password, access/refresh/rotated token, PAT, or signing-key `d` in any log entry.
+  - 37 auth tests in total.
+- **Plan 007 completion criterion "session cookie and bearer token resolve to the correct Actor":** under ADR 0009 there is no session cookie on API requests. The cookie only carries the refresh token for `/auth/refresh`. Bearer JWT → `user` actor and bearer `blx_pat_` → `apiToken` actor are both tested (007.004/007.005). The criterion is met in that form.
+- **Staging:** needs `db:migrate` (users 0001; auth 0001–0003) before the next deploy; a user already exists.

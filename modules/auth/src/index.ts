@@ -22,6 +22,7 @@ export {
 } from './application/auth.service.ts'
 export { AUTH_CONFIG, type AuthConfig } from './application/config.ts'
 export { apiTokenActorResolver, bearerToken, jwtActorResolver } from './application/resolvers.ts'
+export { DEFAULT_THROTTLE_POLICY, type ThrottlePolicy } from './application/throttle.ts'
 export { type AccessTokenClaims, generateSigningKey } from './domain/jwt.ts'
 export { userSignedIn, userSignedOut } from './events.ts'
 export { type AuthModuleOptions, authModule } from './module.ts'

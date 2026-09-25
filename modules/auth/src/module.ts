@@ -18,6 +18,7 @@ import { AUTH_CONFIG } from './application/config.ts'
 import { apiTokenActorResolver, jwtActorResolver } from './application/resolvers.ts'
 import { createAuth } from './infrastructure/migrations/0001_create_auth.ts'
 import { createApiTokens } from './infrastructure/migrations/0002_create_api_tokens.ts'
+import { createThrottle } from './infrastructure/migrations/0003_create_throttle.ts'
 import { refreshTokenRepository } from './infrastructure/repositories.ts'
 import { authRoutes } from './rest/routes.ts'
 
@@ -42,7 +43,7 @@ export const authModule = defineModule((options: AuthModuleOptions) => ({
     requires: { '@blixis/users': '>=0.0.0' },
     requiresCapabilities: [BLIXIS_CAPABILITIES.database, BLIXIS_CAPABILITIES.events],
   },
-  migrations: [createAuth, createApiTokens],
+  migrations: [createAuth, createApiTokens, createThrottle],
   // Disabled users lose every credential immediately (refresh families and API tokens).
   events: [
     subscribe(userDisabled, 'revoke-credentials', async (envelope, context) => {
@@ -92,6 +93,7 @@ export const authModule = defineModule((options: AuthModuleOptions) => ({
             { actor: { type: 'system', component: '@blixis/auth' } },
             async ({ services }) => {
               await refreshTokenRepository.deleteExpired(services.get(DATABASE), 7)
+              await services.get(AUTH_SERVICE).cleanupThrottle()
             },
           )
           .then(() => undefined),

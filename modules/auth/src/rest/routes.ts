@@ -96,7 +96,9 @@ function respond(c: Ctx, auth: Authentication, delivery: unknown, status: 200 | 
 
 const client = (c: Ctx) => {
   const userAgent = c.req.header('user-agent')
-  return userAgent === undefined ? {} : { userAgent }
+  // Set by Cloudflare's edge; clients cannot spoof it through the proxy.
+  const ip = c.req.header('cf-connecting-ip')
+  return { ...(userAgent === undefined ? {} : { userAgent }), ...(ip === undefined ? {} : { ip }) }
 }
 
 /**
