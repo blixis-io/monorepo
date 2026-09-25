@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 Milestone: Milestone 5 — Content management core  
 Roadmap scope: MVP / initial platform  
-Progress: 0/5 tasks completed
+Progress: 1/5 tasks completed
 
 ## Objective
 
@@ -62,7 +62,7 @@ Depends on:
 
 ## Tasks
 
-- [ ] [001 — Decide the content storage model](./001-content-storage-design.md)
+- [x] [001 — Decide the content storage model](./001-content-storage-design.md)
 - [ ] [002 — Scaffold the content module and content type schema](./002-content-module-scaffold-and-type-schema.md)
 - [ ] [003 — Implement the built-in field type system](./003-field-type-system.md)
 - [ ] [004 — Compile entry validators from content types](./004-entry-schema-compiler.md)
