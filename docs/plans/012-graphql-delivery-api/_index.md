@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 Milestone: Milestone 6 — Content delivery  
 Roadmap scope: MVP / initial platform  
-Progress: 0/8 tasks completed
+Progress: 1/8 tasks completed
 
 ## Objective
 
@@ -63,7 +63,7 @@ Depends on:
 
 ## Tasks
 
-- [ ] [001 — Scaffold @blixis/graphql with GraphQL Yoga on Workers](./001-scaffold-graphql-package-with-yoga.md)
+- [x] [001 — Scaffold @blixis/graphql with GraphQL Yoga on Workers](./001-scaffold-graphql-package-with-yoga.md)
 - [ ] [002 — Compose and validate the schema from module contributions](./002-schema-composition-and-scalars.md)
 - [ ] [003 — Map Blixis errors to GraphQL errors](./003-graphql-error-mapping.md)
 - [ ] [004 — Implement delivery and preview API keys](./004-delivery-and-preview-api-keys.md)

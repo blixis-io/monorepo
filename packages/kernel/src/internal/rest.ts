@@ -71,7 +71,7 @@ export function findRouteConflicts(modules: readonly BlixisModule[]): ModuleProb
     }
     for (const route of rest.app.routes) {
       if (route.method === 'ALL') continue
-      const key = `${route.method} ${joinPath(joinPath(API_PREFIX, rest.path), route.path)}`
+      const key = `${route.method} ${joinPath(joinPath(rest.root === true ? '' : API_PREFIX, rest.path), route.path)}`
       const owner = owners.get(key)
       if (owner === undefined) owners.set(key, module.meta.name)
       else if (owner !== module.meta.name) {
@@ -190,7 +190,7 @@ export function installRest(
   for (const module of modules) {
     if (module.rest === undefined) continue
     app.route(
-      joinPath(API_PREFIX, module.rest.path),
+      module.rest.root === true ? module.rest.path : joinPath(API_PREFIX, module.rest.path),
       module.rest.app as unknown as Hono<BlixisHonoEnv>,
     )
   }

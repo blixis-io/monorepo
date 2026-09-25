@@ -6,6 +6,7 @@ import { databaseModule } from '@blixis/database'
 import { idempotencyModule } from '@blixis/database/idempotency'
 import { eventsModule, queueTransport } from '@blixis/events'
 import { outboxModule, outboxTransport } from '@blixis/events/outbox'
+import { graphqlModule } from '@blixis/graphql'
 import { permissionsModule } from '@blixis/permissions'
 import { spacesModule } from '@blixis/spaces'
 import { usersModule } from '@blixis/users'
@@ -35,4 +36,6 @@ export const modules: readonly BlixisModule[] = [
   spacesModule(),
   permissionsModule(),
   contentModule(),
+  // GET/POST /graphql (delivery API, §10) — composed from module contributions.
+  graphqlModule(),
 ]
