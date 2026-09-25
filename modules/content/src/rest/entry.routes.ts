@@ -73,11 +73,36 @@ function listQuery(c: Ctx): EntryListQuery {
   }
 }
 
+/** `?include=0..3`: linked entries to return alongside, in `includes.entries`. */
+function includeDepth(c: Ctx): number | undefined {
+  const raw = c.req.query('include')
+  return raw === undefined ? undefined : Number(raw)
+}
+const stateOf = (c: Ctx) => {
+  const state = c.req.query('state')
+  if (state !== undefined && state !== 'draft' && state !== 'published')
+    throw new ValidationError('Invalid query', [
+      { path: ['state'], message: 'Use draft or published' },
+    ])
+  return state
+}
+
 /** Entry management routes (plan 011.003). Handlers only translate HTTP ⇄ `CONTENT_SERVICE`. */
 export const entryRoutes = new Hono<ModuleHonoEnv>()
-  .get('/spaces/:spaceId/entries', spaceScoped(), async (c) =>
-    c.json(await c.var.services.get(CONTENT_SERVICE).list(actorOf(c), tenantOf(c), listQuery(c))),
-  )
+  .get('/spaces/:spaceId/entries', spaceScoped(), async (c) => {
+    const content = c.var.services.get(CONTENT_SERVICE)
+    const query = listQuery(c)
+    const page = await content.list(actorOf(c), tenantOf(c), query)
+    const depth = includeDepth(c)
+    if (depth === undefined) return c.json(page)
+    const entries = await content.resolveLinks(
+      actorOf(c),
+      tenantOf(c),
+      page.entries.map((e) => e.sys.id),
+      { depth, state: query.state },
+    )
+    return c.json({ ...page, includes: { entries } })
+  })
   .post('/spaces/:spaceId/entries', spaceScoped(), async (c) => {
     const body = await json(c)
     const entry = await c.var.services.get(CONTENT_SERVICE).create(actorOf(c), tenantOf(c), {
@@ -88,17 +113,30 @@ export const entryRoutes = new Hono<ModuleHonoEnv>()
     return c.json(entry, 201)
   })
   .get('/entries/:entryId', entryScoped(), async (c) => {
-    const state = c.req.query('state')
-    if (state !== undefined && state !== 'draft' && state !== 'published')
-      throw new ValidationError('Invalid query', [
-        { path: ['state'], message: 'Use draft or published' },
-      ])
-    const entry = await c.var.services
-      .get(CONTENT_SERVICE)
-      .get(actorOf(c), tenantOf(c), entryId(c), state === undefined ? {} : { state })
+    const state = stateOf(c)
+    const content = c.var.services.get(CONTENT_SERVICE)
+    const entry = await content.get(
+      actorOf(c),
+      tenantOf(c),
+      entryId(c),
+      state === undefined ? {} : { state },
+    )
     withEtag(c, entry)
-    return c.json(entry)
+    const depth = includeDepth(c)
+    if (depth === undefined) return c.json(entry)
+    const entries = await content.resolveLinks(actorOf(c), tenantOf(c), [entry.sys.id], {
+      depth,
+      state,
+    })
+    return c.json({ ...entry, includes: { entries } })
   })
+  .get('/entries/:entryId/referrers', entryScoped(), async (c) =>
+    c.json({
+      entries: await c.var.services
+        .get(CONTENT_SERVICE)
+        .findReferrers(actorOf(c), tenantOf(c), entryId(c), { state: stateOf(c) }),
+    }),
+  )
   .patch('/entries/:entryId', entryScoped(), async (c) => {
     const body = await json(c)
     const entry = await c.var.services

@@ -72,6 +72,7 @@ export const ISOLATION_ROUTES: readonly IsolationRoute[] = [
     path: '/api/v1/entries/:entryId',
     body: { expectedVersion: 1, fields: { title: 'Hijacked' } },
   },
+  { method: 'GET', path: '/api/v1/entries/:entryId/referrers' },
   { method: 'GET', path: '/api/v1/entries/:entryId/versions' },
   { method: 'GET', path: '/api/v1/entries/:entryId/versions/:versionId' },
   {
