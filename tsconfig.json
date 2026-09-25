@@ -68,6 +68,12 @@
       "path": "modules/auth/tsconfig.test.json"
     },
     {
+      "path": "modules/spaces"
+    },
+    {
+      "path": "modules/spaces/tsconfig.test.json"
+    },
+    {
       "path": "apps/api"
     }
   ]

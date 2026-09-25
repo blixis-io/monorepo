@@ -9,6 +9,9 @@ Every event is listed here with its delivery class. Rows are added by the task t
 | Event | Version | Delivery | Owner | Consumers | Defined in |
 |---|---|---|---|---|---|
 | `user.created` | 1 | **transactional** | `@blixis/users` | provisioning (e.g. personal space, plan 008), audit (020) | [`modules/users/src/events.ts`](../../modules/users/src/events.ts) |
+| `organization.created` | 1 | best-effort | `@blixis/spaces` | audit (020) | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |
+| `space.created` | 1 | **transactional** | `@blixis/spaces` | provisioning: content defaults (010), delivery keys (012), search indexes | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |
+| `space.updated` | 1 | best-effort | `@blixis/spaces` | caches of space names | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |
 | `user.signed-in` | 1 | best-effort | `@blixis/auth` | audit (020), analytics | [`modules/auth/src/events.ts`](../../modules/auth/src/events.ts) |
 | `user.signed-out` | 1 | best-effort | `@blixis/auth` | audit (020) | [`modules/auth/src/events.ts`](../../modules/auth/src/events.ts) |
 | `user.disabled` | 1 | **transactional** | `@blixis/users` | `@blixis/auth` revokes refresh tokens and API tokens | [`modules/users/src/events.ts`](../../modules/users/src/events.ts) |
