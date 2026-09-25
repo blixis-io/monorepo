@@ -185,6 +185,39 @@ export const AUTHZ_ROUTES = defineAuthzMatrix([
     permission: 'content.types.write',
     level: 'space',
   },
+  // Entries
+  {
+    method: 'GET',
+    path: '/api/v1/spaces/:spaceId/entries',
+    permission: 'content.entries.read',
+    level: 'space',
+  },
+  {
+    method: 'GET',
+    path: '/api/v1/entries/:entryId',
+    permission: 'content.entries.read',
+    level: 'space',
+  },
+  {
+    method: 'POST',
+    path: '/api/v1/spaces/:spaceId/entries',
+    body: { contentType: 'article', fields: {} },
+    permission: 'content.entries.write',
+    level: 'space',
+  },
+  {
+    method: 'PATCH',
+    path: '/api/v1/entries/:entryId',
+    body: { expectedVersion: 1, fields: {} },
+    permission: 'content.entries.write',
+    level: 'space',
+  },
+  {
+    method: 'DELETE',
+    path: '/api/v1/entries/:entryId',
+    permission: 'content.entries.delete',
+    level: 'space',
+  },
   {
     method: 'DELETE',
     path: '/api/v1/spaces/:spaceId/content-types/:contentTypeId',

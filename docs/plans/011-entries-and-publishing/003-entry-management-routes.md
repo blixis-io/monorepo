@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -39,7 +39,8 @@ Expose the draft lifecycle via REST routes from §9 with input validation, pagin
 
 ```text
 modules/content/src/rest/entry.routes.ts
-apps/api/test/entries.worker.test.ts
+modules/content/test/entries.api.test.ts
+packages/testing/src/isolation.test.ts
 docs/api/management-conventions.md
 ```
 
@@ -47,8 +48,16 @@ docs/api/management-conventions.md
 
 ```text
 modules/content/src/module.ts
-apps/api/test/tenant-routes.allowlist.ts
-apps/api/test/authz-matrix.worker.test.ts
+modules/content/src/index.ts
+packages/testing/src/isolation.ts (TENANT_SEGMENTS: entries/:entryId)
+tooling/tenant-isolation/test/routes.ts (isolation registry; the plan's apps/api/test/tenant-routes.allowlist.ts)
+tooling/tenant-isolation/test/isolation.test.ts
+tooling/tenant-isolation/test/authz-routes.ts (authz matrix; the plan's apps/api/test/authz-matrix.worker.test.ts)
+tooling/tenant-isolation/test/authz-matrix.test.ts
+tooling/postman/src/collection.test.ts (query strings ignored when matching routes)
+tooling/postman/blixis.postman_collection.json
+tooling/postman/{local,staging,production}.postman_environment.json
+docs/development/postman.md
 ```
 
 ### Delete
@@ -72,9 +81,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Entry CRUD works in Workers-pool tests.
-- [ ] `GET /api/v1/entries/:id` for another tenant's entry returns 404.
-- [ ] Pagination stable across inserts.
+- [x] Entry CRUD works in Workers-pool tests.
+- [x] `GET /api/v1/entries/:id` for another tenant's entry returns 404.
+- [x] Pagination stable across inserts.
 
 ## Validation
 
@@ -84,15 +93,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Management API conventions documented and applied to earlier modules' routes (or deviations listed).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Management API conventions documented and applied to earlier modules' routes (or deviations listed).
 
 ## Completion conditions
 
@@ -109,4 +118,20 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Routes:**
+  - `GET/POST /spaces/:spaceId/entries` use `spaceScoped()`, with `?environment=`.
+  - `GET/PATCH/DELETE /entries/:entryId` use the new **`entryScoped()`** middleware. It calls `CONTENT_SERVICE.resolveTenant` (content read permission, `404` for non-members) and then binds the entry's organization, space and environment through `TENANT_BINDER`, so events, logs and idempotency keys see the tenant, as with `spaceScoped()`. It's exported for later entry routes (publish, versions).
+- **List query:** `contentType`, `state`, `updatedSince`, `limit`, `cursor`, and `fields.<apiId>=…`. The response is `{ entries, nextCursor }`.
+- **Concurrency:**
+  - `ETag: "<version>"` on create, get and update responses;
+  - `If-Match: "3"` (weak `W/` tolerated) maps to `expectedVersion` on `PATCH` and on the optional `DELETE` check, and a body `expectedVersion` wins;
+  - a `PATCH` without either gives `400`.
+- **Conventions:** `docs/api/management-conventions.md` defines paths, tenancy (401/404/403), representations, list and cursor pagination, concurrency (version/ETag/If-Match), idempotent commands, and errors.
+- **Isolation:**
+  - `isTenantScoped` recognises resource-id routes through `TENANT_SEGMENTS` (`entries/:entryId`), so the isolation suite and the authorization matrix must now cover entry-id routes.
+  - Both cover the 5 entry routes. The fingerprint includes entries and versions.
+  - Matrix fixtures use an `article` type for entries, so the content type rows can still delete `page`.
+- **Postman:**
+  - the Content model folder gains create/list (with a field filter)/get/update (`If-Match`)/delete entry;
+  - the drift test now ignores query strings.
+- **Local end-to-end:** Newman against `wrangler dev` after `db:migrate` (content `0002`) ran 53 requests / 118 assertions with 0 failures.
