@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 ## Parent plan
@@ -73,7 +73,7 @@ Requires:
 ## Acceptance criteria
 
 - [x] Isolation tests pass.
-- [ ] CP6 recorded in ROADMAP.
+- [x] CP6 recorded in ROADMAP.
 
 ## Validation
 
@@ -85,15 +85,15 @@ npx vitest run packages/graphql
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Auth-before-cache verified by test.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Auth-before-cache verified by test.
 
 ## Completion conditions
 
@@ -114,4 +114,16 @@ Change the status to `completed` only when all of the following hold:
 - **What the suite proves:** a byte-identical request with another space's key is a `MISS` with that space's content; `en-US` and `de` are separate entries; after revoking a key over REST, the same request answers `401` (no `x-blixis-cache` header) although its response is cached — authentication runs before the lookup and revoking forgets the key in the revoking isolate.
 - **Forcing a fresh execution:** the requirement asked for an *authorised* bypass header. `Cache-Control: no-cache` is accepted from any caller that may use the cache instead: it grants nothing a caller can't already do by changing a variable or an alias (every distinct operation is a miss), so an authorisation check would add complexity without protection. The fresh result replaces the cached one.
 - **`x-blixis-cache-layer`:** added (`memory` / `cache-api`) so staging measurements can tell L1 from L2 hits; `createTieredCache` gained `lookup(key)` returning the answering layer.
+- **Staging measurements (2026-09-26, deploy `261a70bc`):**
+
+| Request | Uncached p50 | Uncached p95 | Cached p50 | Cached p95 | Cached min |
+|---|---|---|---|---|---|
+| `GET /api/v1/health` (network only, no database) | 77 ms | 426 ms | — | — | 58 ms |
+| GraphQL, page by slug | 221 ms | 389 ms | 101 ms | 522 ms | 60 ms |
+| GraphQL, 20 pages with references, blocks, rich text | 225 ms | 754 ms | 110 ms | 394 ms | 64 ms |
+
+  - Uncached requests sent `Cache-Control: no-cache`, interleaved with cached ones.
+  - Cached-request headers: `HIT cache-api` 20, `HIT memory` 19, `MISS` 1 (the first). **The Cache API serves hits on `workers.dev`**, against ADR 0012's expectation; noted in the ADR outcome.
+  - Publish to fresh (edit + publish a page, poll the slug query every 250 ms): 5.8 s, 0.2 s, 5.4 s. The queue batch timeout dominates; within the "typically under 10 s" bound.
+- **"After publish of a referenced entry" (plan criterion):** the stamp is per space, so publishing any entry, referenced or not, changes every key of the space. `delivery.cache.test.ts` proves fresh-after-publish; which entry is published doesn't enter the mechanism.
 - **Review of the hit path** (auth before cache, ADR 0012 §5): actor resolution runs in the kernel middleware before `/graphql`; the policy returns a scope only for unrestricted delivery keys; the key hashes `[scope, operationName, document, variables]` and never credentials; errors, private responses and non-JSON are never stored.

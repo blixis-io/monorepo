@@ -102,3 +102,8 @@ If the post-commit dispatch fails, the 1-minute outbox sweep delivers the event,
 - A cache hit costs no database queries, except a stamp read every 2 s per isolate and a key lookup every 30 s.
 - **Every publish in a space invalidates that space's whole delivery cache** (coarse by design for the MVP). Busy editorial spaces see more misses; finer keys can follow with evidence.
 - `docs/operations/caching.md` documents the layers, keys, bounds and troubleshooting.
+
+## Outcome (013.005, 2026-09-26)
+
+- **Measured on staging:** cached p50 101–110 ms against 221–225 ms uncached (network floor 77 ms); publish to fresh 0.2–5.8 s.
+- **Cache API on `workers.dev`:** it did serve hits (20 of 39 cached requests), so the §Constraints expectation didn't hold for this deployment. L2 stays configured as decided; nothing depends on it being absent.

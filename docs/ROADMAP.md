@@ -66,7 +66,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `completed` | 5/5 | 009 |
 | [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `completed` | 7/7 | 010 |
 | [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `completed` | 8/8 | 011 |
-| [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `in-progress` | 4/5 | 012 |
+| [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `completed` | 5/5 | 012 |
 | [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `not-started` | 0/6 | 012 |
 | [015 — Webhooks](./plans/015-webhooks/_index.md) | M7 | MVP | `not-started` | 0/5 | 011 |
 | [016 — Releases & Cloudflare Workflows](./plans/016-releases-and-workflows/_index.md) | M7 | Extended | `not-started` | 0/4 | 013, 014, 015 |
@@ -346,7 +346,7 @@ Decides the caching strategy (ADR) across the five layers in §34, then implemen
 - [x] [013.002 — Implement Cache API and KV adapters](./plans/013-delivery-caching/002-cache-and-kv-adapters.md)
 - [x] [013.003 — Cache published delivery responses](./plans/013-delivery-caching/003-delivery-response-caching.md)
 - [x] [013.004 — Invalidate delivery caches from content events](./plans/013-delivery-caching/004-event-driven-invalidation.md)
-- [ ] [013.005 — Review cache correctness and document operations](./plans/013-delivery-caching/005-cache-correctness-review.md)
+- [x] [013.005 — Review cache correctness and document operations](./plans/013-delivery-caching/005-cache-correctness-review.md)
 
 ### Milestone 7 — Assets, integrations & durable processes
 
@@ -553,7 +553,7 @@ Checkpoints are review gates where the architecture is validated against working
   - Staging: queue consumer attached, outbox cron `Ok` every minute, no Sentry issues.
 - [x] **CP4 — Tenancy & authorization** (end of [009](./plans/009-authorization-and-permissions/_index.md)). Isolation suite and authz matrix cover every tenant-scoped route; no role-name checks outside `@blixis/permissions` (§30, §31). Passed 2026-09-25: isolation suite (24 routes × 3 intruders, including an every-scope API token) and authorization matrix (24 routes × 12 role/actor cases, fresh tenant per case) in CI with route-coverage checks; `role-name-check` boundary rule in `pnpm lint`.
 - [x] **CP5 — Content vertical slice** (end of [011](./plans/011-entries-and-publishing/_index.md)). request → Hono route → `ContentService` → repository → Hyperdrive → Neon, plus publish → outbox → Queue → subscriber, on staging; review against §48 rules. Passed 2026-09-25: the full path on staging (Postman 60/134 green; content smoke 13 requests OK, p50 ~200–250 ms; `Queue blixis-events-staging (10 messages) - Ok` after publish/unpublish/delete through the outbox); vertical-slice test with cross-module delivery; §48 review without findings. Latency follow-up: fewer DB round trips per request (plans 013/020).
-- [ ] **CP6 — Delivery performance & cache correctness** (end of [013](./plans/013-delivery-caching/_index.md)). Measured before/after caching; bounded staleness after publish; no cross-tenant or preview cache leakage (§34).
+- [x] **CP6 — Delivery performance & cache correctness** (end of [013](./plans/013-delivery-caching/_index.md)). Measured before/after caching; bounded staleness after publish; no cross-tenant or preview cache leakage (§34). Passed 2026-09-26: cached p50 101–110 ms vs 221–225 ms uncached (network floor 77 ms); publish to fresh 0.2–5.8 s; isolation suite (spaces, locales, revoked keys) and bypass tests green; the Cache API also serves hits on `workers.dev`.
 - [ ] **CP7 — Extension contract sufficiency** (end of [018](./plans/018-extension-platform/_index.md)). Example plugin installed from a packed tarball works using only public packages; CI gate enforces it continuously (§42 Stage 8, §52).
 - [ ] **CP8 — Architecture conformance & launch** (end of [022](./plans/022-production-readiness/_index.md)). Conformance review against §2, §4, §24–§35, §46–§48 with no blocking violations; launch checklist complete.
 
@@ -600,7 +600,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | Queues | 006 | Event bus adapter, DLQ, idempotent consumers (§15, §33). |
 | Cron Triggers | 006 | Outbox sweep, retention and cleanup jobs. |
 | Cache API | 013 | Published delivery responses (§34). |
-| Workers KV | 013 | Only with measured need — version stamps for cache keys (§14). |
+| Workers KV | — | Not used: ADR 0012 keeps cache stamps in Postgres (strongly consistent); revisit only with measured need (§14). |
 | R2 | 014 | Asset binaries; metadata in Postgres (§17). |
 | Workflows | 016 (Extended) | Release publishing, scheduled publishing (§16). |
 | Service Bindings | 020 | Adapter and extraction playbook only; no split (§18, §46). |

@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 6 — Content delivery  
@@ -64,15 +64,15 @@ Depends on:
 - [x] [002 — Implement Cache API and KV adapters](./002-cache-and-kv-adapters.md)
 - [x] [003 — Cache published delivery responses](./003-delivery-response-caching.md)
 - [x] [004 — Invalidate delivery caches from content events](./004-event-driven-invalidation.md)
-- [ ] [005 — Review cache correctness and document operations](./005-cache-correctness-review.md)
+- [x] [005 — Review cache correctness and document operations](./005-cache-correctness-review.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] Test proves: published response cached; after publish of a referenced entry, next response reflects change within the documented bound; preview never cached.
-- [ ] Measured latency improvement recorded (staging).
+- [x] All tasks `completed`.
+- [x] Test proves: published response cached; after publish of a referenced entry, next response reflects change within the documented bound; preview never cached.
+- [x] Measured latency improvement recorded (staging).
 
 ## Risks
 
@@ -87,4 +87,9 @@ The plan may be marked `completed` when:
 
 ## Technical notes
 
-No technical notes yet.
+- **Checkpoint CP6 passed 2026-09-26** (details in [005](./005-cache-correctness-review.md)):
+  - **Latency on staging:** cached p50 101–110 ms against 221–225 ms uncached; network floor 77 ms.
+  - **Staleness:** publish to fresh 0.2–5.8 s (bound: typically under 10 s, worst case ~70 s).
+  - **Correctness:** isolation suite with the API's real modules (spaces, locales, revoked keys); previews, members, API tokens and environment-limited keys bypass; no SQL on a hit.
+- **Deviation from the plan text:** no KV. ADR 0012 chose a Postgres stamp with a 2 s isolate memo (strongly consistent, no new binding); 002 shipped the Cache API store and memory LRU only.
+- **Surprise:** the Cache API serves hits on `workers.dev` (half of the measured hits).
