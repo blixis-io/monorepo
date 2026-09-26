@@ -1,5 +1,5 @@
 import { type Database, type Transaction, tenantScope } from '@blixis/database'
-import { and, desc, eq, isNotNull, isNull, like, lt, type SQL, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNotNull, isNull, like, lt, type SQL, sql } from 'drizzle-orm'
 import type { Asset, AssetUploadStatus, LocalizedText } from '../domain/asset.ts'
 import { assets } from './schema.ts'
 
@@ -93,6 +93,18 @@ export const assetRepository = {
   async findAnyById(db: Queryable, id: string) {
     const row = one(await db.select().from(assets).where(eq(assets.id, id)))
     return row === undefined ? undefined : toAsset(row)
+  },
+
+  /** Uploaded (ready) assets among `ids` — one query, for link checks and delivery. */
+  async findReadyByIds(db: Queryable, tenant: EnvironmentTenant, ids: readonly string[]) {
+    if (ids.length === 0) return []
+    const rows = await db
+      .select()
+      .from(assets)
+      .where(
+        and(tenantScope(assets, tenant), inArray(assets.id, [...ids]), eq(assets.status, 'ready')),
+      )
+    return rows.map(toAsset)
   },
 
   /** Tenant of an asset for asset-id routes — the caller authorizes before using it. */

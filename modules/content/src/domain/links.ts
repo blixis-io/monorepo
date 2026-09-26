@@ -12,6 +12,8 @@ export interface LinkUsage {
   readonly path: readonly (string | number)[]
   /** Allowed target content type ids from the field settings; empty allows any. */
   readonly contentTypeIds: readonly string[]
+  /** Allowed media types of an asset field (`image/*`, `application/pdf`); empty allows any. */
+  readonly mimeTypes: readonly string[]
 }
 
 /**
@@ -31,14 +33,16 @@ export function collectLinkUsages(
     id: unknown,
     path: (string | number)[],
     allowed: unknown = [],
+    mimeTypes: unknown = [],
   ) => {
+    const strings = (list: unknown) =>
+      Array.isArray(list) ? list.filter((x): x is string => typeof x === 'string') : []
     if (typeof id === 'string' && UUID.test(id))
       usages.push({
         link: { type, id },
         path,
-        contentTypeIds: Array.isArray(allowed)
-          ? allowed.filter((x): x is string => typeof x === 'string')
-          : [],
+        contentTypeIds: strings(allowed),
+        mimeTypes: strings(mimeTypes),
       })
   }
 
@@ -52,7 +56,13 @@ export function collectLinkUsages(
           : [[v, path]]
         for (const [item, at] of items)
           if (isObject(item))
-            add(item['type'] === 'asset' ? 'asset' : 'entry', item['id'], at, allowed)
+            add(
+              item['type'] === 'asset' ? 'asset' : 'entry',
+              item['id'],
+              at,
+              allowed,
+              field.settings['mimeTypes'],
+            )
         return
       }
       case 'link':

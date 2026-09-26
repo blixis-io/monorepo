@@ -68,6 +68,8 @@ Always available, without declaring them:
 | `requestContext` | the actor, tenant, request id and logger, the same as in REST handlers |
 | `services` | the services of this request |
 | `loaders` | a per-request map for batching loaders |
+| `responseHeaders` | headers added to the HTTP response, e.g. `Cache-Control: private, no-store` for drafts |
+| `request` | the HTTP request, e.g. to build absolute URLs from its origin |
 
 Use `loader(context, key, create)` to share one batching loader per request, so that resolving 50 entries costs one query, not 50:
 

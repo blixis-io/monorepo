@@ -1,3 +1,4 @@
+import { ASSET_LOOKUP } from '@blixis/contracts'
 import { databaseModule } from '@blixis/database'
 import { eventsModule } from '@blixis/events'
 import { serviceOverride } from '@blixis/kernel'
@@ -35,12 +36,18 @@ describe.skipIf(!databaseTestsEnabled())('content types API (Postgres)', () => {
   beforeEach(() => db.reset())
   afterAll(() => db.drop())
 
-  async function setup(entries = 0) {
+  async function setup(entries = 0, options: { assets?: boolean } = {}) {
     const events = captureEvents()
     const t = await createTestBlixis({
       modules: [...modules(), events.module()],
       database: db,
-      overrides: [serviceOverride(ENTRY_USAGE, async () => entries)],
+      overrides: [
+        serviceOverride(ENTRY_USAGE, async () => entries),
+        // Stands in for @blixis/assets (capability blixis.assets): asset fields need it.
+        ...(options.assets === false
+          ? []
+          : [serviceOverride(ASSET_LOOKUP, { findMany: async () => [] })]),
+      ],
     })
     const seeded = await t.app.runInScope({}, async ({ services }) => {
       const users = services.get(USER_SERVICE)
@@ -160,6 +167,25 @@ describe.skipIf(!databaseTestsEnabled())('content types API (Postgres)', () => {
     })
     expect(status).toBe(201)
     expect(body.fields.map((f) => f.type)).toEqual(types)
+  })
+
+  it('refuses asset fields when the app has no assets module', async () => {
+    const { t, owner, spaceId } = await setup(0, { assets: false })
+    const { status, body } = await create(t, spaceId, owner, {
+      apiId: 'gallery',
+      name: 'Gallery',
+      fields: [{ apiId: 'image', name: 'Image', type: 'asset' }],
+    })
+    expect(status).toBe(400)
+    expect(body).toMatchObject({
+      errors: [
+        {
+          path: ['fields', 0, 'type'],
+          message:
+            'Asset fields need the assets module (capability blixis.assets), which this app lacks',
+        },
+      ],
+    })
   })
 
   it('builds pages from components through a blocks field', async () => {
