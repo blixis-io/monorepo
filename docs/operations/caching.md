@@ -26,7 +26,7 @@ request
 | Layer | Scope | Lifetime | Notes |
 |---|---|---|---|
 | L1 isolate memory | one Worker isolate | 5 min, 500 entries / 8 MiB | always on |
-| L2 Cache API | one Cloudflare data center | 1 h | **custom domains only**; no effect on `*.workers.dev` |
+| L2 Cache API | one Cloudflare data center | 1 h | served hits on `*.workers.dev` staging too (measured 2026-09-26, see below) |
 | Postgres | canonical | — | a miss executes the query |
 
 Configured in `apps/api/src/blixis.config.ts` (`graphqlModule({ cache: { stores, maxAge } })`). Store failures count as misses: a broken cache never fails a request.
@@ -92,7 +92,7 @@ Configured in `apps/api/src/blixis.config.ts` (`graphqlModule({ cache: { stores,
 
 - Check the stamp isn't bumped constantly (an import or a script publishing in a loop).
 - Variables that change per request (timestamps, random ids) make every request a new key.
-- Each isolate has its own L1. Without a custom domain (no L2), a new isolate starts cold.
+- Each isolate has its own L1; a new isolate starts cold unless L2 (Cache API, per data center) has the entry.
 
 **"A revoked key still gets responses."**
 
@@ -109,12 +109,15 @@ Other isolates remember a key for up to 30 s (`deliveryKeyMemoSeconds`). After t
 
 ## Measurements
 
-Staging, from the Netherlands, `workers.dev` → Hyperdrive → Neon eu-central-1, 20 requests each.
+Staging, 2026-09-26, from the Netherlands, `workers.dev` → Hyperdrive → Neon eu-central-1, 20 requests each, interleaved. "Uncached" requests send `Cache-Control: no-cache`.
 
-| Request | Uncached p50 | Uncached p95 |
-|---|---|---|
-| `GET /api/v1/health` (network only) | 87 ms | 426 ms |
-| GraphQL, page by slug | 238 ms | 707 ms |
-| GraphQL, 20 pages | 279 ms | 424 ms |
+| Request | Uncached p50 | Uncached p95 | Cached p50 | Cached p95 | Cached min |
+|---|---|---|---|---|---|
+| `GET /api/v1/health` (network only, no database) | 77 ms | 426 ms | — | — | 58 ms |
+| GraphQL, page by slug | 221 ms | 389 ms | 101 ms | 522 ms | 60 ms |
+| GraphQL, 20 pages with references, blocks, rich text | 225 ms | 754 ms | 110 ms | 394 ms | 64 ms |
 
-Cached figures and the measured publish-to-fresh latency are recorded in [013.005](../plans/013-delivery-caching/005-cache-correctness-review.md) after the staging deploy.
+- **A hit costs about 25–35 ms over the network floor** (health), against about 145 ms for executing the query.
+- **Layers:** of 39 cached requests, 20 were answered by the Cache API and 19 by memory. Contrary to ADR 0012's expectation, the Cache API works on `workers.dev`.
+- **Publish to fresh:** 5.8 s, 0.2 s, 5.4 s (three publishes, polling every 250 ms), within the documented bound of typically under 10 s. The queue batch timeout (≤ 5 s) dominates.
+- The ADR 0012 baseline (before caching) was 238 ms / 279 ms p50 for the same queries.
