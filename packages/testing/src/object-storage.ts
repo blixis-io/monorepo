@@ -103,7 +103,9 @@ export function createMemoryObjectStorage(
       if (putOptions.size !== undefined && putOptions.size !== bytes.length)
         throw new ValidationError(`Expected ${putOptions.size} bytes, received ${bytes.length}`)
       if (putOptions.sha256 !== undefined && putOptions.sha256 !== (await sha256Hex(bytes)))
-        throw new ValidationError('Checksum mismatch: nothing was stored')
+        throw new ValidationError('Checksum mismatch: nothing was stored', [
+          { path: ['sha256'], message: 'The received bytes have a different SHA-256' },
+        ])
       return store(key, bytes, putOptions.contentType)
     },
     async get(key, getOptions = {}) {
