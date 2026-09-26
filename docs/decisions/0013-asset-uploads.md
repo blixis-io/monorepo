@@ -63,7 +63,7 @@ Editors upload images, PDFs, video and other files to a space (plan 014). §17: 
   - `X-Content-Type-Options: nosniff`;
   - `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox`, so an SVG can't run scripts even when opened directly;
   - `Content-Disposition: inline` for images, audio, video and PDF, and `attachment` for everything else, with the original file name (RFC 6266 `filename*`);
-  - `Cache-Control: public, max-age=31536000, immutable`, because the URL names the immutable `fileId`; a new file means a new URL;
+  - `Cache-Control: public, max-age=31536000, immutable`, because the URL names the immutable `fileId`; a new file means a new URL *(amended: 1 day by default, see below)*;
   - `ETag` and `Range` support (`206`), for video seeking.
 - **Published only:** delivery serves assets that are published (014.004). Drafts are read through the management API.
 - **Image transformations** (resizing, formats) are deferred: Cloudflare Images or Image Resizing on the custom domain, decided with plan 021.
@@ -89,3 +89,9 @@ Editors upload images, PDFs, video and other files to a space (plan 014). §17: 
 - Every file replacement leaves an old object until the `asset.updated` consumer deletes it (seconds).
 - Serving from the API origin is safe only with the headers above; moving to `assets.<domain>` is part of plan 021.
 - The owner creates the R2 buckets once per environment before the first deploy that binds them.
+
+## Amendment (014.004, 2026-09-26)
+
+- **Delivery URL:** `/assets/<spaceId>/<assetId>/<fileId>/<filename>`. The `fileId` makes each URL name one immutable file; it is also the strong `ETag`. A URL of a replaced file answers `302` to the current one (`max-age=60`).
+- **Cache lifetime:** published files default to `Cache-Control: public, max-age=86400` (`assetsModule({ deliveryMaxAge })`), **not** one year and `immutable` as §5 said. The bytes behind a URL never change, but unpublishing or deleting must take effect in caches within a bounded time; a year was too long.
+- **Unpublished files** are served only to `assets.preview.read` (preview keys, members) with `private, no-store`; everyone else gets `404`.

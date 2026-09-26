@@ -45,6 +45,22 @@ export const assetStatus = (asset: Pick<Asset, 'status' | 'publishedAt'>): Asset
 export const objectKeyFor = (spaceId: string, assetId: string, fileId: string): string =>
   `${spaceId}/${assetId}/${fileId}`
 
+/** The file id: the last segment of an object key. */
+export const fileIdOf = (objectKey: string): string => objectKey.split('/').at(-1) ?? ''
+
+/**
+ * Path of an asset's current file on the delivery route (014.004), relative to the API origin:
+ * `/assets/<spaceId>/<assetId>/<fileId>/<filename>`. A new file means a new URL.
+ */
+export const assetPath = (
+  asset: Pick<Asset, 'spaceId' | 'id' | 'objectKey' | 'filename'>,
+): string =>
+  `/assets/${asset.spaceId}/${asset.id}/${fileIdOf(asset.objectKey)}/${encodeURIComponent(asset.filename)}`
+
+/** Types shown in the browser (`inline`); everything else downloads (`attachment`). */
+export const inlineType = (mimeType: string): boolean =>
+  /^(image|audio|video)\//.test(mimeType) || mimeType === 'application/pdf'
+
 /**
  * A safe display file name: the last path segment, without control characters, at most 255
  * characters. Never used to build storage keys.

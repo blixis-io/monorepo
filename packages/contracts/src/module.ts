@@ -111,7 +111,11 @@ export interface BlixisModule<TConfig = unknown> {
   setup?(context: ModuleSetupContext<TConfig>): void | Promise<void>
   /** Runs once, lazily, before the first request or event. */
   boot?(context: ModuleBootContext): void | Promise<void>
-  readonly rest?: RestContribution
+  /**
+   * REST routes: one contribution, or several (e.g. Management API routes plus a root-level
+   * delivery route).
+   */
+  readonly rest?: RestContribution | readonly RestContribution[]
   readonly graphql?: GraphQLContribution
   readonly permissions?: readonly PermissionDefinition[]
   /** Event subscriptions; handlers must be idempotent (§33). */

@@ -20,7 +20,7 @@ import {
 import { USER_SERVICE, usersModule } from '@blixis/users'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { type AssetView, assetsModule } from '../src/index.ts'
-import { png } from './sniff.test.ts'
+import { png } from './fixtures.ts'
 
 const modules = () => [
   databaseModule(),

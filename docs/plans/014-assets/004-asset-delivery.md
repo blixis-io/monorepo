@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 ## Parent plan
@@ -37,16 +37,31 @@ Serve published asset binaries through a public delivery route with correct head
 ### Create
 
 ```text
-modules/assets/src/rest/delivery.ts
-modules/assets/src/graphql/schema.ts
-modules/assets/src/graphql/resolvers.ts
-apps/api/test/asset-delivery.worker.test.ts
+modules/assets/src/rest/delivery.routes.ts
+modules/assets/test/delivery.api.test.ts
+modules/assets/test/fixtures.ts
 ```
 
 ### Modify
 
 ```text
+packages/contracts/src/module.ts
+packages/kernel/src/internal/rest.ts
+packages/kernel/src/internal/rest.test.ts
+modules/assets/src/application/asset.service.ts
+modules/assets/src/config.ts
+modules/assets/src/domain/asset.ts
+modules/assets/src/index.ts
+modules/assets/src/infrastructure/asset.repository.ts
 modules/assets/src/module.ts
+modules/assets/src/permissions.ts
+modules/assets/test/assets.api.test.ts
+modules/assets/test/sniff.test.ts
+tooling/postman/blixis.postman_collection.json
+apps/docs/src/content/docs/content/assets-api.mdx
+apps/docs/src/content/docs/concepts/modules.mdx
+docs/decisions/0013-asset-uploads.md
+docs/plans/014-assets/004-asset-delivery.md
 ```
 
 ### Delete
@@ -70,8 +85,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Published asset fetch returns 200 with cache headers; range returns 206.
-- [ ] Unpublished asset returns 404 for anonymous.
+- [x] Published asset fetch returns 200 with cache headers; range returns 206.
+- [x] Unpublished asset returns 404 for anonymous.
 
 ## Validation
 
@@ -81,15 +96,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] No path allows reading another space's objects by key manipulation.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] No path allows reading another space's objects by key manipulation.
 
 ## Completion conditions
 
@@ -106,4 +121,11 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **URL:** `/assets/:spaceId/:assetId/:fileId/:filename` instead of `/assets/:spaceId/:assetId/:filename`. The `fileId` (last segment of the object key) makes every URL name one immutable file and doubles as the strong `ETag`, so `If-None-Match` needs no storage call. A URL of a replaced file answers `302` to the current one (`max-age=60`). The file name is cosmetic. `AssetView.fields.url` carries the path.
+- **Cache lifetime deviates from ADR 0013 §5** (amended): published files get `public, max-age=86400` by default (`deliveryMaxAge`), not a year and `immutable` — unpublishing and deleting must reach caches in bounded time. No Workers Cache API layer: R2 reads are fast, and browser/CDN caching of public responses covers repeats; revisit with a custom domain (plan 021).
+- **Access:** published → public, with `Access-Control-Allow-Origin: *` and `Cross-Origin-Resource-Policy: cross-origin`. Unpublished → new permission `assets.preview.read` (admin, editor, viewer; preview keys) with `private, no-store` and `Vary: Authorization`. Pending, missing, another space, or no access → `404` (existence never leaks; anonymous callers too, not `401`).
+- **Headers:** `nosniff`, `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox`, `Content-Disposition` inline for images/audio/video/PDF and attachment otherwise (RFC 6266 with UTF-8 `filename*`), `Accept-Ranges`. One `Range` → `206` with `Content-Range`; unsatisfiable → `416`; several ranges → whole file (`200`, allowed by RFC 9110). `HEAD` answers without reading the object.
+- **Kernel/contracts:** a module's `rest` may now be a list, so the assets module mounts its Management API routes and the root-level delivery route (`root: true`) side by side. Kernel test added; *Modules* concept updated.
+- **GraphQL `Asset.url` moves to 014.005:** the `Asset` type belongs to `@blixis/content`'s delivery schema, and content resolves assets through the optional `blixis.assets` capability there — the assets module can't extend a type it doesn't require.
+- **Isolation:** the delivery route has no `spaces/:spaceId` or `assets/:assetId` segment pair, so the isolation suite doesn't pick it up; `delivery.api.test.ts` covers other spaces' preview keys, delivery keys, anonymous callers, and a mismatched space in the URL.
+- **Tests:** `parseRange` unit tests; delivery API tests (access, headers, `304`, ranges, `416`, `HEAD`, attachment, redirect). The `png` fixture moved to `test/fixtures.ts` (importing a `*.test.ts` file re-ran its tests). Postman: *Download asset (published)* and *Download asset range*.

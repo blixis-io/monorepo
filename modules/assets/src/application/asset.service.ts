@@ -7,6 +7,8 @@ import {
   type EventBus,
   NotFoundError,
   OBJECT_STORAGE_LIMITS,
+  type ObjectContent,
+  type ObjectRange,
   type ObjectStorage,
   type PermissionId,
   type ServiceToken,
@@ -20,8 +22,10 @@ import type { AssetsConfig } from '../config.ts'
 import {
   type Asset,
   type AssetStatus,
+  assetPath,
   assetStatus,
   BLOCKED_TYPES,
+  fileIdOf,
   type LocalizedText,
   mediaType,
   normalizeFilename,
@@ -64,8 +68,25 @@ export interface AssetView {
     readonly sha256: string | null
     readonly width: number | null
     readonly height: number | null
+    /**
+     * Path of the current file on the delivery route, relative to the API origin; `null` while
+     * pending. Public once the asset is published.
+     */
+    readonly url: string | null
   }
 }
+
+/** Where the delivery route should go for a requested file (014.004). */
+export type AssetDelivery =
+  | {
+      readonly type: 'file'
+      readonly asset: AssetView
+      readonly published: boolean
+      /** Reads the file (optionally a byte range). */
+      read(range?: ObjectRange): Promise<ObjectContent>
+    }
+  /** The URL names a replaced file: go to the current one. */
+  | { readonly type: 'redirect'; readonly location: string; readonly published: boolean }
 
 /** The stored file of an upload, as measured by the storage. */
 export interface StoredFile {
@@ -216,6 +237,15 @@ export interface AssetService {
   ): Promise<AssetView>
   /** Aborts a multipart upload and removes the pending asset. Idempotent. */
   abortUpload(actor: Actor, tenant: EnvironmentTenant, id: string): Promise<void>
+  /**
+   * Resolves a delivery URL (`/assets/:spaceId/:assetId/:fileId/…`). Published assets are public;
+   * unpublished ones need `assets.preview.read` (preview keys, members). Everything else — unknown,
+   * pending, another space, or no access — is `NotFoundError`, so existence never leaks.
+   */
+  deliver(
+    actor: Actor,
+    ref: { spaceId: string; assetId: string; fileId: string },
+  ): Promise<AssetDelivery>
   /** @throws NotFoundError */
   get(actor: Actor, tenant: EnvironmentTenant, id: string): Promise<AssetView>
   /** Newest first. */
@@ -297,6 +327,7 @@ export function toAssetView(asset: Asset): AssetView {
       sha256: asset.sha256,
       width: asset.width,
       height: asset.height,
+      url: asset.status === 'pending' ? null : assetPath(asset),
     },
   }
 }
@@ -666,6 +697,34 @@ export function createAssetService(deps: AssetServiceDeps): AssetService {
       if (asset.status !== 'pending') throw new ConflictError('The asset is already uploaded')
       if (asset.upload !== null) await storage().abortMultipart(asset.objectKey, asset.upload.id)
       await assetRepository.deletePending(db, tenant, id)
+    },
+
+    async deliver(actor, ref) {
+      const missing = () => new NotFoundError('Asset not found')
+      if (!isId(ref.assetId) || !isId(ref.spaceId)) throw missing()
+      const asset = await assetRepository.findAnyById(db, ref.assetId)
+      if (asset === undefined || asset.spaceId !== ref.spaceId || asset.status === 'pending')
+        throw missing()
+      const published = asset.publishedAt !== null
+      if (!published) {
+        try {
+          await require(actor, P.previewRead.id, asset, asset.id)
+        } catch {
+          throw missing()
+        }
+      }
+      if (fileIdOf(asset.objectKey) !== ref.fileId)
+        return { type: 'redirect', location: assetPath(asset), published }
+      return {
+        type: 'file',
+        asset: toAssetView(asset),
+        published,
+        async read(range) {
+          const content = await storage().get(asset.objectKey, range === undefined ? {} : { range })
+          if (content === undefined) throw missing()
+          return content
+        },
+      }
     },
 
     async get(actor, tenant, id) {

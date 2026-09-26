@@ -25,6 +25,7 @@ Paths are relative to `/api/v1`. The conventions for pagination, concurrency (`E
 | `POST` | `/assets/:assetId/publish` | `assets.publish` |
 | `POST` | `/assets/:assetId/unpublish` | `assets.publish` |
 | `DELETE` | `/assets/:assetId` | `assets.delete` |
+| `GET` | `/assets/:spaceId/:assetId/:fileId/:filename` (**outside** `/api/v1`) | public when published; `assets.preview.read` otherwise |
 
 `/spaces/:spaceId/…` routes accept `?environment=` (default `main`). `/assets/:assetId` routes find the tenant from the asset. Assets in spaces you aren't a member of answer `404`.
 
@@ -53,7 +54,8 @@ Paths are relative to `/api/v1`. The conventions for pagination, concurrency (`E
     "size": 482113,
     "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
     "width": 1600,
-    "height": 900
+    "height": 900,
+    "url": "/assets/01a0df92-…/01a0df92-5aa9-7d3e-9b8f-2c61e0a4b7c1/01a0df93-…/team.jpg"
   }
 }
 ```
@@ -62,12 +64,13 @@ Paths are relative to `/api/v1`. The conventions for pagination, concurrency (`E
 |---|---|
 | `pending` | a multipart upload is in progress; the asset isn't listed by default |
 | `draft` | uploaded, not public |
-| `published` | public (delivery routes arrive with [plan 014.004](https://github.com/blixis-io/monorepo/blob/main/docs/plans/014-assets/004-asset-delivery.md)) |
+| `published` | public: anyone with the URL can download the file |
 
 - **`size`** is what the storage measured, never what the client claimed.
 - **`sha256`** is set for single-request uploads (computed by the Worker) and `null` for multipart uploads.
 - **`width` / `height`** are read from the file header for PNG, JPEG, GIF and WebP; otherwise `null`.
 - **`title` / `description`** are text per locale code of the space; the file name isn't localized.
+- **`url`** is the file's path on the [delivery route](#download-files), relative to the API origin; `null` while pending.
 
 ## Upload in one request
 
@@ -150,6 +153,22 @@ The default part size is 10 MiB, and assets may be up to **1 GiB** (`assetsModul
 | `mimeType` | a type or prefix, e.g. `image/` or `application/pdf` |
 | `limit` | 1–100, default 25 |
 | `cursor` | `nextCursor` of the previous page |
+
+## Download files
+
+Files are served from `GET /assets/:spaceId/:assetId/:fileId/:filename` on the API origin, **outside** `/api/v1`. Use the asset's `fields.url`; the file name at the end is cosmetic.
+
+| Asset | Who can download | `Cache-Control` |
+|---|---|---|
+| published | anyone with the URL | `public, max-age=86400` (`assetsModule({ deliveryMaxAge })`) |
+| draft | preview keys and members with `assets.preview.read` (send `Authorization`) | `private, no-store` |
+| pending, deleted, or in another space | nobody: `404` | — |
+
+- **Every URL names one immutable file** (`fileId`). Replacing the file gives the asset a new URL; the old URL answers `302` to the current one.
+- **Unpublishing or deleting** stops new downloads at once, but copies already cached by browsers and CDNs live until `max-age` runs out. Lower `deliveryMaxAge` if that matters more than caching.
+- **Headers:** `ETag` (answers `If-None-Match` with `304`), `Accept-Ranges: bytes` (a single `Range` answers `206`; an unsatisfiable one `416`), `HEAD`, `X-Content-Type-Options: nosniff`, and `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox`, so even an SVG opened directly can't run scripts.
+- **Inline or download:** images, audio, video and PDF are `inline`; everything else is `attachment`, with the original file name.
+- **CORS:** published files send `Access-Control-Allow-Origin: *`, so any site can use them.
 
 ## Events
 

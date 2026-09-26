@@ -18,6 +18,7 @@ import { createAssets } from './infrastructure/migrations/0001_create_assets.ts'
 import { addUploads } from './infrastructure/migrations/0002_add_uploads.ts'
 import { ASSET_PERMISSIONS } from './permissions.ts'
 import { assetRoutes } from './rest/asset.routes.ts'
+import { deliveryRoutes } from './rest/delivery.routes.ts'
 
 /** Options for {@link assetsModule}; every limit has a default (ADR 0013). */
 export type AssetsModuleOptions = Partial<AssetsConfig>
@@ -33,6 +34,7 @@ export const assetsModule = defineModule((options: AssetsModuleOptions) => {
     maxAssetBytes: options.maxAssetBytes ?? DEFAULT_ASSETS_CONFIG.maxAssetBytes,
     allowedTypes: (options.allowedTypes ?? DEFAULT_ASSETS_CONFIG.allowedTypes).map(mediaType),
     multipartPartBytes: options.multipartPartBytes ?? DEFAULT_ASSETS_CONFIG.multipartPartBytes,
+    deliveryMaxAge: options.deliveryMaxAge ?? DEFAULT_ASSETS_CONFIG.deliveryMaxAge,
   })
   return {
     meta: {
@@ -72,6 +74,10 @@ export const assetsModule = defineModule((options: AssetsModuleOptions) => {
         { scope: 'request' },
       )
     },
-    rest: { path: '/', app: new Hono<ModuleHonoEnv>().route('/', assetRoutes) },
+    rest: [
+      { path: '/', app: new Hono<ModuleHonoEnv>().route('/', assetRoutes) },
+      // Files of published assets, outside the Management API (014.004).
+      { path: '/assets', root: true, app: deliveryRoutes },
+    ],
   }
 })

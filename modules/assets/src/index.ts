@@ -7,6 +7,7 @@
 
 export {
   ASSET_SERVICE,
+  type AssetDelivery,
   type AssetListQuery,
   type AssetService,
   type AssetView,
@@ -17,6 +18,7 @@ export { type Inspection, inspectUpload } from './application/inspect.ts'
 export { ASSETS_CONFIG, type AssetsConfig, DEFAULT_ASSETS_CONFIG } from './config.ts'
 export {
   type AssetStatus,
+  assetPath,
   BLOCKED_TYPES,
   DEFAULT_ALLOWED_TYPES,
   type LocalizedText,

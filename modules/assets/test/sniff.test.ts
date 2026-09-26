@@ -5,26 +5,8 @@ import {
   filenameFromDisposition,
   sha256FromContentDigest,
 } from '../src/rest/http.ts'
+import { be32, bytes, le16, le24, png } from './fixtures.ts'
 
-const bytes = (...parts: (number[] | string)[]) =>
-  new Uint8Array(
-    parts.flatMap((p) => (typeof p === 'string' ? [...p].map((c) => c.charCodeAt(0)) : p)),
-  )
-const be32 = (n: number) => [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255]
-const le16 = (n: number) => [n & 255, (n >> 8) & 255]
-const le24 = (n: number) => [n & 255, (n >> 8) & 255, (n >> 16) & 255]
-
-export const png = (w: number, h: number) =>
-  bytes(
-    [0x89],
-    'PNG',
-    [0x0d, 0x0a, 0x1a, 0x0a],
-    be32(13),
-    'IHDR',
-    be32(w),
-    be32(h),
-    [8, 6, 0, 0, 0],
-  )
 const gif = (w: number, h: number) => bytes('GIF89a', le16(w), le16(h), [0, 0, 0])
 const jpeg = (w: number, h: number) =>
   bytes(
