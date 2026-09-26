@@ -66,7 +66,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `completed` | 5/5 | 009 |
 | [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `completed` | 7/7 | 010 |
 | [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `completed` | 8/8 | 011 |
-| [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `not-started` | 0/5 | 012 |
+| [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `in-progress` | 1/5 | 012 |
 | [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `not-started` | 0/6 | 012 |
 | [015 — Webhooks](./plans/015-webhooks/_index.md) | M7 | MVP | `not-started` | 0/5 | 011 |
 | [016 — Releases & Cloudflare Workflows](./plans/016-releases-and-workflows/_index.md) | M7 | Extended | `not-started` | 0/4 | 013, 014, 015 |
@@ -336,13 +336,13 @@ Builds `@blixis/graphql` (GraphQL Yoga on Workers at `/graphql`, schema composit
 
 #### 013 — Delivery Caching & Invalidation
 
-Status: `not-started` · Progress: 0/5 · Scope: MVP  
+Status: `in-progress` · Progress: 1/5 · Scope: MVP  
 Plan: [013-delivery-caching/_index.md](./plans/013-delivery-caching/_index.md)  
 Depends on: [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md)
 
 Decides the caching strategy (ADR) across the five layers in §34, then implements Cache API caching for published delivery responses with deterministic cache keys, a KV adapter for content-version stamps (justified by measurement), event-driven invalidation from `entry.published`/`content-type.*` events, HTTP cache headers, and cache-correctness tests.
 
-- [ ] [013.001 — Measure delivery baseline and decide the caching strategy](./plans/013-delivery-caching/001-caching-strategy-and-baseline.md)
+- [x] [013.001 — Measure delivery baseline and decide the caching strategy](./plans/013-delivery-caching/001-caching-strategy-and-baseline.md)
 - [ ] [013.002 — Implement Cache API and KV adapters](./plans/013-delivery-caching/002-cache-and-kv-adapters.md)
 - [ ] [013.003 — Cache published delivery responses](./plans/013-delivery-caching/003-delivery-response-caching.md)
 - [ ] [013.004 — Invalidate delivery caches from content events](./plans/013-delivery-caching/004-event-driven-invalidation.md)
@@ -577,7 +577,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | D12 | Environments beyond the default `main` | [008.004](./plans/008-tenancy-organizations-and-spaces/004-environments-and-locales.md) | One default environment; `environment_id` columns from day one | open |
 | D13 | Content storage model (JSONB shape, localisation, references, rich text, schema evolution) | [010.001](./plans/010-content-modeling/001-content-storage-design.md) | JSONB keyed by stable field ID and locale | [ADR 0010](./decisions/0010-content-storage-model.md): JSONB fields with stable ids; components + `blocks`; plain values for non-localized fields; ProseMirror-compatible rich text |
 | D14 | Delivery GraphQL schema (generic vs. generated per space) | [012.005](./plans/012-graphql-delivery-api/005-decide-delivery-schema-strategy.md) | Generated typed schema per space/environment, cached by content-model version | [ADR 0011](./decisions/0011-delivery-schema-strategy.md): static base + typed schema per content model, isolate LRU keyed by model version |
-| D15 | Delivery cache invalidation (versioned keys via KV vs. purge vs. TTL) | [013.001](./plans/013-delivery-caching/001-caching-strategy-and-baseline.md) | Versioned keys with KV stamp, justified by measurement | open |
+| D15 | Delivery cache invalidation (versioned keys via KV vs. purge vs. TTL) | [013.001](./plans/013-delivery-caching/001-caching-strategy-and-baseline.md) | Versioned keys with KV stamp, justified by measurement | [ADR 0012](./decisions/0012-delivery-caching.md): versioned keys + Postgres content stamp (2 s memo), isolate L1 + Cache API L2 |
 | D16 | Asset upload strategy and serving domain | [014.001](./plans/014-assets/001-upload-strategy-and-object-storage.md) | Stream through Worker via R2 binding; multipart for large files | open |
 | D17 | Workflows integration pattern & scheduling | [016.001](./plans/016-releases-and-workflows/001-workflows-integration-pattern.md) | Explicit class exports in composition root | open |
 | D18 | REST type source for SDK (OpenAPI vs. shared schemas) | [017.001](./plans/017-sdk-and-example-consumer/001-rest-api-type-source.md) | OpenAPI generated from route schemas | open |
