@@ -280,6 +280,19 @@ describe.skipIf(!databaseTestsEnabled())('GraphQL delivery (Postgres)', () => {
     expect(none.errors?.[0]?.extensions?.code).toBe('VALIDATION_FAILED')
   })
 
+  it('serves spaces without any content type', async () => {
+    const { t, owner, org } = await setup()
+    const empty = await t.app.runInScope({}, ({ services }) =>
+      services.get(TENANCY_SERVICE).createSpace(owner, org.id, { name: 'Empty', slug: 'empty' }),
+    )
+    const key = asDeliveryKey({ organizationId: org.id, spaceId: empty.id })
+    expect((await gql(t, key, '{ _platform { version } }')).data).toEqual({
+      _platform: { version: 'local' },
+    })
+    const unknown = await gql(t, key, '{ entries(contentType: "page") { items { sys { id } } } }')
+    expect(unknown.errors?.[0]?.extensions?.code).toBe('NOT_FOUND')
+  })
+
   it('follows content model changes immediately', async () => {
     const { t, org, space, owner, tenant, page } = await setup()
     const key = asDeliveryKey({ organizationId: org.id, spaceId: space.id })
