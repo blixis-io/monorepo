@@ -112,3 +112,40 @@ export async function createTestDatabase(
     },
   }
 }
+
+/** A database connection that counts the SQL statements sent through it. */
+export interface QueryCounter {
+  /** Use as the `DATABASE` service: `serviceOverride(DATABASE, counter.db)`. */
+  readonly db: Database
+  /** Statements since the last `reset()`. */
+  readonly queries: readonly string[]
+  reset(): void
+  close(): Promise<void>
+}
+
+/**
+ * Counts SQL statements, e.g. to assert that a GraphQL query or an endpoint stays within a query
+ * budget (roadmap 012.008).
+ *
+ * @example
+ * const counter = countQueries(testDb)
+ * const t = await createTestBlixis({ modules, database: testDb, overrides: [serviceOverride(DATABASE, counter.db)] })
+ * counter.reset(); await t.request('/graphql', …); expect(counter.queries.length).toBeLessThanOrEqual(6)
+ */
+export function countQueries(database: Pick<TestDatabase, 'url'>): QueryCounter {
+  const queries: string[] = []
+  const db = createDatabase({
+    connectionString: database.url,
+    onQuery: (query) => queries.push(query),
+  })
+  return {
+    db,
+    get queries() {
+      return queries
+    },
+    reset: () => {
+      queries.length = 0
+    },
+    close: () => db.close(),
+  }
+}
