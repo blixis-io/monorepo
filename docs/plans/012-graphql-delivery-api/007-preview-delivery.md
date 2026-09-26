@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -36,15 +36,15 @@ Allow preview keys (and authorised users) to query draft content through the sam
 ### Create
 
 ```text
-apps/api/test/preview.worker.test.ts
+modules/content/test/preview.graphql.test.ts
 ```
 
 ### Modify
 
 ```text
-modules/content/src/graphql/resolvers.ts
-modules/content/src/graphql/schema.ts
-packages/graphql/src/context.ts
+packages/graphql/src/context.ts (responseHeaders)
+packages/graphql/src/module.ts
+modules/content/src/graphql/delivery.ts
 ```
 
 ### Delete
@@ -67,8 +67,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Preview key sees draft changes; delivery key does not.
-- [ ] Preview responses carry `no-store`.
+- [x] Preview key sees draft changes; delivery key does not.
+- [x] Preview responses carry `no-store`.
 
 ## Validation
 
@@ -78,15 +78,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] No draft leakage path through link resolution.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] No draft leakage path through link resolution.
 
 ## Completion conditions
 
@@ -103,4 +103,12 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Preview mode:** preview is chosen per root field with `preview: true` (ADR 0011 §6), as implemented in 012.006.
+  - `DELIVERY_SERVICE.requireState` demands `content.preview.read`. Preview keys and members (admin, editor, viewer by default) have it; delivery keys get `FORBIDDEN`, and the field is `null`.
+  - Link resolution uses the parent's state throughout, because the per-request batch loaders are keyed by state.
+- **`Cache-Control: private, no-store`** is set on every response that read drafts. This uses a new generic **`GraphQLContext.responseHeaders`**: resolvers set response headers, and the `/graphql` route copies them onto Yoga's response. Plan 013 uses the same mechanism for public caching.
+- **Tests** (a published post with a newer draft, linking to an author with a newer draft and to a never-published editor):
+  - published reads show the live author and drop the unpublished editor;
+  - preview reads show drafts all the way down;
+  - the header is present only for drafts;
+  - a delivery key gets `FORBIDDEN`, and a member previews with `?space=`.
