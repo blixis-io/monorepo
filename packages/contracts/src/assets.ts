@@ -48,3 +48,16 @@ export interface DeliveryInvalidation {
 
 export const DELIVERY_INVALIDATION: ServiceToken<DeliveryInvalidation> =
   createServiceToken<DeliveryInvalidation>('@blixis/contracts.delivery-invalidation')
+
+/**
+ * How content uses an asset, so assets can refuse to unpublish or delete one that published
+ * entries link to (plan 014.006). Provided by `@blixis/content`; optional for callers.
+ */
+export interface AssetUsage {
+  /** Number of entries whose **published** version links to or embeds the asset. */
+  publishedReferrers(tenant: EnvironmentRef, assetId: string): Promise<number>
+}
+
+export const ASSET_USAGE: ServiceToken<AssetUsage> = createServiceToken<AssetUsage>(
+  '@blixis/contracts.asset-usage',
+)

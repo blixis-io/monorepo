@@ -198,8 +198,14 @@ describe.skipIf(!databaseTestsEnabled())('content ↔ assets (Postgres)', () => 
     expect(first.item?.body.assets).toEqual([{ id: image.sys.id }])
     expect((await ask('nl-NL')).cache).toBe('HIT')
 
+    // A published entry uses the asset: unpublishing needs force (ASSET_USAGE from content).
+    await expect(
+      run((services) => services.get(ASSET_SERVICE).unpublish(owner, tenant, image.sys.id)),
+    ).rejects.toThrow('1 published entry links to this asset')
     // Unpublishing the asset reaches cached responses through DELIVERY_INVALIDATION.
-    await run((services) => services.get(ASSET_SERVICE).unpublish(owner, tenant, image.sys.id))
+    await run((services) =>
+      services.get(ASSET_SERVICE).unpublish(owner, tenant, image.sys.id, { force: true }),
+    )
     const after = await ask('nl-NL')
     expect(after.cache).toBe('MISS')
     expect(after.item?.image).toBeNull()

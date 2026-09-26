@@ -19,6 +19,10 @@ export interface AssetsConfig {
    * an unpublished or deleted asset stays in browser and CDN caches this long. Default 1 day.
    */
   readonly deliveryMaxAge: number
+  /** Pending uploads older than this many hours are removed by the cleanup job. Default 24. */
+  readonly pendingTtlHours: number
+  /** Cron trigger (as in `wrangler.jsonc`) of the cleanup job. Default `* * * * *`. */
+  readonly cleanupCron: string
 }
 
 const MiB = 1024 * 1024
@@ -29,6 +33,8 @@ export const DEFAULT_ASSETS_CONFIG: AssetsConfig = Object.freeze({
   allowedTypes: DEFAULT_ALLOWED_TYPES,
   multipartPartBytes: 10 * MiB,
   deliveryMaxAge: 86_400,
+  pendingTtlHours: 24,
+  cleanupCron: '* * * * *',
 })
 
 /** The resolved {@link AssetsConfig} (app-scoped). */

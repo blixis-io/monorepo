@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 7 — Assets, integrations & durable processes  
 Roadmap scope: MVP / initial platform  
-Progress: 4/6 tasks completed
+Progress: 5/6 tasks completed
 
 ## Objective
 
@@ -65,7 +65,7 @@ Depends on:
 - [x] [003 — Implement upload flows and asset management routes](./003-upload-flows-and-routes.md)
 - [ ] [004 — Serve published assets](./004-asset-delivery.md)
 - [x] [005 — Validate asset links from content via capability](./005-content-asset-links.md)
-- [ ] [006 — Implement idempotent asset deletion and orphan cleanup](./006-asset-deletion-and-cleanup.md)
+- [x] [006 — Implement idempotent asset deletion and orphan cleanup](./006-asset-deletion-and-cleanup.md)
 
 ## Completion criteria
 

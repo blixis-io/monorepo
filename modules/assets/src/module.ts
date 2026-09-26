@@ -1,5 +1,6 @@
 import {
   ASSET_LOOKUP,
+  ASSET_USAGE,
   AUTHORIZATION_SERVICE,
   BLIXIS_CAPABILITIES,
   DELIVERY_INVALIDATION,
@@ -10,7 +11,7 @@ import {
   subscribe,
 } from '@blixis/contracts'
 import { DATABASE, isId } from '@blixis/database'
-import { defineModule } from '@blixis/kernel'
+import { BACKGROUND_HANDLERS, defineModule } from '@blixis/kernel'
 import { LOCALE_SERVICE, spaceDeleted } from '@blixis/spaces'
 import { Hono } from 'hono'
 import { ASSET_SERVICE, createAssetService } from './application/asset.service.ts'
@@ -39,6 +40,8 @@ export const assetsModule = defineModule((options: AssetsModuleOptions) => {
     allowedTypes: (options.allowedTypes ?? DEFAULT_ASSETS_CONFIG.allowedTypes).map(mediaType),
     multipartPartBytes: options.multipartPartBytes ?? DEFAULT_ASSETS_CONFIG.multipartPartBytes,
     deliveryMaxAge: options.deliveryMaxAge ?? DEFAULT_ASSETS_CONFIG.deliveryMaxAge,
+    pendingTtlHours: options.pendingTtlHours ?? DEFAULT_ASSETS_CONFIG.pendingTtlHours,
+    cleanupCron: options.cleanupCron ?? DEFAULT_ASSETS_CONFIG.cleanupCron,
   })
   return {
     meta: {
@@ -64,8 +67,30 @@ export const assetsModule = defineModule((options: AssetsModuleOptions) => {
           },
         ),
       ),
+      // Files go only after the metadata commit (ADR 0013 §2): deleting a missing key is a no-op,
+      // so redelivered events are harmless.
+      subscribe(assetDeleted, 'delete-file', async ({ payload }, { services }) => {
+        await services.getOptional(OBJECT_STORAGE)?.delete(payload.objectKey)
+      }),
+      subscribe(assetUpdated, 'delete-replaced-file', async ({ payload }, { services }) => {
+        if (payload.replacedObjectKey !== undefined)
+          await services.getOptional(OBJECT_STORAGE)?.delete(payload.replacedObjectKey)
+      }),
+      // Every file of a deleted space, page by page (keys start with the space id).
+      subscribe(spaceDeleted, 'delete-space-files', async ({ payload }, { services }) => {
+        const storage = services.getOptional(OBJECT_STORAGE)
+        if (storage === undefined) return
+        let cursor: string | undefined
+        do {
+          const page = await storage.list(`${payload.spaceId}/`, {
+            ...(cursor === undefined ? {} : { cursor }),
+            limit: 1000,
+          })
+          await storage.delete(page.keys)
+          cursor = page.cursor
+        } while (cursor !== undefined)
+      }),
       // Space data belongs to its modules: delete this module's rows with the space (plan 008).
-      // Stored files are removed by the space cleanup of 014.006.
       subscribe(spaceDeleted, 'delete-space-assets', async ({ payload }, { services }) => {
         await assetRepository.deleteAllForSpace(
           services.get(DATABASE),
@@ -76,6 +101,28 @@ export const assetsModule = defineModule((options: AssetsModuleOptions) => {
     ],
     setup(ctx) {
       ctx.services.provide(ASSETS_CONFIG, config)
+      // Abandoned uploads: pending assets older than `pendingTtlHours` lose their row, their
+      // multipart upload, and whatever was stored (one indexed query per run when idle).
+      ctx.services.get(BACKGROUND_HANDLERS).onScheduled(config.cleanupCron, (_event, background) =>
+        background
+          .runInScope(
+            { actor: { type: 'system', component: '@blixis/assets.cleanup' } },
+            async ({ services }) => {
+              const db = services.get(DATABASE)
+              const stale = await assetRepository.findStalePending(db, config.pendingTtlHours, 100)
+              if (stale.length === 0) return
+              const storage = services.get(OBJECT_STORAGE)
+              for (const asset of stale) {
+                if (asset.upload !== null)
+                  await storage.abortMultipart(asset.objectKey, asset.upload.id)
+                await storage.delete(asset.objectKey)
+                await assetRepository.deletePending(db, asset, asset.id)
+              }
+              background.logger.info('assets.cleanup', { removedPendingUploads: stale.length })
+            },
+          )
+          .then(() => undefined),
+      )
       ctx.services.provideFactory(
         ASSET_LOOKUP,
         ({ services }) => ({
@@ -111,6 +158,7 @@ export const assetsModule = defineModule((options: AssetsModuleOptions) => {
             locales: services.get(LOCALE_SERVICE),
             // Resolved on first use: reading and editing metadata works without storage.
             storage: () => services.get(OBJECT_STORAGE),
+            usage: services.getOptional(ASSET_USAGE),
             config,
           }),
         { scope: 'request' },

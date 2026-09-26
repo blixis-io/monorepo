@@ -140,8 +140,8 @@ The default part size is 10 MiB, and assets may be up to **1 GiB** (`assetsModul
 | `PATCH /assets/:assetId` | `{ "filename"?, "title"?, "description"? }` | needs `If-Match` (or `expectedVersion`); omitted properties stay |
 | `PUT /assets/:assetId/file` | the new file, as in a single-request upload | needs `If-Match`; the asset keeps its id, the old file is deleted after the change |
 | `POST /assets/:assetId/publish` | — | `409` while pending; publishing twice changes nothing. Accepts `Idempotency-Key` |
-| `POST /assets/:assetId/unpublish` | — | accepts `Idempotency-Key` |
-| `DELETE /assets/:assetId` | — | `409` while published: unpublish first. Optional `If-Match` |
+| `POST /assets/:assetId/unpublish` | `{ "force"?: true }` | `409` while published entries link to the asset, unless `force`. Accepts `Idempotency-Key` |
+| `DELETE /assets/:assetId` | — | `409` while published (unpublish first), or while published entries link to it unless `?force=true`. Optional `If-Match`. The file is deleted right after |
 
 ## List
 
@@ -175,7 +175,12 @@ Files are served from `GET /assets/:spaceId/:assetId/:fileId/:filename` on the A
 - **Asset fields** (`type: "asset"`, optionally `mimeTypes: ["image/*"]`) and rich-text `embeddedAsset` nodes link assets by id: `{ "type": "asset", "id": "…" }`.
 - **Drafts** may link any id; **publishing** an entry requires every linked asset to exist, be published, and match the field's `mimeTypes`.
 - **Delivery (GraphQL)** returns `Asset { url filename mimeType size width height title description }` with an absolute `url`; `title` and `description` follow the requested locale's fallbacks. Unpublished assets disappear from published responses, and publishing, unpublishing, editing, or deleting an asset refreshes cached delivery responses.
-- **Unpublishing or deleting an asset that published entries link to is allowed**: those links simply stop resolving. Check before you remove files that are in use.
+- **Assets in use are protected:** unpublishing or deleting an asset that published entries link to answers `409` (`details.publishedReferrers` counts them). With `force`, it goes ahead and those links stop resolving.
+
+## Cleanup
+
+- **Files are deleted after the change is saved:** deleting an asset, replacing its file, or deleting its space removes the stored files right after the database change commits (through `asset.deleted`, `asset.updated`, `space.deleted`). A failed attempt is retried with the event; deleting twice is harmless.
+- **Abandoned uploads** (pending for more than 24 hours, `assetsModule({ pendingTtlHours })`) are removed with their parts by a background job.
 
 ## Events
 
