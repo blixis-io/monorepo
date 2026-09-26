@@ -1,5 +1,5 @@
 import { authModule } from '@blixis/auth'
-import { createCacheApiStore, eventsQueueModule } from '@blixis/cloudflare'
+import { createCacheApiStore, eventsQueueModule, r2StorageModule } from '@blixis/cloudflare'
 import { contentModule } from '@blixis/content'
 import type { BlixisModule } from '@blixis/contracts'
 import { databaseModule } from '@blixis/database'
@@ -24,6 +24,8 @@ export const modules: readonly BlixisModule[] = [
     queues: ['blixis-events-local', 'blixis-events-staging', 'blixis-events-production'],
   }),
   eventsQueueModule(),
+  // OBJECT_STORAGE on the ASSETS R2 bucket (ADR 0013).
+  r2StorageModule(),
   // Owns events.outbox + events.processed; post-commit dispatch + sweep on the `* * * * *` cron.
   outboxModule(),
   // Idempotency-Key support for command routes (blixis.idempotency_keys).

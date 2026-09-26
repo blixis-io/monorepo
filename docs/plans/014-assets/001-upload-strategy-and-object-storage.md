@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,21 +37,33 @@ Record ADR 0013 (upload flows, size limits, key scheme, serving domain) and impl
 
 ```text
 docs/decisions/0013-asset-uploads.md
+packages/contracts/src/storage.ts
 packages/cloudflare/src/r2-object-storage.ts
-packages/cloudflare/src/r2-object-storage.test.ts
 packages/testing/src/object-storage.ts
+packages/testing/src/object-storage.test.ts
+apps/api/test/object-storage.worker.test.ts
+apps/docs/src/content/docs/concepts/object-storage.mdx
 ```
 
 ### Modify
 
 ```text
-packages/contracts/src/index.ts (ObjectStorage port, if placed in contracts)
+packages/contracts/src/index.ts
+packages/contracts/tsconfig.json
+packages/contracts/tsconfig.test.json
 packages/cloudflare/src/index.ts
 packages/testing/src/index.ts
 apps/api/wrangler.jsonc
+apps/api/worker-configuration.d.ts
 apps/api/src/env.ts
+apps/api/src/blixis.config.ts
+apps/docs/src/content/docs/concepts/testing.mdx
+docs/decisions/README.md
 docs/operations/configuration.md
 docs/operations/cloudflare.md
+docs/setup-checklist.md
+docs/ROADMAP.md
+docs/plans/014-assets/001-upload-strategy-and-object-storage.md
 ```
 
 ### Delete
@@ -75,26 +87,27 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] ADR accepted with explicit size limits.
-- [ ] Adapter streams a multi-MB file in tests without buffering.
+- [x] ADR accepted with explicit size limits.
+- [x] Adapter streams a multi-MB file in tests without buffering.
 
 ## Validation
 
 ```bash
-pnpm --filter @blixis/cloudflare test
+npx vitest run --project api test/object-storage
+npx vitest run packages/testing/src/object-storage.test.ts
 ```
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Security headers policy documented.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Security headers policy documented.
 
 ## Completion conditions
 
@@ -111,4 +124,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Port in contracts:** `ObjectStorage`, `OBJECT_STORAGE`, `OBJECT_STORAGE_LIMITS`. Contracts gained the `webworker` lib for `ReadableStream` (standard in Workers and Node; no runtime code).
+- **TS 7.0.2 bug again:** `{@link ObjectStorage.get}` inside the declaring file made `ReadableStream` unresolvable (TS2304 on unrelated lines). Member references are written as code spans instead.
+- **Known-length streams:** R2 needs the length of a stream. The adapter pipes streams through `FixedLengthStream(size)` when a `size` is given, which also rejects bodies of the wrong length (`ValidationError`).
+- **Error mapping:** R2 checksum mismatch → `ValidationError` (nothing stored); unknown multipart upload → `NotFoundError`; aborting twice is a no-op; everything else → retryable `InfrastructureError`.
+- **Local R2 quirk:** a stream shorter than `size` is rejected correctly, but miniflare's R2 simulator then logs an uncaught "Network connection lost". The Workers test leaves that case to the memory fake to keep test output clean.
+- **Workers test** streams a 12 MiB generated body (64 KiB chunks) and assembles a 10 MiB + 3 B multipart upload from streamed parts.
+- **Buckets:** `blixis-assets-staging` / `-production` (location hint `weur`), created by the owner on 2026-09-26 (location `WEUR`, verified with `wrangler r2 bucket info`).

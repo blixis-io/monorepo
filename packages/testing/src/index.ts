@@ -39,3 +39,8 @@ export {
   uncoveredTenantRoutes,
 } from './isolation.ts'
 export { type CapturingLogger, createCapturingLogger, type LogEntry } from './logger.ts'
+export {
+  createMemoryObjectStorage,
+  type MemoryObjectStorage,
+  type MemoryObjectStorageOptions,
+} from './object-storage.ts'
