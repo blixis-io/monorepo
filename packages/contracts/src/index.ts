@@ -6,6 +6,7 @@
  *
  * @packageDocumentation
  */
+export * from './assets.ts'
 export * from './capabilities.ts'
 export * from './context.ts'
 export * from './errors.ts'

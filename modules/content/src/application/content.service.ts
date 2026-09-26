@@ -1,5 +1,6 @@
 import {
   type Actor,
+  type AssetLookup,
   type AuthorizationService,
   actorId,
   ConflictError,
@@ -200,7 +201,7 @@ export interface ContentService {
   /**
    * Loads the entries linked from `entryIds`, level by level up to `depth` (0–3), with one batch
    * query per level. Cycles are followed once; links that don't resolve (missing, or unpublished
-   * for `published`) are left out. Asset links are skipped until assets exist (plan 014).
+   * for `published`) are left out. Asset links aren't resolved here (GraphQL delivers assets).
    */
   resolveLinks(
     actor: Actor,
@@ -222,6 +223,8 @@ export interface ContentServiceDeps {
   readonly registry: FieldTypeRegistry
   readonly schemas: EntrySchemaCache
   readonly locales: Pick<LocaleService, 'codes'>
+  /** Asset lookup when the app has assets (`blixis.assets`); asset links are checked with it. */
+  readonly assets?: AssetLookup | undefined
 }
 
 const P = CONTENT_PERMISSIONS
@@ -701,8 +704,8 @@ export function createContentService(deps: ContentServiceDeps): ContentService {
   return service
 
   /**
-   * Links that block publishing: missing or unpublished entries, and targets of a type the field
-   * does not allow. Assets are checked once assets exist (plan 014).
+   * Links that block publishing: missing or unpublished entries and assets, entries of a type the
+   * field does not allow, and assets of a media type it does not allow (plan 014.005).
    */
   async function linkIssues(
     tenant: EnvironmentTenant,
@@ -729,6 +732,39 @@ export function createContentService(deps: ContentServiceDeps): ContentService {
             : usage.contentTypeIds.length > 0 &&
                 !usage.contentTypeIds.includes(target.contentTypeId)
               ? 'Links to an entry of a type this field does not allow'
+              : undefined
+      if (message !== undefined) issues.push({ path: [...usage.path], message })
+    }
+    issues.push(...(await assetIssues(tenant, contentType, fields)))
+    return issues
+  }
+
+  /** Asset links: the asset must exist, be published, and match the field's `mimeTypes`. */
+  async function assetIssues(
+    tenant: EnvironmentTenant,
+    contentType: ContentType,
+    fields: Readonly<Record<string, unknown>>,
+  ) {
+    const usages = collectLinkUsages(contentType, await kit.types(tenant), fields).filter(
+      (u) => u.link.type === 'asset',
+    )
+    if (usages.length === 0 || deps.assets === undefined) return []
+    const found = new Map(
+      (await deps.assets.findMany(tenant, [...new Set(usages.map((u) => u.link.id))])).map((a) => [
+        a.id,
+        a,
+      ]),
+    )
+    const issues: { path: (string | number)[]; message: string }[] = []
+    for (const usage of usages) {
+      const asset = found.get(usage.link.id)
+      const message =
+        asset === undefined
+          ? 'Links to an asset that does not exist'
+          : asset.status !== 'published'
+            ? 'Links to an unpublished asset: publish it first'
+            : !mimeAllowed(usage.mimeTypes, asset.mimeType)
+              ? `Links to a ${asset.mimeType} asset, which this field does not allow`
               : undefined
       if (message !== undefined) issues.push({ path: [...usage.path], message })
     }
@@ -780,4 +816,12 @@ function storedFilters(
   }
   if (issues.length > 0) throw new ValidationError('Invalid filter', issues)
   return stored
+}
+
+/** Whether `mimeType` matches one of `patterns` (`image/*`, `application/pdf`); none allows all. */
+function mimeAllowed(patterns: readonly string[], mimeType: string): boolean {
+  if (patterns.length === 0) return true
+  return patterns.some((pattern) =>
+    pattern.endsWith('/*') ? mimeType.startsWith(pattern.slice(0, -1)) : pattern === mimeType,
+  )
 }

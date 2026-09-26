@@ -6,6 +6,8 @@
     { "path": "../../packages/events" },
     { "path": "../../packages/testing" },
     { "path": "../users" },
-    { "path": "../permissions" }
+    { "path": "../permissions" },
+    { "path": "../content" },
+    { "path": "../../packages/graphql" }
   ]
 }

@@ -43,6 +43,7 @@ Drafts are validated **leniently**: types, formats and allowed values are checke
 `POST /entries/:id/publish` makes the current version (or a chosen `versionId`) live. Publishing checks everything:
 - **Strict validation:** required fields must be filled (the default locale for localized fields), minimum item counts must be met, and `showWhen` rules apply.
 - **Link integrity:** every entry the version links to must exist, **be published**, and have a type the field allows. Publish linked entries first, such as the author before the post.
+- **Assets too:** every linked or embedded [asset](/content/assets-api/) must exist, **be published**, and match the field's `mimeTypes` (e.g. `image/*`).
 
 All problems are reported at once, each with its path:
 

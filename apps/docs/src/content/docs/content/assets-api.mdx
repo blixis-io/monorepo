@@ -170,6 +170,13 @@ Files are served from `GET /assets/:spaceId/:assetId/:fileId/:filename` on the A
 - **Inline or download:** images, audio, video and PDF are `inline`; everything else is `attachment`, with the original file name.
 - **CORS:** published files send `Access-Control-Allow-Origin: *`, so any site can use them.
 
+## Linking assets from content
+
+- **Asset fields** (`type: "asset"`, optionally `mimeTypes: ["image/*"]`) and rich-text `embeddedAsset` nodes link assets by id: `{ "type": "asset", "id": "…" }`.
+- **Drafts** may link any id; **publishing** an entry requires every linked asset to exist, be published, and match the field's `mimeTypes`.
+- **Delivery (GraphQL)** returns `Asset { url filename mimeType size width height title description }` with an absolute `url`; `title` and `description` follow the requested locale's fallbacks. Unpublished assets disappear from published responses, and publishing, unpublishing, editing, or deleting an asset refreshes cached delivery responses.
+- **Unpublishing or deleting an asset that published entries link to is allowed**: those links simply stop resolving. Check before you remove files that are in use.
+
 ## Events
 
 `asset.created` (upload finished), `asset.updated` (metadata or file; `replacedObjectKey` names a replaced file), `asset.published`, `asset.unpublished`, `asset.deleted`. All are delivered transactionally. See [Events](/concepts/events/).
