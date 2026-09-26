@@ -18,7 +18,8 @@
     "test": "vitest run --root ../.. modules/content"
   },
   "dependencies": {
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@blixis/graphql": "workspace:*"
   },
   "peerDependencies": {
     "@blixis/contracts": "workspace:*",
@@ -32,6 +33,7 @@
     "@blixis/contracts": "workspace:*",
     "@blixis/database": "workspace:*",
     "@blixis/events": "workspace:*",
+    "@blixis/graphql": "workspace:*",
     "@blixis/kernel": "workspace:*",
     "@blixis/permissions": "workspace:*",
     "@blixis/shared": "workspace:*",
