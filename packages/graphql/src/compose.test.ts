@@ -57,6 +57,15 @@ describe('composeSchema', () => {
     })
   })
 
+  it('ignores empty fragments', async () => {
+    const schema = composeSchema([
+      base,
+      { module: '@acme/empty', typeDefs: '  ' },
+      { module: '@acme/none', typeDefs: [] },
+    ])
+    expect((await graphql({ schema, source: '{ ping }' })).data).toEqual({ ping: 'pong' })
+  })
+
   it('rejects invalid scalar values', async () => {
     const schema = composeSchema([
       base,

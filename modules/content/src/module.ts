@@ -101,6 +101,8 @@ export const contentModule = defineModule((options: ContentModuleOptions) => ({
           const requested = requestedTenant(context)
           if (actor.type !== 'deliveryKey' && requested.spaceId === undefined) return undefined
           const scope = await services.get(DELIVERY_SERVICE).scope(actor, requested)
+          // A space without content types needs no extension: the static schema serves it.
+          if (scope.types.length === 0) return undefined
           return {
             key: scope.modelKey,
             get parts() {

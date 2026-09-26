@@ -1,4 +1,9 @@
-import { defineModule, ModuleValidationError } from '@blixis/kernel'
+import {
+  defineModule,
+  ERROR_REPORTER,
+  ModuleValidationError,
+  serviceOverride,
+} from '@blixis/kernel'
 import { asUser, createTestBlixis } from '@blixis/testing'
 import { describe, expect, it } from 'vitest'
 import type { GraphQLContext } from './context.ts'
@@ -113,5 +118,37 @@ describe('graphqlModule', () => {
     expect((await post(t, '{ tenant }', asUser('alice'))).body.data).toEqual({ tenant: 'alice' })
     expect((await post(t, '{ tenant }', asUser('bob'))).body.data).toEqual({ tenant: 'bob' })
     expect(builds).toBe(2)
+  })
+
+  it('reports a failing schema extension instead of masking it silently', async () => {
+    const reported: unknown[] = []
+    const broken = defineModule({
+      meta: { name: '@acme/broken', version: '1.0.0' },
+      setup(ctx) {
+        ctx.services.provideFactory(
+          GRAPHQL_SCHEMA_EXTENSION,
+          (): SchemaExtensionProvider => async () => ({
+            key: 'broken',
+            parts: [{ module: '@acme/broken', typeDefs: 'type {' }],
+          }),
+          { scope: 'request' },
+        )
+      },
+    })
+    const t = await createTestBlixis({
+      modules: [graphqlModule(), broken()],
+      overrides: [
+        serviceOverride(ERROR_REPORTER, { captureException: (error) => reported.push(error) }),
+      ],
+    })
+    const { body } = await post(t, '{ _platform { version } }')
+    expect(body.errors).toEqual([
+      expect.objectContaining({
+        message: 'Unexpected error',
+        extensions: expect.objectContaining({ code: 'INTERNAL' }),
+      }),
+    ])
+    expect(String(reported[0])).toContain('invalid GraphQL SDL')
+    expect(t.logs.entries.some((e) => e.message === 'graphql schema selection failed')).toBe(true)
   })
 })

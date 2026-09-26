@@ -1,13 +1,13 @@
 import type { ModuleHonoEnv, ModuleMeta } from '@blixis/contracts'
 import { BlixisError } from '@blixis/contracts'
-import { defineModule, KERNEL_CONTRIBUTIONS } from '@blixis/kernel'
+import { defineModule, ERROR_REPORTER, KERNEL_CONTRIBUTIONS } from '@blixis/kernel'
 import { GraphQLError, type GraphQLSchema } from 'graphql'
 import { createYoga, type YogaServerInstance } from 'graphql-yoga'
 import { Hono } from 'hono'
 import { composeSchema, type SchemaPart } from './compose.ts'
 import type { GraphQLContext } from './context.ts'
 import { mapGraphQLError, useBlixisErrors } from './errors.ts'
-import { GRAPHQL_SCHEMA_EXTENSION, type SchemaExtensionProvider } from './extensions.ts'
+import { GRAPHQL_SCHEMA_EXTENSION } from './extensions.ts'
 import { DEFAULT_LIMITS, type GraphqlLimits, useLimits } from './limits.ts'
 
 /** Options for {@link graphqlModule}. */
@@ -81,19 +81,8 @@ export const graphqlModule = defineModule((options: GraphqlModuleOptions) => {
       const staticSchema = composeSchema(parts)
       const extended = new Map<string, GraphQLSchema>()
       const capacity = options.schemaCacheSize ?? 50
-      const schemaFor = async (context: ServerContext): Promise<GraphQLSchema> => {
-        let extension: Awaited<ReturnType<SchemaExtensionProvider>>
-        try {
-          extension = await context.services.getOptional(GRAPHQL_SCHEMA_EXTENSION)?.(context)
-        } catch (error) {
-          // Choosing the schema happens before execution: map public errors (unknown space,
-          // missing permission) like resolver errors instead of letting Yoga mask them.
-          if (!(error instanceof BlixisError)) throw error
-          throw mapGraphQLError(
-            new GraphQLError(error.message, { originalError: error }),
-            context.requestContext.requestId,
-          ).error
-        }
+      const selectSchema = async (context: ServerContext): Promise<GraphQLSchema> => {
+        const extension = await context.services.getOptional(GRAPHQL_SCHEMA_EXTENSION)?.(context)
         if (extension === undefined) return staticSchema
         let schema = extended.get(extension.key)
         if (schema === undefined) {
@@ -105,6 +94,38 @@ export const graphqlModule = defineModule((options: GraphqlModuleOptions) => {
           extended.set(extension.key, schema)
         }
         return schema
+      }
+      // Choosing the schema happens before execution, outside useBlixisErrors: map public errors
+      // (unknown space, missing permission) the same way, and log and report the unexpected ones
+      // (e.g. a generated schema that fails to compose) instead of letting Yoga mask them silently.
+      const schemaFor = async (context: ServerContext): Promise<GraphQLSchema> => {
+        try {
+          return await selectSchema(context)
+        } catch (error) {
+          const { requestContext, services } = context
+          const mapped = mapGraphQLError(
+            error instanceof GraphQLError
+              ? error
+              : new GraphQLError('schema selection failed', { originalError: error as Error }),
+            requestContext.requestId,
+          )
+          if (mapped.unexpected || !(error instanceof BlixisError)) {
+            requestContext.logger.error('graphql schema selection failed', {
+              error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+            })
+            try {
+              services.getOptional(ERROR_REPORTER)?.captureException(error, {
+                requestId: requestContext.requestId,
+                correlationId: requestContext.correlationId,
+                actorType: requestContext.actor.type,
+                route: '/graphql',
+              })
+            } catch {
+              // Error reporting must never break the response.
+            }
+          }
+          throw mapped.error
+        }
       }
       yoga = createYoga<ServerContext>({
         schema: (context) => schemaFor(context),

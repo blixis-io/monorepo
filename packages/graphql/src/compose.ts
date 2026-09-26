@@ -30,6 +30,8 @@ export function composeSchema(parts: readonly SchemaPart[]): GraphQLSchema {
 
   for (const part of all) {
     const source = typeof part.typeDefs === 'string' ? part.typeDefs : part.typeDefs.join('\n')
+    // An empty fragment (e.g. a model without types) contributes nothing; parse('') would fail.
+    if (source.trim() === '' && part.resolvers === undefined) continue
     let document: DocumentNode
     try {
       document = parse(source)
