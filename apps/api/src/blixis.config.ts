@@ -37,7 +37,7 @@ export const modules: readonly BlixisModule[] = [
   permissionsModule(),
   contentModule(),
   // GET/POST /graphql (delivery API, §10) — composed from module contributions. Published
-  // delivery responses are cached (ADR 0012): isolate memory, then the Cache API (custom domains).
+  // delivery responses are cached (ADR 0012): isolate memory, then the Cache API (per data center).
   graphqlModule({
     cache: {
       stores: [

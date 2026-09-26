@@ -36,7 +36,15 @@ Modules communicate only through **public contracts**: typed [service tokens](/c
 | `@blixis/database` | ✅ available | Postgres through Hyperdrive with Drizzle: per-request connections, transactions, migrations, IDs and tenant scoping, idempotency keys ([Database](/concepts/database/)) |
 | `@blixis/events` | ✅ available | Typed events, the transactional outbox, Cloudflare Queues delivery, and idempotent consumers ([Events](/concepts/events/)) |
 | `@blixis/testing` | ✅ available | [`createTestBlixis`](/concepts/testing/), test databases, `captureEvents`, test actors, service overrides, captured logs |
-| Auth, users, spaces, content, … | 🚧 next | Follow the [roadmap](https://github.com/blixis-io/monorepo/blob/main/docs/ROADMAP.md) |
+| `@blixis/shared` | ✅ available | Small runtime-neutral helpers: UUIDv7 ids ([`newId`](/api/shared/functions/newid/)) and invariants |
+| `@blixis/cloudflare` | ✅ available | The Worker entry (`createWorkerHandler`), typed env parsing, the Queues sender, and the Cache API store |
+| `@blixis/graphql` | ✅ available | `/graphql` with GraphQL Yoga: schema fragments from modules, per-request schemas, limits, batching, response caching ([GraphQL](/concepts/graphql/)) |
+| `@blixis/users` | ✅ available | Users and memberships |
+| `@blixis/auth` | ✅ available | Sign-in with JWT and rotating refresh tokens, API tokens, delivery and preview keys ([Authentication](/concepts/authentication/)) |
+| `@blixis/spaces` | ✅ available | Organizations, spaces, environments, locales ([Tenancy](/concepts/tenancy/)) |
+| `@blixis/permissions` | ✅ available | Permission catalog, system and custom roles, authorization ([Permissions](/concepts/permissions/)) |
+| `@blixis/content` | ✅ available | Content types, entries, versions, publishing, and the typed [Delivery API](/content/delivery-api/) with caching |
+| Assets, webhooks, releases, SDK, admin | 🚧 next | Follow the [roadmap](https://github.com/blixis-io/monorepo/blob/main/docs/ROADMAP.md) |
 
 <Aside type="caution" title="Early development">
 Blixis is not released yet. APIs marked *coming soon* in this manual do not exist yet; everything else is implemented and tested. The [API reference](/api/contracts/readme/) is generated from the source code on every build.

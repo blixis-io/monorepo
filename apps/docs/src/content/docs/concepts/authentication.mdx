@@ -97,7 +97,7 @@ Websites and apps read content with **space keys** instead of a user's credentia
 - **Environments:** a key can be limited to certain environments (`environmentIds`).
 - **Using a key:** send it as `Authorization: Bearer blx_dk_…`. Requests then act as `{ type: 'deliveryKey', keyId, organizationId, spaceId, kind, environmentIds }`.
 - **Permissions:** a key holds only the permissions granted to its kind, in its own space. Modules grant them declaratively with `deliveryKeys` on the permission definition (`content.delivery.read` for both kinds, `content.preview.read` for preview keys). Every Management API route answers `403` or `404` to a key.
-- **Revoking** takes effect immediately, and deleting a space deletes its keys.
+- **Revoking** takes effect immediately in the Worker instance that handled it, and within **30 seconds** everywhere else: each instance remembers authenticated keys that long, so cached delivery requests need no database lookup (`authModule({ deliveryKeyMemoSeconds })`). Deleting a space deletes its keys.
 
 <Aside type="caution">
 Delivery keys are meant for public frontends, but preview keys expose drafts: keep them on the server, for example in your site's preview mode. Never put them in browser code.
