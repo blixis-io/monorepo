@@ -1,14 +1,24 @@
 import type { ModuleHonoEnv, ModuleMeta } from '@blixis/contracts'
 import { BlixisError } from '@blixis/contracts'
 import { defineModule, ERROR_REPORTER, KERNEL_CONTRIBUTIONS } from '@blixis/kernel'
+import { useAPQ } from '@graphql-yoga/plugin-apq'
 import { GraphQLError, type GraphQLSchema } from 'graphql'
 import { createYoga, type YogaServerInstance } from 'graphql-yoga'
 import { Hono } from 'hono'
+import { createMemoryResponseCache, createTieredCache, type ResponseCacheStore } from './cache.ts'
 import { composeSchema, type SchemaPart } from './compose.ts'
 import type { GraphQLContext } from './context.ts'
 import { mapGraphQLError, useBlixisErrors } from './errors.ts'
 import { GRAPHQL_SCHEMA_EXTENSION } from './extensions.ts'
 import { DEFAULT_LIMITS, type GraphqlLimits, useLimits } from './limits.ts'
+import {
+  cacheHeaders,
+  cacheKey,
+  etagOf,
+  GRAPHQL_CACHE_POLICY,
+  readOperation,
+  storable,
+} from './response-cache.ts'
 
 /** Options for {@link graphqlModule}. */
 export interface GraphqlModuleOptions {
@@ -21,6 +31,16 @@ export interface GraphqlModuleOptions {
   readonly schemaCacheSize?: number
   /** Query limits (depth, aliases, tokens, cost, body size, introspection). */
   readonly limits?: GraphqlLimits
+  /**
+   * Response caching of requests a `GRAPHQL_CACHE_POLICY` allows (ADR 0012). Default: an
+   * isolate-memory L1 for 5 minutes; add an L2 such as `createCacheApiStore()` from
+   * `@blixis/cloudflare`.
+   */
+  readonly cache?: {
+    readonly stores?: readonly { readonly store: ResponseCacheStore; readonly ttlSeconds: number }[]
+    /** `max-age` for clients and CDNs, in seconds. Default 0 (revalidate every time via ETag). */
+    readonly maxAge?: number
+  }
 }
 
 const PLATFORM_TYPE_DEFS = /* GraphQL */ `
@@ -52,6 +72,7 @@ type ServerContext = GraphQLContext & { readonly env: Readonly<Record<string, un
 export const graphqlModule = defineModule((options: GraphqlModuleOptions) => {
   let modules: readonly ModuleMeta[] = []
   let yoga: YogaServerInstance<ServerContext, object> | undefined
+  let cached: ((request: Request, context: ServerContext) => Promise<Response>) | undefined
 
   return {
     meta: { name: '@blixis/graphql', version: '0.0.0' },
@@ -133,12 +154,64 @@ export const graphqlModule = defineModule((options: GraphqlModuleOptions) => {
         // Errors are mapped by useBlixisErrors (public errors keep their message and code);
         // Yoga's masking stays on as a last line of defence for anything that slips through.
         maskedErrors: true,
-        plugins: [useLimits(options.limits) as never, useBlixisErrors() as never],
+        plugins: [
+          useAPQ() as never,
+          useLimits(options.limits) as never,
+          useBlixisErrors() as never,
+        ],
         landingPage: false,
         graphiql: (_request, context) =>
           options.graphiql ?? context?.env['BLIXIS_ENV'] !== 'production',
         logging: false,
       })
+      const stores = options.cache?.stores ?? [
+        { store: createMemoryResponseCache(), ttlSeconds: 300 },
+      ]
+      const tiered = createTieredCache(stores)
+      const maxAge = options.cache?.maxAge ?? 0
+      const execute = async (request: Request, context: ServerContext) => {
+        const response = await (yoga as NonNullable<typeof yoga>).fetch(request, context)
+        for (const [name, value] of context.responseHeaders) response.headers.set(name, value)
+        return response
+      }
+      /** Serves cacheable requests from the response cache (ADR 0012); the rest bypasses it. */
+      cached = async (request, context) => {
+        const policy = context.services.getOptional(GRAPHQL_CACHE_POLICY)
+        let scope: string | undefined
+        try {
+          scope = policy === undefined ? undefined : await policy({ ...context, request })
+        } catch {
+          scope = undefined // Let execution report the problem (e.g. unknown space).
+        }
+        const operation = scope === undefined ? undefined : await readOperation(request)
+        if (scope === undefined || operation === undefined) {
+          const response = await execute(request, context)
+          response.headers.set('x-blixis-cache', 'BYPASS')
+          return response
+        }
+        const key = await cacheKey(scope, operation)
+        const hit = await tiered.match(key)
+        if (hit !== undefined) {
+          const headers = cacheHeaders(hit, 'HIT', maxAge)
+          if (request.headers.get('if-none-match') === hit.etag)
+            return new Response(null, { status: 304, headers })
+          return new Response(hit.body, { status: 200, headers })
+        }
+        const response = await execute(request, context)
+        const body = await response.text()
+        if (!storable(response, body)) {
+          const headers = new Headers(response.headers)
+          headers.set('x-blixis-cache', 'BYPASS')
+          return new Response(body, { status: response.status, headers })
+        }
+        const value = {
+          body,
+          contentType: response.headers.get('content-type') ?? 'application/json',
+          etag: await etagOf(body),
+        }
+        await tiered.put(key, value, 0)
+        return new Response(body, { status: 200, headers: cacheHeaders(value, 'MISS', maxAge) })
+      }
     },
     boot(ctx) {
       modules = ctx.modules
@@ -175,9 +248,8 @@ export const graphqlModule = defineModule((options: GraphqlModuleOptions) => {
             413,
           )
         }
-        const response = await yoga.fetch(c.req.raw, context)
-        for (const [name, value] of context.responseHeaders) response.headers.set(name, value)
-        return response
+        if (cached === undefined) throw new Error('graphqlModule is not set up')
+        return cached(c.req.raw, context)
       }),
     },
   }
