@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -36,22 +36,17 @@ Implement a `EdgeCache` port with a Cache API adapter, and (if ADR 0012 selected
 ### Create
 
 ```text
-packages/cloudflare/src/edge-cache.ts
-packages/cloudflare/src/kv-version-stamps.ts
-packages/cloudflare/src/edge-cache.test.ts
-packages/cloudflare/src/kv-version-stamps.test.ts
-packages/testing/src/cache.ts
+packages/graphql/src/cache.ts
+packages/graphql/src/cache.test.ts
+packages/cloudflare/src/cache.ts
+apps/api/test/cache.worker.test.ts
 ```
 
 ### Modify
 
 ```text
+packages/graphql/src/index.ts
 packages/cloudflare/src/index.ts
-packages/testing/src/index.ts
-apps/api/wrangler.jsonc
-apps/api/src/env.ts
-docs/operations/configuration.md
-docs/operations/cloudflare.md
 ```
 
 ### Delete
@@ -75,8 +70,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Adapters pass tests in the Workers pool.
-- [ ] KV consistency caveats documented next to the adapter.
+- [x] Adapters pass tests in the Workers pool.
+- [x] KV consistency caveats documented next to the adapter.
 
 ## Validation
 
@@ -86,15 +81,15 @@ pnpm --filter @blixis/cloudflare test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Ports are Cloudflare-free.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Ports are Cloudflare-free.
 
 ## Completion conditions
 
@@ -111,4 +106,9 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Port:** `ResponseCacheStore` (`match`, `put(key, value, ttl)`) with `CachedResponse { body, contentType, etag }`, in `@blixis/graphql`, the consumer. Keys already contain the content stamp, so stores have no `delete`. That's a deviation from the suggested `EdgeCache.delete`, because versioned keys (ADR 0012) make it unnecessary.
+- **L1:** `createMemoryResponseCache({ maxEntries 500, maxBytes 8 MiB })`, an LRU with TTL expiry and byte accounting (≈ 2 bytes per character). Oversized values are never stored.
+- **Tiers:** `createTieredCache([{ store, ttlSeconds }])` checks stores in order and fills the faster tiers on a slower hit. A **store failure is a miss**, never a request failure.
+- **L2:** `createCacheApiStore({ namespace })` in `@blixis/cloudflare` uses `caches.default` with synthetic `https://cache.blixis.internal/<namespace>/<key>` GET requests (so POST bodies can be cached), and TTL via `Cache-Control`. It's typed structurally, so `@blixis/cloudflare` doesn't depend on `@blixis/graphql`. Tested in the Workers pool (Miniflare's Cache API).
+- **No KV adapter or `CACHE_KV` binding:** ADR 0012 chose a Postgres content stamp (013.004), so no KV namespaces are provisioned and there are no new wrangler bindings or env docs.
+- **Fakes:** the memory store is the test fake: it's deterministic, with an injectable clock.
