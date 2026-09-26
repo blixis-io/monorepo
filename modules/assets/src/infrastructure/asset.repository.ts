@@ -89,6 +89,12 @@ export const assetRepository = {
     return row === undefined ? undefined : toAsset(row)
   },
 
+  /** An asset by id alone — for the delivery route, which checks space and access itself. */
+  async findAnyById(db: Queryable, id: string) {
+    const row = one(await db.select().from(assets).where(eq(assets.id, id)))
+    return row === undefined ? undefined : toAsset(row)
+  },
+
   /** Tenant of an asset for asset-id routes — the caller authorizes before using it. */
   async findForResolution(db: Queryable, id: string) {
     const row = one(

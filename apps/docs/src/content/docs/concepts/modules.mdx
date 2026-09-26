@@ -17,7 +17,7 @@ A module is a plain object implementing [`BlixisModule`](/api/contracts/interfac
 | `config` / `configSchema` | Raw options from the factory and the schema that validates them |
 | `setup(ctx)` | Register services; runs once during bootstrap |
 | `boot(ctx)` | Runs once, lazily, before the first request or event |
-| `rest` | A Hono app mounted at `/api/v1${path}` |
+| `rest` | A Hono app mounted at `/api/v1${path}` — or a list of them; `root: true` mounts at the site root instead (platform endpoints such as `/graphql` or `/assets/…`) |
 | `graphql` | Schema fragment (`typeDefs`) and resolvers merged into `/graphql` |
 | `permissions` | [Permission definitions](/concepts/permissions/) your services check |
 | `events` | [Event subscriptions](/concepts/events/) |
@@ -128,6 +128,7 @@ export const routes = new Hono<ModuleHonoEnv>().get('/:id', (c) => {
 
 - [`ModuleHonoEnv`](/api/contracts/interfaces/modulehonoenv/) exposes `requestContext` and `services` on `c.var`. There are **no bindings**: modules never access Cloudflare `env`.
 - A Hono app declared with a different environment is rejected at compile time.
+- A module can contribute **several** apps: `rest: [{ path: '/', app: api }, { path: '/files', root: true, app: downloads }]`. Root routes are for endpoints outside the Management API only; they get the same request middleware.
 - Keep handlers thin: parse and validate input, call a service, map the result. Throw [public errors](/concepts/errors/); the kernel turns them into [problem details](/concepts/errors/#what-clients-receive-rest) responses.
 - Every request gets a fresh [request scope](/concepts/services-and-capabilities/#scopes) and an `x-request-id` / `x-correlation-id` response header. A valid incoming `x-correlation-id` is kept, so you can trace calls across services.
 - Two modules may share a prefix (e.g. `/spaces`), but registering the **same method and path** twice fails startup, naming both modules.

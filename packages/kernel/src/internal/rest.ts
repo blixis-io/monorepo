@@ -6,6 +6,7 @@ import {
   ModuleError,
   NotFoundError,
   type RequestContext,
+  type RestContribution,
   type ServiceRegistry,
 } from '@blixis/contracts'
 import type { Hono } from 'hono'
@@ -53,32 +54,41 @@ function joinPath(prefix: string, path: string): string {
  * Detects identical method + path registrations across modules (§26). Middleware (`ALL`) routes
  * are ignored — several modules may legitimately share a prefix such as `/spaces/:spaceId`.
  */
+/** A module's REST contributions as a list (`rest` may be one or several). */
+export function restContributions(module: BlixisModule): readonly RestContribution[] {
+  const rest = module.rest
+  if (rest === undefined) return []
+  return Array.isArray(rest) ? rest : [rest as RestContribution]
+}
+
 export function findRouteConflicts(modules: readonly BlixisModule[]): ModuleProblem[] {
   const owners = new Map<string, string>([
     [`GET ${HEALTH_PATH}`, KERNEL],
     [`GET ${READY_PATH}`, KERNEL],
   ])
   const problems: ModuleProblem[] = []
-  for (const module of modules) {
-    const rest = module.rest
-    if (rest === undefined) continue
-    if (!rest.path.startsWith('/')) {
-      problems.push({
-        module: module.meta.name,
-        message: `rest.path "${rest.path}" must start with "/"`,
-      })
-      continue
-    }
-    for (const route of rest.app.routes) {
-      if (route.method === 'ALL') continue
-      const key = `${route.method} ${joinPath(joinPath(rest.root === true ? '' : API_PREFIX, rest.path), route.path)}`
-      const owner = owners.get(key)
-      if (owner === undefined) owners.set(key, module.meta.name)
-      else if (owner !== module.meta.name) {
-        problems.push({ module: module.meta.name, message: `route ${key} conflicts with ${owner}` })
+  for (const module of modules)
+    for (const rest of restContributions(module)) {
+      if (!rest.path.startsWith('/')) {
+        problems.push({
+          module: module.meta.name,
+          message: `rest.path "${rest.path}" must start with "/"`,
+        })
+        continue
+      }
+      for (const route of rest.app.routes) {
+        if (route.method === 'ALL') continue
+        const key = `${route.method} ${joinPath(joinPath(rest.root === true ? '' : API_PREFIX, rest.path), route.path)}`
+        const owner = owners.get(key)
+        if (owner === undefined) owners.set(key, module.meta.name)
+        else if (owner !== module.meta.name) {
+          problems.push({
+            module: module.meta.name,
+            message: `route ${key} conflicts with ${owner}`,
+          })
+        }
       }
     }
-  }
   return problems
 }
 
@@ -187,13 +197,12 @@ export function installRest(
     }
   })
 
-  for (const module of modules) {
-    if (module.rest === undefined) continue
-    app.route(
-      module.rest.root === true ? module.rest.path : joinPath(API_PREFIX, module.rest.path),
-      module.rest.app as unknown as Hono<BlixisHonoEnv>,
-    )
-  }
+  for (const module of modules)
+    for (const rest of restContributions(module))
+      app.route(
+        rest.root === true ? rest.path : joinPath(API_PREFIX, rest.path),
+        rest.app as unknown as Hono<BlixisHonoEnv>,
+      )
 
   const requestIdOf = (c: { get(key: 'requestContext'): RequestContext | undefined }): string =>
     c.get('requestContext')?.requestId ?? crypto.randomUUID()
