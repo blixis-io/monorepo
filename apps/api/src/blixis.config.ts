@@ -1,12 +1,12 @@
 import { authModule } from '@blixis/auth'
-import { eventsQueueModule } from '@blixis/cloudflare'
+import { createCacheApiStore, eventsQueueModule } from '@blixis/cloudflare'
 import { contentModule } from '@blixis/content'
 import type { BlixisModule } from '@blixis/contracts'
 import { databaseModule } from '@blixis/database'
 import { idempotencyModule } from '@blixis/database/idempotency'
 import { eventsModule, queueTransport } from '@blixis/events'
 import { outboxModule, outboxTransport } from '@blixis/events/outbox'
-import { graphqlModule } from '@blixis/graphql'
+import { createMemoryResponseCache, graphqlModule } from '@blixis/graphql'
 import { permissionsModule } from '@blixis/permissions'
 import { spacesModule } from '@blixis/spaces'
 import { usersModule } from '@blixis/users'
@@ -36,6 +36,14 @@ export const modules: readonly BlixisModule[] = [
   spacesModule(),
   permissionsModule(),
   contentModule(),
-  // GET/POST /graphql (delivery API, §10) — composed from module contributions.
-  graphqlModule(),
+  // GET/POST /graphql (delivery API, §10) — composed from module contributions. Published
+  // delivery responses are cached (ADR 0012): isolate memory, then the Cache API (custom domains).
+  graphqlModule({
+    cache: {
+      stores: [
+        { store: createMemoryResponseCache(), ttlSeconds: 300 },
+        { store: createCacheApiStore(), ttlSeconds: 3600 },
+      ],
+    },
+  }),
 ]

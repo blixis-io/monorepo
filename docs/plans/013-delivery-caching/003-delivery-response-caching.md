@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -38,16 +38,19 @@ Add caching to the GraphQL delivery path: compute cache keys, serve hits, store 
 ### Create
 
 ```text
-packages/graphql/src/cache.ts
-packages/graphql/src/cache.test.ts
-apps/api/test/delivery-cache.worker.test.ts
+packages/graphql/src/response-cache.ts
+packages/graphql/src/response-cache.test.ts
 ```
 
 ### Modify
 
 ```text
-packages/graphql/src/server.ts
 packages/graphql/src/module.ts
+packages/graphql/src/index.ts
+packages/graphql/package.json (@graphql-yoga/plugin-apq)
+pnpm-workspace.yaml (catalog)
+apps/api/src/blixis.config.ts (memory L1 + Cache API L2)
+pnpm-lock.yaml
 ```
 
 ### Delete
@@ -71,7 +74,7 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Second identical delivery query is a HIT; preview is always BYPASS.
+- [x] Second identical delivery query is a HIT; preview is always BYPASS.
 
 ## Validation
 
@@ -81,15 +84,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Cache key excludes secrets.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Cache key excludes secrets.
 
 ## Completion conditions
 
@@ -106,4 +109,14 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **`GRAPHQL_CACHE_POLICY`** (request-scoped, optional) is the owner module's decision: it returns a **scope string** that must change whenever the content it could return changes (content: `space:env:stamp`, 013.004), or `undefined` to bypass. Policy errors bypass, and execution then reports the real error (e.g. an unknown space).
+- **Route flow:**
+  1. policy → `readOperation` (GET query string or POST JSON; APQ hash);
+  2. `cacheKey` = SHA-256 of canonical JSON `[scope, operationName, stripIgnoredCharacters(document) or 'apq:<hash>', variables with sorted keys]`;
+  3. tiered lookup: **HIT** replays the body with `ETag`, and `If-None-Match` gives `304`;
+  4. a **MISS** executes and stores only when `storable`: status 200, JSON, no `errors`, and no `private` `Cache-Control`. A preview response (012.007) is therefore never stored even if a policy allowed it.
+- **Headers:** `x-blixis-cache: HIT|MISS|BYPASS`, `Vary: Authorization, X-Blixis-Environment`, `Cache-Control: public, max-age=0, must-revalidate` (or `max-age=N` via `graphqlModule({ cache: { maxAge } })`).
+- **APQ:** `@graphql-yoga/plugin-apq` 3.24 with its default in-memory store. An unknown hash gives `PersistedQueryNotFound` (not cached); the client resends with the query. Hash-only and query requests use different keys, which costs one extra miss.
+- **Mutations:** the delivery schema has no mutations or subscriptions, so no operation-type check is needed. If a module ever adds mutations, its policy must bypass them.
+- **API Worker:** L1 memory (300 s) + L2 Cache API (3600 s). Until 013.004 provides the content policy, everything is `BYPASS`.
+- **Tests:** MISS→HIT with one resolver call, `304`, whitespace and variable-order normalisation, scope separation (a new stamp means a miss), errors, private responses and no-scope requests `BYPASS`, GET caching, APQ (not-found, register, hash hit).

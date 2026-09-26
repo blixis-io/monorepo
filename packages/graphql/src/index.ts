@@ -21,4 +21,5 @@ export {
 } from './extensions.ts'
 export { DEFAULT_LIMITS, type GraphqlLimits, useLimits } from './limits.ts'
 export { type GraphqlModuleOptions, graphqlModule } from './module.ts'
+export { type CachePolicy, cacheKey, GRAPHQL_CACHE_POLICY } from './response-cache.ts'
 export { SCALAR_TYPE_DEFS, SCALARS } from './scalars.ts'

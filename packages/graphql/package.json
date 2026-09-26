@@ -20,6 +20,7 @@
   "dependencies": {
     "@blixis/contracts": "workspace:*",
     "@blixis/kernel": "workspace:*",
+    "@graphql-yoga/plugin-apq": "catalog:",
     "graphql": "catalog:",
     "graphql-yoga": "catalog:"
   },
