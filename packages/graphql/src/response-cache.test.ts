@@ -61,6 +61,7 @@ async function post(
   return {
     status: res.status,
     cache: res.headers.get('x-blixis-cache'),
+    layer: res.headers.get('x-blixis-cache-layer'),
     etag: res.headers.get('etag'),
     cc: res.headers.get('cache-control'),
     body: text === '' ? undefined : JSON.parse(text),
@@ -78,7 +79,12 @@ describe('GraphQL response cache', () => {
       body: { data: { count: 1 } },
     })
     const second = await post(t, { query: '{ count }' })
-    expect(second).toMatchObject({ cache: 'HIT', body: { data: { count: 1 } }, etag: first.etag })
+    expect(second).toMatchObject({
+      cache: 'HIT',
+      layer: 'memory',
+      body: { data: { count: 1 } },
+      etag: first.etag,
+    })
     expect(calls).toBe(1)
     const notModified = await post(
       t,
@@ -87,6 +93,21 @@ describe('GraphQL response cache', () => {
     )
     expect(notModified.status).toBe(304)
     expect(notModified.body).toBeUndefined()
+  })
+
+  it('re-executes and re-stores on Cache-Control: no-cache', async () => {
+    const t = await setup()
+    await post(t, { query: '{ count }' })
+    const refreshed = await post(
+      t,
+      { query: '{ count }' },
+      { 'x-test-scope': 'space-a:1', 'cache-control': 'no-cache' },
+    )
+    expect(refreshed).toMatchObject({ cache: 'MISS', body: { data: { count: 2 } } })
+    expect(await post(t, { query: '{ count }' })).toMatchObject({
+      cache: 'HIT',
+      body: { data: { count: 2 } },
+    })
   })
 
   it('normalises documents and variables, and separates scopes', async () => {

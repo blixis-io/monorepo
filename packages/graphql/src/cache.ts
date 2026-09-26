@@ -74,14 +74,16 @@ export function createMemoryResponseCache(
  */
 export function createTieredCache(
   stores: readonly { store: ResponseCacheStore; ttlSeconds: number }[],
-): ResponseCacheStore & { lastHit?: string } {
-  const tiered: ResponseCacheStore & { lastHit?: string } = {
+): ResponseCacheStore & {
+  /** Like `match`, plus the name of the store that answered (`x-blixis-cache-layer`). */
+  lookup(key: string): Promise<{ value: CachedResponse; layer: string } | undefined>
+} {
+  const tiered = {
     name: stores.map((s) => s.store.name).join('+'),
-    async match(key) {
+    async lookup(key: string) {
       for (const [index, { store }] of stores.entries()) {
         const value = await store.match(key).catch(() => undefined)
         if (value === undefined) continue
-        tiered.lastHit = store.name
         await Promise.all(
           stores
             .slice(0, index)
@@ -89,11 +91,14 @@ export function createTieredCache(
               faster.store.put(key, value, faster.ttlSeconds).catch(() => undefined),
             ),
         )
-        return value
+        return { value, layer: store.name }
       }
       return undefined
     },
-    async put(key, value) {
+    async match(key: string) {
+      return (await tiered.lookup(key))?.value
+    },
+    async put(key: string, value: CachedResponse) {
       await Promise.all(
         stores.map(({ store, ttlSeconds }) =>
           store.put(key, value, ttlSeconds).catch(() => undefined),

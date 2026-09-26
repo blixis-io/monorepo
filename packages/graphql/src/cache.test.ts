@@ -49,7 +49,7 @@ describe('tiered cache', () => {
     ])
     await l2.put('k', value('from l2'), 60)
     expect((await tiered.match('k'))?.body).toBe('from l2')
-    expect(tiered.lastHit).toBe('memory')
+    expect((await tiered.lookup('k'))?.layer).toBe('memory')
     expect((await l1.match('k'))?.body).toBe('from l2')
     await tiered.put('n', value('new'), 0)
     expect((await l1.match('n'))?.body).toBe('new')

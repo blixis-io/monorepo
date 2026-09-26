@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 ## Parent plan
@@ -35,13 +35,20 @@ Cache bugs leak data across tenants or serve stale content; they deserve an expl
 ### Create
 
 ```text
-apps/api/test/cache-isolation.worker.test.ts
+tooling/tenant-isolation/test/delivery-cache.test.ts
 ```
 
 ### Modify
 
 ```text
+packages/graphql/src/cache.ts
+packages/graphql/src/cache.test.ts
+packages/graphql/src/module.ts
+packages/graphql/src/response-cache.test.ts
 docs/operations/caching.md
+apps/docs/src/content/docs/content/delivery-api.mdx
+apps/docs/src/content/docs/concepts/graphql.mdx
+docs/plans/013-delivery-caching/005-cache-correctness-review.md
 docs/ROADMAP.md
 ```
 
@@ -65,13 +72,15 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Isolation tests pass.
+- [x] Isolation tests pass.
 - [ ] CP6 recorded in ROADMAP.
 
 ## Validation
 
 ```bash
-pnpm --filter @blixis/api test
+pnpm test:db tooling/tenant-isolation/test/delivery-cache.test.ts
+pnpm test:db modules/content/test/delivery.cache.test.ts
+npx vitest run packages/graphql
 ```
 
 ## Review checklist
@@ -101,4 +110,8 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Where the isolation suite lives:** `tooling/tenant-isolation` instead of `apps/api/test`. The Workers test project has no Postgres; the tenant-isolation suite already runs the API Worker's real module list (`apiModules()`) against a test database, so the cache configuration under test is the one staging serves.
+- **What the suite proves:** a byte-identical request with another space's key is a `MISS` with that space's content; `en-US` and `de` are separate entries; after revoking a key over REST, the same request answers `401` (no `x-blixis-cache` header) although its response is cached — authentication runs before the lookup and revoking forgets the key in the revoking isolate.
+- **Forcing a fresh execution:** the requirement asked for an *authorised* bypass header. `Cache-Control: no-cache` is accepted from any caller that may use the cache instead: it grants nothing a caller can't already do by changing a variable or an alias (every distinct operation is a miss), so an authorisation check would add complexity without protection. The fresh result replaces the cached one.
+- **`x-blixis-cache-layer`:** added (`memory` / `cache-api`) so staging measurements can tell L1 from L2 hits; `createTieredCache` gained `lookup(key)` returning the answering layer.
+- **Review of the hit path** (auth before cache, ADR 0012 §5): actor resolution runs in the kernel middleware before `/graphql`; the policy returns a scope only for unrestricted delivery keys; the key hashes `[scope, operationName, document, variables]` and never credentials; errors, private responses and non-JSON are never stored.

@@ -81,6 +81,37 @@ const authors = loader(context, '@acme/seo.authors', () => createAuthorLoader(co
 
 A module can extend the schema for one request, for example with types generated from a space's content model. Provide `GRAPHQL_SCHEMA_EXTENSION` from `@blixis/graphql`: a function that returns `{ key, parts }`. Composed schemas are cached per `key`, so the same key must always describe the same parts. `@blixis/content` uses this for typed delivery schemas.
 
+## Response caching
+
+`graphqlModule` caches whole responses, but only for requests a **cache policy** allows. Provide `GRAPHQL_CACHE_POLICY` from `@blixis/graphql`, request-scoped: a function that receives the resolver context plus the `request`, and returns a **scope** string or `undefined` (bypass).
+
+```ts
+import { GRAPHQL_CACHE_POLICY, type CachePolicy } from '@blixis/graphql'
+
+ctx.services.provideFactory(
+  GRAPHQL_CACHE_POLICY,
+  ({ services }): CachePolicy =>
+    async ({ requestContext, request }) => {
+      const actor = requestContext.actor
+      if (actor.type !== 'deliveryKey') return undefined
+      // The environment the request asked for: part of what the answer depends on.
+      const environment =
+        new URL(request.url).searchParams.get('environment') ??
+        request.headers.get('x-blixis-environment') ??
+        ''
+      const stamp = await currentStamp(services, actor.spaceId)
+      return `${actor.spaceId}:${environment}:${stamp}`
+    },
+  { scope: 'request' },
+)
+```
+
+- **The scope must change whenever the answer could change**, and must separate everything that tells callers apart (the space, the environment). The cache key is the scope plus the normalised operation and variables, never the credentials.
+- **Only one policy** is active; `@blixis/content` provides it for delivery queries.
+- **A resolver can keep its response out of the cache** by setting `context.responseHeaders.set('cache-control', 'private, no-store')`. Responses with `errors` are never stored.
+
+The operations guide explains layers, headers and troubleshooting: `docs/operations/caching.md`.
+
 <Aside>
 GraphiQL, an in-browser query editor, is served at `/graphql` in every environment except production.
 </Aside>

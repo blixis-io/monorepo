@@ -81,6 +81,23 @@ query HomePage($locale: Locale) {
 - **`limit`** is 1–100, default 25. `cursor` takes `nextCursor` from the previous page, and `null` means the last page.
 - **Order:** results are ordered by the latest update first.
 
+## Caching
+
+Published responses to **delivery keys** are cached, so repeated queries skip the database ([ADR 0012](https://github.com/blixis-io/monorepo/blob/main/docs/decisions/0012-delivery-caching.md)).
+
+- **Fresh after publishing:** publishing, unpublishing, deleting, and content type or locale changes invalidate the space's cached responses, typically within 10 seconds.
+- **What isn't cached:** preview keys, signed-in members, API tokens, keys limited to specific environments, `preview: true`, and responses with errors.
+- **Revalidation:** responses carry an `ETag` and `Cache-Control: public, max-age=0, must-revalidate`. Send `If-None-Match` to get `304 Not Modified` when nothing changed.
+- **GET and persisted queries:** `GET /graphql?query=…&variables=…` and automatic persisted queries (`extensions.persistedQuery`) are cached like `POST`. Use them when your CDN or client caches GET requests.
+- **Keep variables stable:** every distinct set of variables is its own cache entry. Don't pass timestamps or random values.
+
+| Response header | Meaning |
+|---|---|
+| `x-blixis-cache` | `HIT` (from cache), `MISS` (executed and stored), or `BYPASS` (not cacheable) |
+| `x-blixis-cache-layer` | on a `HIT`: `memory` or `cache-api` |
+
+To check what the database says right now, send `Cache-Control: no-cache`: the query runs and its result replaces the cached one.
+
 ## Preview
 
 - **`preview: true`** reads drafts (latest versions), and links resolve to drafts as well. It needs a **preview key** or a signed-in member with `content.preview.read`; delivery keys get `FORBIDDEN`.
