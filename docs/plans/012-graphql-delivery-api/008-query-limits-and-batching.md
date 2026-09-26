@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -38,15 +38,18 @@ Public GraphQL endpoints are a denial-of-service vector; §47 excludes a custom 
 ```text
 packages/graphql/src/limits.ts
 packages/graphql/src/limits.test.ts
+modules/content/test/delivery.queries.test.ts
+apps/docs/src/content/docs/content/delivery-api.mdx
 docs/api/delivery.md
-apps/api/test/delivery-limits.worker.test.ts
 ```
 
 ### Modify
 
 ```text
-packages/graphql/src/server.ts
-packages/graphql/src/module.ts
+packages/graphql/src/module.ts (limits option, body size check)
+packages/graphql/src/index.ts
+packages/database/src/create-database.ts (onQuery)
+packages/testing/src/database.ts (countQueries)
 ```
 
 ### Delete
@@ -69,8 +72,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Over-deep and over-complex queries rejected with clear errors.
-- [ ] Representative queries stay within documented SQL statement budgets.
+- [x] Over-deep and over-complex queries rejected with clear errors.
+- [x] Representative queries stay within documented SQL statement budgets.
 
 ## Validation
 
@@ -81,15 +84,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Limits documented for SDK users.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Limits documented for SDK users.
 
 ## Completion conditions
 
@@ -106,4 +109,15 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **`useLimits(options)`** (Yoga plugin), configurable through `graphqlModule({ limits })`, defaults in `DEFAULT_LIMITS`:
+  - **Tokens:** `maxTokens` 3000, enforced while parsing (graphql-js `parse(…, { maxTokens })` via `setParseFn`).
+  - **Depth and aliases:** `maxDepth` 12, `maxAliases` 30.
+  - **Cost:** `maxCost` 20 000. It's a validation rule measuring each operation across fragments (each followed once per path), with code `QUERY_TOO_COMPLEX`. Each field costs 1 × the multiplier of every enclosing list field: its `limit` literal, 100 for a variable, 25 for `…Collection`/`entries` fields without a `limit`. A collection's `items` doesn't multiply again: an early version double-counted it, and a realistic page query was rejected (31 926 > 20 000), which the delivery tests caught.
+  - **Body:** `maxBodyBytes` 64 KiB, checked before Yoga; `413` with `PAYLOAD_TOO_LARGE`.
+  - **Collection `limit`:** at most 100 (012.006).
+  - **Introspection:** `true`, `false` or `'members'` (users and API tokens only). The default is `'members'` when `BLIXIS_ENV` is `production`, otherwise `true`, via graphql-js `NoSchemaIntrospectionCustomRule`.
+- **Query-count harness:**
+  - `createDatabase({ onQuery })` (Drizzle logger), plus `countQueries(testDb)` in `@blixis/testing/database`, used as `serviceOverride(DATABASE, counter.db)`.
+  - **Pitfall found:** passing `database: testDb` to `createTestBlixis` adds a second `DATABASE` override that wins, and the counter saw 0 statements. The harness is used without it; the note is in the test.
+- **Budget:** a representative page list (reference, link.entry, richText.entries, blocks) costs **6 SQL statements for 3 and for 12 pages**: space, environments, content model, locales, the page collection, one batch of linked entries. Asserted as `≤ 6` and equal across sizes.
+- **Docs:** manual *Content reference → Delivery API (GraphQL)* (authentication, typed schema, naming, field mapping, example, locales, filters, pagination, preview, errors, limits), plus `docs/api/delivery.md`.
