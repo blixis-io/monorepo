@@ -14,6 +14,11 @@ export interface AssetsConfig {
    * Default 10 MiB; R2 needs at least 5 MiB.
    */
   readonly multipartPartBytes: number
+  /**
+   * `max-age` (seconds) of published files on the delivery route. URLs name an immutable file, but
+   * an unpublished or deleted asset stays in browser and CDN caches this long. Default 1 day.
+   */
+  readonly deliveryMaxAge: number
 }
 
 const MiB = 1024 * 1024
@@ -23,6 +28,7 @@ export const DEFAULT_ASSETS_CONFIG: AssetsConfig = Object.freeze({
   maxAssetBytes: 1024 * MiB,
   allowedTypes: DEFAULT_ALLOWED_TYPES,
   multipartPartBytes: 10 * MiB,
+  deliveryMaxAge: 86_400,
 })
 
 /** The resolved {@link AssetsConfig} (app-scoped). */

@@ -17,6 +17,12 @@ export const ASSET_PERMISSIONS = {
     description: 'Publish and unpublish assets',
     defaultRoles: ['admin', 'editor'],
   }),
+  previewRead: definePermission({
+    id: 'assets.preview.read',
+    description: 'Download unpublished assets through the delivery route (preview)',
+    defaultRoles: ['admin', 'editor', 'viewer'],
+    deliveryKeys: ['preview'],
+  }),
   delete: definePermission({
     id: 'assets.delete',
     description: 'Delete unpublished assets and their files',

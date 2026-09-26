@@ -69,6 +69,27 @@ describe('REST mounting', () => {
     expect(res.headers.get('x-correlation-id')).toBe(body.requestId)
   })
 
+  it('mounts several contributions of one module, under /api/v1 and at the root', async () => {
+    const module = defineModule({
+      meta: { name: '@test/files', version: '1.0.0' },
+      rest: [
+        { path: '/files', app: new Hono<ModuleHonoEnv>().get('/', (c) => c.text('api')) },
+        {
+          path: '/files',
+          root: true,
+          app: new Hono<ModuleHonoEnv>().get('/:name', (c) =>
+            c.text(`${c.req.param('name')} for ${c.var.requestContext.actor.type}`),
+          ),
+        },
+      ],
+    })
+    const app = createBlixis({ modules: [module()], logger: noopLogger })
+    expect(await (await app.fetch(new Request('http://x/api/v1/files'))).text()).toBe('api')
+    expect(await (await app.fetch(new Request('http://x/files/a.txt'))).text()).toBe(
+      'a.txt for anonymous',
+    )
+  })
+
   it('creates one request scope per request and disposes it afterwards', async () => {
     const routes = new Hono<ModuleHonoEnv>().get('/', (c) => {
       const a = c.var.services.get(CONNECTION)

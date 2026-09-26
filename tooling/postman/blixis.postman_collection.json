@@ -1945,7 +1945,8 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('status 201', () => pm.response.to.have.status(201));",
-                  "if (pm.response.code === 201) { pm.environment.set('assetId', pm.response.json().sys.id); pm.environment.set('assetVersion', pm.response.json().sys.version); }"
+                  "if (pm.response.code === 201) { pm.environment.set('assetId', pm.response.json().sys.id); pm.environment.set('assetVersion', pm.response.json().sys.version); }",
+                  "if (pm.response.code < 300) pm.environment.set('assetFileId', pm.response.json().fields.url.split('/')[4]);"
                 ]
               }
             }
@@ -2074,7 +2075,8 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('status 200', () => pm.response.to.have.status(200));",
-                  "if (pm.response.code < 300) pm.environment.set('assetVersion', pm.response.json().sys.version);"
+                  "if (pm.response.code < 300) pm.environment.set('assetVersion', pm.response.json().sys.version);",
+                  "if (pm.response.code < 300) pm.environment.set('assetFileId', pm.response.json().fields.url.split('/')[4]);"
                 ]
               }
             }
@@ -2099,6 +2101,63 @@
               "script": {
                 "type": "text/javascript",
                 "exec": ["pm.test('status 200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Download asset (published)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets/{{spaceId}}/{{assetId}}/{{assetFileId}}/hello.txt",
+              "host": ["{{baseUrl}}"],
+              "path": ["assets", "{{spaceId}}", "{{assetId}}", "{{assetFileId}}", "hello.txt"]
+            },
+            "description": "Delivery route (outside /api/v1): published files are public; drafts need preview access."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('public and safe', () => { pm.expect(pm.response.headers.get('Cache-Control')).to.match(/^public/); pm.expect(pm.response.headers.get('X-Content-Type-Options')).to.eql('nosniff'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Download asset range",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Range",
+                "value": "bytes=0-4"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/assets/{{spaceId}}/{{assetId}}/{{assetFileId}}/hello.txt",
+              "host": ["{{baseUrl}}"],
+              "path": ["assets", "{{spaceId}}", "{{assetId}}", "{{assetFileId}}", "hello.txt"]
+            },
+            "description": "Delivery route (outside /api/v1): published files are public; drafts need preview access."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 206', () => pm.response.to.have.status(206));",
+                  "pm.test('first 5 bytes', () => pm.expect(pm.response.text()).to.eql('Hello'));"
+                ]
               }
             }
           ]
@@ -2350,7 +2409,8 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('status 204', () => pm.response.to.have.status(204));",
-                  "pm.environment.unset('assetId'); pm.environment.unset('assetVersion');"
+                  "pm.environment.unset('assetId'); pm.environment.unset('assetVersion');",
+                  "pm.environment.unset('assetFileId');"
                 ]
               }
             }
