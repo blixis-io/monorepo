@@ -4,6 +4,8 @@
  *
  * @packageDocumentation
  */
+
+export { type CacheApiStore, type CacheApiValue, createCacheApiStore } from './cache.ts'
 export {
   type BlixisEnvironment,
   type CloudflareEnvBase,
