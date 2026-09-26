@@ -66,7 +66,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `completed` | 5/5 | 009 |
 | [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `completed` | 7/7 | 010 |
 | [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `completed` | 8/8 | 011 |
-| [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `in-progress` | 1/5 | 012 |
+| [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `in-progress` | 2/5 | 012 |
 | [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `not-started` | 0/6 | 012 |
 | [015 — Webhooks](./plans/015-webhooks/_index.md) | M7 | MVP | `not-started` | 0/5 | 011 |
 | [016 — Releases & Cloudflare Workflows](./plans/016-releases-and-workflows/_index.md) | M7 | Extended | `not-started` | 0/4 | 013, 014, 015 |
@@ -336,14 +336,14 @@ Builds `@blixis/graphql` (GraphQL Yoga on Workers at `/graphql`, schema composit
 
 #### 013 — Delivery Caching & Invalidation
 
-Status: `in-progress` · Progress: 1/5 · Scope: MVP  
+Status: `in-progress` · Progress: 2/5 · Scope: MVP  
 Plan: [013-delivery-caching/_index.md](./plans/013-delivery-caching/_index.md)  
 Depends on: [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md)
 
 Decides the caching strategy (ADR) across the five layers in §34, then implements Cache API caching for published delivery responses with deterministic cache keys, a KV adapter for content-version stamps (justified by measurement), event-driven invalidation from `entry.published`/`content-type.*` events, HTTP cache headers, and cache-correctness tests.
 
 - [x] [013.001 — Measure delivery baseline and decide the caching strategy](./plans/013-delivery-caching/001-caching-strategy-and-baseline.md)
-- [ ] [013.002 — Implement Cache API and KV adapters](./plans/013-delivery-caching/002-cache-and-kv-adapters.md)
+- [x] [013.002 — Implement Cache API and KV adapters](./plans/013-delivery-caching/002-cache-and-kv-adapters.md)
 - [ ] [013.003 — Cache published delivery responses](./plans/013-delivery-caching/003-delivery-response-caching.md)
 - [ ] [013.004 — Invalidate delivery caches from content events](./plans/013-delivery-caching/004-event-driven-invalidation.md)
 - [ ] [013.005 — Review cache correctness and document operations](./plans/013-delivery-caching/005-cache-correctness-review.md)
