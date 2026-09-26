@@ -55,7 +55,7 @@ Related: [Repository settings](./operations/repository.md) · [Cloudflare Worker
   ```
 - [ ] API tokens per environment with the permissions listed in [Cloudflare Workers](./operations/cloudflare.md#ci-access-api-token), stored as GitHub environment secrets.
 - [x] **(owner)** Created the events queues and DLQs for staging and production (2026-09-24; IDs in the inventory) (commands in [Cloudflare Workers](./operations/cloudflare.md#creating-the-events-queues-once-per-account-task-006003)). This requires the Workers Paid plan and must happen before the next staging deploy.
-- [ ] Resources created per environment (KV, R2) as their plans arrive; IDs recorded in the inventory.
+- [ ] Resources created per environment as their plans arrive (R2 asset buckets: 014.001); recorded in the inventory.
 - [ ] Workers observability (logs/traces) enabled (task 020.002).
 
 ## Domains and DNS

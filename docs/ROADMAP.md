@@ -67,7 +67,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `completed` | 7/7 | 010 |
 | [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `completed` | 8/8 | 011 |
 | [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `completed` | 5/5 | 012 |
-| [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `not-started` | 0/6 | 012 |
+| [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `in-progress` | 1/6 | 012 |
 | [015 — Webhooks](./plans/015-webhooks/_index.md) | M7 | MVP | `not-started` | 0/5 | 011 |
 | [016 — Releases & Cloudflare Workflows](./plans/016-releases-and-workflows/_index.md) | M7 | Extended | `not-started` | 0/4 | 013, 014, 015 |
 | [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md) | M8 | MVP | `not-started` | 0/4 | 013, 014, 015 |
@@ -352,13 +352,13 @@ Decides the caching strategy (ADR) across the five layers in §34, then implemen
 
 #### 014 — Assets on R2
 
-Status: `not-started` · Progress: 0/6 · Scope: MVP  
+Status: `in-progress` · Progress: 1/6 · Scope: MVP  
 Plan: [014-assets/_index.md](./plans/014-assets/_index.md)  
 Depends on: [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md)
 
 Builds `@blixis/assets`: an object-storage port with an R2 adapter, asset metadata in Postgres, upload flows streamed through the Worker (upload strategy ADR), management routes, public asset delivery with caching, asset events, content asset-link validation via capability, and idempotent R2 cleanup on deletion.
 
-- [ ] [014.001 — Decide upload strategy and implement the R2 object storage adapter](./plans/014-assets/001-upload-strategy-and-object-storage.md)
+- [x] [014.001 — Decide upload strategy and implement the R2 object storage adapter](./plans/014-assets/001-upload-strategy-and-object-storage.md)
 - [ ] [014.002 — Create the assets module schema and service](./plans/014-assets/002-asset-schema-and-service.md)
 - [ ] [014.003 — Implement upload flows and asset management routes](./plans/014-assets/003-upload-flows-and-routes.md)
 - [ ] [014.004 — Serve published assets](./plans/014-assets/004-asset-delivery.md)
@@ -578,7 +578,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | D13 | Content storage model (JSONB shape, localisation, references, rich text, schema evolution) | [010.001](./plans/010-content-modeling/001-content-storage-design.md) | JSONB keyed by stable field ID and locale | [ADR 0010](./decisions/0010-content-storage-model.md): JSONB fields with stable ids; components + `blocks`; plain values for non-localized fields; ProseMirror-compatible rich text |
 | D14 | Delivery GraphQL schema (generic vs. generated per space) | [012.005](./plans/012-graphql-delivery-api/005-decide-delivery-schema-strategy.md) | Generated typed schema per space/environment, cached by content-model version | [ADR 0011](./decisions/0011-delivery-schema-strategy.md): static base + typed schema per content model, isolate LRU keyed by model version |
 | D15 | Delivery cache invalidation (versioned keys via KV vs. purge vs. TTL) | [013.001](./plans/013-delivery-caching/001-caching-strategy-and-baseline.md) | Versioned keys with KV stamp, justified by measurement | [ADR 0012](./decisions/0012-delivery-caching.md): versioned keys + Postgres content stamp (2 s memo), isolate L1 + Cache API L2 |
-| D16 | Asset upload strategy and serving domain | [014.001](./plans/014-assets/001-upload-strategy-and-object-storage.md) | Stream through Worker via R2 binding; multipart for large files | open |
+| D16 | Asset upload strategy and serving domain | [014.001](./plans/014-assets/001-upload-strategy-and-object-storage.md) | **Stream through the Worker to the R2 binding (≤ 90 MiB direct, multipart above, ≤ 1 GiB default), immutable `<space>/<asset>/<file>` keys, SHA-256 on direct uploads, type allow-list + signature check, nosniff/CSP-sandbox serving from the API origin until `assets.<domain>`** ([ADR 0013](./decisions/0013-asset-uploads.md)) | decided |
 | D17 | Workflows integration pattern & scheduling | [016.001](./plans/016-releases-and-workflows/001-workflows-integration-pattern.md) | Explicit class exports in composition root | open |
 | D18 | REST type source for SDK (OpenAPI vs. shared schemas) | [017.001](./plans/017-sdk-and-example-consumer/001-rest-api-type-source.md) | OpenAPI generated from route schemas | open |
 | D19 | Location of public content capability contracts | [018.001](./plans/018-extension-platform/001-public-content-capability-contracts.md) | New `@blixis/content-api` package | open |

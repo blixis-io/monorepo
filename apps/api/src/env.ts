@@ -1,7 +1,7 @@
 import { type CloudflareEnvBase, defineEnvSchema } from '@blixis/cloudflare'
 import { z } from 'zod'
 
-/** Bindings and variables of the API Worker. Extended by later plans (Queues, KV, …). */
+/** Bindings and variables of the API Worker. Extended by later plans. */
 export interface ApiEnv extends CloudflareEnvBase {
   /** Sentry project DSN; Sentry is disabled when absent (local, tests). */
   readonly SENTRY_DSN?: string
@@ -13,6 +13,8 @@ export interface ApiEnv extends CloudflareEnvBase {
   readonly AUTH_ALLOWED_ORIGINS?: string
   /** Events queue producer, used only through `@blixis/events` (§15). */
   readonly EVENTS: { sendBatch(messages: Iterable<unknown>): Promise<unknown> }
+  /** Asset binaries (R2, ADR 0013), used only through `OBJECT_STORAGE` (`r2StorageModule()`). */
+  readonly ASSETS: { createMultipartUpload(key: string, options?: never): Promise<unknown> }
 }
 
 /** Runtime validation of {@link ApiEnv}, applied on the first invocation by `createWorkerHandler`. */
@@ -30,6 +32,12 @@ export const apiEnvSchema = defineEnvSchema(
     EVENTS: z.custom<unknown>(
       (value) => typeof (value as { sendBatch?: unknown } | null)?.sendBatch === 'function',
       'must be a Queue producer binding',
+    ),
+    ASSETS: z.custom<unknown>(
+      (value) =>
+        typeof (value as { createMultipartUpload?: unknown } | null)?.createMultipartUpload ===
+        'function',
+      'must be an R2 bucket binding',
     ),
   }),
 )

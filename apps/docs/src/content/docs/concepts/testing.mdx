@@ -105,6 +105,10 @@ describe.skipIf(!databaseTestsEnabled())('notes', () => {
 
 Database tests run when `BLIXIS_TEST_DATABASE_URL` points at a Postgres server. Locally, run `docker compose up -d postgres` and then `pnpm test:db`. In CI they always run.
 
+## Files
+
+For modules that store binaries, override `OBJECT_STORAGE` with [`createMemoryObjectStorage()`](/api/testing/functions/creatememoryobjectstorage/) and inspect `storage.keys()` / `storage.text(key)` afterwards. See [Object storage](/concepts/object-storage/#in-tests).
+
 ## Events
 
 [`captureEvents()`](/api/testing/functions/captureevents/) records every emitted event and delivers it to subscribers in-process, through the same dispatch path as the queue consumer: payload re-validation, one scope per handler, and isolated failures.

@@ -24,11 +24,12 @@ Related: [Environments](./environments.md) · [Cloudflare Workers](./cloudflare.
 | `AUTH_SIGNING_KEYS` | **secret** | for auth routes | `.dev.vars` or `--var` (`pnpm auth:generate-key`) | per-env secret | per-env secret | JSON array of Ed25519 private JWKs; the first signs access tokens, all verify (ADR 0009). Missing → only `/auth/*` fails |
 | `AUTH_ALLOWED_ORIGINS` | var | no | `http://localhost:5173` | `""` (no browser admin yet) | `""` | Comma-separated origins allowed for cookie-based refresh/sign-out (CSRF) |
 | `EVENTS` | binding (Queue producer) | yes | `blixis-events-local` (simulated) | `blixis-events-staging` | `blixis-events-production` | Events queue. Used only through `@blixis/events` (`eventsQueueModule()` → `QUEUE_SENDER`), never directly (§15) |
+| `ASSETS` | binding (R2 bucket) | yes | `blixis-assets-local` (simulated) | `blixis-assets-staging` | `blixis-assets-production` | Asset binaries (ADR 0013). Used only through `OBJECT_STORAGE` (`r2StorageModule()`), never directly |
 | `CF_VERSION_METADATA` | binding (version metadata) | — | ✓ | ✓ | ✓ | Id/tag of the running Worker version; the release fallback |
 
 Staging and production values are set in `env.staging` / `env.production` of `wrangler.jsonc` (task 004.006). Secrets are set with `wrangler secret put <NAME> --env <env>` and locally in `apps/api/.dev.vars` (git-ignored).
 
-Planned additions: `ASSETS` R2 bucket (014), workflow bindings (016).
+Planned additions: workflow bindings (016).
 
 Delivery caching needs no variable or binding: its layers and lifetimes are code configuration in `apps/api/src/blixis.config.ts` (see [Delivery caching → Tuning](./caching.md#tuning)).
 

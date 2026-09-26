@@ -48,6 +48,7 @@ What becomes easier or harder; follow-up tasks; risks.
 | [0010](./0010-content-storage-model.md) | Content storage model: JSONB fields with stable ids, components + `blocks`, per-field localization, ProseMirror rich text | accepted |
 | [0011](./0011-delivery-schema-strategy.md) | Delivery schema strategy: static base + typed schema per content model, cached per model version | accepted |
 | [0012](./0012-delivery-caching.md) | Delivery caching: versioned keys with a Postgres content stamp, isolate + Cache API layers | accepted |
-| 0013–0017 | Reserved by roadmap decision tasks (see ROADMAP register) | — |
+| [0013](./0013-asset-uploads.md) | Asset uploads: stream through the Worker to R2 (multipart for large files), immutable tenant-prefixed keys, safe serving headers | accepted |
+| 0014–0017 | Reserved by roadmap decision tasks (see ROADMAP register) | — |
 | [0018](./0018-api-reference-generator.md) | API reference generator (TypeDoc with isolated TypeScript 6) | accepted |
 | [0019](./0019-hyperdrive-query-caching-disabled.md) | Hyperdrive query caching is disabled (read-your-writes for auth and tenancy) | accepted |
