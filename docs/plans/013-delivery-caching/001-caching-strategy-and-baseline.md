@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,15 +37,14 @@ Measure uncached delivery performance on staging and record ADR 0012 defining ca
 
 ```text
 docs/decisions/0012-delivery-caching.md
-docs/operations/caching.md
-tooling/smoke/src/seed-delivery.ts
-tooling/smoke/src/measure-delivery.ts
+docs/operations/caching.md (draft)
 ```
 
 ### Modify
 
 ```text
-tooling/smoke/package.json
+docs/decisions/README.md
+docs/ROADMAP.md (decision register)
 ```
 
 ### Delete
@@ -69,7 +68,7 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] ADR 0012 accepted with measured numbers and an explicit staleness bound.
+- [x] ADR 0012 accepted with measured numbers and an explicit staleness bound.
 
 ## Validation
 
@@ -77,15 +76,15 @@ Requires:
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] KV use (if any) justified against §14 checklist.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] KV use (if any) justified against §14 checklist.
 
 ## Completion conditions
 
@@ -102,4 +101,22 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Baseline** (staging, 2026-09-26, 20 runs each, from the Netherlands):
+
+  | Request | p50 | p95 | min |
+  |---|---|---|---|
+  | `GET /api/v1/health` (network only) | 87 ms | 426 ms | 57 ms |
+  | GraphQL, page by slug | 238 ms | 707 ms | 193 ms |
+  | GraphQL, 20 pages with references, blocks and rich text | 279 ms | 424 ms | 224 ms |
+
+  About 150–190 ms is database round trips.
+- **Seeding:** the "seed script" requirement is met with a disposable dataset: 3 content types, 5 authors, 20 pages with blocks and rich text, created through the API, measured and cleaned up. It was run from the session's scratchpad, not committed.
+- **Decision (ADR 0012):**
+  - versioned cache keys with a per-space **content stamp in Postgres**, bumped by event subscriptions and remembered for 2 s per isolate. KV is rejected: eventual consistency and new infrastructure for no measured gain;
+  - L1 isolate memory plus L2 Cache API (custom domains only);
+  - only unrestricted delivery keys, query operations, published reads, and error-free responses are cached;
+  - key lookups are remembered for 30 s;
+  - ETag/304, and `Cache-Control: public, max-age=0, must-revalidate`;
+  - GET queries plus APQ (`@graphql-yoga/plugin-apq`, isolate store);
+  - staleness bound: typically under 10 s, worst case ~70 s.
+- **Staging has no custom domain:** L2 is expected to have no effect on `workers.dev`. 013.003 measures that with `x-blixis-cache` headers.
