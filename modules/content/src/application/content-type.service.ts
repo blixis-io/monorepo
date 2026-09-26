@@ -190,6 +190,8 @@ export function createContentTypeService(deps: {
   const emit = (event: ContentTypeEvent, type: ContentType) =>
     events.emit(event as typeof contentTypeCreated, {
       contentTypeId: type.id,
+      organizationId: type.organizationId,
+      spaceId: type.spaceId,
       environmentId: type.environmentId,
       apiId: type.apiId,
       kind: type.kind,

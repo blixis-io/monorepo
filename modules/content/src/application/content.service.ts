@@ -352,6 +352,8 @@ export function createContentService(deps: ContentServiceDeps): ContentService {
   const kit = createEntryToolkit(deps)
   const payload = (entry: Entry, version: EntryVersion) => ({
     entryId: entry.id,
+    organizationId: entry.organizationId,
+    spaceId: entry.spaceId,
     environmentId: entry.environmentId,
     contentTypeId: entry.contentTypeId,
     versionId: version.id,
@@ -496,6 +498,8 @@ export function createContentService(deps: ContentServiceDeps): ContentService {
           entryDeleted,
           {
             entryId: entry.id,
+            organizationId: entry.organizationId,
+            spaceId: entry.spaceId,
             environmentId: entry.environmentId,
             contentTypeId: entry.contentTypeId,
             versionId: entry.currentVersionId,
@@ -680,6 +684,8 @@ export function createContentService(deps: ContentServiceDeps): ContentService {
           entryUnpublished,
           {
             entryId: entry.id,
+            organizationId: entry.organizationId,
+            spaceId: entry.spaceId,
             environmentId: entry.environmentId,
             contentTypeId: entry.contentTypeId,
             versionId: liveVersionId,
