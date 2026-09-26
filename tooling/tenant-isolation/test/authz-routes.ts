@@ -262,6 +262,90 @@ export const AUTHZ_ROUTES = defineAuthzMatrix([
     permission: 'content.types.write',
     level: 'space',
   },
+  // Assets (reads first; a ready asset `assetId`, pending uploads `uploadAssetId`/`abortAssetId`)
+  {
+    method: 'GET',
+    path: '/api/v1/spaces/:spaceId/assets',
+    permission: 'assets.read',
+    level: 'space',
+  },
+  { method: 'GET', path: '/api/v1/assets/:assetId', permission: 'assets.read', level: 'space' },
+  {
+    method: 'POST',
+    path: '/api/v1/spaces/:spaceId/assets',
+    rawBody: 'hello',
+    headers: {
+      'content-type': 'text/plain',
+      'content-disposition': 'attachment; filename="a.txt"',
+    },
+    permission: 'assets.write',
+    level: 'space',
+  },
+  {
+    method: 'POST',
+    path: '/api/v1/spaces/:spaceId/assets/uploads',
+    body: { filename: 'big.txt', mimeType: 'text/plain', size: 5 },
+    permission: 'assets.write',
+    level: 'space',
+  },
+  {
+    method: 'PATCH',
+    path: '/api/v1/assets/:assetId',
+    body: { expectedVersion: 1, filename: 'renamed.txt' },
+    permission: 'assets.write',
+    level: 'space',
+  },
+  {
+    // After the PATCH row above, an allowed actor's asset is at version 2.
+    method: 'PUT',
+    path: '/api/v1/assets/:assetId/file',
+    rawBody: 'hello again',
+    headers: { 'content-type': 'text/plain', 'if-match': '"2"' },
+    permission: 'assets.write',
+    level: 'space',
+  },
+  {
+    method: 'PUT',
+    path: '/api/v1/assets/:assetId/upload/parts/:partNumber',
+    rawBody: 'hello',
+    paramsFrom: { assetId: 'uploadAssetId' },
+    permission: 'assets.write',
+    level: 'space',
+  },
+  {
+    // The memory storage's etag of the part `hello` (first 32 hex digits of its SHA-256).
+    method: 'POST',
+    path: '/api/v1/assets/:assetId/upload/complete',
+    body: { parts: [{ partNumber: 1, etag: '"2cf24dba5fb0a30e26e83b2ac5b9e29e"' }] },
+    paramsFrom: { assetId: 'uploadAssetId' },
+    permission: 'assets.write',
+    level: 'space',
+  },
+  {
+    method: 'DELETE',
+    path: '/api/v1/assets/:assetId/upload',
+    paramsFrom: { assetId: 'abortAssetId' },
+    permission: 'assets.write',
+    level: 'space',
+  },
+  {
+    method: 'POST',
+    path: '/api/v1/assets/:assetId/publish',
+    permission: 'assets.publish',
+    level: 'space',
+  },
+  {
+    method: 'POST',
+    path: '/api/v1/assets/:assetId/unpublish',
+    permission: 'assets.publish',
+    level: 'space',
+  },
+  {
+    method: 'DELETE',
+    path: '/api/v1/assets/:assetId',
+    permission: 'assets.delete',
+    level: 'space',
+  },
   // Delivery keys
   {
     method: 'GET',

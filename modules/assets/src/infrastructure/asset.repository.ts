@@ -29,6 +29,10 @@ const toAsset = (row: typeof assets.$inferSelect): Asset => ({
   height: row.height,
   objectKey: row.objectKey,
   version: row.version,
+  upload:
+    row.uploadId === null || row.uploadSize === null || row.uploadPartSize === null
+      ? null
+      : { id: row.uploadId, size: row.uploadSize, partSize: row.uploadPartSize },
   publishedAt: iso(row.publishedAt),
   firstPublishedAt: iso(row.firstPublishedAt),
   createdBy: row.createdBy,
@@ -156,6 +160,9 @@ export const assetRepository = {
           sha256: file.sha256,
           width: file.width,
           height: file.height,
+          uploadId: null,
+          uploadSize: null,
+          uploadPartSize: null,
           updatedBy: file.actor,
         })
         .where(and(tenantScope(assets, tenant), eq(assets.id, id), eq(assets.status, 'pending')))
@@ -218,6 +225,40 @@ export const assetRepository = {
         .returning(),
     )
     return row === undefined ? undefined : toAsset(row)
+  },
+
+  /** Records a multipart upload (and the dimensions read from part 1) on a pending asset. */
+  async setUpload(
+    db: Queryable,
+    tenant: EnvironmentTenant,
+    id: string,
+    values: Partial<{
+      upload: { id: string; size: number; partSize: number }
+      width: number | null
+      height: number | null
+    }>,
+  ) {
+    await db
+      .update(assets)
+      .set({
+        ...(values.upload === undefined
+          ? {}
+          : {
+              uploadId: values.upload.id,
+              uploadSize: values.upload.size,
+              uploadPartSize: values.upload.partSize,
+            }),
+        ...(values.width === undefined ? {} : { width: values.width }),
+        ...(values.height === undefined ? {} : { height: values.height }),
+      })
+      .where(and(tenantScope(assets, tenant), eq(assets.id, id), eq(assets.status, 'pending')))
+  },
+
+  /** Deletes a pending asset (a failed or aborted upload) without a trace. */
+  async deletePending(db: Queryable, tenant: EnvironmentTenant, id: string) {
+    await db
+      .delete(assets)
+      .where(and(tenantScope(assets, tenant), eq(assets.id, id), eq(assets.status, 'pending')))
   },
 
   async delete(tx: Queryable, tenant: EnvironmentTenant, id: string): Promise<boolean> {

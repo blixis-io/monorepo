@@ -1,3 +1,4 @@
+import { ASSET_SERVICE } from '@blixis/assets'
 import { DELIVERY_KEY_SERVICE } from '@blixis/auth'
 import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE } from '@blixis/content'
 import type { Actor } from '@blixis/contracts'
@@ -143,8 +144,25 @@ describe.skipIf(!databaseTestsEnabled())(
             { name: 'Victim site', kind: 'delivery' },
             [],
           )
+        const victimEnvironment = {
+          organizationId: orgB.id,
+          spaceId: spaceB1.id,
+          environmentId: spaceB1.environments[0]?.id ?? '',
+        }
+        const assets = services.get(ASSET_SERVICE)
+        const { asset } = await assets.createPending(asUser(owner.id), victimEnvironment, {
+          filename: 'victim.png',
+          mimeType: 'image/png',
+        })
+        await assets.markReady(asUser(owner.id), victimEnvironment, asset.sys.id, { sizeBytes: 3 })
+        const upload = await assets.createPending(asUser(owner.id), victimEnvironment, {
+          filename: 'uploading.png',
+          mimeType: 'image/png',
+        })
         const attackerSpace = (await tenancy.listSpaces(asUser(attacker.id), orgA.id))[0]
         return {
+          assetId: asset.sys.id,
+          uploadAssetId: upload.asset.sys.id,
           deliveryKey,
           attackerTenant: { organizationId: orgA.id, spaceId: attackerSpace?.id ?? '' },
           entry,
@@ -174,6 +192,9 @@ describe.skipIf(!databaseTestsEnabled())(
         entryId: seeded.entry.sys.id,
         keyId: seeded.deliveryKey.record.id,
         versionId: seeded.entryVersionId,
+        assetId: seeded.assetId,
+        uploadAssetId: seeded.uploadAssetId,
+        partNumber: '1',
       }
       intruders = [
         { name: 'owner of another organization', actor: asUser(seeded.attacker.id) },
@@ -220,6 +241,9 @@ describe.skipIf(!databaseTestsEnabled())(
         ),
         entryVersions: await q(
           sql`select id, fields from content.entry_versions where organization_id = ${victimOrg}::uuid order by id`,
+        ),
+        assets: await q(
+          sql`select id, status, filename, version, object_key, published_at from assets.assets where organization_id = ${victimOrg}::uuid order by id`,
         ),
         deliveryKeys: await q(
           sql`select id, name, revoked_at from auth.delivery_keys where organization_id = ${victimOrg}::uuid order by id`,

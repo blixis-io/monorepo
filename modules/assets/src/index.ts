@@ -10,8 +10,10 @@ export {
   type AssetListQuery,
   type AssetService,
   type AssetView,
+  type DirectUpload,
   type StoredFile,
 } from './application/asset.service.ts'
+export { type Inspection, inspectUpload } from './application/inspect.ts'
 export { ASSETS_CONFIG, type AssetsConfig, DEFAULT_ASSETS_CONFIG } from './config.ts'
 export {
   type AssetStatus,
@@ -29,3 +31,4 @@ export {
 export type { EnvironmentTenant } from './infrastructure/asset.repository.ts'
 export { type AssetsModuleOptions, assetsModule } from './module.ts'
 export { ASSET_PERMISSIONS } from './permissions.ts'
+export { assetScoped } from './rest/asset.routes.ts'

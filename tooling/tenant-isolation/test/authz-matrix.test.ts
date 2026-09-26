@@ -1,6 +1,13 @@
+import { ASSET_SERVICE } from '@blixis/assets'
 import { DELIVERY_KEY_SERVICE } from '@blixis/auth'
 import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE } from '@blixis/content'
-import type { Actor, PermissionId, ServiceRegistry, UserActor } from '@blixis/contracts'
+import {
+  type Actor,
+  OBJECT_STORAGE,
+  type PermissionId,
+  type ServiceRegistry,
+  type UserActor,
+} from '@blixis/contracts'
 import { QUEUE_SENDER } from '@blixis/events'
 import { serviceOverride } from '@blixis/kernel'
 import { PERMISSION_CATALOG, ROLE_SERVICE, type Role, systemRoles } from '@blixis/permissions'
@@ -13,6 +20,7 @@ import {
   asDeliveryKey,
   asUser,
   checkAuthzMatrix,
+  createMemoryObjectStorage,
   createTestBlixis,
   type TestBlixis,
   uncoveredTenantRoutes,
@@ -45,7 +53,11 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
     t = await createTestBlixis({
       modules,
       database: db,
-      overrides: [serviceOverride(QUEUE_SENDER, { send: async () => undefined })],
+      overrides: [
+        serviceOverride(QUEUE_SENDER, { send: async () => undefined }),
+        // Uploads stream into memory instead of R2.
+        serviceOverride(OBJECT_STORAGE, createMemoryObjectStorage()),
+      ],
     })
     const catalog = t.services.get(PERMISSION_CATALOG).list()
     roles = systemRoles(catalog)
@@ -136,6 +148,19 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
             { name: 'Site', kind: 'delivery' },
             [],
           )
+        const assets = services.get(ASSET_SERVICE)
+        const { asset } = await assets.createPending(owner, environment, {
+          filename: 'a.txt',
+          mimeType: 'text/plain',
+        })
+        await assets.markReady(owner, environment, asset.sys.id, { sizeBytes: 5 })
+        const multipart = () =>
+          assets.startUpload(owner, environment, {
+            filename: 'big.txt',
+            mimeType: 'text/plain',
+            size: 5,
+          })
+        const [upload, aborted] = [await multipart(), await multipart()]
         const actor = await join({ ...ids, owner, services })
         return {
           actor,
@@ -149,6 +174,10 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
             entryId: entry.sys.id,
             keyId: deliveryKey.record.id,
             versionId: firstVersion?.sys.id ?? '',
+            assetId: asset.sys.id,
+            uploadAssetId: upload.asset.sys.id,
+            abortAssetId: aborted.asset.sys.id,
+            partNumber: '1',
           },
         }
       })

@@ -7,7 +7,12 @@ export interface IsolationRoute {
   readonly method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
   /** The route pattern exactly as registered, e.g. `/api/v1/spaces/:spaceId/locales/:localeId`. */
   readonly path: string
+  /** JSON body. */
   readonly body?: unknown
+  /** Raw body instead of JSON, e.g. a file upload; `Content-Length` is set from it. */
+  readonly rawBody?: string
+  /** Extra request headers, e.g. `Content-Type` of a raw body or `If-Match`. */
+  readonly headers?: Readonly<Record<string, string>>
   /**
    * Maps a route parameter to a differently named entry of the params, when one parameter name
    * means different things on different routes, e.g. `{ membershipId: 'orgMembershipId' }`.
@@ -24,6 +29,21 @@ const ISOLATED = [403, 404]
 /** The concrete URL of `route` for `params` (honouring {@link IsolationRoute.paramsFrom}). */
 export function isolationUrl(route: IsolationRoute, params: IsolationParams): string {
   return fill(route.path, params, route.paramsFrom ?? {})
+}
+
+/** The body and headers of a route's request (JSON `body`, or `rawBody` with its length). */
+export function isolationRequest(route: IsolationRoute): { json?: unknown } & RequestInit {
+  if (route.rawBody !== undefined) {
+    const bytes = new TextEncoder().encode(route.rawBody)
+    return {
+      body: bytes,
+      headers: { 'content-length': String(bytes.length), ...route.headers },
+    }
+  }
+  return {
+    ...(route.body === undefined ? {} : { json: route.body }),
+    ...(route.headers === undefined ? {} : { headers: { ...route.headers } }),
+  }
 }
 
 function fill(
@@ -57,7 +77,7 @@ export async function expectIsolated(options: {
     const res = await options.t.request(isolationUrl(route, options.params), {
       method: route.method,
       actor: options.intruder,
-      ...(route.body === undefined ? {} : { json: route.body }),
+      ...isolationRequest(route),
     })
     if (!ISOLATED.includes(res.status))
       failures.push(`${route.method} ${route.path} → ${res.status}`)
@@ -72,7 +92,12 @@ export async function expectIsolated(options: {
  * `/entries/:entryId`) resolve their tenant from the resource, so they need isolation tests too.
  * Add new top-level resource routes here.
  */
-const TENANT_SEGMENTS = ['organizations/:orgId', 'spaces/:spaceId', 'entries/:entryId']
+const TENANT_SEGMENTS = [
+  'organizations/:orgId',
+  'spaces/:spaceId',
+  'entries/:entryId',
+  'assets/:assetId',
+]
 
 /** Whether a route pattern is tenant-scoped (has an organization, space, or resource-id segment). */
 export const isTenantScoped = (path: string): boolean =>

@@ -973,6 +973,9 @@ importers:
 
   tooling/tenant-isolation:
     devDependencies:
+      '@blixis/assets':
+        specifier: workspace:*
+        version: link:../../modules/assets
       '@blixis/auth':
         specifier: workspace:*
         version: link:../../modules/auth
