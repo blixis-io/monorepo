@@ -190,9 +190,13 @@ export const graphqlModule = defineModule((options: GraphqlModuleOptions) => {
           return response
         }
         const key = await cacheKey(scope, operation)
-        const hit = await tiered.match(key)
-        if (hit !== undefined) {
+        // `Cache-Control: no-cache` skips the lookup (debugging, hard reloads); the fresh result is stored.
+        const refresh = (request.headers.get('cache-control') ?? '').includes('no-cache')
+        const found = refresh ? undefined : await tiered.lookup(key)
+        if (found !== undefined) {
+          const hit = found.value
           const headers = cacheHeaders(hit, 'HIT', maxAge)
+          headers.set('x-blixis-cache-layer', found.layer)
           if (request.headers.get('if-none-match') === hit.etag)
             return new Response(null, { status: 304, headers })
           return new Response(hit.body, { status: 200, headers })
