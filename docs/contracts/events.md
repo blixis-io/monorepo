@@ -9,9 +9,9 @@ Every event is listed here with its delivery class. Rows are added by the task t
 | Event | Version | Delivery | Owner | Consumers | Defined in |
 |---|---|---|---|---|---|
 | `user.created` | 1 | **transactional** | `@blixis/users` | provisioning (e.g. personal space, plan 008), audit (020) | [`modules/users/src/events.ts`](../../modules/users/src/events.ts) |
-| `locale.created` | 1 | best-effort | `@blixis/spaces` | content (010) may add locale columns/indexes | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |
-| `locale.updated` | 1 | best-effort | `@blixis/spaces` | content fallback resolution caches | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |
-| `locale.deleted` | 1 | best-effort | `@blixis/spaces` | content (010) | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |
+| `locale.created` | 1 | best-effort | `@blixis/spaces` | **delivery cache stamp** (`@blixis/content`, ADR 0012); content (010) may add locale columns/indexes | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |
+| `locale.updated` | 1 | best-effort | `@blixis/spaces` | **delivery cache stamp** (`@blixis/content`, ADR 0012); content fallback resolution caches | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |
+| `locale.deleted` | 1 | best-effort | `@blixis/spaces` | **delivery cache stamp** (`@blixis/content`, ADR 0012); content (010) | [`modules/spaces/src/events.ts`](../../modules/spaces/src/events.ts) |
 | `membership.created` | 1 | best-effort | `@blixis/users` | audit (020), notifications | [`modules/users/src/events.ts`](../../modules/users/src/events.ts) |
 | `membership.removed` | 1 | best-effort | `@blixis/users` | audit (020), cache invalidation of access | [`modules/users/src/events.ts`](../../modules/users/src/events.ts) |
 | `user.invited` | — | *reserved* | `@blixis/users` | email invitations (deferred until an email provider is chosen) | — |
@@ -23,11 +23,11 @@ Every event is listed here with its delivery class. Rows are added by the task t
 | `user.signed-out` | 1 | best-effort | `@blixis/auth` | audit (020) | [`modules/auth/src/events.ts`](../../modules/auth/src/events.ts) |
 | `user.disabled` | 1 | **transactional** | `@blixis/users` | `@blixis/auth` revokes refresh tokens and API tokens | [`modules/users/src/events.ts`](../../modules/users/src/events.ts) |
 | `user.updated` | 1 | best-effort | `@blixis/users` | caches of display names; losing one only delays a refresh | [`modules/users/src/events.ts`](../../modules/users/src/events.ts) |
-| `content-type.created` | 1 | best-effort | `@blixis/content` | GraphQL schema cache (012), webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
-| `content-type.updated` | 1 | best-effort | `@blixis/content` | GraphQL schema cache (012): payload carries the new `version`; webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
-| `content-type.deleted` | 1 | best-effort | `@blixis/content` | GraphQL schema cache (012), webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
+| `content-type.created` | 1 | best-effort | `@blixis/content` | **delivery cache stamp** (`@blixis/content`, ADR 0012); GraphQL schema cache (012), webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
+| `content-type.updated` | 1 | best-effort | `@blixis/content` | **delivery cache stamp** (`@blixis/content`, ADR 0012); GraphQL schema cache (012): payload carries the new `version`; webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
+| `content-type.deleted` | 1 | best-effort | `@blixis/content` | **delivery cache stamp** (`@blixis/content`, ADR 0012); GraphQL schema cache (012), webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
 | `entry.created` | 1 | best-effort | `@blixis/content` | search indexing, audit (020) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
 | `entry.updated` | 1 | best-effort | `@blixis/content` | preview caches, search; payload may carry `restoredFrom` | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
-| `entry.deleted` | 1 | **transactional** | `@blixis/content` | delivery cache invalidation (013), webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
-| `entry.published` | 1 | **transactional** | `@blixis/content` | delivery cache invalidation (013), webhooks (015), search | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
-| `entry.unpublished` | 1 | **transactional** | `@blixis/content` | delivery cache invalidation (013), webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
+| `entry.deleted` | 1 | **transactional** | `@blixis/content` | **delivery cache stamp** (`@blixis/content`, ADR 0012); delivery cache invalidation (013), webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
+| `entry.published` | 1 | **transactional** | `@blixis/content` | **delivery cache stamp** (`@blixis/content`, ADR 0012); delivery cache invalidation (013), webhooks (015), search | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |
+| `entry.unpublished` | 1 | **transactional** | `@blixis/content` | **delivery cache stamp** (`@blixis/content`, ADR 0012); delivery cache invalidation (013), webhooks (015) | [`modules/content/src/events.ts`](../../modules/content/src/events.ts) |

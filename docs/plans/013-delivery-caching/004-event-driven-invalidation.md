@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -36,17 +36,22 @@ Subscribe to `entry.published`, `entry.unpublished`, `entry.deleted`, `content-t
 ### Create
 
 ```text
-packages/graphql/src/invalidation.ts
-packages/graphql/src/invalidation.test.ts
-apps/api/test/cache-invalidation.worker.test.ts
+modules/content/src/application/delivery-cache.ts
+modules/content/src/infrastructure/stamp.repository.ts
+modules/content/src/infrastructure/migrations/0003_create_delivery_stamps.ts
+modules/content/test/delivery.cache.test.ts
 ```
 
 ### Modify
 
 ```text
-packages/graphql/src/module.ts
-docs/contracts/events.md
-docs/operations/caching.md
+modules/content/src/module.ts (policy, subscriptions, stampTtlMs)
+modules/content/src/events.ts (organizationId, spaceId in entry and content-type payloads)
+modules/content/src/application/content.service.ts
+modules/content/src/application/content-type.service.ts
+modules/auth/src/application/delivery-keys.ts (key memo)
+modules/auth/src/module.ts (deliveryKeyMemoSeconds)
+docs/contracts/events.md (consumers)
 ```
 
 ### Delete
@@ -69,7 +74,7 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] After publish, the next delivery query returns updated content within the documented bound (Workers-pool test uses immediate stamps).
+- [x] After publish, the next delivery query returns updated content within the documented bound (Workers-pool test uses immediate stamps).
 
 ## Validation
 
@@ -79,15 +84,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Staleness bound verified and documented.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Staleness bound verified and documented.
 
 ## Completion conditions
 
@@ -104,4 +109,22 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Stamps:**
+  - `content.delivery_stamps(space_id pk, organization_id, stamp bigint, updated_at)` (content migration `0003`);
+  - `stampRepository.bump` is an upsert `+1` that only moves forward, so redelivered events are harmless (processed markers still apply via the default `after` idempotency).
+- **Subscriptions** (`delivery-stamp.<type>`) on `entry.published/unpublished/deleted`, `content-type.*` and `locale.*` bump the space's stamp. `space.deleted` also deletes the stamp row. Deviation: the task suggested `(space, environment)`; the stamp is per **space** (coarser, ADR 0012), because locale and model changes span environments.
+- **Finding, fixed:** entry and content-type events had no `spaceId`/`organizationId` in their payloads, only in the envelope, which is empty when services run outside a bound request (background jobs, tests). A publish then didn't invalidate. Plan 011's event spec had listed `spaceId`; both ids are now in the payloads (additive, still version 1), and `bumpForEvent` uses the envelope, then the payload.
+- **Policy** (`GRAPHQL_CACHE_POLICY` from `@blixis/content`):
+  - only `delivery`-kind keys with `environmentIds: null`, and no conflicting `?space=`;
+  - the scope is `space:environment-param:stamp`.
+  - Preview keys, users, API tokens and environment-limited keys bypass. Previews by delivery keys fail with `FORBIDDEN` and are never stored.
+- **Isolate memos:**
+  - **Stamp:** `contentModule({ stampTtlMs })`, default 2000 ms. A bump in the same isolate updates the memo immediately.
+  - **Delivery keys:** `authModule({ deliveryKeyMemoSeconds })`, default 30 s. It's cleared for the key on revoke and for the space on delete in that isolate.
+- **Proven:**
+  - a cache hit makes **0 SQL statements** while the stamp is remembered (`countQueries`);
+  - after a publish, the next request is a MISS with new content;
+  - a locale creation invalidates;
+  - the bypass cases.
+- **Consumers column** in `docs/contracts/events.md` updated for the 9 events.
+- **Staging publish-to-fresh latency** is measured in 013.005, after the deploy (needs content migration `0003`).
