@@ -1,5 +1,6 @@
 import {
   ASSET_LOOKUP,
+  ASSET_USAGE,
   AUTHORIZATION_SERVICE,
   BLIXIS_CAPABILITIES,
   DELIVERY_INVALIDATION,
@@ -155,6 +156,22 @@ export const contentModule = defineModule((options: ContentModuleOptions) => {
             // Responses hold absolute asset URLs: keep hosts (workers.dev, custom domain) apart.
             return scope === undefined ? undefined : `${new URL(context.request.url).host}|${scope}`
           },
+        { scope: 'request' },
+      )
+      // Assets ask before unpublishing or deleting a file that published entries use (014.006).
+      ctx.services.provideFactory(
+        ASSET_USAGE,
+        ({ services }) => ({
+          async publishedReferrers(tenant, assetId) {
+            const referrers = await entryRepository.referrers(
+              services.get(DATABASE),
+              tenant,
+              { type: 'asset', id: assetId },
+              'published',
+            )
+            return referrers.length
+          },
+        }),
         { scope: 'request' },
       )
       // Other modules (assets) report changes to published data they own (ADR 0012).

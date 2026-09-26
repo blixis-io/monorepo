@@ -1,5 +1,6 @@
 import {
   type Actor,
+  type AssetUsage,
   type AuthorizationService,
   actorId,
   ConflictError,
@@ -271,17 +272,27 @@ export interface AssetService {
   ): Promise<AssetView>
   /** Publishing a published asset changes nothing. @throws ConflictError while pending */
   publish(actor: Actor, tenant: EnvironmentTenant, id: string): Promise<AssetView>
-  /** Unpublishing a draft changes nothing. */
-  unpublish(actor: Actor, tenant: EnvironmentTenant, id: string): Promise<AssetView>
+  /**
+   * Unpublishing a draft changes nothing. Refused while published entries link to the asset
+   * (their links would stop resolving), unless `force`.
+   * @throws ConflictError (linked from published entries)
+   */
+  unpublish(
+    actor: Actor,
+    tenant: EnvironmentTenant,
+    id: string,
+    options?: { force?: boolean | undefined },
+  ): Promise<AssetView>
   /**
    * Deletes an unpublished (or pending) asset; its file is deleted after the commit through
-   * `asset.deleted`. @throws ConflictError while published or on a stale `expectedVersion`
+   * `asset.deleted`. Refused while published entries link to it, unless `force`.
+   * @throws ConflictError while published, linked, or on a stale `expectedVersion`
    */
   delete(
     actor: Actor,
     tenant: EnvironmentTenant,
     id: string,
-    options?: { expectedVersion?: number | undefined },
+    options?: { expectedVersion?: number | undefined; force?: boolean | undefined },
   ): Promise<void>
 }
 
@@ -297,6 +308,8 @@ export interface AssetServiceDeps {
   readonly config: AssetsConfig
   /** Object storage, resolved on first use. */
   readonly storage: () => ObjectStorage
+  /** How content uses assets (`ASSET_USAGE` from `@blixis/content`), when present. */
+  readonly usage?: AssetUsage | undefined
 }
 
 const P = ASSET_PERMISSIONS
@@ -481,6 +494,17 @@ export function createAssetService(deps: AssetServiceDeps): AssetService {
     if (asset.status !== 'pending' || asset.upload === null)
       throw new ConflictError('No multipart upload is in progress for this asset')
     return { asset, upload: asset.upload }
+  }
+
+  /** Published entries linking to the asset block unpublishing and deleting (unless forced). */
+  async function refuseIfLinked(tenant: EnvironmentTenant, id: string, action: string) {
+    const count = (await deps.usage?.publishedReferrers(tenant, id)) ?? 0
+    if (count > 0)
+      throw new ConflictError(
+        `${count} published ${count === 1 ? 'entry links' : 'entries link'} to this asset: ` +
+          `unpublish or change ${count === 1 ? 'it' : 'them'} first, or ${action} with force`,
+        { details: { publishedReferrers: count } },
+      )
   }
 
   const service: AssetService = {
@@ -796,10 +820,11 @@ export function createAssetService(deps: AssetServiceDeps): AssetService {
       return toAssetView(published)
     },
 
-    async unpublish(actor, tenant, id) {
+    async unpublish(actor, tenant, id, options = {}) {
       await require(actor, P.publish.id, tenant, id)
       const asset = await load(tenant, id)
       if (asset.publishedAt === null) return toAssetView(asset)
+      if (options.force !== true) await refuseIfLinked(tenant, id, 'unpublish')
       const draft = await withTransaction(db, async (tx) => {
         const row = await assetRepository.setPublished(tx, tenant, id, false, actorId(actor))
         if (row === undefined) throw new NotFoundError('Asset not found')
@@ -816,6 +841,7 @@ export function createAssetService(deps: AssetServiceDeps): AssetService {
         throw stale(asset.version)
       if (asset.publishedAt !== null)
         throw new ConflictError('The asset is published: unpublish it first')
+      if (options.force !== true) await refuseIfLinked(tenant, id, 'delete')
       await withTransaction(db, async (tx) => {
         if (!(await assetRepository.delete(tx, tenant, id)))
           throw new NotFoundError('Asset not found')

@@ -181,7 +181,8 @@ describe.skipIf(!databaseTestsEnabled())('Assets API (Postgres, memory storage)'
     )
     expect(replaced.status).toBe(200)
     expect((await view(replaced)).fields).toMatchObject({ filename: 'a.txt', size: 12 })
-    expect(storage.keys()).toHaveLength(2) // the old file goes after the commit (014.006)
+    // The old file goes after the commit (asset.updated → delete-replaced-file).
+    expect(storage.keys()).toHaveLength(1)
 
     expect((await view(await call('POST', `/assets/${id}/publish`))).sys.status).toBe('published')
     expect((await call('DELETE', `/assets/${id}`)).status).toBe(409)
