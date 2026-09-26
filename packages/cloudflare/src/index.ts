@@ -21,6 +21,11 @@ export {
   type QueueProducerLike,
 } from './queues.ts'
 export {
+  type R2StorageModuleOptions,
+  r2ObjectStorage,
+  r2StorageModule,
+} from './r2-object-storage.ts'
+export {
   createWorkerHandler,
   type WorkerHandler,
   type WorkerHandlerOptions,
