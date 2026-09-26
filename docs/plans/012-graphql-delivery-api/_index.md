@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 6 — Content delivery  
 Roadmap scope: MVP / initial platform  
-Progress: 4/8 tasks completed
+Progress: 5/8 tasks completed
 
 ## Objective
 
@@ -67,7 +67,7 @@ Depends on:
 - [x] [002 — Compose and validate the schema from module contributions](./002-schema-composition-and-scalars.md)
 - [x] [003 — Map Blixis errors to GraphQL errors](./003-graphql-error-mapping.md)
 - [x] [004 — Implement delivery and preview API keys](./004-delivery-and-preview-api-keys.md)
-- [ ] [005 — Decide the delivery schema strategy](./005-decide-delivery-schema-strategy.md)
+- [x] [005 — Decide the delivery schema strategy](./005-decide-delivery-schema-strategy.md)
 - [ ] [006 — Implement content delivery schema and resolvers](./006-content-delivery-schema-and-resolvers.md)
 - [ ] [007 — Implement preview (draft) delivery](./007-preview-delivery.md)
 - [ ] [008 — Enforce query limits and verify batching](./008-query-limits-and-batching.md)

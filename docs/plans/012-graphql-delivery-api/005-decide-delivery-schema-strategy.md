@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -36,13 +36,14 @@ Record ADR 0011 deciding whether the delivery GraphQL schema is generic, generat
 ### Create
 
 ```text
-docs/decisions/0011-delivery-graphql-schema.md
+docs/decisions/0011-delivery-schema-strategy.md
 ```
 
 ### Modify
 
 ```text
-None.
+docs/decisions/README.md
+docs/ROADMAP.md (decision register)
 ```
 
 ### Delete
@@ -64,7 +65,7 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] ADR 0011 accepted with sample SDL, naming rules, cache and invalidation strategy.
+- [x] ADR 0011 accepted with sample SDL, naming rules, cache and invalidation strategy.
 
 ## Validation
 
@@ -72,15 +73,15 @@ Requires:
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Decision documented in ROADMAP open-decisions table as resolved.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Decision documented in ROADMAP open-decisions table as resolved.
 
 ## Completion conditions
 
@@ -97,4 +98,15 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Decision:** option (c). A static base (`Entry`/`Block` interfaces, `Sys`, `Link`, `RichText`, `Asset`, and generic `entry`/`entries`) plus a typed schema generated per `(space, environment, content model)` through `GRAPHQL_SCHEMA_EXTENSION`.
+- **Measured** in Node 24 with Yoga `createSchema`: a 20 KiB SDL with 30 types × 15 fields and 10 components builds in ~10 ms median, ~21 ms cold.
+- **Cache:** an isolate LRU keyed by space, environment and a hash of the types' `id:version`, so no invalidation is needed and KV is rejected.
+- **Space and environment:** keys fix the space; users pass `?space=` or `X-Blixis-Space`. The environment comes from `?environment=` or `X-Blixis-Environment`, default the space's default environment, and must be one the key allows.
+- **Naming:** PascalCase `apiId` types, with a `Content` suffix on clashes with platform types. Root fields are `<apiId>` and `<apiId>Collection`, with a `content` prefix on clashes.
+- **Other choices:**
+  - field type mapping, with required fields still nullable (locale fallback);
+  - `locale` propagated to linked entries;
+  - cursor pagination (limit 25, maximum 100);
+  - equality filters (ADR 0010 §9);
+  - order by `updatedAt` descending only in the MVP;
+  - `preview: Boolean`, which needs `content.preview.read` (delivery keys get FORBIDDEN).
