@@ -272,6 +272,25 @@ export const assetRepository = {
       .where(and(tenantScope(assets, tenant), eq(assets.id, id), eq(assets.status, 'pending')))
   },
 
+  /**
+   * Pending uploads older than `hours`, across tenants — for the cleanup job only (a system sweep,
+   * like the outbox), oldest first.
+   */
+  async findStalePending(db: Queryable, hours: number, limit: number) {
+    const rows = await db
+      .select()
+      .from(assets)
+      .where(
+        and(
+          eq(assets.status, 'pending'),
+          lt(assets.createdAt, sql`now() - make_interval(hours => ${hours})`),
+        ),
+      )
+      .orderBy(assets.createdAt)
+      .limit(limit)
+    return rows.map(toAsset)
+  },
+
   /** Deletes a pending asset (a failed or aborted upload) without a trace. */
   async deletePending(db: Queryable, tenant: EnvironmentTenant, id: string) {
     await db
@@ -287,7 +306,13 @@ export const assetRepository = {
     return rows.length > 0
   },
 
+  /**
+   * Every asset of a space, in all environments. Not `tenantScope`: it fails closed without an
+   * environment id, which would silently delete nothing.
+   */
   async deleteAllForSpace(db: Queryable, organizationId: string, spaceId: string) {
-    await db.delete(assets).where(tenantScope(assets, { organizationId, spaceId }))
+    await db
+      .delete(assets)
+      .where(and(eq(assets.organizationId, organizationId), eq(assets.spaceId, spaceId)))
   },
 }

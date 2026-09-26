@@ -67,7 +67,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `completed` | 7/7 | 010 |
 | [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `completed` | 8/8 | 011 |
 | [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `completed` | 5/5 | 012 |
-| [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `in-progress` | 4/6 | 012 |
+| [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `in-progress` | 5/6 | 012 |
 | [015 — Webhooks](./plans/015-webhooks/_index.md) | M7 | MVP | `not-started` | 0/5 | 011 |
 | [016 — Releases & Cloudflare Workflows](./plans/016-releases-and-workflows/_index.md) | M7 | Extended | `not-started` | 0/4 | 013, 014, 015 |
 | [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md) | M8 | MVP | `not-started` | 0/4 | 013, 014, 015 |
@@ -352,7 +352,7 @@ Decides the caching strategy (ADR) across the five layers in §34, then implemen
 
 #### 014 — Assets on R2
 
-Status: `in-progress` · Progress: 4/6 · Scope: MVP  
+Status: `in-progress` · Progress: 5/6 · Scope: MVP  
 Plan: [014-assets/_index.md](./plans/014-assets/_index.md)  
 Depends on: [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md)
 
@@ -363,7 +363,7 @@ Builds `@blixis/assets`: an object-storage port with an R2 adapter, asset metada
 - [x] [014.003 — Implement upload flows and asset management routes](./plans/014-assets/003-upload-flows-and-routes.md)
 - [ ] [014.004 — Serve published assets](./plans/014-assets/004-asset-delivery.md)
 - [x] [014.005 — Validate asset links from content via capability](./plans/014-assets/005-content-asset-links.md)
-- [ ] [014.006 — Implement idempotent asset deletion and orphan cleanup](./plans/014-assets/006-asset-deletion-and-cleanup.md)
+- [x] [014.006 — Implement idempotent asset deletion and orphan cleanup](./plans/014-assets/006-asset-deletion-and-cleanup.md)
 
 #### 015 — Webhooks
 

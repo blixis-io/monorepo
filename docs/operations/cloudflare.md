@@ -68,7 +68,7 @@ npx wrangler r2 bucket create blixis-assets-staging --location weur
 npx wrangler r2 bucket create blixis-assets-production --location weur
 ```
 
-The buckets stay private: assets are served by the Worker (ADR 0013), never through a public bucket URL. Locally, wrangler simulates `blixis-assets-local`.
+The buckets stay private: assets are served by the Worker (ADR 0013), never through a public bucket URL. Layout, limits, and cleanup: [Assets](./assets.md). Locally, wrangler simulates `blixis-assets-local`.
 
 ### API Worker deployments
 

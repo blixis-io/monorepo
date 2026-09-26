@@ -168,12 +168,10 @@ export const assetRoutes = new Hono<ModuleHonoEnv>()
   })
   .delete('/assets/:assetId', assetScoped(), async (c) => {
     const version = expectedVersion(c)
-    await assets(c).delete(
-      actorOf(c),
-      tenantOf(c),
-      assetId(c),
-      version === undefined ? {} : { expectedVersion: version },
-    )
+    await assets(c).delete(actorOf(c), tenantOf(c), assetId(c), {
+      ...(version === undefined ? {} : { expectedVersion: version }),
+      force: c.req.query('force') === 'true',
+    })
     return c.body(null, 204)
   })
   .post('/assets/:assetId/publish', assetScoped(), idempotent(), async (c) => {
@@ -182,7 +180,10 @@ export const assetRoutes = new Hono<ModuleHonoEnv>()
     return c.json(asset)
   })
   .post('/assets/:assetId/unpublish', assetScoped(), idempotent(), async (c) => {
-    const asset = await assets(c).unpublish(actorOf(c), tenantOf(c), assetId(c))
+    const body = await json(c)
+    const asset = await assets(c).unpublish(actorOf(c), tenantOf(c), assetId(c), {
+      force: body['force'] === true,
+    })
     withEtag(c, asset)
     return c.json(asset)
   })
