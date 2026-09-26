@@ -54,7 +54,7 @@ Record every created resource ID in the inventory table in this file as plans cr
 | Hyperdrive | `blixis-staging` `2140b66bf63640059dc89b926d10ca3a` | `blixis-production` `01eefb16f5004d80addedcfe9e69f430` |
 | Queue `EVENTS` | `blixis-events-staging` `85fab784e7bd44d9adefe6b6f8b90a00` | `blixis-events-production` `f37de9bba71242fcb25f59715ffdc29a` |
 | Dead-letter queue | `blixis-events-staging-dlq` `13b29a372b054975b06d2d73c566d7c0` | `blixis-events-production-dlq` `51dbc206d465470ab063c74e00066edd` |
-| R2 bucket `ASSETS` | `blixis-assets-staging` (EU jurisdiction/location hint: see below) | `blixis-assets-production` |
+| R2 bucket `ASSETS` | `blixis-assets-staging` (location `WEUR`) | `blixis-assets-production` (location `WEUR`) |
 
 Account ID: `7c871756de2f3f7dfa1445d5a88ca0fb` (GitHub variable `CLOUDFLARE_ACCOUNT_ID`). workers.dev subdomain: `frosty-hill-6079`.
 

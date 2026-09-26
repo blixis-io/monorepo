@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 ## Parent plan
@@ -99,15 +99,15 @@ npx vitest run packages/testing/src/object-storage.test.ts
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Security headers policy documented.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Security headers policy documented.
 
 ## Completion conditions
 
@@ -130,4 +130,4 @@ Change the status to `completed` only when all of the following hold:
 - **Error mapping:** R2 checksum mismatch → `ValidationError` (nothing stored); unknown multipart upload → `NotFoundError`; aborting twice is a no-op; everything else → retryable `InfrastructureError`.
 - **Local R2 quirk:** a stream shorter than `size` is rejected correctly, but miniflare's R2 simulator then logs an uncaught "Network connection lost". The Workers test leaves that case to the memory fake to keep test output clean.
 - **Workers test** streams a 12 MiB generated body (64 KiB chunks) and assembles a 10 MiB + 3 B multipart upload from streamed parts.
-- **Buckets:** `blixis-assets-staging` / `-production` (location hint `weur`), created by the owner — deploys binding them fail until they exist.
+- **Buckets:** `blixis-assets-staging` / `-production` (location hint `weur`), created by the owner on 2026-09-26 (location `WEUR`, verified with `wrangler r2 bucket info`).

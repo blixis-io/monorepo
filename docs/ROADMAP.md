@@ -67,7 +67,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `completed` | 7/7 | 010 |
 | [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `completed` | 8/8 | 011 |
 | [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `completed` | 5/5 | 012 |
-| [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `not-started` | 0/6 | 012 |
+| [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `in-progress` | 1/6 | 012 |
 | [015 — Webhooks](./plans/015-webhooks/_index.md) | M7 | MVP | `not-started` | 0/5 | 011 |
 | [016 — Releases & Cloudflare Workflows](./plans/016-releases-and-workflows/_index.md) | M7 | Extended | `not-started` | 0/4 | 013, 014, 015 |
 | [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md) | M8 | MVP | `not-started` | 0/4 | 013, 014, 015 |
@@ -352,13 +352,13 @@ Decides the caching strategy (ADR) across the five layers in §34, then implemen
 
 #### 014 — Assets on R2
 
-Status: `not-started` · Progress: 0/6 · Scope: MVP  
+Status: `in-progress` · Progress: 1/6 · Scope: MVP  
 Plan: [014-assets/_index.md](./plans/014-assets/_index.md)  
 Depends on: [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md)
 
 Builds `@blixis/assets`: an object-storage port with an R2 adapter, asset metadata in Postgres, upload flows streamed through the Worker (upload strategy ADR), management routes, public asset delivery with caching, asset events, content asset-link validation via capability, and idempotent R2 cleanup on deletion.
 
-- [ ] [014.001 — Decide upload strategy and implement the R2 object storage adapter](./plans/014-assets/001-upload-strategy-and-object-storage.md)
+- [x] [014.001 — Decide upload strategy and implement the R2 object storage adapter](./plans/014-assets/001-upload-strategy-and-object-storage.md)
 - [ ] [014.002 — Create the assets module schema and service](./plans/014-assets/002-asset-schema-and-service.md)
 - [ ] [014.003 — Implement upload flows and asset management routes](./plans/014-assets/003-upload-flows-and-routes.md)
 - [ ] [014.004 — Serve published assets](./plans/014-assets/004-asset-delivery.md)
