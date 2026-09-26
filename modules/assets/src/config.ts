@@ -9,6 +9,11 @@ export interface AssetsConfig {
   readonly maxAssetBytes: number
   /** Media types uploads may declare (lower case, without parameters). */
   readonly allowedTypes: readonly string[]
+  /**
+   * Part size offered to multipart uploads (grown for huge files to stay within 10 000 parts).
+   * Default 10 MiB; R2 needs at least 5 MiB.
+   */
+  readonly multipartPartBytes: number
 }
 
 const MiB = 1024 * 1024
@@ -17,6 +22,7 @@ export const DEFAULT_ASSETS_CONFIG: AssetsConfig = Object.freeze({
   maxDirectUploadBytes: 90 * MiB,
   maxAssetBytes: 1024 * MiB,
   allowedTypes: DEFAULT_ALLOWED_TYPES,
+  multipartPartBytes: 10 * MiB,
 })
 
 /** The resolved {@link AssetsConfig} (app-scoped). */

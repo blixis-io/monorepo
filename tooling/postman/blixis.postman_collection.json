@@ -1910,6 +1910,455 @@
       ]
     },
     {
+      "name": "Assets",
+      "item": [
+        {
+          "name": "Upload asset (single request)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              },
+              {
+                "key": "Content-Disposition",
+                "value": "attachment; filename=\"hello.txt\""
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/assets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "assets"]
+            },
+            "description": "The body is the file (ADR 0013). Postman sets Content-Length; optionally add Content-Digest: sha-256=:<base64>:.",
+            "body": {
+              "mode": "raw",
+              "raw": "Hello from Postman"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { pm.environment.set('assetId', pm.response.json().sys.id); pm.environment.set('assetVersion', pm.response.json().sys.version); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List assets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/assets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "assets"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get asset",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/assets/{{assetId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "assets", "{{assetId}}"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update asset metadata",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{assetVersion}}\""
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/assets/{{assetId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "assets", "{{assetId}}"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": {\n    \"en-US\": \"Hello\"\n  },\n  \"description\": {\n    \"en-US\": \"A greeting from Postman\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code < 300) pm.environment.set('assetVersion', pm.response.json().sys.version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replace asset file",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{assetVersion}}\""
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/assets/{{assetId}}/file",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "assets", "{{assetId}}", "file"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "Hello again from Postman"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code < 300) pm.environment.set('assetVersion', pm.response.json().sys.version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Publish asset",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/assets/{{assetId}}/publish",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "assets", "{{assetId}}", "publish"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unpublish asset",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/assets/{{assetId}}/unpublish",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "assets", "{{assetId}}", "unpublish"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Start multipart upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/assets/uploads",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "assets", "uploads"]
+            },
+            "description": "Large files: start, upload every part (all but the last exactly partSize bytes), then complete.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"filename\": \"big.txt\",\n  \"mimeType\": \"text/plain\",\n  \"size\": 11\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { pm.environment.set('uploadAssetId', pm.response.json().asset.sys.id); pm.test('one part', () => pm.expect(pm.response.json().partCount).to.eql(1)); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Upload part",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/octet-stream"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/assets/{{uploadAssetId}}/upload/parts/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "assets", "{{uploadAssetId}}", "upload", "parts", "1"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "hello world"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) pm.environment.set('partEtag', JSON.stringify(pm.response.json().etag));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Complete multipart upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/assets/{{uploadAssetId}}/upload/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "assets", "{{uploadAssetId}}", "upload", "complete"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parts\": [{ \"partNumber\": 1, \"etag\": {{partEtag}} }]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Start upload to abort",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/assets/uploads",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "assets", "uploads"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"filename\": \"never.txt\",\n  \"mimeType\": \"text/plain\",\n  \"size\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) pm.environment.set('abortAssetId', pm.response.json().asset.sys.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Abort multipart upload",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/assets/{{abortAssetId}}/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "assets", "{{abortAssetId}}", "upload"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 204', () => pm.response.to.have.status(204));",
+                  "pm.environment.unset('abortAssetId');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete uploaded asset",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/assets/{{uploadAssetId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "assets", "{{uploadAssetId}}"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 204', () => pm.response.to.have.status(204));",
+                  "pm.environment.unset('uploadAssetId'); pm.environment.unset('partEtag');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete asset",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/assets/{{assetId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "assets", "{{assetId}}"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 204', () => pm.response.to.have.status(204));",
+                  "pm.environment.unset('assetId'); pm.environment.unset('assetVersion');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Delivery keys",
       "item": [
         {

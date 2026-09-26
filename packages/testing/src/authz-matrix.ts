@@ -1,6 +1,11 @@
 import { type Actor, isPermissionId, type PermissionId } from '@blixis/contracts'
 import type { TestBlixis } from './create-test-blixis.ts'
-import { type IsolationParams, type IsolationRoute, isolationUrl } from './isolation.ts'
+import {
+  type IsolationParams,
+  type IsolationRoute,
+  isolationRequest,
+  isolationUrl,
+} from './isolation.ts'
 
 /** Tenant level a route's permission is checked at. */
 export type AuthzLevel = 'organization' | 'space'
@@ -77,7 +82,7 @@ export async function checkAuthzMatrix(options: {
       const res = await options.t.request(isolationUrl(route, params), {
         method: route.method,
         actor,
-        ...(route.body === undefined ? {} : { json: route.body }),
+        ...isolationRequest(route),
       })
       const ok =
         expected === '2xx' ? res.status >= 200 && res.status < 300 : res.status === expected
