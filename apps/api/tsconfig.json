@@ -12,6 +12,7 @@
     { "path": "../../modules/auth" },
     { "path": "../../modules/spaces" },
     { "path": "../../modules/permissions" },
-    { "path": "../../modules/content" }
+    { "path": "../../modules/content" },
+    { "path": "../../modules/assets" }
   ]
 }

@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -39,14 +39,17 @@ Create `modules/assets` with asset metadata migrations, repository, `ASSET_SERVI
 ```text
 modules/assets/package.json
 modules/assets/tsconfig.json
+modules/assets/tsconfig.test.json
 modules/assets/src/index.ts
 modules/assets/src/module.ts
+modules/assets/src/config.ts
 modules/assets/src/permissions.ts
 modules/assets/src/events.ts
 modules/assets/src/domain/asset.ts
 modules/assets/src/application/asset.service.ts
+modules/assets/src/infrastructure/schema.ts
 modules/assets/src/infrastructure/asset.repository.ts
-modules/assets/src/infrastructure/migrations/0001_create_assets.sql
+modules/assets/src/infrastructure/migrations/0001_create_assets.ts
 modules/assets/test/asset.service.test.ts
 ```
 
@@ -55,8 +58,12 @@ modules/assets/test/asset.service.test.ts
 ```text
 apps/api/src/blixis.config.ts
 apps/api/package.json
+apps/api/tsconfig.json
+apps/docs/astro.config.mjs
 tsconfig.json
 docs/contracts/events.md
+docs/ROADMAP.md
+docs/plans/014-assets/_index.md
 pnpm-lock.yaml
 ```
 
@@ -80,27 +87,26 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Asset lifecycle transitions validated (pending → ready → deleted).
-- [ ] Events recorded in outbox.
+- [x] Asset lifecycle transitions validated (pending → ready → deleted).
+- [x] Events recorded in outbox.
 
 ## Validation
 
 ```bash
-pnpm db:migrate
-pnpm --filter @blixis/assets test
+pnpm test:db modules/assets
 ```
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Public exports: token, types, events only.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Public exports: token, types, events only.
 
 ## Completion conditions
 
@@ -117,4 +123,15 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Decisions (the task left them open):**
+  - **Localized title and description:** JSONB maps of locale code → text, validated against the space's locales (like localized fields, ADR 0010). The file name is not localized.
+  - **Publishing:** a simple `published_at` / `first_published_at` pair, no versions. Publishing needs a `ready` asset (a check constraint enforces it too).
+  - **No `deleted` status:** deleting removes the row and emits `asset.deleted` in the same transaction (hard delete, like entries and ADR 0007). The file is deleted after the commit by 014.006's consumer. Published assets must be unpublished first.
+  - **All asset events are transactional:** the file cleanup depends on `asset.updated` (`replacedObjectKey`) and `asset.deleted`; webhooks on the rest. Pending uploads emit nothing; `asset.created` fires on `markReady`.
+  - **Replacing a file** is `prepareReplacement` (new key `<space>/<asset>/<newFileId>`) then `replaceFile` (checks the key belongs to the asset, bumps the version, names the old key). Objects are never overwritten (ADR 0013 §2).
+  - **Types:** declared types are normalized (`Image/PNG; x=y` → `image/png`) and checked against `ASSETS_CONFIG.allowedTypes`; `BLOCKED_TYPES` (HTML, XHTML, JavaScript, XML) can't be allowed at all. Signature checks need the bytes and come with the upload routes (003).
+- **Paging** is newest first by id (UUIDv7 is creation-ordered), with the last id as the cursor, so it's exact. Entry listing pages by `updated_at` rounded to milliseconds, while `now()` stores microseconds; two entries in the same millisecond at a page boundary could be skipped there (follow-up, not changed here).
+- **Migration** is a TypeScript `defineMigration` (`0001_create_assets`), like the other modules, not a `.sql` file. Staging needs `pnpm db:migrate` before the next deploy.
+- **Space deletion** deletes the asset rows now; stored files follow with 014.006.
+- **Module options** (`assetsModule({ maxDirectUploadBytes, maxAssetBytes, allowedTypes })`) are exposed as the app-scoped `ASSETS_CONFIG`.
+- **Manual:** the Assets API reference page comes with the routes (003); the API reference (TypeDoc) now includes `@blixis/assets`.

@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 7 — Assets, integrations & durable processes  
 Roadmap scope: MVP / initial platform  
-Progress: 1/6 tasks completed
+Progress: 2/6 tasks completed
 
 ## Objective
 
@@ -61,7 +61,7 @@ Depends on:
 ## Tasks
 
 - [x] [001 — Decide upload strategy and implement the R2 object storage adapter](./001-upload-strategy-and-object-storage.md)
-- [ ] [002 — Create the assets module schema and service](./002-asset-schema-and-service.md)
+- [x] [002 — Create the assets module schema and service](./002-asset-schema-and-service.md)
 - [ ] [003 — Implement upload flows and asset management routes](./003-upload-flows-and-routes.md)
 - [ ] [004 — Serve published assets](./004-asset-delivery.md)
 - [ ] [005 — Validate asset links from content via capability](./005-content-asset-links.md)
