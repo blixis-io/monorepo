@@ -4,6 +4,7 @@
  *
  * @packageDocumentation
  */
+export { type BatchLoader, createBatchLoader } from './batch.ts'
 export { composeSchema, type SchemaPart } from './compose.ts'
 export { type GraphQLContext, loader } from './context.ts'
 export { mapGraphQLError, useBlixisErrors } from './errors.ts'
