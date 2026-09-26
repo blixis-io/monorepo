@@ -19,6 +19,8 @@ export interface CreateDatabaseOptions extends ConnectionSource {
   readonly maxConnections?: number
   /** Called when an idle connection fails (e.g. dropped by the server). Default: ignored. */
   readonly onIdleError?: (error: Error) => void
+  /** Called with every SQL statement Drizzle sends — for query-count tests and debugging. */
+  readonly onQuery?: (query: string) => void
 }
 
 /**
@@ -58,5 +60,10 @@ export function createDatabase(options: CreateDatabaseOptions): Database {
     closing ??= pool.end()
     return closing
   }
-  return Object.assign(drizzle({ client: pool }), { close })
+  const onQuery = options.onQuery
+  const db =
+    onQuery === undefined
+      ? drizzle({ client: pool })
+      : drizzle({ client: pool, logger: { logQuery: (query) => onQuery(query) } })
+  return Object.assign(db, { close })
 }

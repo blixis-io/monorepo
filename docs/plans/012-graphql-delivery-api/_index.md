@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 6 — Content delivery  
 Roadmap scope: MVP / initial platform  
-Progress: 7/8 tasks completed
+Progress: 8/8 tasks completed
 
 ## Objective
 
@@ -70,16 +70,16 @@ Depends on:
 - [x] [005 — Decide the delivery schema strategy](./005-decide-delivery-schema-strategy.md)
 - [x] [006 — Implement content delivery schema and resolvers](./006-content-delivery-schema-and-resolvers.md)
 - [x] [007 — Implement preview (draft) delivery](./007-preview-delivery.md)
-- [ ] [008 — Enforce query limits and verify batching](./008-query-limits-and-batching.md)
+- [x] [008 — Enforce query limits and verify batching](./008-query-limits-and-batching.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] A delivery key can query published entries of its space only; a preview key can query drafts; neither can access another space (isolation test).
-- [ ] Composition fails bootstrap on conflicting type definitions naming both modules.
-- [ ] Query depth/complexity limits enforced (tests).
+- [x] All tasks `completed`.
+- [x] A delivery key can query published entries of its space only; a preview key can query drafts; neither can access another space (isolation test).
+- [x] Composition fails bootstrap on conflicting type definitions naming both modules.
+- [x] Query depth/complexity limits enforced (tests).
 
 ## Risks
 
@@ -95,4 +95,16 @@ The plan may be marked `completed` when:
 
 ## Technical notes
 
-No technical notes yet.
+- **Stack:** GraphQL Yoga 5.24 on graphql 16.14. `@blixis/graphql` is mounted at `/graphql` through the new `RestContribution.root`. Bundle: +150 KiB gzip (400 → 550 KiB of the 1024 KiB budget).
+- **Delivery schema (ADR 0011):** a static base plus a typed schema per content model, cached per isolate by model version (~10 ms to build 30 types). Model changes show up immediately.
+- **Delivery and preview keys** live in `@blixis/auth`. Grants are declarative (`PermissionDefinition.deliveryKeys`), and a key reads only its own space and allowed environments. The isolation suite and authorization matrix include key actors.
+- **Completion evidence:**
+  - key scoping and preview, plus isolation (`delivery.graphql.test.ts`, `preview.graphql.test.ts`, and the tenant-isolation suite's key intruder);
+  - composition failures name modules (`compose.test.ts`);
+  - limits (`limits.test.ts`);
+  - a bounded query count: 6 statements, flat across page counts (`delivery.queries.test.ts`).
+- **Findings:**
+  - graphql 16's missing `exports` map caused dual realms in Vitest's Node project, fixed with an alias;
+  - errors thrown while choosing the schema needed the same mapping as resolver errors;
+  - two bugs were caught by tests before merging: parent spreading in link resolution, and cost double-counting.
+- **Staging:** run `pnpm db:migrate` (auth `0004_create_delivery_keys`) before deploying plan 012.

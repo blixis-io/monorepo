@@ -8,6 +8,7 @@ import { composeSchema, type SchemaPart } from './compose.ts'
 import type { GraphQLContext } from './context.ts'
 import { mapGraphQLError, useBlixisErrors } from './errors.ts'
 import { GRAPHQL_SCHEMA_EXTENSION, type SchemaExtensionProvider } from './extensions.ts'
+import { DEFAULT_LIMITS, type GraphqlLimits, useLimits } from './limits.ts'
 
 /** Options for {@link graphqlModule}. */
 export interface GraphqlModuleOptions {
@@ -18,6 +19,8 @@ export interface GraphqlModuleOptions {
   readonly graphiql?: boolean
   /** How many extended schemas (e.g. one per space content model) to keep per isolate. Default 50. */
   readonly schemaCacheSize?: number
+  /** Query limits (depth, aliases, tokens, cost, body size, introspection). */
+  readonly limits?: GraphqlLimits
 }
 
 const PLATFORM_TYPE_DEFS = /* GraphQL */ `
@@ -109,7 +112,7 @@ export const graphqlModule = defineModule((options: GraphqlModuleOptions) => {
         // Errors are mapped by useBlixisErrors (public errors keep their message and code);
         // Yoga's masking stays on as a last line of defence for anything that slips through.
         maskedErrors: true,
-        plugins: [useBlixisErrors() as never],
+        plugins: [useLimits(options.limits) as never, useBlixisErrors() as never],
         landingPage: false,
         graphiql: (_request, context) =>
           options.graphiql ?? context?.env['BLIXIS_ENV'] !== 'production',
@@ -130,6 +133,26 @@ export const graphqlModule = defineModule((options: GraphqlModuleOptions) => {
           loaders: new Map(),
           responseHeaders: new Headers(),
           env: (c.env ?? {}) as Readonly<Record<string, unknown>>,
+        }
+        const maxBytes = options.limits?.maxBodyBytes ?? DEFAULT_LIMITS.maxBodyBytes
+        const length = Number(c.req.header('content-length') ?? 0)
+        const body =
+          c.req.method === 'POST' ? await c.req.raw.clone().arrayBuffer() : new ArrayBuffer(0)
+        if (length > maxBytes || body.byteLength > maxBytes) {
+          return c.json(
+            {
+              errors: [
+                {
+                  message: `Request body exceeds ${maxBytes} bytes`,
+                  extensions: {
+                    code: 'PAYLOAD_TOO_LARGE',
+                    requestId: context.requestContext.requestId,
+                  },
+                },
+              ],
+            },
+            413,
+          )
         }
         const response = await yoga.fetch(c.req.raw, context)
         for (const [name, value] of context.responseHeaders) response.headers.set(name, value)

@@ -1,0 +1,117 @@
+---
+title: Delivery API (GraphQL)
+description: Read published and preview content with GraphQL — keys, typed schema, locales, filters, pagination, preview, errors, and limits.
+sidebar:
+  order: 5
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+Websites and apps read content through **one GraphQL endpoint**, `/graphql` (outside `/api/v1`). The schema is **typed per content model**: every content type becomes a GraphQL type with its own queries. See [ADR 0011](https://github.com/blixis-io/monorepo/blob/main/docs/decisions/0011-delivery-schema-strategy.md).
+
+GraphiQL, the in-browser query editor, is served at `/graphql` in every environment except production.
+
+## Authenticate and choose a space
+
+| Caller | How | Space | Environment |
+|---|---|---|---|
+| Website, app | `Authorization: Bearer blx_dk_…` ([delivery key](/concepts/authentication/#delivery-and-preview-keys)) | the key's space | `?environment=` or `X-Blixis-Environment`, default `main`; must be allowed for the key |
+| Preview (server side) | `Bearer blx_pk_…` (preview key) | the key's space | as above |
+| Signed-in member, API token | `Bearer <access token>` | `?space=<id>` or `X-Blixis-Space` | as above |
+
+A request without a space only sees the platform field `_platform`. Content fields then answer `VALIDATION_FAILED`: choose a space.
+
+## The typed schema
+
+For a model with an `author` type, a `hero` component, and a `page` type:
+
+| You define | You get |
+|---|---|
+| content type `page` | `type Page implements Entry { sys: Sys!, title: String, … }` |
+| component `hero` | `type Hero implements Block { _id: ID!, _type: String!, heading: String, … }` |
+| queries | `page(id: ID!, locale: Locale, preview: Boolean = false): Page` and `pageCollection(where: PageFilter, limit: Int = 25, cursor: String, locale: Locale, preview: Boolean = false): PageCollection!` |
+
+- **Type names** are the `apiId` in PascalCase. If that name is already a platform type (`Entry`, `Link`, …), it gets the suffix `Content`.
+- **Query names** are the `apiId` itself. If it's already a platform field (`entry`, `entries`), it gets the prefix `content`, e.g. `contentEntry`.
+- **Model changes appear immediately**, because the schema is rebuilt per content model version.
+
+| Field type | GraphQL |
+|---|---|
+| `text`, `longText` | `String` |
+| `number` | `Int` / `Float` |
+| `boolean`, `date`, `dateTime` | `Boolean`, `Date`, `DateTime` |
+| `select` | `String` (or `[String!]`) |
+| `reference` | the allowed type if there is exactly one, otherwise `Entry` (use `... on Author`) |
+| `link` | `Link { kind url email phone entry text title newTab }` |
+| `richText` | `RichText { json entries }`: the document plus the entries it embeds or links |
+| `blocks` | `[Block!]`: use fragments per component |
+| `asset` | `Asset { id }` (details arrive with assets) |
+| `json` | `JSON` |
+
+**Generic fields** `entry(id: ID!)` and `entries(contentType: String!)` return any type through the `Entry` interface.
+
+## Example
+
+```graphql
+query HomePage($locale: Locale) {
+  pageCollection(where: { slug: "home" }, limit: 1, locale: $locale) {
+    items {
+      sys { id publishedAt }
+      title
+      author { ... on Author { name } }
+      body {
+        __typename
+        ... on Hero { heading button { text url entry { ... on Page { slug } } } }
+        ... on Section { title text { json entries { sys { id } ... on Page { slug } } } }
+      }
+    }
+  }
+}
+```
+
+## Locales
+
+- **`locale`:** every query field takes `locale` (default: the space's default locale). The locale applies to the whole result, including linked entries.
+- **Fallback:** a missing translation follows the locale's fallback chain (e.g. `nl-BE` → `nl-NL` → default).
+- **Unknown locales** answer `VALIDATION_FAILED`.
+
+## Filters, pagination, order
+
+- **`where`** filters on equality of non-localized `text`, `select`, `number`, `boolean` and `date` fields, e.g. `where: { slug: "home", featured: true }`.
+- **`limit`** is 1–100, default 25. `cursor` takes `nextCursor` from the previous page, and `null` means the last page.
+- **Order:** results are ordered by the latest update first.
+
+## Preview
+
+- **`preview: true`** reads drafts (latest versions), and links resolve to drafts as well. It needs a **preview key** or a signed-in member with `content.preview.read`; delivery keys get `FORBIDDEN`.
+- **Caching:** preview responses carry `Cache-Control: private, no-store`.
+
+## Errors
+
+Errors follow the [GraphQL error format](/concepts/errors/#what-clients-receive-graphql):
+
+| `extensions.code` | When |
+|---|---|
+| `VALIDATION_FAILED` | no space chosen, unknown locale, invalid `limit` or `cursor` |
+| `NOT_FOUND` | unknown space or environment, or one the key or user can't access |
+| `FORBIDDEN` | preview without preview access |
+| `QUERY_TOO_COMPLEX` | a limit below was exceeded |
+| `PAYLOAD_TOO_LARGE` | request body too large (HTTP 413) |
+
+## Limits
+
+| Limit | Default |
+|---|---|
+| Depth of nested fields | 12 |
+| Aliases per operation | 30 |
+| Tokens per document | 3000 |
+| Estimated cost (each field costs 1, multiplied by the `limit` of each enclosing list; 25 without one, 100 for a `limit` variable) | 20 000 |
+| Request body | 64 KiB |
+| `limit` per collection | 100 |
+| Introspection in production | members only (not delivery or preview keys) |
+
+The app changes them with `graphqlModule({ limits: { … } })`.
+
+<Aside type="tip">
+Queries are **batched**: linked entries are loaded together, one database query per level of links. A page list with references, links, rich-text embeds and blocks costs the same **6 SQL statements** whether it returns 3 pages or 100. A test keeps it that way.
+</Aside>

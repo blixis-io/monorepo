@@ -13,5 +13,6 @@ export {
   type SchemaExtension,
   type SchemaExtensionProvider,
 } from './extensions.ts'
+export { DEFAULT_LIMITS, type GraphqlLimits, useLimits } from './limits.ts'
 export { type GraphqlModuleOptions, graphqlModule } from './module.ts'
 export { SCALAR_TYPE_DEFS, SCALARS } from './scalars.ts'
