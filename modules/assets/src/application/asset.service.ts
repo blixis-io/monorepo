@@ -6,8 +6,11 @@ import {
   createServiceToken,
   type EventBus,
   NotFoundError,
+  OBJECT_STORAGE_LIMITS,
+  type ObjectStorage,
   type PermissionId,
   type ServiceToken,
+  type UploadedPart,
   ValidationError,
   type ValidationIssue,
 } from '@blixis/contracts'
@@ -33,6 +36,7 @@ import {
 } from '../events.ts'
 import { assetRepository, type EnvironmentTenant } from '../infrastructure/asset.repository.ts'
 import { ASSET_PERMISSIONS } from '../permissions.ts'
+import { inspectUpload } from './inspect.ts'
 
 /** An asset as the API returns it. */
 export interface AssetView {
@@ -69,6 +73,19 @@ export interface StoredFile {
   readonly sha256?: string | null | undefined
   readonly width?: number | null | undefined
   readonly height?: number | null | undefined
+}
+
+/** A single-request upload for {@link AssetService.upload}. */
+export interface DirectUpload {
+  readonly filename: string
+  readonly mimeType: string
+  /** Exact byte length of `body` (the request's `Content-Length`). */
+  readonly size: number
+  readonly body: ReadableStream<Uint8Array>
+  /** Expected SHA-256, hex; verified by the storage. */
+  readonly sha256?: string | undefined
+  readonly title?: LocalizedText | undefined
+  readonly description?: LocalizedText | undefined
 }
 
 /** Options for {@link AssetService.list}. */
@@ -145,6 +162,60 @@ export interface AssetService {
       expectedVersion: number
     },
   ): Promise<AssetView>
+  /**
+   * Uploads a file in one request (ADR 0013 §1): streams `body` to storage without buffering,
+   * checks the signature of images and PDFs, measures the size, hashes it (Workers), reads image
+   * dimensions, and creates the asset (`asset.created`). A failed upload leaves nothing behind.
+   * With `sha256` (hex, e.g. from `Content-Digest`), the storage stores nothing on a mismatch.
+   * @throws ValidationError (size, type, signature, checksum, name, locales)
+   */
+  upload(actor: Actor, tenant: EnvironmentTenant, input: DirectUpload): Promise<AssetView>
+  /**
+   * Replaces the file of a ready asset in one request; the old file is deleted after the commit.
+   * @throws ConflictError (stale `expectedVersion`), ValidationError
+   */
+  uploadReplacement(
+    actor: Actor,
+    tenant: EnvironmentTenant,
+    id: string,
+    input: Omit<DirectUpload, 'title' | 'description' | 'filename'> & {
+      filename?: string | undefined
+      expectedVersion: number
+    },
+  ): Promise<AssetView>
+  /**
+   * Starts a multipart upload of `size` bytes: returns the pending asset, the part size to use
+   * (every part but the last), and the number of parts.
+   */
+  startUpload(
+    actor: Actor,
+    tenant: EnvironmentTenant,
+    input: {
+      filename: string
+      mimeType: string
+      size: number
+      title?: LocalizedText | undefined
+      description?: LocalizedText | undefined
+    },
+  ): Promise<{ asset: AssetView; partSize: number; partCount: number }>
+  /** Streams part `partNumber` (1-based); its length must match the plan. */
+  uploadPart(
+    actor: Actor,
+    tenant: EnvironmentTenant,
+    id: string,
+    partNumber: number,
+    body: ReadableStream<Uint8Array>,
+    size: number,
+  ): Promise<UploadedPart>
+  /** Assembles the parts and creates the asset (`asset.created`). */
+  completeUpload(
+    actor: Actor,
+    tenant: EnvironmentTenant,
+    id: string,
+    parts: readonly UploadedPart[],
+  ): Promise<AssetView>
+  /** Aborts a multipart upload and removes the pending asset. Idempotent. */
+  abortUpload(actor: Actor, tenant: EnvironmentTenant, id: string): Promise<void>
   /** @throws NotFoundError */
   get(actor: Actor, tenant: EnvironmentTenant, id: string): Promise<AssetView>
   /** Newest first. */
@@ -194,6 +265,8 @@ export interface AssetServiceDeps {
   readonly events: EventBus
   readonly locales: Pick<LocaleService, 'codes'>
   readonly config: AssetsConfig
+  /** Object storage, resolved on first use. */
+  readonly storage: () => ObjectStorage
 }
 
 const P = ASSET_PERMISSIONS
@@ -229,7 +302,7 @@ export function toAssetView(asset: Asset): AssetView {
 }
 
 export function createAssetService(deps: AssetServiceDeps): AssetService {
-  const { db, authz, events, locales, config } = deps
+  const { db, authz, events, locales, config, storage } = deps
 
   const require = (actor: Actor, action: PermissionId, tenant: EnvironmentTenant, id?: string) =>
     authz.require({
@@ -321,7 +394,65 @@ export function createAssetService(deps: AssetServiceDeps): AssetService {
     }
   }
 
-  return {
+  function checkSize(size: number, max: number, what: string) {
+    if (!Number.isSafeInteger(size) || size < 1)
+      throw new ValidationError('Invalid upload', [
+        { path: ['size'], message: 'Send the exact length of the file (Content-Length)' },
+      ])
+    if (size > max)
+      throw new ValidationError('The file is too large', [
+        { path: ['size'], message: `${what} may be at most ${max} bytes` },
+      ])
+  }
+
+  const checkDigest = (sha256: string | undefined) => {
+    if (sha256 !== undefined && !/^[0-9a-f]{64}$/.test(sha256))
+      throw new ValidationError('Invalid checksum', [
+        { path: ['sha256'], message: 'Use a SHA-256 digest (Content-Digest: sha-256=:…:)' },
+      ])
+  }
+
+  /** Streams an upload to `key`; returns the facts of the stored file. Cleans up on failure. */
+  async function store(
+    key: string,
+    input: Pick<DirectUpload, 'body' | 'size' | 'mimeType' | 'sha256'>,
+  ) {
+    const mimeType = mediaType(input.mimeType)
+    const { stream, inspection } = inspectUpload(input.body, mimeType)
+    const objects = storage()
+    try {
+      const stored = await objects.put(key, stream, {
+        size: input.size,
+        contentType: mimeType,
+        ...(input.sha256 === undefined ? {} : { sha256: input.sha256 }),
+      })
+      if (stored.size !== input.size) throw new ValidationError('The upload was incomplete')
+      const facts = await inspection.result()
+      return { sizeBytes: stored.size, ...facts, sha256: input.sha256 ?? facts.sha256 }
+    } catch (error) {
+      await objects.delete(key).catch(() => undefined)
+      throw inspection.rejection() ?? error
+    }
+  }
+
+  function partPlan(size: number) {
+    const MiB = 1024 * 1024
+    // Grow the part size (in whole MiB) only when the file would need more than 10 000 parts.
+    const partSize =
+      Math.ceil(size / config.multipartPartBytes) > OBJECT_STORAGE_LIMITS.maxParts
+        ? Math.ceil(size / OBJECT_STORAGE_LIMITS.maxParts / MiB) * MiB
+        : config.multipartPartBytes
+    return { partSize, partCount: Math.ceil(size / partSize) }
+  }
+
+  async function pendingUpload(tenant: EnvironmentTenant, id: string) {
+    const asset = await load(tenant, id)
+    if (asset.status !== 'pending' || asset.upload === null)
+      throw new ConflictError('No multipart upload is in progress for this asset')
+    return { asset, upload: asset.upload }
+  }
+
+  const service: AssetService = {
     async resolveTenant(actor, assetId) {
       const found = isId(assetId) ? await assetRepository.findForResolution(db, assetId) : undefined
       if (found === undefined) throw new NotFoundError('Asset not found')
@@ -409,6 +540,132 @@ export function createAssetService(deps: AssetServiceDeps): AssetService {
         return row
       })
       return toAssetView(updated)
+    },
+
+    async upload(actor, tenant, input) {
+      await require(actor, P.write.id, tenant)
+      checkSize(input.size, config.maxDirectUploadBytes, 'Single-request uploads')
+      checkSize(input.size, config.maxAssetBytes, 'Files')
+      checkDigest(input.sha256)
+      const { asset, objectKey } = await service.createPending(actor, tenant, input)
+      let file: StoredFile
+      try {
+        file = await store(objectKey, input)
+      } catch (error) {
+        await assetRepository.deletePending(db, tenant, asset.sys.id)
+        throw error
+      }
+      return service.markReady(actor, tenant, asset.sys.id, file)
+    },
+
+    async uploadReplacement(actor, tenant, id, input) {
+      await require(actor, P.write.id, tenant, id)
+      checkSize(input.size, config.maxDirectUploadBytes, 'Single-request uploads')
+      checkSize(input.size, config.maxAssetBytes, 'Files')
+      checkDigest(input.sha256)
+      const current = await load(tenant, id)
+      if (current.version !== input.expectedVersion) throw stale(current.version)
+      const { objectKey } = await service.prepareReplacement(actor, tenant, id, input)
+      const file = await store(objectKey, input)
+      try {
+        return await service.replaceFile(actor, tenant, id, {
+          objectKey,
+          filename: input.filename,
+          mimeType: input.mimeType,
+          file,
+          expectedVersion: input.expectedVersion,
+        })
+      } catch (error) {
+        await storage()
+          .delete(objectKey)
+          .catch(() => undefined)
+        throw error
+      }
+    },
+
+    async startUpload(actor, tenant, input) {
+      await require(actor, P.write.id, tenant)
+      checkSize(input.size, config.maxAssetBytes, 'Files')
+      const plan = partPlan(input.size)
+      if (plan.partCount > OBJECT_STORAGE_LIMITS.maxParts)
+        throw new ValidationError('The file is too large for a multipart upload')
+      const { asset, objectKey } = await service.createPending(actor, tenant, input)
+      try {
+        const { uploadId } = await storage().createMultipart(objectKey, {
+          contentType: asset.fields.mimeType,
+        })
+        await assetRepository.setUpload(db, tenant, asset.sys.id, {
+          upload: { id: uploadId, size: input.size, partSize: plan.partSize },
+        })
+      } catch (error) {
+        await assetRepository.deletePending(db, tenant, asset.sys.id)
+        throw error
+      }
+      return { asset, ...plan }
+    },
+
+    async uploadPart(actor, tenant, id, partNumber, body, size) {
+      await require(actor, P.write.id, tenant, id)
+      const { asset, upload } = await pendingUpload(tenant, id)
+      const { partCount } = partPlan(upload.size)
+      if (!Number.isInteger(partNumber) || partNumber < 1 || partNumber > partCount)
+        throw new ValidationError('Invalid part', [
+          { path: ['partNumber'], message: `Use 1–${partCount}` },
+        ])
+      const expected =
+        partNumber < partCount ? upload.partSize : upload.size - upload.partSize * (partCount - 1)
+      if (size !== expected)
+        throw new ValidationError('Invalid part', [
+          { path: ['size'], message: `Part ${partNumber} must be exactly ${expected} bytes` },
+        ])
+      // Part 1 carries the file's signature and image header.
+      const { stream, inspection } =
+        partNumber === 1
+          ? inspectUpload(body, asset.mimeType, { hash: false })
+          : { stream: body, inspection: undefined }
+      let part: UploadedPart
+      try {
+        part = await storage().uploadPart(asset.objectKey, upload.id, partNumber, stream, size)
+      } catch (error) {
+        throw inspection?.rejection() ?? error
+      }
+      if (inspection !== undefined) {
+        const { width, height } = await inspection.result()
+        await assetRepository.setUpload(db, tenant, id, { width, height })
+      }
+      return part
+    },
+
+    async completeUpload(actor, tenant, id, parts) {
+      await require(actor, P.write.id, tenant, id)
+      const { asset, upload } = await pendingUpload(tenant, id)
+      const { partCount } = partPlan(upload.size)
+      const numbers = parts.map((p) => p.partNumber).sort((a, b) => a - b)
+      if (numbers.length !== partCount || numbers.some((n, i) => n !== i + 1))
+        throw new ValidationError('Invalid parts', [
+          { path: ['parts'], message: `Send all ${partCount} parts, numbered 1–${partCount}` },
+        ])
+      const stored = await storage().completeMultipart(asset.objectKey, upload.id, parts)
+      if (stored.size !== upload.size) {
+        await storage().delete(asset.objectKey)
+        await assetRepository.deletePending(db, tenant, id)
+        throw new ValidationError('The assembled file has the wrong size: upload it again')
+      }
+      return service.markReady(actor, tenant, id, {
+        sizeBytes: stored.size,
+        sha256: null,
+        width: asset.width,
+        height: asset.height,
+      })
+    },
+
+    async abortUpload(actor, tenant, id) {
+      await require(actor, P.write.id, tenant, id)
+      const asset = isId(id) ? await assetRepository.findById(db, tenant, id) : undefined
+      if (asset === undefined) return
+      if (asset.status !== 'pending') throw new ConflictError('The asset is already uploaded')
+      if (asset.upload !== null) await storage().abortMultipart(asset.objectKey, asset.upload.id)
+      await assetRepository.deletePending(db, tenant, id)
     },
 
     async get(actor, tenant, id) {
@@ -507,4 +764,5 @@ export function createAssetService(deps: AssetServiceDeps): AssetService {
       })
     },
   }
+  return service
 }

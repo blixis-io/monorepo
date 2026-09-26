@@ -83,6 +83,50 @@ export const ISOLATION_ROUTES: readonly IsolationRoute[] = [
   { method: 'POST', path: '/api/v1/entries/:entryId/publish' },
   { method: 'POST', path: '/api/v1/entries/:entryId/unpublish', body: { force: true } },
   { method: 'DELETE', path: '/api/v1/entries/:entryId' },
+  // @blixis/assets
+  { method: 'GET', path: '/api/v1/spaces/:spaceId/assets' },
+  {
+    method: 'POST',
+    path: '/api/v1/spaces/:spaceId/assets',
+    rawBody: 'planted',
+    headers: {
+      'content-type': 'text/plain',
+      'content-disposition': 'attachment; filename="x.txt"',
+    },
+  },
+  {
+    method: 'POST',
+    path: '/api/v1/spaces/:spaceId/assets/uploads',
+    body: { filename: 'planted.txt', mimeType: 'text/plain', size: 5 },
+  },
+  { method: 'GET', path: '/api/v1/assets/:assetId' },
+  { method: 'PATCH', path: '/api/v1/assets/:assetId', body: { expectedVersion: 1, filename: 'x' } },
+  {
+    method: 'PUT',
+    path: '/api/v1/assets/:assetId/file',
+    rawBody: 'hijacked',
+    headers: { 'content-type': 'text/plain', 'if-match': '"1"' },
+  },
+  {
+    method: 'PUT',
+    path: '/api/v1/assets/:assetId/upload/parts/:partNumber',
+    rawBody: 'x',
+    paramsFrom: { assetId: 'uploadAssetId' },
+  },
+  {
+    method: 'POST',
+    path: '/api/v1/assets/:assetId/upload/complete',
+    body: { parts: [] },
+    paramsFrom: { assetId: 'uploadAssetId' },
+  },
+  {
+    method: 'DELETE',
+    path: '/api/v1/assets/:assetId/upload',
+    paramsFrom: { assetId: 'uploadAssetId' },
+  },
+  { method: 'POST', path: '/api/v1/assets/:assetId/publish' },
+  { method: 'POST', path: '/api/v1/assets/:assetId/unpublish' },
+  { method: 'DELETE', path: '/api/v1/assets/:assetId' },
   // @blixis/auth — delivery keys
   { method: 'GET', path: '/api/v1/spaces/:spaceId/delivery-keys' },
   {

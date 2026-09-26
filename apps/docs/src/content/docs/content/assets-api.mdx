@@ -1,0 +1,160 @@
+---
+title: Assets API
+description: REST endpoints for assets — upload files in one request or in parts, edit metadata, replace files, publish, and delete.
+sidebar:
+  order: 5
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+Assets are files (images, documents, audio, video) in a space. The **file** is stored in object storage (R2); the **asset record** with its name, type, size and titles lives in the database. See [ADR 0013](https://github.com/blixis-io/monorepo/blob/main/docs/decisions/0013-asset-uploads.md).
+
+Paths are relative to `/api/v1`. The conventions for pagination, concurrency (`ETag` / `If-Match`) and errors are the same as for [entries](/content/entries-api/).
+
+| Method | Path | Permission |
+|---|---|---|
+| `GET` | `/spaces/:spaceId/assets` | `assets.read` |
+| `POST` | `/spaces/:spaceId/assets` | `assets.write` (upload in one request) |
+| `POST` | `/spaces/:spaceId/assets/uploads` | `assets.write` (start a multipart upload) |
+| `PUT` | `/assets/:assetId/upload/parts/:partNumber` | `assets.write` |
+| `POST` | `/assets/:assetId/upload/complete` | `assets.write` |
+| `DELETE` | `/assets/:assetId/upload` | `assets.write` (abort) |
+| `GET` | `/assets/:assetId` | `assets.read` |
+| `PATCH` | `/assets/:assetId` | `assets.write` |
+| `PUT` | `/assets/:assetId/file` | `assets.write` (replace the file) |
+| `POST` | `/assets/:assetId/publish` | `assets.publish` |
+| `POST` | `/assets/:assetId/unpublish` | `assets.publish` |
+| `DELETE` | `/assets/:assetId` | `assets.delete` |
+
+`/spaces/:spaceId/…` routes accept `?environment=` (default `main`). `/assets/:assetId` routes find the tenant from the asset. Assets in spaces you aren't a member of answer `404`.
+
+## The asset object
+
+```json
+{
+  "sys": {
+    "id": "01a0df92-5aa9-7d3e-9b8f-2c61e0a4b7c1",
+    "type": "asset",
+    "environmentId": "01a0df92-…",
+    "version": 2,
+    "status": "draft",
+    "publishedAt": null,
+    "firstPublishedAt": null,
+    "createdAt": "2026-09-26T21:10:04.512Z",
+    "updatedAt": "2026-09-26T21:12:40.108Z",
+    "createdBy": "user:01a0…",
+    "updatedBy": "user:01a0…"
+  },
+  "fields": {
+    "filename": "team.jpg",
+    "title": { "en-US": "Our team", "nl-NL": "Ons team" },
+    "description": {},
+    "mimeType": "image/jpeg",
+    "size": 482113,
+    "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+    "width": 1600,
+    "height": 900
+  }
+}
+```
+
+| `sys.status` | Meaning |
+|---|---|
+| `pending` | a multipart upload is in progress; the asset isn't listed by default |
+| `draft` | uploaded, not public |
+| `published` | public (delivery routes arrive with [plan 014.004](https://github.com/blixis-io/monorepo/blob/main/docs/plans/014-assets/004-asset-delivery.md)) |
+
+- **`size`** is what the storage measured, never what the client claimed.
+- **`sha256`** is set for single-request uploads (computed by the Worker) and `null` for multipart uploads.
+- **`width` / `height`** are read from the file header for PNG, JPEG, GIF and WebP; otherwise `null`.
+- **`title` / `description`** are text per locale code of the space; the file name isn't localized.
+
+## Upload in one request
+
+The request body **is** the file. No form data, no base64.
+
+```http
+POST /api/v1/spaces/{spaceId}/assets
+Content-Type: image/jpeg
+Content-Length: 482113
+Content-Disposition: attachment; filename*=UTF-8''team.jpg
+Content-Digest: sha-256=:n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg=:
+
+<bytes>
+```
+
+| Header | |
+|---|---|
+| `Content-Type` | the file type; must be allowed (below) |
+| `Content-Length` | **required**: uploads are streamed, never buffered, so the size must be known |
+| `Content-Disposition` | the file name (`filename*=UTF-8''…` or `filename="…"`); or `?filename=` |
+| `Content-Digest` | optional SHA-256 ([RFC 9530](https://www.rfc-editor.org/rfc/rfc9530)); a mismatch stores nothing and answers `400` |
+
+Answers `201` with the asset and `ETag: "1"`. Single-request uploads are limited to **90 MiB**; use a multipart upload for larger files.
+
+```ts
+const file = input.files[0]
+const res = await fetch(`${api}/api/v1/spaces/${spaceId}/assets`, {
+  method: 'POST',
+  headers: {
+    authorization: `Bearer ${token}`,
+    'content-type': file.type,
+    'content-disposition': `attachment; filename*=UTF-8''${encodeURIComponent(file.name)}`,
+  },
+  body: file, // the browser sets Content-Length
+})
+```
+
+## Upload in parts (large files)
+
+1. **Start:** `POST /spaces/:spaceId/assets/uploads` with `{ "filename", "mimeType", "size", "title"?, "description"? }`. Answers `201` with `{ asset, partSize, partCount }`.
+2. **Upload each part:** `PUT /assets/:assetId/upload/parts/:n` for `n = 1…partCount`. Every part except the last is **exactly `partSize` bytes**; the last is the rest. Answers `{ partNumber, etag }`. Parts can be sent in parallel and retried.
+3. **Complete:** `POST /assets/:assetId/upload/complete` with `{ "parts": [{ "partNumber": 1, "etag": "…" }, …] }` (every part). Answers the ready asset.
+4. **Abort** (optional): `DELETE /assets/:assetId/upload` removes the pending asset and the uploaded parts. Abandoned uploads are cleaned up automatically.
+
+```ts
+const { asset, partSize, partCount } = await start(file)
+const parts = await Promise.all(
+  Array.from({ length: partCount }, (_, i) =>
+    put(`/assets/${asset.sys.id}/upload/parts/${i + 1}`, file.slice(i * partSize, (i + 1) * partSize)),
+  ),
+)
+await post(`/assets/${asset.sys.id}/upload/complete`, { parts })
+```
+
+The default part size is 10 MiB, and assets may be up to **1 GiB** (`assetsModule({ maxAssetBytes })`).
+
+## File types
+
+- **Allowed by default:** JPEG, PNG, GIF, WebP, AVIF, SVG, PDF, MP3, OGG, WAV, MP4, WebM, plain text, CSV, JSON, ZIP, and Office/OpenDocument files. Apps change the list with `assetsModule({ allowedTypes })`.
+- **Never allowed:** HTML, XHTML, JavaScript, and XML, which a browser would run.
+- **Checked content:** for images and PDF, the first bytes must match the declared type. A script uploaded as `image/png` answers `400` (`The content is not image/png`).
+
+## Edit, replace, publish, delete
+
+| Request | Body | Notes |
+|---|---|---|
+| `PATCH /assets/:assetId` | `{ "filename"?, "title"?, "description"? }` | needs `If-Match` (or `expectedVersion`); omitted properties stay |
+| `PUT /assets/:assetId/file` | the new file, as in a single-request upload | needs `If-Match`; the asset keeps its id, the old file is deleted after the change |
+| `POST /assets/:assetId/publish` | — | `409` while pending; publishing twice changes nothing. Accepts `Idempotency-Key` |
+| `POST /assets/:assetId/unpublish` | — | accepts `Idempotency-Key` |
+| `DELETE /assets/:assetId` | — | `409` while published: unpublish first. Optional `If-Match` |
+
+## List
+
+`GET /spaces/:spaceId/assets` returns `{ assets, nextCursor }`, **newest first**.
+
+| Query | |
+|---|---|
+| `state` | `draft` (default: every uploaded asset), `published`, or `pending` |
+| `mimeType` | a type or prefix, e.g. `image/` or `application/pdf` |
+| `limit` | 1–100, default 25 |
+| `cursor` | `nextCursor` of the previous page |
+
+## Events
+
+`asset.created` (upload finished), `asset.updated` (metadata or file; `replacedObjectKey` names a replaced file), `asset.published`, `asset.unpublished`, `asset.deleted`. All are delivered transactionally. See [Events](/concepts/events/).
+
+<Aside>
+Modules use the same operations through `ASSET_SERVICE` from `@blixis/assets` (see the [API reference](/api/assets/readme/)). To store files of your own, use [object storage](/concepts/object-storage/) directly.
+</Aside>

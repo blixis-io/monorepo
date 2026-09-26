@@ -1,13 +1,23 @@
-import { AUTHORIZATION_SERVICE, BLIXIS_CAPABILITIES, EVENT_BUS, subscribe } from '@blixis/contracts'
+import {
+  AUTHORIZATION_SERVICE,
+  BLIXIS_CAPABILITIES,
+  EVENT_BUS,
+  type ModuleHonoEnv,
+  OBJECT_STORAGE,
+  subscribe,
+} from '@blixis/contracts'
 import { DATABASE } from '@blixis/database'
 import { defineModule } from '@blixis/kernel'
 import { LOCALE_SERVICE, spaceDeleted } from '@blixis/spaces'
+import { Hono } from 'hono'
 import { ASSET_SERVICE, createAssetService } from './application/asset.service.ts'
 import { ASSETS_CONFIG, type AssetsConfig, DEFAULT_ASSETS_CONFIG } from './config.ts'
 import { mediaType } from './domain/asset.ts'
 import { assetRepository } from './infrastructure/asset.repository.ts'
 import { createAssets } from './infrastructure/migrations/0001_create_assets.ts'
+import { addUploads } from './infrastructure/migrations/0002_add_uploads.ts'
 import { ASSET_PERMISSIONS } from './permissions.ts'
+import { assetRoutes } from './rest/asset.routes.ts'
 
 /** Options for {@link assetsModule}; every limit has a default (ADR 0013). */
 export type AssetsModuleOptions = Partial<AssetsConfig>
@@ -22,6 +32,7 @@ export const assetsModule = defineModule((options: AssetsModuleOptions) => {
       options.maxDirectUploadBytes ?? DEFAULT_ASSETS_CONFIG.maxDirectUploadBytes,
     maxAssetBytes: options.maxAssetBytes ?? DEFAULT_ASSETS_CONFIG.maxAssetBytes,
     allowedTypes: (options.allowedTypes ?? DEFAULT_ASSETS_CONFIG.allowedTypes).map(mediaType),
+    multipartPartBytes: options.multipartPartBytes ?? DEFAULT_ASSETS_CONFIG.multipartPartBytes,
   })
   return {
     meta: {
@@ -32,7 +43,7 @@ export const assetsModule = defineModule((options: AssetsModuleOptions) => {
       requiresCapabilities: [BLIXIS_CAPABILITIES.database, BLIXIS_CAPABILITIES.events],
     },
     permissions: Object.values(ASSET_PERMISSIONS),
-    migrations: [createAssets],
+    migrations: [createAssets, addUploads],
     events: [
       // Space data belongs to its modules: delete this module's rows with the space (plan 008).
       // Stored files are removed by the space cleanup of 014.006.
@@ -54,10 +65,13 @@ export const assetsModule = defineModule((options: AssetsModuleOptions) => {
             authz: services.get(AUTHORIZATION_SERVICE),
             events: services.get(EVENT_BUS),
             locales: services.get(LOCALE_SERVICE),
+            // Resolved on first use: reading and editing metadata works without storage.
+            storage: () => services.get(OBJECT_STORAGE),
             config,
           }),
         { scope: 'request' },
       )
     },
+    rest: { path: '/', app: new Hono<ModuleHonoEnv>().route('/', assetRoutes) },
   }
 })

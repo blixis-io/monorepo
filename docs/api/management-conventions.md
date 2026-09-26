@@ -11,7 +11,7 @@ Related: [Errors](../contracts/errors.md) · [Tenancy](../conventions/tenancy.md
 - **Base path:** `/api/v1`.
 - **Resources:** lowercase, plural, kebab-case (`/content-types`, `/entries`).
 - **Tenant resources:** these live under their tenant, `/organizations/:orgId/…` and `/spaces/:spaceId/…`.
-- **Resource ids** that are unique on their own may have top-level routes (`/entries/:entryId`). Such routes resolve the tenant from the stored resource and verify access before anything else (`entryScoped()`). Register the segment in `@blixis/testing`'s `TENANT_SEGMENTS`, so the isolation suite and authorization matrix cover it.
+- **Resource ids** that are unique on their own may have top-level routes (`/entries/:entryId`, `/assets/:assetId`). Such routes resolve the tenant from the stored resource and verify access before anything else (`entryScoped()`, `assetScoped()`). Register the segment in `@blixis/testing`'s `TENANT_SEGMENTS`, so the isolation suite and authorization matrix cover it.
 - **Environment:** space-scoped routes select one with `?environment=<key>`; the default is the space's default environment, `main`.
 
 ## Authentication and access
@@ -28,8 +28,9 @@ Related: [Errors](../contracts/errors.md) · [Tenancy](../conventions/tenancy.md
 - **Format:** JSON, with camelCase properties.
 - **Ids:** UUIDv7 strings (ADR 0007). Field ids and block ids are 8-character strings (ADR 0010).
 - **Timestamps:** ISO 8601 in UTC with milliseconds (`2026-09-25T14:30:00.000Z`).
-- **Content entries:** `{ sys, fields }`. `sys` holds system properties (`id`, `version`, `status`, timestamps, …), and `fields` holds the content keyed by `apiId`.
+- **Content entries and assets:** `{ sys, fields }`. `sys` holds system properties (`id`, `version`, `status`, timestamps, …), and `fields` holds the content keyed by `apiId`.
 - **Other resources:** plain objects.
+- **File uploads:** the request body is the file (no form data or base64), with `Content-Type`, a required `Content-Length`, and the name in `Content-Disposition` (ADR 0013).
 
 ## Lists and pagination
 

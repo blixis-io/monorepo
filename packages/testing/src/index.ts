@@ -34,6 +34,7 @@ export {
   expectIsolated,
   type IsolationParams,
   type IsolationRoute,
+  isolationRequest,
   isolationUrl,
   isTenantScoped,
   uncoveredTenantRoutes,

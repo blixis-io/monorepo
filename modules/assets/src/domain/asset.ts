@@ -25,6 +25,8 @@ export interface Asset {
   /** Opaque storage key `<spaceId>/<assetId>/<fileId>`; a new file gets a new key. */
   readonly objectKey: string
   readonly version: number
+  /** A multipart upload in progress (pending assets only). */
+  readonly upload: { readonly id: string; readonly size: number; readonly partSize: number } | null
   readonly publishedAt: string | null
   readonly firstPublishedAt: string | null
   readonly createdBy: string
