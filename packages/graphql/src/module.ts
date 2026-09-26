@@ -1,12 +1,13 @@
 import type { ModuleHonoEnv, ModuleMeta } from '@blixis/contracts'
+import { BlixisError } from '@blixis/contracts'
 import { defineModule, KERNEL_CONTRIBUTIONS } from '@blixis/kernel'
-import type { GraphQLSchema } from 'graphql'
+import { GraphQLError, type GraphQLSchema } from 'graphql'
 import { createYoga, type YogaServerInstance } from 'graphql-yoga'
 import { Hono } from 'hono'
 import { composeSchema, type SchemaPart } from './compose.ts'
 import type { GraphQLContext } from './context.ts'
-import { useBlixisErrors } from './errors.ts'
-import { GRAPHQL_SCHEMA_EXTENSION } from './extensions.ts'
+import { mapGraphQLError, useBlixisErrors } from './errors.ts'
+import { GRAPHQL_SCHEMA_EXTENSION, type SchemaExtensionProvider } from './extensions.ts'
 
 /** Options for {@link graphqlModule}. */
 export interface GraphqlModuleOptions {
@@ -78,7 +79,18 @@ export const graphqlModule = defineModule((options: GraphqlModuleOptions) => {
       const extended = new Map<string, GraphQLSchema>()
       const capacity = options.schemaCacheSize ?? 50
       const schemaFor = async (context: ServerContext): Promise<GraphQLSchema> => {
-        const extension = await context.services.getOptional(GRAPHQL_SCHEMA_EXTENSION)?.(context)
+        let extension: Awaited<ReturnType<SchemaExtensionProvider>>
+        try {
+          extension = await context.services.getOptional(GRAPHQL_SCHEMA_EXTENSION)?.(context)
+        } catch (error) {
+          // Choosing the schema happens before execution: map public errors (unknown space,
+          // missing permission) like resolver errors instead of letting Yoga mask them.
+          if (!(error instanceof BlixisError)) throw error
+          throw mapGraphQLError(
+            new GraphQLError(error.message, { originalError: error }),
+            context.requestContext.requestId,
+          ).error
+        }
         if (extension === undefined) return staticSchema
         let schema = extended.get(extension.key)
         if (schema === undefined) {

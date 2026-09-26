@@ -403,6 +403,9 @@ importers:
 
   modules/content:
     dependencies:
+      '@blixis/graphql':
+        specifier: workspace:*
+        version: link:../../packages/graphql
       zod:
         specifier: 'catalog:'
         version: 4.6.5

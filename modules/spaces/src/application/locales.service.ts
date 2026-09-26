@@ -62,7 +62,9 @@ export interface LocaleService {
    * Locale codes and the default, for platform code such as entry validation — no authorization:
    * the caller passes a tenant it already verified.
    */
-  codes(tenant: SpaceTenant): Promise<{ codes: string[]; defaultCode: string }>
+  codes(
+    tenant: SpaceTenant,
+  ): Promise<{ codes: string[]; defaultCode: string; fallbacks: Record<string, string | null> }>
 }
 
 export const ENVIRONMENT_SERVICE: ServiceToken<EnvironmentService> =
@@ -146,7 +148,11 @@ export function createLocaleService(deps: {
       const all = await localeRepository.list(db, tenant)
       const fallback = all.find((l) => l.isDefault) ?? all[0]
       if (fallback === undefined) throw new NotFoundError('The space has no locales')
-      return { codes: all.map((l) => l.code), defaultCode: fallback.code }
+      return {
+        codes: all.map((l) => l.code),
+        defaultCode: fallback.code,
+        fallbacks: Object.fromEntries(all.map((l) => [l.code, l.fallbackCode])),
+      }
     },
 
     async create(actor, tenant, input) {

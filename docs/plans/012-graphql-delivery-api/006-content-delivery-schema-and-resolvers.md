@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -38,21 +38,27 @@ Implement the delivery GraphQL schema per ADR 0011 in `@blixis/content` (`src/gr
 ### Create
 
 ```text
-modules/content/src/graphql/schema.ts
-modules/content/src/graphql/resolvers.ts
-modules/content/src/graphql/generate.ts (if ADR 0011 chooses generated types)
-modules/content/src/graphql/loaders.ts
-modules/content/test/graphql.test.ts
-apps/api/test/delivery.worker.test.ts
+modules/content/src/application/delivery.service.ts
+modules/content/src/graphql/delivery.ts (base schema, generator, resolvers)
+modules/content/src/graphql/names.ts
+modules/content/src/graphql/locales.ts
+modules/content/test/delivery.graphql.test.ts
+packages/graphql/src/batch.ts
+packages/graphql/src/batch.test.ts
 ```
 
 ### Modify
 
 ```text
 modules/content/src/module.ts
-modules/content/src/application/content.service.ts
 modules/content/package.json
-packages/graphql/src/server.ts (dynamic schema hook, if ADR requires)
+modules/content/tsconfig.json
+modules/spaces/src/application/locales.service.ts (codes() returns fallbacks)
+packages/graphql/src/module.ts (map errors of schema selection)
+packages/graphql/src/index.ts
+tooling/postman/blixis.postman_collection.json
+docs/ROADMAP.md (register D14)
+pnpm-lock.yaml
 ```
 
 ### Delete
@@ -76,9 +82,9 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Published entries queryable with delivery key; drafts never returned.
-- [ ] Locale fallback follows space fallback chain.
-- [ ] Nested links resolved with bounded query counts.
+- [x] Published entries queryable with delivery key; drafts never returned.
+- [x] Locale fallback follows space fallback chain.
+- [x] Nested links resolved with bounded query counts.
 
 ## Validation
 
@@ -89,15 +95,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Resolvers only call services.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Resolvers only call services.
 
 ## Completion conditions
 
@@ -114,4 +120,40 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Structure:**
+  - `modules/content/src/graphql/delivery.ts` holds the static base (typeDefs and resolvers, contributed via `graphql`), the generator `generateDeliverySchema(types, registry)`, and field resolvers;
+  - `names.ts` holds the naming rules of ADR 0011 §3, `locales.ts` the fallback resolution.
+- **`DELIVERY_SERVICE`:**
+  - **`scope(actor, { spaceId, environment })`:**
+    - A key fixes its space; users must pass `?space=` or `X-Blixis-Space` (otherwise `VALIDATION_FAILED`).
+    - Existence is resolved as the platform (`TENANT_RESOLVER` with a system actor, `allowSystem`), then the actor's `content.delivery.read` is required. Missing and inaccessible spaces both give `NOT_FOUND`.
+    - A key's `environmentIds` are enforced.
+    - The scope loads the model (1 query) and the locales with fallbacks, and computes `modelKey = space:environment:fnv1a(id:version…)`.
+    - It's memoised per request.
+  - **`requireState`:** `draft` needs `content.preview.read`.
+  - **Reads:** `entries(scope, ids, state)` (one `findManyWithVersions`) and `collection(...)` (keyset, filters, cursor).
+- **Resolvers:**
+  - They call `DELIVERY_SERVICE` only. Per request they hold a `createBatchLoader` per state, so linked entries in one tick load in **one query**.
+  - Parent objects carry `{ delivered | component+values, locale, state }`, so linked entries resolve in the **same state and locale**.
+  - Field mapping follows ADR 0011 §4:
+    - reference → the single allowed type or `Entry`;
+    - link → `Link` with a lazy `entry`;
+    - richText → `{ json, entries }`, where entries are embeds and link marks;
+    - blocks → `[Block!]`, resolved by component id;
+    - custom types use their `graphql` hint, or `JSON`.
+- **Fallback:** requested locale → its `fallbackCode` chain → default locale (loop-safe). `LocaleService.codes()` now returns `fallbacks`.
+- **Root fields:**
+  - `<apiId>(id, locale, preview)` returns null for entries of other types;
+  - `<apiId>Collection(where, limit, cursor, locale, preview)` validates `limit` (1–100);
+  - generic `entry(id)` and `entries(contentType)` sit on the static base.
+- **`GRAPHQL_SCHEMA_EXTENSION` provider:**
+  - It's active for key actors or when a space is named; the generated parts are built lazily (getter), only on a cache miss.
+  - Errors while choosing the schema (e.g. an unknown space) are now mapped like resolver errors in `@blixis/graphql`: before, Yoga masked them as `INTERNAL_SERVER_ERROR`.
+- **`createBatchLoader`** (in `@blixis/graphql`) is a minimal DataLoader: it batches loads of one tick, caches per request, and rejects all waiting loads on failure without caching the failure.
+- **Bug caught by the tests:** building a linked entry's parent spread the *parent entry* over it, so links resolved to the page itself. It now copies only locale and state.
+- **Tests (5, Postgres):**
+  - a typed query covering reference, blocks with `__typename`, link.entry and richText.entries;
+  - nl-NL fallback, including blocks, and an unknown locale;
+  - published vs. drafts: delivery keys get `FORBIDDEN` on preview, preview keys see drafts, and viewers with `?space=` use the generic `entry`;
+  - outsiders, wrong environment and wrong space get `NOT_FOUND`, and no space gives `VALIDATION_FAILED`;
+  - model changes are visible immediately (a new cache key).

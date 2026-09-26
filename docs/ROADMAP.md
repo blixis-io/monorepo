@@ -65,7 +65,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `completed` | 5/5 | 008 |
 | [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `completed` | 5/5 | 009 |
 | [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `completed` | 7/7 | 010 |
-| [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `in-progress` | 5/8 | 011 |
+| [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `in-progress` | 6/8 | 011 |
 | [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `not-started` | 0/5 | 012 |
 | [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `not-started` | 0/6 | 012 |
 | [015 — Webhooks](./plans/015-webhooks/_index.md) | M7 | MVP | `not-started` | 0/5 | 011 |
@@ -319,7 +319,7 @@ Completes `@blixis/content` with entries, immutable entry versions, publications
 
 #### 012 — GraphQL Platform & Content Delivery API
 
-Status: `in-progress` · Progress: 5/8 · Scope: MVP  
+Status: `in-progress` · Progress: 6/8 · Scope: MVP  
 Plan: [012-graphql-delivery-api/_index.md](./plans/012-graphql-delivery-api/_index.md)  
 Depends on: [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md)
 
@@ -330,7 +330,7 @@ Builds `@blixis/graphql` (GraphQL Yoga on Workers at `/graphql`, schema composit
 - [x] [012.003 — Map Blixis errors to GraphQL errors](./plans/012-graphql-delivery-api/003-graphql-error-mapping.md)
 - [x] [012.004 — Implement delivery and preview API keys](./plans/012-graphql-delivery-api/004-delivery-and-preview-api-keys.md)
 - [x] [012.005 — Decide the delivery schema strategy](./plans/012-graphql-delivery-api/005-decide-delivery-schema-strategy.md)
-- [ ] [012.006 — Implement content delivery schema and resolvers](./plans/012-graphql-delivery-api/006-content-delivery-schema-and-resolvers.md)
+- [x] [012.006 — Implement content delivery schema and resolvers](./plans/012-graphql-delivery-api/006-content-delivery-schema-and-resolvers.md)
 - [ ] [012.007 — Implement preview (draft) delivery](./plans/012-graphql-delivery-api/007-preview-delivery.md)
 - [ ] [012.008 — Enforce query limits and verify batching](./plans/012-graphql-delivery-api/008-query-limits-and-batching.md)
 
@@ -576,7 +576,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | D11 | Email delivery for invitations/password reset | [008.002](./plans/008-tenancy-organizations-and-spaces/002-memberships.md) (deferred) | Add existing users only in MVP | open |
 | D12 | Environments beyond the default `main` | [008.004](./plans/008-tenancy-organizations-and-spaces/004-environments-and-locales.md) | One default environment; `environment_id` columns from day one | open |
 | D13 | Content storage model (JSONB shape, localisation, references, rich text, schema evolution) | [010.001](./plans/010-content-modeling/001-content-storage-design.md) | JSONB keyed by stable field ID and locale | [ADR 0010](./decisions/0010-content-storage-model.md): JSONB fields with stable ids; components + `blocks`; plain values for non-localized fields; ProseMirror-compatible rich text |
-| D14 | Delivery GraphQL schema (generic vs. generated per space) | [012.005](./plans/012-graphql-delivery-api/005-decide-delivery-schema-strategy.md) | Generated typed schema per space/environment, cached by content-model version | open |
+| D14 | Delivery GraphQL schema (generic vs. generated per space) | [012.005](./plans/012-graphql-delivery-api/005-decide-delivery-schema-strategy.md) | Generated typed schema per space/environment, cached by content-model version | [ADR 0011](./decisions/0011-delivery-schema-strategy.md): static base + typed schema per content model, isolate LRU keyed by model version |
 | D15 | Delivery cache invalidation (versioned keys via KV vs. purge vs. TTL) | [013.001](./plans/013-delivery-caching/001-caching-strategy-and-baseline.md) | Versioned keys with KV stamp, justified by measurement | open |
 | D16 | Asset upload strategy and serving domain | [014.001](./plans/014-assets/001-upload-strategy-and-object-storage.md) | Stream through Worker via R2 binding; multipart for large files | open |
 | D17 | Workflows integration pattern & scheduling | [016.001](./plans/016-releases-and-workflows/001-workflows-integration-pattern.md) | Explicit class exports in composition root | open |
