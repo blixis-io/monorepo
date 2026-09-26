@@ -65,7 +65,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md) | M4 | MVP | `completed` | 5/5 | 008 |
 | [010 — Content Modeling](./plans/010-content-modeling/_index.md) | M5 | MVP | `completed` | 5/5 | 009 |
 | [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md) | M5 | MVP | `completed` | 7/7 | 010 |
-| [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `in-progress` | 6/8 | 011 |
+| [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `in-progress` | 7/8 | 011 |
 | [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `not-started` | 0/5 | 012 |
 | [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `not-started` | 0/6 | 012 |
 | [015 — Webhooks](./plans/015-webhooks/_index.md) | M7 | MVP | `not-started` | 0/5 | 011 |
@@ -319,7 +319,7 @@ Completes `@blixis/content` with entries, immutable entry versions, publications
 
 #### 012 — GraphQL Platform & Content Delivery API
 
-Status: `in-progress` · Progress: 6/8 · Scope: MVP  
+Status: `in-progress` · Progress: 7/8 · Scope: MVP  
 Plan: [012-graphql-delivery-api/_index.md](./plans/012-graphql-delivery-api/_index.md)  
 Depends on: [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md)
 
@@ -331,7 +331,7 @@ Builds `@blixis/graphql` (GraphQL Yoga on Workers at `/graphql`, schema composit
 - [x] [012.004 — Implement delivery and preview API keys](./plans/012-graphql-delivery-api/004-delivery-and-preview-api-keys.md)
 - [x] [012.005 — Decide the delivery schema strategy](./plans/012-graphql-delivery-api/005-decide-delivery-schema-strategy.md)
 - [x] [012.006 — Implement content delivery schema and resolvers](./plans/012-graphql-delivery-api/006-content-delivery-schema-and-resolvers.md)
-- [ ] [012.007 — Implement preview (draft) delivery](./plans/012-graphql-delivery-api/007-preview-delivery.md)
+- [x] [012.007 — Implement preview (draft) delivery](./plans/012-graphql-delivery-api/007-preview-delivery.md)
 - [ ] [012.008 — Enforce query limits and verify batching](./plans/012-graphql-delivery-api/008-query-limits-and-batching.md)
 
 #### 013 — Delivery Caching & Invalidation

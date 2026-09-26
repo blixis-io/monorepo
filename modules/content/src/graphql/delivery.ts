@@ -67,6 +67,8 @@ function delivery(context: Context) {
       async open(state: EntryState): Promise<DeliveryScope> {
         const resolved = await scope
         await service.requireState(actor, resolved, state)
+        // Drafts must never land in a shared cache (plan 013 adds public caching of the rest).
+        if (state === 'draft') context.responseHeaders.set('cache-control', 'private, no-store')
         return resolved
       },
       entries(state: EntryState) {
