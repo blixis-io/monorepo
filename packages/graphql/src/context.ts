@@ -14,6 +14,11 @@ export interface GraphQLContext {
    * `loaders.get('@blixis/content.entries')`. Dropped with the request.
    */
   readonly loaders: Map<string, unknown>
+  /**
+   * Headers to add to the HTTP response, e.g. `Cache-Control: private, no-store` when a resolver
+   * served draft content. Later values replace earlier ones.
+   */
+  readonly responseHeaders: Headers
 }
 
 /**

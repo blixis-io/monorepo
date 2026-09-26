@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 6 — Content delivery  
 Roadmap scope: MVP / initial platform  
-Progress: 6/8 tasks completed
+Progress: 7/8 tasks completed
 
 ## Objective
 
@@ -69,7 +69,7 @@ Depends on:
 - [x] [004 — Implement delivery and preview API keys](./004-delivery-and-preview-api-keys.md)
 - [x] [005 — Decide the delivery schema strategy](./005-decide-delivery-schema-strategy.md)
 - [x] [006 — Implement content delivery schema and resolvers](./006-content-delivery-schema-and-resolvers.md)
-- [ ] [007 — Implement preview (draft) delivery](./007-preview-delivery.md)
+- [x] [007 — Implement preview (draft) delivery](./007-preview-delivery.md)
 - [ ] [008 — Enforce query limits and verify batching](./008-query-limits-and-batching.md)
 
 ## Completion criteria

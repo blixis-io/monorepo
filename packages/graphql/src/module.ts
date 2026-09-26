@@ -128,9 +128,12 @@ export const graphqlModule = defineModule((options: GraphqlModuleOptions) => {
           requestContext: c.var.requestContext,
           services: c.var.services,
           loaders: new Map(),
+          responseHeaders: new Headers(),
           env: (c.env ?? {}) as Readonly<Record<string, unknown>>,
         }
-        return yoga.fetch(c.req.raw, context)
+        const response = await yoga.fetch(c.req.raw, context)
+        for (const [name, value] of context.responseHeaders) response.headers.set(name, value)
+        return response
       }),
     },
   }
