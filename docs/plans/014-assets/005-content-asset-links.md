@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,18 +37,35 @@ Complete content's asset link support: validate that linked assets exist in the 
 ### Create
 
 ```text
-modules/content/test/asset-links.test.ts
+packages/contracts/src/assets.ts
+modules/assets/test/content-links.test.ts
 ```
 
 ### Modify
 
 ```text
-modules/content/src/domain/field-types/asset.ts
-modules/content/src/application/publishing.ts
-modules/content/src/application/links.ts
-modules/content/src/graphql/resolvers.ts
+packages/contracts/src/index.ts
+packages/graphql/src/context.ts
+modules/content/src/application/content.service.ts
+modules/content/src/application/content-type.service.ts
+modules/content/src/domain/links.ts
+modules/content/src/graphql/delivery.ts
 modules/content/src/module.ts
-modules/content/package.json
+modules/content/test/content-types.api.test.ts
+modules/assets/src/domain/asset.ts
+modules/assets/src/infrastructure/asset.repository.ts
+modules/assets/src/module.ts
+modules/assets/package.json
+modules/assets/tsconfig.test.json
+apps/docs/src/content/docs/content/field-types.mdx
+apps/docs/src/content/docs/content/delivery-api.mdx
+apps/docs/src/content/docs/content/assets-api.mdx
+apps/docs/src/content/docs/concepts/entries-and-publishing.mdx
+apps/docs/src/content/docs/concepts/graphql.mdx
+docs/plans/014-assets/005-content-asset-links.md
+docs/plans/014-assets/_index.md
+docs/ROADMAP.md
+pnpm-lock.yaml
 ```
 
 ### Delete
@@ -72,8 +89,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Entry cannot be published while linking an unpublished asset.
-- [ ] Content module boots without assets module (asset field type disabled).
+- [x] Entry cannot be published while linking an unpublished asset.
+- [x] Content module boots without assets module (asset field type disabled).
 
 ## Validation
 
@@ -84,15 +101,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Capability-based coupling verified (no package import of assets internals).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Capability-based coupling verified (no package import of assets internals).
 
 ## Completion conditions
 
@@ -109,4 +126,14 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **No package dependency between content and assets.** Two small ports in `@blixis/contracts`:
+  - `ASSET_LOOKUP` (`findMany(tenant, ids)` → `AssetSummary`), provided by `@blixis/assets`, resolved by content with `getOptional`;
+  - `DELIVERY_INVALIDATION` (`spaceChanged(tenant)`), provided by `@blixis/content` (bumps the space's delivery stamp, ADR 0012), called by `@blixis/assets` from its own subscriptions to `asset.published|unpublished|updated|deleted`.
+  Content can't subscribe to asset events itself: that needs the event definitions (a package dependency), and the event registry rejects a second, mirrored definition of the same type.
+- **Without the assets module** (no `ASSET_LOOKUP`), asset fields are refused at content-type creation (`fields[i].type`). Rich-text `embeddedAsset` nodes are not refused; their links are only checked when a lookup exists.
+- **Drafts** may link any asset id (like entry references, ADR 0010). **Publishing** checks every asset link — fields, blocks, rich-text embeds — in one batched lookup: must exist (`Links to an asset that does not exist`), be published (`… unpublished asset: publish it first`), and match the field's `mimeTypes` (`image/*` patterns; `LinkUsage` now carries them).
+- **GraphQL:** `Asset { id url filename mimeType size width height title description }`, loaded through one batch loader per request. `url` is absolute from the request origin (`GraphQLContext.request`, now declared); `title`/`description` follow the requested locale's fallbacks. Unpublished or missing assets drop out of published responses, like unresolved entry links; `preview: true` shows drafts. `RichText.assets` lists embedded assets.
+- **Cache scope** gained the request host (`host|space:env:stamp`): responses contain absolute URLs, so `workers.dev` and a custom domain must not share entries.
+- **Not blocked:** unpublishing or deleting an asset that published entries link to. Assets can't see content's references without the reverse dependency; the links stop resolving, and the manual says so. A usage check can come with an asset-usage port if needed.
+- **REST `?include`** still returns entries only; asset details reach clients through GraphQL (a REST `includes.assets` can follow).
+- **Tests** live in `modules/assets/test/content-links.test.ts` (assets may depend on content in tests, not the other way round): publish checks, GraphQL fields, absolute URL, locale fallback, cache `HIT` → `MISS` after unpublishing the asset, preview. Content's own test covers the refusal without assets.

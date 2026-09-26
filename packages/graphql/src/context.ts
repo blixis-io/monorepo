@@ -19,6 +19,8 @@ export interface GraphQLContext {
    * served draft content. Later values replace earlier ones.
    */
   readonly responseHeaders: Headers
+  /** The HTTP request (set by GraphQL Yoga), e.g. to build absolute URLs from its origin. */
+  readonly request?: Request
 }
 
 /**

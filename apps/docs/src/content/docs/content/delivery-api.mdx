@@ -43,9 +43,9 @@ For a model with an `author` type, a `hero` component, and a `page` type:
 | `select` | `String` (or `[String!]`) |
 | `reference` | the allowed type if there is exactly one, otherwise `Entry` (use `... on Author`) |
 | `link` | `Link { kind url email phone entry text title newTab }` |
-| `richText` | `RichText { json entries }`: the document plus the entries it embeds or links |
+| `richText` | `RichText { json entries assets }`: the document plus the entries it embeds or links and the assets it embeds |
 | `blocks` | `[Block!]`: use fragments per component |
-| `asset` | `Asset { id }` (details arrive with assets) |
+| `asset` | `Asset { id url filename mimeType size width height title description }`; `url` is absolute. Unpublished or missing assets are left out (drafts appear with `preview: true`) |
 | `json` | `JSON` |
 
 **Generic fields** `entry(id: ID!)` and `entries(contentType: String!)` return any type through the `Entry` interface.

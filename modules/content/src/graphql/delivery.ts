@@ -1,4 +1,4 @@
-import { NotFoundError, ValidationError } from '@blixis/contracts'
+import { ASSET_LOOKUP, type AssetSummary, NotFoundError, ValidationError } from '@blixis/contracts'
 import { createBatchLoader, type GraphQLContext, loader, type SchemaPart } from '@blixis/graphql'
 import {
   DELIVERY_SERVICE,
@@ -30,6 +30,11 @@ interface BlockParent extends Read {
   readonly values: Readonly<Record<string, unknown>>
 }
 type Parent = EntryParent | BlockParent
+/** An asset linked from an entry, block, or rich text, with the locale and state read. */
+interface AssetParent {
+  readonly asset: AssetSummary
+  readonly read: Read
+}
 
 const isObject = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v)
@@ -71,6 +76,13 @@ function delivery(context: Context) {
         if (state === 'draft') context.responseHeaders.set('cache-control', 'private, no-store')
         return resolved
       },
+      /** Linked assets, batched per request (`ASSET_LOOKUP`; none without the assets module). */
+      assets: createBatchLoader(async (ids: readonly string[]) => {
+        const lookup = context.services.getOptional(ASSET_LOOKUP)
+        if (lookup === undefined) return new Map<string, AssetSummary>()
+        const found = await lookup.findMany((await scope).tenant, ids)
+        return new Map(found.map((asset) => [asset.id, asset]))
+      }),
       entries(state: EntryState) {
         let entries = loaders.get(state)
         if (entries === undefined) {
@@ -124,6 +136,23 @@ async function linked(
   return found.flatMap((d) => (d === undefined ? [] : [entryParent(d, parent)]))
 }
 
+/**
+ * Loads linked assets; missing ones — and unpublished ones outside preview — are dropped, like
+ * unresolved entry links.
+ */
+async function linkedAssets(
+  context: Context,
+  parent: Read,
+  ids: readonly string[],
+): Promise<AssetParent[]> {
+  const found = await delivery(context).assets.loadMany(ids)
+  return found.flatMap((asset) =>
+    asset === undefined || (parent.state === 'published' && asset.status !== 'published')
+      ? []
+      : [{ asset, read: { locale: parent.locale, state: parent.state } }],
+  )
+}
+
 /** Resolves one field of an entry or block to its GraphQL value. */
 async function fieldValue(
   field: FieldDefinition,
@@ -143,9 +172,8 @@ async function fieldValue(
       return field.settings['multiple'] === true ? entries : (entries[0] ?? null)
     }
     case 'asset': {
-      const assets = (Array.isArray(raw) ? raw : [raw])
-        .filter(isObject)
-        .map((a) => ({ id: a['id'] }))
+      const ids = (Array.isArray(raw) ? raw : [raw]).filter(isObject).map((a) => String(a['id']))
+      const assets = await linkedAssets(context, parent, ids)
       return field.settings['multiple'] === true ? assets : (assets[0] ?? null)
     }
     case 'link':
@@ -172,6 +200,16 @@ async function fieldValue(
     default:
       return raw
   }
+}
+
+/** Asset ids embedded in a rich-text document. */
+function richTextAssetIds(node: unknown, ids: string[] = []): string[] {
+  if (!isObject(node)) return ids
+  const attrs = isObject(node['attrs']) ? node['attrs'] : {}
+  if (node['type'] === 'embeddedAsset' && typeof attrs['id'] === 'string') ids.push(attrs['id'])
+  if (Array.isArray(node['content']))
+    for (const child of node['content']) richTextAssetIds(child, ids)
+  return ids
 }
 
 /** Entry ids linked from a rich-text document (embeds and entry links). */
@@ -232,15 +270,30 @@ export const DELIVERY_BASE_TYPE_DEFS = /* GraphQL */ `
     newTab: Boolean
   }
 
-  "Rich text: the document (ProseMirror/TipTap JSON) and the entries it links or embeds."
+  "Rich text: the document (ProseMirror/TipTap JSON) and the entries and assets it links or embeds."
   type RichText {
     json: JSON!
     entries: [Entry!]!
+    assets: [Asset!]!
   }
 
-  "An asset link (asset details arrive with the assets module)."
+  "A file linked from content: image, document, audio, or video (plan 014)."
   type Asset {
     id: ID!
+    "Absolute URL of the file on the delivery route."
+    url: String!
+    filename: String!
+    mimeType: String!
+    "Size in bytes."
+    size: Int!
+    "Pixel width, for PNG, JPEG, GIF, and WebP images."
+    width: Int
+    "Pixel height, for PNG, JPEG, GIF, and WebP images."
+    height: Int
+    "Title in the requested locale (following its fallbacks)."
+    title: String
+    "Description in the requested locale (following its fallbacks)."
+    description: String
   }
 
   type EntryCollection {
@@ -277,6 +330,24 @@ export const deliveryBaseResolvers = {
   RichText: {
     entries: (parent: { json: unknown; __read: Read }, _args: unknown, context: Context) =>
       linked(context, parent.__read, [...new Set(richTextEntryIds(parent.json))]),
+    assets: (parent: { json: unknown; __read: Read }, _args: unknown, context: Context) =>
+      linkedAssets(context, parent.__read, [...new Set(richTextAssetIds(parent.json))]),
+  },
+  Asset: {
+    id: (parent: AssetParent) => parent.asset.id,
+    url: (parent: AssetParent, _args: unknown, context: Context) =>
+      context.request === undefined
+        ? parent.asset.url
+        : new URL(parent.asset.url, context.request.url).href,
+    filename: (parent: AssetParent) => parent.asset.filename,
+    mimeType: (parent: AssetParent) => parent.asset.mimeType,
+    size: (parent: AssetParent) => parent.asset.size,
+    width: (parent: AssetParent) => parent.asset.width,
+    height: (parent: AssetParent) => parent.asset.height,
+    title: async (parent: AssetParent, _args: unknown, context: Context) =>
+      assetText(context, parent, parent.asset.title),
+    description: async (parent: AssetParent, _args: unknown, context: Context) =>
+      assetText(context, parent, parent.asset.description),
   },
   Query: {
     entry: async (
@@ -488,4 +559,15 @@ export function generateDeliverySchema(
 
   if (query.length > 0) sdl.push(`extend type Query {\n${query.join('\n')}\n}`)
   return { module: MODULE, typeDefs: sdl.join('\n\n'), resolvers: resolvers as never }
+}
+
+/** Localized asset text for the parent's locale, following fallbacks like localized fields. */
+async function assetText(
+  context: Context,
+  parent: AssetParent,
+  text: Readonly<Record<string, string>>,
+): Promise<string | null> {
+  const { locales } = await delivery(context).scope()
+  const value = localized({ localized: true }, text, parent.read.locale, locales)
+  return typeof value === 'string' ? value : null
 }

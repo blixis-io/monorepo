@@ -155,6 +155,11 @@ export function createContentTypeService(deps: {
   readonly events: EventBus
   readonly registry: FieldTypeRegistry
   readonly entryUsage: EntryUsage
+  /**
+   * Whether the app has assets (`ASSET_LOOKUP`, capability `blixis.assets`). Without them, asset
+   * fields are refused: nothing could be linked. Default `true`.
+   */
+  readonly assetsAvailable?: boolean
 }): ContentTypeService {
   const { db, authz, events, registry, entryUsage } = deps
 
@@ -238,6 +243,11 @@ export function createContentTypeService(deps: {
       let settings: Record<string, unknown> = field.settings
       if (type === undefined) {
         issue([index, 'type'], `Unknown field type "${field.type}" (see GET /api/v1/field-types)`)
+      } else if (field.type === 'asset' && deps.assetsAvailable === false) {
+        issue(
+          [index, 'type'],
+          'Asset fields need the assets module (capability blixis.assets), which this app lacks',
+        )
       } else {
         const result = type.settings.safeParse(field.settings)
         if (!result.success) {

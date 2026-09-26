@@ -1,18 +1,22 @@
 import {
+  ASSET_LOOKUP,
   AUTHORIZATION_SERVICE,
   BLIXIS_CAPABILITIES,
+  DELIVERY_INVALIDATION,
   EVENT_BUS,
+  type EventEnvelope,
   type ModuleHonoEnv,
   OBJECT_STORAGE,
   subscribe,
 } from '@blixis/contracts'
-import { DATABASE } from '@blixis/database'
+import { DATABASE, isId } from '@blixis/database'
 import { defineModule } from '@blixis/kernel'
 import { LOCALE_SERVICE, spaceDeleted } from '@blixis/spaces'
 import { Hono } from 'hono'
 import { ASSET_SERVICE, createAssetService } from './application/asset.service.ts'
 import { ASSETS_CONFIG, type AssetsConfig, DEFAULT_ASSETS_CONFIG } from './config.ts'
-import { mediaType } from './domain/asset.ts'
+import { assetPath, mediaType } from './domain/asset.ts'
+import { assetDeleted, assetPublished, assetUnpublished, assetUpdated } from './events.ts'
 import { assetRepository } from './infrastructure/asset.repository.ts'
 import { createAssets } from './infrastructure/migrations/0001_create_assets.ts'
 import { addUploads } from './infrastructure/migrations/0002_add_uploads.ts'
@@ -47,6 +51,19 @@ export const assetsModule = defineModule((options: AssetsModuleOptions) => {
     permissions: Object.values(ASSET_PERMISSIONS),
     migrations: [createAssets, addUploads],
     events: [
+      // Published asset data appears in delivery responses (GraphQL): tell the delivery cache.
+      ...[assetPublished, assetUnpublished, assetUpdated, assetDeleted].map((event) =>
+        subscribe(
+          event as typeof assetPublished,
+          `delivery-invalidation.${event.type}`,
+          async (
+            { payload }: EventEnvelope<string, { organizationId: string; spaceId: string }>,
+            { services },
+          ) => {
+            await services.getOptional(DELIVERY_INVALIDATION)?.spaceChanged(payload)
+          },
+        ),
+      ),
       // Space data belongs to its modules: delete this module's rows with the space (plan 008).
       // Stored files are removed by the space cleanup of 014.006.
       subscribe(spaceDeleted, 'delete-space-assets', async ({ payload }, { services }) => {
@@ -59,6 +76,31 @@ export const assetsModule = defineModule((options: AssetsModuleOptions) => {
     ],
     setup(ctx) {
       ctx.services.provide(ASSETS_CONFIG, config)
+      ctx.services.provideFactory(
+        ASSET_LOOKUP,
+        ({ services }) => ({
+          async findMany(tenant, ids) {
+            const found = await assetRepository.findReadyByIds(
+              services.get(DATABASE),
+              tenant,
+              ids.filter(isId),
+            )
+            return found.map((asset) => ({
+              id: asset.id,
+              status: asset.publishedAt === null ? ('draft' as const) : ('published' as const),
+              filename: asset.filename,
+              mimeType: asset.mimeType,
+              size: asset.sizeBytes ?? 0,
+              width: asset.width,
+              height: asset.height,
+              title: asset.title,
+              description: asset.description,
+              url: assetPath(asset),
+            }))
+          },
+        }),
+        { scope: 'request' },
+      )
       ctx.services.provideFactory(
         ASSET_SERVICE,
         ({ services }) =>

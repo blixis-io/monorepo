@@ -29,9 +29,11 @@
     "hono": "^4.0.0"
   },
   "devDependencies": {
+    "@blixis/content": "workspace:*",
     "@blixis/contracts": "workspace:*",
     "@blixis/database": "workspace:*",
     "@blixis/events": "workspace:*",
+    "@blixis/graphql": "workspace:*",
     "@blixis/kernel": "workspace:*",
     "@blixis/permissions": "workspace:*",
     "@blixis/shared": "workspace:*",

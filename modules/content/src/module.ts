@@ -1,6 +1,8 @@
 import {
+  ASSET_LOOKUP,
   AUTHORIZATION_SERVICE,
   BLIXIS_CAPABILITIES,
+  DELIVERY_INVALIDATION,
   EVENT_BUS,
   type EventEnvelope,
   type ModuleHonoEnv,
@@ -144,10 +146,29 @@ export const contentModule = defineModule((options: ContentModuleOptions) => {
       ctx.services.provideFactory(
         GRAPHQL_CACHE_POLICY,
         ({ services }) =>
-          (context) =>
-            deliveryCacheScope(context.requestContext.actor, requestedTenant(context), (spaceId) =>
-              stamps.get(services.get(DATABASE), spaceId),
-            ),
+          async (context) => {
+            const scope = await deliveryCacheScope(
+              context.requestContext.actor,
+              requestedTenant(context),
+              (spaceId) => stamps.get(services.get(DATABASE), spaceId),
+            )
+            // Responses hold absolute asset URLs: keep hosts (workers.dev, custom domain) apart.
+            return scope === undefined ? undefined : `${new URL(context.request.url).host}|${scope}`
+          },
+        { scope: 'request' },
+      )
+      // Other modules (assets) report changes to published data they own (ADR 0012).
+      ctx.services.provideFactory(
+        DELIVERY_INVALIDATION,
+        ({ services }) => ({
+          async spaceChanged(tenant) {
+            const db = services.get(DATABASE)
+            stamps.set(
+              tenant.spaceId,
+              await stampRepository.bump(db, tenant.organizationId, tenant.spaceId),
+            )
+          },
+        }),
         { scope: 'request' },
       )
       // A typed schema per content model, for requests naming a space (or using a space key).
@@ -182,6 +203,7 @@ export const contentModule = defineModule((options: ContentModuleOptions) => {
             registry,
             schemas,
             locales: services.get(LOCALE_SERVICE),
+            assets: services.getOptional(ASSET_LOOKUP),
           }),
         { scope: 'request' },
       )
@@ -194,6 +216,7 @@ export const contentModule = defineModule((options: ContentModuleOptions) => {
             events: services.get(EVENT_BUS),
             registry,
             entryUsage: services.get(ENTRY_USAGE),
+            assetsAvailable: services.getOptional(ASSET_LOOKUP) !== undefined,
           }),
         { scope: 'request' },
       )
