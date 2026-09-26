@@ -93,8 +93,36 @@ const toRecord = (row: Row): DeliveryKeyRecord => ({
   lastUsedAt: row.lastUsedAt?.toISOString() ?? null,
 })
 
+/**
+ * Recently authenticated keys per isolate (ADR 0012 §5): a cached delivery request then needs no
+ * key lookup. A revoked key keeps working for at most `ttlMs` in other isolates.
+ */
+export function createDeliveryKeyMemo(options: { ttlMs: number; now?: () => number }) {
+  const now = options.now ?? Date.now
+  const entries = new Map<string, { actor: DeliveryKeyActor; expires: number }>()
+  return {
+    get(hash: string): DeliveryKeyActor | undefined {
+      const entry = entries.get(hash)
+      if (entry === undefined || entry.expires <= now()) {
+        entries.delete(hash)
+        return undefined
+      }
+      return entry.actor
+    },
+    set(hash: string, actor: DeliveryKeyActor) {
+      if (options.ttlMs > 0) entries.set(hash, { actor, expires: now() + options.ttlMs })
+    },
+    /** Forgets keys in this isolate, e.g. when they are revoked here. */
+    forget(match: (actor: DeliveryKeyActor) => boolean) {
+      for (const [hash, entry] of entries) if (match(entry.actor)) entries.delete(hash)
+    },
+  }
+}
+export type DeliveryKeyMemo = ReturnType<typeof createDeliveryKeyMemo>
+
 export function createDeliveryKeyService(deps: {
   readonly db: Database
+  readonly memo?: DeliveryKeyMemo
   /** Lazy: key authentication runs before the request context (and authorization) exists. */
   readonly authz: () => AuthorizationService
   readonly now: () => Date
@@ -170,15 +198,16 @@ export function createDeliveryKeyService(deps: {
             .returning({ id: deliveryKeys.id })
         : []
       if (rows.length === 0) throw new NotFoundError('Delivery key not found')
+      deps.memo?.forget((actor) => actor.keyId === keyId)
     },
 
     async authenticate(key) {
       if (!key.startsWith(DELIVERY_KEY_PREFIX) && !key.startsWith(PREVIEW_KEY_PREFIX))
         throw invalid()
-      const [row] = await db
-        .select()
-        .from(deliveryKeys)
-        .where(eq(deliveryKeys.keyHash, await sha256Hex(key)))
+      const hash = await sha256Hex(key)
+      const remembered = deps.memo?.get(hash)
+      if (remembered !== undefined) return remembered
+      const [row] = await db.select().from(deliveryKeys).where(eq(deliveryKeys.keyHash, hash))
       if (row === undefined || row.revokedAt !== null) throw invalid()
       // Record use at most hourly: a write per request would cost more than the read.
       await db
@@ -193,7 +222,7 @@ export function createDeliveryKeyService(deps: {
             ),
           ),
         )
-      return {
+      const actor: DeliveryKeyActor = {
         type: 'deliveryKey',
         keyId: row.id,
         organizationId: row.organizationId,
@@ -201,10 +230,13 @@ export function createDeliveryKeyService(deps: {
         kind: row.kind,
         environmentIds: row.environmentIds,
       }
+      deps.memo?.set(hash, actor)
+      return actor
     },
 
     async deleteAllForSpace(tenant) {
       await db.delete(deliveryKeys).where(tenantScope(deliveryKeys, tenant))
+      deps.memo?.forget((actor) => actor.spaceId === tenant.spaceId)
     },
   }
 }

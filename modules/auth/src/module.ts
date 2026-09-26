@@ -24,7 +24,11 @@ import {
   DEFAULT_AUTH_POLICY,
 } from './application/auth.service.ts'
 import { AUTH_CONFIG } from './application/config.ts'
-import { createDeliveryKeyService, DELIVERY_KEY_SERVICE } from './application/delivery-keys.ts'
+import {
+  createDeliveryKeyMemo,
+  createDeliveryKeyService,
+  DELIVERY_KEY_SERVICE,
+} from './application/delivery-keys.ts'
 import {
   apiTokenActorResolver,
   deliveryKeyActorResolver,
@@ -45,6 +49,11 @@ export interface AuthModuleOptions extends Partial<AuthPolicy> {
   readonly allowSignUp?: boolean
   /** Cron of the expired-token cleanup (must be in `wrangler.jsonc`). Default every minute. */
   readonly cron?: string
+  /**
+   * How long an isolate remembers an authenticated delivery key (ADR 0012 §5): the revocation
+   * bound across isolates. Default 30 s; 0 disables it.
+   */
+  readonly deliveryKeyMemoSeconds?: number
 }
 
 /**
@@ -75,6 +84,9 @@ export const authModule = defineModule((options: AuthModuleOptions) => ({
   ],
   setup(ctx) {
     const policy: AuthPolicy = { ...DEFAULT_AUTH_POLICY, ...options }
+    const deliveryKeyMemo = createDeliveryKeyMemo({
+      ttlMs: (options.deliveryKeyMemoSeconds ?? 30) * 1000,
+    })
     ctx.services.provideFactory(
       AUTH_SERVICE,
       ({ services }) => {
@@ -114,6 +126,7 @@ export const authModule = defineModule((options: AuthModuleOptions) => ({
       ({ services }) =>
         createDeliveryKeyService({
           db: services.get(DATABASE),
+          memo: deliveryKeyMemo,
           authz: () => services.get(AUTHORIZATION_SERVICE),
           now: () => new Date(),
         }),

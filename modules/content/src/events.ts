@@ -3,6 +3,8 @@ import { z } from 'zod'
 
 const payload = z.object({
   contentTypeId: z.string(),
+  organizationId: z.string(),
+  spaceId: z.string(),
   environmentId: z.string(),
   apiId: z.string(),
   kind: z.enum(['entry', 'component']),
@@ -38,6 +40,8 @@ export const contentTypeDeleted = defineEvent({
 
 const entryPayload = z.object({
   entryId: z.string(),
+  organizationId: z.string(),
+  spaceId: z.string(),
   environmentId: z.string(),
   contentTypeId: z.string(),
   versionId: z.string(),
