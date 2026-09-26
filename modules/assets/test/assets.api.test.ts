@@ -122,6 +122,7 @@ describe.skipIf(!databaseTestsEnabled())('Assets API (Postgres, memory storage)'
       'content-digest': `sha-256=:${b64(await sha256(new Uint8Array([1])))}:`,
     })
     expect(bad.status).toBe(400)
+    expect(await bad.json()).toMatchObject({ errors: [{ path: ['sha256'] }] })
     expect(storage.keys()).toHaveLength(1)
     const pending = await call('GET', `/spaces/${space.id}/assets?state=pending`)
     expect(((await pending.json()) as { assets: unknown[] }).assets).toEqual([])

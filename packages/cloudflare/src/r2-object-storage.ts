@@ -40,7 +40,9 @@ async function call<T>(what: string, run: () => Promise<T>): Promise<T> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     if (/checksum|did not match/i.test(message))
-      throw new ValidationError('Checksum mismatch: nothing was stored')
+      throw new ValidationError('Checksum mismatch: nothing was stored', [
+        { path: ['sha256'], message: 'The received bytes have a different SHA-256' },
+      ])
     if (/NoSuchUpload|upload.*(not exist|not found)|10024/i.test(message))
       throw new NotFoundError('Multipart upload not found')
     if (/length|bytes/i.test(message) && /stream|expected/i.test(message))

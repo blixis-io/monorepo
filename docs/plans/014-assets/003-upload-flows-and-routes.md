@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 ## Parent plan
@@ -141,5 +141,10 @@ Change the status to `completed` only when all of the following hold:
 - **Isolation and authorization:** `assets/:assetId` joined `TENANT_SEGMENTS`; `IsolationRoute` gained `rawBody` and `headers` for upload routes. All 12 asset routes are in both suites; the matrix seeds a ready asset and two multipart uploads per case and uses memory storage.
 - **Not done here:** the §9 short forms (`POST /api/v1/assets`) — uploads need a space, so they stay under `/spaces/:spaceId`; replacing a file through a multipart upload (large replacements: upload a new asset); orphan cleanup of abandoned pending uploads (014.006, with the cron).
 - **End-to-end in workerd isn't possible yet:** database tests inside the Workers pool are quarantined (pg + `pg-cloudflare`, docs/conventions/testing.md). Coverage: Node API tests (memory storage), the R2 adapter in workerd (014.001), inspection in workerd, and a staging upload after deploy.
+- **Staging (2026-09-26, real R2):**
+  - single-request PNG upload with `Content-Digest`: `201` in 410 ms; SHA-256 matches, 64×48 read from the header, UTF-8 file name kept;
+  - a script declared as `image/png` → `400` (`The content is not image/png`); a wrong digest → `400`, nothing stored (the error now names `sha256`);
+  - 12 MiB multipart upload: parts of 10 MiB (1.5 s) and 2 MiB (0.7 s), complete in 349 ms, size 12 582 912;
+  - file replacement, publish, unpublish, delete: all as expected.
 - **Postman:** new *Assets* folder (single upload, metadata, replace, publish, multipart start/part/complete, abort, delete).
 - **Manual:** *Assets API* reference page; management conventions mention raw-body uploads and `assetScoped()`.
