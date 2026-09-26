@@ -25,7 +25,7 @@ Related: [Release & deployment](./deployment.md) · [Cloudflare Workers](./cloud
 | Database | Docker Postgres | Neon branch per PR | Neon branch `staging` | Neon branch `production` (primary) — Neon project in `eu-central-1` |
 | Hyperdrive | local connection string | per-preview or shared (TBD) | `blixis-staging` | `blixis-production` |
 | Queues | local simulation | staging or per preview (TBD) | `blixis-events-staging` (+ `-dlq`) | `blixis-events-production` (+ `-dlq`) |
-| KV | local simulation | staging | `blixis-cache-staging` | `blixis-cache-production` |
+| Delivery cache | isolate memory (+ local Cache API) | as staging | isolate memory + Cache API | isolate memory + Cache API — no KV (ADR 0012) |
 | R2 | local simulation | staging | `blixis-assets-staging` | `blixis-assets-production` |
 | Hostname | `localhost:8787` | `*.workers.dev` preview URL | `api.staging.<domain>` (until then: `blixis-api-staging.frosty-hill-6079.workers.dev`) | `api.<domain>` |
 | GraphiQL / OpenAPI docs | on | on | on | off |
@@ -56,7 +56,7 @@ Related: [Release & deployment](./deployment.md) · [Cloudflare Workers](./cloud
 |---|---|---|
 | Non-secret vars | `apps/api/wrangler.jsonc` `env.<name>.vars` | `BLIXIS_ENV`, `LOG_LEVEL`, allowed origins |
 | Worker secrets | `wrangler secret put <NAME> --env <name>` | `WEBHOOK_SECRET_KEY`, auth secrets |
-| Bindings | `wrangler.jsonc` `env.<name>` (must be declared **per environment**) | `HYPERDRIVE`, `EVENTS`, `CACHE_KV`, `ASSETS` |
+| Bindings | `wrangler.jsonc` `env.<name>` (must be declared **per environment**) | `HYPERDRIVE`, `EVENTS`, `ASSETS` |
 | CI secrets | GitHub environment secrets (`staging`, `production`) | `CLOUDFLARE_API_TOKEN`, `DATABASE_URL` (migration role) |
 | CI variables | GitHub environment/repository variables | `CLOUDFLARE_ACCOUNT_ID`, `STAGING_API_URL` |
 | Local | `apps/api/.dev.vars` (git-ignored), `.dev.vars.example` committed | local secrets |

@@ -16,8 +16,9 @@ const ORIGIN = 'https://cache.blixis.internal'
 
 /**
  * L2 response cache on the Workers Cache API (ADR 0012 §2): per Cloudflare data center, keyed by
- * synthetic GET requests so POST queries can be cached too. Cloudflare applies the Cache API only
- * on custom domains — on `*.workers.dev` it stores nothing, which is harmless (always a miss).
+ * synthetic GET requests so POST queries can be cached too. Cloudflare documents the Cache API
+ * for custom domains; on staging's `*.workers.dev` it served hits as well (measured 2026-09-26).
+ * Where it stores nothing, every lookup is simply a miss.
  */
 export function createCacheApiStore(
   options: { cache?: Cache; namespace?: string } = {},

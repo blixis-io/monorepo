@@ -1,6 +1,6 @@
 # Cloudflare Workers
 
-Cloudflare configuration for the Blixis API Worker: resource naming, `wrangler.jsonc` structure per environment, secrets, local development, and CI access. Implements architecture §11–§19 and §46 (one modular-monolith Worker). The actual configuration is created by roadmap plans 004 (Worker), 005 (Hyperdrive), 006 (Queues), 013 (KV/Cache), 014 (R2), and 016 (Workflows); this document is the reference those tasks follow and extend.
+Cloudflare configuration for the Blixis API Worker: resource naming, `wrangler.jsonc` structure per environment, secrets, local development, and CI access. Implements architecture §11–§19 and §46 (one modular-monolith Worker). The actual configuration is created by roadmap plans 004 (Worker), 005 (Hyperdrive), 006 (Queues), 013 (Cache API), 014 (R2), and 016 (Workflows); this document is the reference those tasks follow and extend.
 
 Related: [Environments](./environments.md) · [Release & deployment](./deployment.md) · [GitHub Actions](./github-actions.md)
 
@@ -23,7 +23,7 @@ Pattern: `blixis-<resource>-<environment>`.
 | Hyperdrive config | `HYPERDRIVE` | `blixis-staging` | `blixis-production` | 005 |
 | Queue (events) | `EVENTS` | `blixis-events-staging` | `blixis-events-production` | 006 |
 | Dead-letter queue | — | `blixis-events-staging-dlq` | `blixis-events-production-dlq` | 006 |
-| KV namespace (cache stamps) | `CACHE_KV` | `blixis-cache-staging` | `blixis-cache-production` | 013 |
+| Cache API (delivery responses) | `caches.default` (no binding) | per data center | per data center | 013 |
 | R2 bucket (assets) | `ASSETS` | `blixis-assets-staging` | `blixis-assets-production` | 014 |
 | Workflow (release publish) | `PUBLISH_RELEASE` | `blixis-publish-release-staging` | `blixis-publish-release-production` | 016 |
 | Rate limiter | `RATE_LIMITER_*` | per env | per env | 007 / 020 |
@@ -54,7 +54,6 @@ Record every created resource ID in the inventory table in this file as plans cr
 | Hyperdrive | `blixis-staging` `2140b66bf63640059dc89b926d10ca3a` | `blixis-production` `01eefb16f5004d80addedcfe9e69f430` |
 | Queue `EVENTS` | `blixis-events-staging` `85fab784e7bd44d9adefe6b6f8b90a00` | `blixis-events-production` `f37de9bba71242fcb25f59715ffdc29a` |
 | Dead-letter queue | `blixis-events-staging-dlq` `13b29a372b054975b06d2d73c566d7c0` | `blixis-events-production-dlq` `51dbc206d465470ab063c74e00066edd` |
-| KV `CACHE_KV` | _tbd (013.002)_ | _tbd (013.002)_ |
 
 Account ID: `7c871756de2f3f7dfa1445d5a88ca0fb` (GitHub variable `CLOUDFLARE_ACCOUNT_ID`). workers.dev subdomain: `frosty-hill-6079`.
 
@@ -163,6 +162,12 @@ pnpm --filter @blixis/api exec wrangler secret list --env production
 - Never put secrets in `wrangler.jsonc` `vars`.
 - Hyperdrive stores the database credentials inside its configuration; the Worker never receives the Neon password directly. Create Hyperdrive configs from the Neon **direct** host (no `-pooler`), region `eu-central-1`, using the application role — never the owner role.
 - Rotation procedures: `docs/operations/repository.md#secrets-rotation`.
+
+## Cache API and KV
+
+- **No KV namespace exists.** ADR 0012 keeps delivery cache stamps in Postgres (`content.delivery_stamps`, strongly consistent); KV is added only with a measured need (§14).
+- **The Cache API** (`caches.default`, no binding) is the L2 delivery response cache, through `createCacheApiStore()` from `@blixis/cloudflare`. It's per data center and needs no configuration. On 2026-09-26 it served hits on `workers.dev` too. See [Delivery caching](./caching.md).
+- **Purging** isn't needed: cache keys include the space's content stamp, so a publish makes old entries unreachable.
 
 ## Local development
 
