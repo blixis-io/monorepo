@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 Milestone: Milestone 6 — Content delivery  
 Roadmap scope: MVP / initial platform  
-Progress: 0/5 tasks completed
+Progress: 1/5 tasks completed
 
 ## Objective
 
@@ -60,7 +60,7 @@ Depends on:
 
 ## Tasks
 
-- [ ] [001 — Measure delivery baseline and decide the caching strategy](./001-caching-strategy-and-baseline.md)
+- [x] [001 — Measure delivery baseline and decide the caching strategy](./001-caching-strategy-and-baseline.md)
 - [ ] [002 — Implement Cache API and KV adapters](./002-cache-and-kv-adapters.md)
 - [ ] [003 — Cache published delivery responses](./003-delivery-response-caching.md)
 - [ ] [004 — Invalidate delivery caches from content events](./004-event-driven-invalidation.md)
