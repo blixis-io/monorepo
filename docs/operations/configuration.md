@@ -28,7 +28,9 @@ Related: [Environments](./environments.md) · [Cloudflare Workers](./cloudflare.
 
 Staging and production values are set in `env.staging` / `env.production` of `wrangler.jsonc` (task 004.006). Secrets are set with `wrangler secret put <NAME> --env <env>` and locally in `apps/api/.dev.vars` (git-ignored).
 
-Planned additions: `CACHE_KV` (013), `ASSETS` R2 bucket (014), workflow bindings (016).
+Planned additions: `ASSETS` R2 bucket (014), workflow bindings (016).
+
+Delivery caching needs no variable or binding: its layers and lifetimes are code configuration in `apps/api/src/blixis.config.ts` (see [Delivery caching → Tuning](./caching.md#tuning)).
 
 ## Docs Worker (`apps/docs`)
 

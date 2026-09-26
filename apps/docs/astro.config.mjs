@@ -9,6 +9,13 @@ const [testingTypeDoc, testingSidebar] = createStarlightTypeDocPlugin()
 const [databaseTypeDoc, databaseSidebar] = createStarlightTypeDocPlugin()
 const [eventsTypeDoc, eventsSidebar] = createStarlightTypeDocPlugin()
 const [contentTypeDoc, contentSidebar] = createStarlightTypeDocPlugin()
+const [graphqlTypeDoc, graphqlSidebar] = createStarlightTypeDocPlugin()
+const [cloudflareTypeDoc, cloudflareSidebar] = createStarlightTypeDocPlugin()
+const [sharedTypeDoc, sharedSidebar] = createStarlightTypeDocPlugin()
+const [usersTypeDoc, usersSidebar] = createStarlightTypeDocPlugin()
+const [authTypeDoc, authSidebar] = createStarlightTypeDocPlugin()
+const [spacesTypeDoc, spacesSidebar] = createStarlightTypeDocPlugin()
+const [permissionsTypeDoc, permissionsSidebar] = createStarlightTypeDocPlugin()
 
 /** Shared TypeDoc options for all documented packages (ADR 0018). */
 const typeDoc = {
@@ -72,6 +79,55 @@ export default defineConfig({
           sidebar: { label: '@blixis/content' },
           typeDoc,
         }),
+        graphqlTypeDoc({
+          entryPoints: ['../../packages/graphql/src/index.ts'],
+          tsconfig: '../../packages/graphql/tsconfig.json',
+          output: 'api/graphql',
+          sidebar: { label: '@blixis/graphql' },
+          typeDoc,
+        }),
+        cloudflareTypeDoc({
+          entryPoints: ['../../packages/cloudflare/src/index.ts'],
+          tsconfig: '../../packages/cloudflare/tsconfig.json',
+          output: 'api/cloudflare',
+          sidebar: { label: '@blixis/cloudflare' },
+          typeDoc,
+        }),
+        sharedTypeDoc({
+          entryPoints: ['../../packages/shared/src/index.ts'],
+          tsconfig: '../../packages/shared/tsconfig.json',
+          output: 'api/shared',
+          sidebar: { label: '@blixis/shared' },
+          typeDoc,
+        }),
+        usersTypeDoc({
+          entryPoints: ['../../modules/users/src/index.ts'],
+          tsconfig: '../../modules/users/tsconfig.json',
+          output: 'api/users',
+          sidebar: { label: '@blixis/users' },
+          typeDoc,
+        }),
+        authTypeDoc({
+          entryPoints: ['../../modules/auth/src/index.ts'],
+          tsconfig: '../../modules/auth/tsconfig.json',
+          output: 'api/auth',
+          sidebar: { label: '@blixis/auth' },
+          typeDoc,
+        }),
+        spacesTypeDoc({
+          entryPoints: ['../../modules/spaces/src/index.ts'],
+          tsconfig: '../../modules/spaces/tsconfig.json',
+          output: 'api/spaces',
+          sidebar: { label: '@blixis/spaces' },
+          typeDoc,
+        }),
+        permissionsTypeDoc({
+          entryPoints: ['../../modules/permissions/src/index.ts'],
+          tsconfig: '../../modules/permissions/tsconfig.json',
+          output: 'api/permissions',
+          sidebar: { label: '@blixis/permissions' },
+          typeDoc,
+        }),
       ],
       sidebar: [
         { label: 'Getting started', items: [{ autogenerate: { directory: 'getting-started' } }] },
@@ -87,6 +143,13 @@ export default defineConfig({
             testingSidebar,
             databaseSidebar,
             eventsSidebar,
+            sharedSidebar,
+            graphqlSidebar,
+            cloudflareSidebar,
+            usersSidebar,
+            authSidebar,
+            spacesSidebar,
+            permissionsSidebar,
             contentSidebar,
           ],
         },
