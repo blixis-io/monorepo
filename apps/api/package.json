@@ -13,6 +13,7 @@
     "deploy:staging": "wrangler deploy --env staging"
   },
   "dependencies": {
+    "@blixis/assets": "workspace:*",
     "@blixis/auth": "workspace:*",
     "@blixis/cloudflare": "workspace:*",
     "@blixis/content": "workspace:*",

@@ -1,3 +1,4 @@
+import { assetsModule } from '@blixis/assets'
 import { authModule } from '@blixis/auth'
 import { createCacheApiStore, eventsQueueModule, r2StorageModule } from '@blixis/cloudflare'
 import { contentModule } from '@blixis/content'
@@ -38,6 +39,8 @@ export const modules: readonly BlixisModule[] = [
   spacesModule(),
   permissionsModule(),
   contentModule(),
+  // Files in the ASSETS bucket with metadata in Postgres (ADR 0013).
+  assetsModule(),
   // GET/POST /graphql (delivery API, §10) — composed from module contributions. Published
   // delivery responses are cached (ADR 0012): isolate memory, then the Cache API (per data center).
   graphqlModule({
