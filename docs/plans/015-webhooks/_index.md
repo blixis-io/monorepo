@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 7 — Assets, integrations & durable processes  
 Roadmap scope: MVP / initial platform  
-Progress: 4/5 tasks completed
+Progress: 5/5 tasks completed
 
 ## Objective
 
@@ -63,15 +63,15 @@ Depends on:
 - [x] [002 — Fan out domain events to webhook delivery requests](./002-event-fanout.md)
 - [x] [003 — Deliver webhooks with signatures, timeouts, and retries](./003-delivery-consumer.md)
 - [x] [004 — Expose delivery logs, redelivery, and test pings](./004-delivery-logs-and-redelivery.md)
-- [ ] [005 — Verify webhooks end to end](./005-webhooks-end-to-end.md)
+- [x] [005 — Verify webhooks end to end](./005-webhooks-end-to-end.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] Publishing an entry triggers a signed webhook to a local receiver in tests; failures retry with backoff and are logged.
-- [ ] SSRF tests prove private/loopback/metadata addresses are rejected in deployed environments.
+- [x] All tasks `completed`.
+- [x] Publishing an entry triggers a signed webhook to a local receiver in tests; failures retry with backoff and are logged.
+- [x] SSRF tests prove private/loopback/metadata addresses are rejected in deployed environments.
 
 ## Risks
 
@@ -86,4 +86,7 @@ The plan may be marked `completed` when:
 
 ## Technical notes
 
-No technical notes yet.
+- **Plan completed 2026-09-27** (PRs #121–#125): configuration with encrypted secrets and an SSRF-safe URL policy; idempotent fan-out of public events; signed delivery with retries, attempt log, disabling; delivery log, redelivery, test pings, retention; end-to-end scenarios.
+- **Decisions:** ids-only public body with explicit per-type `data`; retries from a Postgres-scheduled sweep instead of queue delays; deliveries share the events queue for now; admins-only permissions; 50 consecutive failures disable.
+- **Operations:** `docs/operations/webhooks.md`; receivers: `docs/api/webhooks.md` (tested example).
+- **Pending on staging:** `WEBHOOK_SECRET_KEYS`, `pnpm db:migrate` (webhooks `0001`–`0003`), deploy, and the verification steps with a receiver the owner controls.
