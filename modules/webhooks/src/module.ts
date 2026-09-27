@@ -25,6 +25,7 @@ import { createDeliveries } from './infrastructure/migrations/0002_create_delive
 import { createAttempts } from './infrastructure/migrations/0003_create_attempts.ts'
 import { webhookRepository } from './infrastructure/webhook.repository.ts'
 import { WEBHOOK_PERMISSIONS } from './permissions.ts'
+import { WEBHOOK_OPERATIONS } from './rest/operations.ts'
 import { webhookRoutes } from './rest/webhook.routes.ts'
 
 const deliverDeps = (services: ServiceRegistry, logger: Logger) => ({
@@ -106,5 +107,9 @@ export const webhooksModule = defineModule({
       { scope: 'request' },
     )
   },
-  rest: { path: '/', app: new Hono<ModuleHonoEnv>().route('/', webhookRoutes) },
+  rest: {
+    path: '/',
+    app: new Hono<ModuleHonoEnv>().route('/', webhookRoutes),
+    operations: WEBHOOK_OPERATIONS,
+  },
 })

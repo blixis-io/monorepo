@@ -6,6 +6,7 @@ import { createUserService, USER_SERVICE } from './application/user.service.ts'
 import { createUsers } from './infrastructure/migrations/0001_create_users.ts'
 import { createMemberships } from './infrastructure/migrations/0002_create_memberships.ts'
 import { systemRoleKeys } from './infrastructure/migrations/0003_system_role_keys.ts'
+import { USERS_OPERATIONS } from './rest/operations.ts'
 import { usersRoutes } from './rest/routes.ts'
 
 /**
@@ -35,5 +36,5 @@ export const usersModule = defineModule({
       { scope: 'request' },
     )
   },
-  rest: { path: '/users', app: usersRoutes },
+  rest: { path: '/users', app: usersRoutes, operations: USERS_OPERATIONS },
 })

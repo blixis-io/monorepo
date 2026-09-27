@@ -1,0 +1,71 @@
+---
+title: API reference and operations
+description: How modules describe their REST routes with operations, how the OpenAPI document is generated and served, and how to keep schemas and types in sync.
+sidebar:
+  order: 16
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+The Management API is described by an **OpenAPI 3.1 document**, served at `GET /api/v1/openapi.json` and committed as `apps/api/openapi.json`. It is generated from the **operations** every module declares next to its routes ([ADR 0015](https://github.com/blixis-io/monorepo/blob/main/docs/decisions/0015-rest-api-type-source.md)). The SDK's types are generated from it.
+
+Use it with any OpenAPI tool: import it into Postman or Insomnia, render it with Scalar or Redoc, or generate a client in another language.
+
+## Describe your routes
+
+Put the operations in `src/rest/operations.ts` and pass them with the app:
+
+```ts
+import type { RestOperation, SameShape } from '@blixis/contracts'
+import { z } from 'zod'
+import type { NoteView } from '../application/note.service.ts'
+
+export const noteSchema = z
+  .object({ id: z.string(), title: z.string(), createdAt: z.string() })
+  .meta({ id: 'Note', description: 'A note' }) // named: becomes components.schemas.Note
+
+// Fails to compile when the view and the schema drift apart.
+const check: SameShape<z.output<typeof noteSchema>, NoteView> = true
+void check
+
+export const NOTE_OPERATIONS: readonly RestOperation[] = [
+  {
+    method: 'POST',
+    path: '/spaces/:spaceId/notes',
+    id: 'createNote', // operationId and SDK method name: unique, stable
+    tag: 'Notes',
+    summary: 'Create a note',
+    permission: 'notes.write',
+    request: { body: z.object({ title: z.string().max(200) }), idempotent: true },
+    responses: { 201: { description: 'Created', schema: noteSchema } },
+  },
+]
+
+// module: rest: { path: '/', app: routes, operations: NOTE_OPERATIONS }
+```
+
+| Property | |
+|---|---|
+| `method`, `path` | as registered in the Hono app, relative to where it is mounted (`:param` syntax) |
+| `id` | unique `operationId`, also the SDK method name |
+| `summary`, `description`, `tag` | the reference text and grouping |
+| `permission` | the permission the service checks (shown as `x-blixis-permission`) |
+| `auth: false` | public operation (no bearer token) |
+| `request.query` | an object schema of the query parameters |
+| `request.body` | a JSON schema, or `'binary'` for a raw file body |
+| `request.headers` | headers the route reads, with a description |
+| `request.idempotent` | the route accepts `Idempotency-Key` |
+| `responses` | by status; omit `schema` for empty bodies (`204`) |
+
+Standard errors (400, 401, 403, 404, 409 with the RFC 9457 problem body) are added automatically.
+
+## Keep it current
+
+```bash
+pnpm openapi:generate   # rewrite apps/api/openapi.json
+pnpm openapi:check      # CI: fails when the committed document is stale
+```
+
+<Aside>
+A test compares the registered routes with the operations both ways: a new route without an operation — or an operation without a route — fails CI.
+</Aside>

@@ -70,7 +70,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `completed` | 6/6 | 012 |
 | [015 — Webhooks](./plans/015-webhooks/_index.md) | M7 | MVP | `completed` | 5/5 | 011 |
 | [016 — Releases & Cloudflare Workflows](./plans/016-releases-and-workflows/_index.md) | M7 | Extended | `not-started` | 0/4 | 013, 014, 015 |
-| [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md) | M8 | MVP | `not-started` | 0/4 | 013, 014, 015 |
+| [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md) | M8 | MVP | `in-progress` | 1/4 | 013, 014, 015 |
 | [018 — Extension Platform & Example Plugin](./plans/018-extension-platform/_index.md) | M8 | MVP | `not-started` | 0/5 | 017 |
 | [019 — Admin UI Foundation](./plans/019-admin-ui-foundation/_index.md) | M8 | MVP | `not-started` | 0/4 | 017 |
 | [020 — Observability & Security Hardening](./plans/020-observability-and-security-hardening/_index.md) | M9 | MVP | `not-started` | 0/5 | 013, 014, 015 |
@@ -396,13 +396,13 @@ Introduces Cloudflare Workflows behind an adapter (how modules contribute durabl
 
 #### 017 — SDK & Example Astro Consumer
 
-Status: `not-started` · Progress: 0/4 · Scope: MVP  
+Status: `in-progress` · Progress: 1/4 · Scope: MVP  
 Plan: [017-sdk-and-example-consumer/_index.md](./plans/017-sdk-and-example-consumer/_index.md)  
 Depends on: [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md), [014 — Assets on R2](./plans/014-assets/_index.md), [015 — Webhooks](./plans/015-webhooks/_index.md)
 
 Builds `@blixis/sdk` — a Workers/browser/Node-compatible client with a typed Management REST client and a GraphQL delivery client (preview support) — and `apps/example-site`, an Astro site consuming published content through the SDK with preview mode and webhook-triggered rebuild guidance.
 
-- [ ] [017.001 — Decide and implement the REST API type source](./plans/017-sdk-and-example-consumer/001-rest-api-type-source.md)
+- [x] [017.001 — Decide and implement the REST API type source](./plans/017-sdk-and-example-consumer/001-rest-api-type-source.md)
 - [ ] [017.002 — Create @blixis/sdk core and Management REST client](./plans/017-sdk-and-example-consumer/002-sdk-core-and-management-client.md)
 - [ ] [017.003 — Add the GraphQL delivery client](./plans/017-sdk-and-example-consumer/003-sdk-graphql-delivery-client.md)
 - [ ] [017.004 — Build the Astro example site](./plans/017-sdk-and-example-consumer/004-example-astro-site.md)
@@ -580,7 +580,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | D15 | Delivery cache invalidation (versioned keys via KV vs. purge vs. TTL) | [013.001](./plans/013-delivery-caching/001-caching-strategy-and-baseline.md) | Versioned keys with KV stamp, justified by measurement | [ADR 0012](./decisions/0012-delivery-caching.md): versioned keys + Postgres content stamp (2 s memo), isolate L1 + Cache API L2 |
 | D16 | Asset upload strategy and serving domain | [014.001](./plans/014-assets/001-upload-strategy-and-object-storage.md) | **Stream through the Worker to the R2 binding (≤ 90 MiB direct, multipart above, ≤ 1 GiB default), immutable `<space>/<asset>/<file>` keys, SHA-256 on direct uploads, type allow-list + signature check, nosniff/CSP-sandbox serving from the API origin until `assets.<domain>`** ([ADR 0013](./decisions/0013-asset-uploads.md)) | decided |
 | D17 | Workflows integration pattern & scheduling | [016.001](./plans/016-releases-and-workflows/001-workflows-integration-pattern.md) | Explicit class exports in composition root | open |
-| D18 | REST type source for SDK (OpenAPI vs. shared schemas) | [017.001](./plans/017-sdk-and-example-consumer/001-rest-api-type-source.md) | OpenAPI generated from route schemas | open |
+| D18 | REST type source for SDK (OpenAPI vs. shared schemas) | [017.001](./plans/017-sdk-and-example-consumer/001-rest-api-type-source.md) | **Operations with Zod schemas beside the routes (`RestContribution.operations`), compile-time shape checks against service types, OpenAPI 3.1 generated at build time and served at `/api/v1/openapi.json`, SDK types generated from it** ([ADR 0015](./decisions/0015-rest-api-type-source.md)) | decided |
 | D19 | Location of public content capability contracts | [018.001](./plans/018-extension-platform/001-public-content-capability-contracts.md) | New `@blixis/content-api` package | open |
 | D20 | npm scope ownership, licence, published package set | [018.005](./plans/018-extension-platform/005-package-versioning-and-publishing.md) | Must be confirmed by the project owner | open |
 | D21 | Admin stack and hosting (cookie strategy) | [019.001](./plans/019-admin-ui-foundation/001-admin-stack-and-scaffold.md) | Same-site hosting (Worker static assets or sibling subdomain) | open |

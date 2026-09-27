@@ -35,3 +35,4 @@ export {
   userUpdated,
 } from './events.ts'
 export { usersModule } from './module.ts'
+export { USERS_OPERATIONS, userSchema } from './rest/operations.ts'

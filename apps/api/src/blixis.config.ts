@@ -13,6 +13,7 @@ import { spacesModule } from '@blixis/spaces'
 import { usersModule } from '@blixis/users'
 import { webhooksModule } from '@blixis/webhooks'
 import { authConfigModule } from './auth-config.ts'
+import { openApiModule } from './openapi-module.ts'
 import { webhooksConfigModule } from './webhooks-config.ts'
 
 /**
@@ -46,6 +47,8 @@ export const modules: readonly BlixisModule[] = [
   // Signed notifications to endpoints a space registers (plan 015).
   webhooksConfigModule(),
   webhooksModule(),
+  // GET /api/v1/openapi.json (ADR 0015).
+  openApiModule(),
   // GET/POST /graphql (delivery API, §10) — composed from module contributions. Published
   // delivery responses are cached (ADR 0012): isolate memory, then the Cache API (per data center).
   graphqlModule({

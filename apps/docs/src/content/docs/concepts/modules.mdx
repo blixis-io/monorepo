@@ -128,6 +128,7 @@ export const routes = new Hono<ModuleHonoEnv>().get('/:id', (c) => {
 
 - [`ModuleHonoEnv`](/api/contracts/interfaces/modulehonoenv/) exposes `requestContext` and `services` on `c.var`. There are **no bindings**: modules never access Cloudflare `env`.
 - A Hono app declared with a different environment is rejected at compile time.
+- **Describe every route** with `operations` next to the app: method, path, `id`, `summary`, `tag`, and Zod schemas for the request and responses. They generate the [OpenAPI document](/concepts/api-reference/) and the SDK's types, and a test fails for undocumented routes (ADR 0015).
 - A module can contribute **several** apps: `rest: [{ path: '/', app: api }, { path: '/files', root: true, app: downloads }]`. Root routes are for endpoints outside the Management API only; they get the same request middleware.
 - Keep handlers thin: parse and validate input, call a service, map the result. Throw [public errors](/concepts/errors/); the kernel turns them into [problem details](/concepts/errors/#what-clients-receive-rest) responses.
 - Every request gets a fresh [request scope](/concepts/services-and-capabilities/#scopes) and an `x-request-id` / `x-correlation-id` response header. A valid incoming `x-correlation-id` is kept, so you can trace calls across services.

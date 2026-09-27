@@ -14,6 +14,7 @@ import { createTenancyService, TENANCY_SERVICE } from './application/tenancy.ser
 import { createTenantResolver, TENANT_RESOLVER } from './application/tenant-resolver.ts'
 import { createSpaces } from './infrastructure/migrations/0001_create_spaces.ts'
 import { SPACES_PERMISSIONS } from './permissions.ts'
+import { SPACES_OPERATIONS } from './rest/operations.ts'
 import { spacesRoutes } from './rest/routes.ts'
 
 /** Options for {@link spacesModule}. */
@@ -92,5 +93,6 @@ export const spacesModule = defineModule((options: SpacesModuleOptions) => ({
   rest: {
     path: '/',
     app: spacesRoutes({ allowOrganizationCreation: options.allowOrganizationCreation ?? true }),
+    operations: SPACES_OPERATIONS,
   },
 }))

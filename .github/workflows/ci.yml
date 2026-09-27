@@ -49,6 +49,9 @@ jobs:
         run: pnpm test
       - name: Build
         run: pnpm build
+      # After Build: the generator loads the API's module list, which resolves packages from dist.
+      - name: OpenAPI document is up to date (ADR 0015)
+        run: pnpm openapi:check
       - name: Worker bundles (dry-run deploy, size gate)
         env:
           MAX_GZIP_KIB: 1024

@@ -60,8 +60,16 @@ describe('burnPasswordCheck', () => {
       await fn()
       return performance.now() - start
     }
-    const burn = await time(() => burnPasswordCheck('guess guess guess'))
-    const wrong = await time(() => verifyPassword('guess guess guess', stored))
-    expect(burn).toBeLessThan(wrong * 1.8)
+    // One sample of each is noisy under a parallel test run: interleave several and compare
+    // medians. The first burn must not pay an extra cost (e.g. lazily deriving a dummy hash).
+    const burns: number[] = []
+    const wrongs: number[] = []
+    for (let i = 0; i < 5; i++) {
+      burns.push(await time(() => burnPasswordCheck('guess guess guess')))
+      wrongs.push(await time(() => verifyPassword('guess guess guess', stored)))
+    }
+    const median = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)] ?? 0
+    expect(burns[0]).toBeLessThan(median(wrongs) * 3)
+    expect(median(burns)).toBeLessThan(median(wrongs) * 1.8)
   })
 })
