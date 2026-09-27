@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 Milestone: Milestone 7 — Assets, integrations & durable processes  
 Roadmap scope: MVP / initial platform  
-Progress: 0/5 tasks completed
+Progress: 1/5 tasks completed
 
 ## Objective
 
@@ -59,7 +59,7 @@ Depends on:
 
 ## Tasks
 
-- [ ] [001 — Create the webhooks module and configuration API](./001-webhook-configuration.md)
+- [x] [001 — Create the webhooks module and configuration API](./001-webhook-configuration.md)
 - [ ] [002 — Fan out domain events to webhook delivery requests](./002-event-fanout.md)
 - [ ] [003 — Deliver webhooks with signatures, timeouts, and retries](./003-delivery-consumer.md)
 - [ ] [004 — Expose delivery logs, redelivery, and test pings](./004-delivery-logs-and-redelivery.md)

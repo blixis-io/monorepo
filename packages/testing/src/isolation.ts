@@ -97,6 +97,7 @@ const TENANT_SEGMENTS = [
   'spaces/:spaceId',
   'entries/:entryId',
   'assets/:assetId',
+  'webhooks/:webhookId',
 ]
 
 /** Whether a route pattern is tenant-scoped (has an organization, space, or resource-id segment). */

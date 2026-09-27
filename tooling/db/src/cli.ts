@@ -2,6 +2,7 @@
 import path from 'node:path'
 import process from 'node:process'
 import { migrationStatus, runMigrations } from '@blixis/database/migrations'
+import { generateWebhookKey } from '@blixis/webhooks'
 import { createUser, generateSigningKeyJson } from './auth.ts'
 import { loadMigrations } from './load.ts'
 import { scaffoldMigration } from './scaffold.ts'
@@ -12,6 +13,7 @@ const USAGE = `Usage:
   blixis-db new <module-dir> <name>     scaffold <module-dir>/src/migrations/NNNN_<name>.ts
   blixis-db create-user --email <e> --name <n>   create a user; password from AUTH_PASSWORD (DATABASE_URL)
   blixis-db generate-signing-key [kid]           print a new AUTH_SIGNING_KEYS value
+  blixis-db generate-webhook-key [kid]           print a new WEBHOOK_SECRET_KEYS entry
 
 --config defaults to apps/api/src/blixis.config.ts (the API Worker's module list).`
 
@@ -100,6 +102,11 @@ async function main(args: string[]): Promise<number> {
     case 'generate-signing-key': {
       const kid = rest[0] ?? `key-${new Date().toISOString().slice(0, 10)}`
       console.log(await generateSigningKeyJson(kid))
+      return 0
+    }
+    case 'generate-webhook-key': {
+      const kid = rest[0] ?? `key-${new Date().toISOString().slice(0, 10)}`
+      console.log(generateWebhookKey(kid))
       return 0
     }
     case 'new': {

@@ -13,6 +13,7 @@
     { "path": "../../modules/spaces" },
     { "path": "../../modules/permissions" },
     { "path": "../../modules/content" },
-    { "path": "../../modules/assets" }
+    { "path": "../../modules/assets" },
+    { "path": "../../modules/webhooks" }
   ]
 }

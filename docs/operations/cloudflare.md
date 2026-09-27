@@ -158,7 +158,7 @@ Exact keys and limits must be checked against current Wrangler docs when impleme
 ## Secrets
 
 ```bash
-pnpm --filter @blixis/api exec wrangler secret put WEBHOOK_SECRET_KEY --env staging
+pnpm --filter @blixis/api exec wrangler secret list --env staging
 pnpm --filter @blixis/api exec wrangler secret list --env production
 ```
 
@@ -171,6 +171,12 @@ pnpm --filter @blixis/api exec wrangler secret list --env production
   curl -s https://<api>/api/v1/auth/jwks   # must list one key; 500 means the secret is missing or invalid
   ```
   Rotation: prepend a new key to the JSON array (it signs from then on) and keep the old one for at least 15 minutes, until old access tokens have expired; then remove it.
+- **`WEBHOOK_SECRET_KEYS`** (plan 015): AES keys that encrypt webhook signing secrets at rest, as `kid:base64key[,kid:base64key…]`:
+  ```bash
+  node tooling/db/src/cli.ts generate-webhook-key staging-2026-09 \
+    | (cd apps/api && npx wrangler secret put WEBHOOK_SECRET_KEYS --env staging)
+  ```
+  Without it, webhook management and delivery fail with a server error; nothing else is affected. Rotation: prepend a new entry (it encrypts from then on) and keep the old one, which still decrypts existing secrets; drop the old key only after every webhook's secret was rotated (`POST /api/v1/webhooks/:id/rotate-secret`). Losing all keys makes stored secrets unreadable: rotate every webhook's secret.
 - Local secrets in `apps/api/.dev.vars` (git-ignored); keep `.dev.vars.example` updated.
 - Never put secrets in `wrangler.jsonc` `vars`.
 - Hyperdrive stores the database credentials inside its configuration; the Worker never receives the Neon password directly. Create Hyperdrive configs from the Neon **direct** host (no `-pooler`), region `eu-central-1`, using the application role — never the owner role.

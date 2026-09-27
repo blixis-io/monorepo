@@ -2560,6 +2560,236 @@
       ]
     },
     {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "Create webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/webhooks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "webhooks"]
+            },
+            "description": "The signing secret is in the response only now. Store it; later reads show secretHint only.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman\",\n  \"url\": \"https://example.com/blixis-webhook\",\n  \"eventTypes\": [\n    \"entry.published\",\n    \"asset.*\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) { const b = pm.response.json(); pm.environment.set('webhookId', b.webhook.id); pm.environment.set('webhookVersion', b.webhook.version); pm.test('secret shown once', () => pm.expect(b.secret).to.match(/^whsec_/)); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create webhook to localhost (refused)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/webhooks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "webhooks"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"SSRF\",\n  \"url\": \"https://169.254.169.254/latest/meta-data\",\n  \"eventTypes\": [\n    \"*\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('url refused', () => pm.expect(pm.response.json().errors[0].path).to.eql(['url']));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List webhooks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/spaces/{{spaceId}}/webhooks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "spaces", "{{spaceId}}", "webhooks"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get webhook",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/webhooks/{{webhookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "webhooks", "{{webhookId}}"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('no secret', () => pm.expect(pm.response.text()).not.to.include('whsec_A'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update webhook",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"{{webhookVersion}}\""
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/webhooks/{{webhookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "webhooks", "{{webhookId}}"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman (renamed)\",\n  \"eventTypes\": [\n    \"entry.*\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code < 300) pm.environment.set('webhookVersion', (pm.response.json().webhook ?? pm.response.json()).version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rotate webhook secret",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/webhooks/{{webhookId}}/rotate-secret",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "webhooks", "{{webhookId}}", "rotate-secret"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "if (pm.response.code < 300) pm.environment.set('webhookVersion', (pm.response.json().webhook ?? pm.response.json()).version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete webhook",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/webhooks/{{webhookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "webhooks", "{{webhookId}}"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 204', () => pm.response.to.have.status(204));",
+                  "pm.environment.unset('webhookId'); pm.environment.unset('webhookVersion');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "GraphQL",
       "item": [
         {

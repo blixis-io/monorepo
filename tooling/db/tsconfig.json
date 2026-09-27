@@ -5,6 +5,7 @@
     { "path": "../../packages/kernel" },
     { "path": "../../packages/database" },
     { "path": "../../packages/events" },
-    { "path": "../../modules/auth" }
+    { "path": "../../modules/auth" },
+    { "path": "../../modules/webhooks" }
   ]
 }

@@ -25,6 +25,7 @@
     "@blixis/permissions": "workspace:*",
     "@blixis/spaces": "workspace:*",
     "@blixis/users": "workspace:*",
+    "@blixis/webhooks": "workspace:*",
     "@sentry/cloudflare": "catalog:",
     "drizzle-orm": "catalog:",
     "hono": "catalog:",

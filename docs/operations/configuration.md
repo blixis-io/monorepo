@@ -24,6 +24,7 @@ Related: [Environments](./environments.md) · [Cloudflare Workers](./cloudflare.
 | `AUTH_SIGNING_KEYS` | **secret** | for auth routes | `.dev.vars` or `--var` (`pnpm auth:generate-key`) | per-env secret | per-env secret | JSON array of Ed25519 private JWKs; the first signs access tokens, all verify (ADR 0009). Missing → only `/auth/*` fails |
 | `AUTH_ALLOWED_ORIGINS` | var | no | `http://localhost:5173` | `""` (no browser admin yet) | `""` | Comma-separated origins allowed for cookie-based refresh/sign-out (CSRF) |
 | `EVENTS` | binding (Queue producer) | yes | `blixis-events-local` (simulated) | `blixis-events-staging` | `blixis-events-production` | Events queue. Used only through `@blixis/events` (`eventsQueueModule()` → `QUEUE_SENDER`), never directly (§15) |
+| `WEBHOOK_SECRET_KEYS` | **secret** | for webhooks | `.dev.vars` (`pnpm webhooks:generate-key local`) | per-env secret | per-env secret | `kid:base64key[,…]` AES-GCM keys encrypting webhook signing secrets; the first encrypts, all decrypt. Missing → only webhook routes fail. See [Cloudflare → Secrets](./cloudflare.md#secrets) |
 | `ASSETS` | binding (R2 bucket) | yes | `blixis-assets-local` (simulated) | `blixis-assets-staging` | `blixis-assets-production` | Asset binaries (ADR 0013). Used only through `OBJECT_STORAGE` (`r2StorageModule()`), never directly |
 | `CF_VERSION_METADATA` | binding (version metadata) | — | ✓ | ✓ | ✓ | Id/tag of the running Worker version; the release fallback |
 
