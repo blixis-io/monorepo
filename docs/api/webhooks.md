@@ -21,7 +21,7 @@ Every delivery is an HTTPS `POST` with `Content-Type: application/json` and this
 | Field | Meaning |
 |---|---|
 | `id` | the event id. Blixis delivers **at least once**: deduplicate on `id` (a redelivery of the same event to the same webhook has the same `id`) |
-| `type` | one of the public event types |
+| `type` | one of the public event types, or `webhook.ping` for a test sent by an admin |
 | `version` | version of this type's `data`; it only changes for incompatible changes, and a new version is announced |
 | `createdAt` | when the event happened (ISO 8601, UTC) |
 | `spaceId`, `environmentId` | where it happened |
@@ -119,5 +119,5 @@ export default {
 
 - **Delivery order isn't guaranteed**, especially across retries: use `createdAt` and re-fetch current state instead of assuming order.
 - **After 50 consecutive failed attempts** (across deliveries) Blixis **disables** the webhook (`active: false`, `disabledReason` set) and stops sending. Fix the endpoint, then reactivate it with `PATCH /api/v1/webhooks/:id { "active": true }`.
-- Every attempt is logged (status, duration, error, the first 1 KB of your response; never headers). Delivery logs and manual redelivery: see the manual (015.004).
+- Every attempt is logged (status, duration, error, the first 1 KB of your response; never headers), for 30 days. Admins can list deliveries, redeliver one (same `Blixis-Delivery-Id` and event `id`), and send a `webhook.ping` test (`data: { webhookId }`): see the manual's *Webhooks API*.
 

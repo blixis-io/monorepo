@@ -11,6 +11,8 @@ export {
   WEBHOOK_SECRET_PREFIX,
 } from './application/crypto.ts'
 export {
+  type AttemptView,
+  type DeliveryView,
   WEBHOOK_SERVICE,
   type WebhookInput,
   type WebhookService,
@@ -19,6 +21,7 @@ export {
 export { WEBHOOK_FETCH, WEBHOOKS_CONFIG, type WebhooksConfig } from './config.ts'
 export { type WebhookBody, webhookBody } from './domain/payload.ts'
 export {
+  DELIVERY_LOG_DAYS,
   DISABLE_AFTER_FAILURES,
   MAX_ATTEMPTS,
   RETRY_DELAYS_SECONDS,

@@ -19,6 +19,10 @@ Paths are relative to `/api/v1`. Webhooks send data out of Blixis, so only **adm
 | `PATCH` | `/webhooks/:webhookId` | `webhooks.manage` (needs `If-Match`) |
 | `POST` | `/webhooks/:webhookId/rotate-secret` | `webhooks.manage` |
 | `DELETE` | `/webhooks/:webhookId` | `webhooks.manage` |
+| `GET` | `/webhooks/:webhookId/deliveries` | `webhooks.read` |
+| `GET` | `/webhooks/:webhookId/deliveries/:deliveryId` | `webhooks.read` |
+| `POST` | `/webhooks/:webhookId/deliveries/:deliveryId/redeliver` | `webhooks.manage` |
+| `POST` | `/webhooks/:webhookId/test` | `webhooks.manage` |
 
 ## Create a webhook
 
@@ -106,6 +110,35 @@ Every request carries `Blixis-Signature: t=<unix seconds>,v1=<hex HMAC-SHA256 of
 - **408, 429, 5xx, redirects, timeouts, network errors** are retried after about 1 min, 5 min, 15 min, 1 h, 3 h, 6 h and 12 h (8 attempts, ~22 hours).
 - **Other 4xx** answers stop retries for that delivery.
 - After **50 consecutive failed attempts**, Blixis disables the webhook (`active: false`, `disabledReason`). Reactivate it with `PATCH { "active": true }` once the endpoint works.
+
+## Delivery log
+
+Every event sent to a webhook is a **delivery**; every HTTP try is an **attempt**.
+
+- **`GET /webhooks/:id/deliveries`** lists deliveries newest first: `{ deliveries, nextCursor }`. Filter with `?status=pending|succeeded|failed|abandoned`; page with `limit` (1–100, default 25) and `cursor`.
+- **`GET /webhooks/:id/deliveries/:deliveryId`** adds `attemptLog`: each attempt's number, start, duration, status code, error, and the first 1 KB of your response. Request headers and secrets are never logged.
+- **Retention:** finished deliveries are kept for **30 days**; pending ones until they finish.
+
+```json
+{
+  "id": "01a0e3c2-…",
+  "eventId": "01a0e3c1-…",
+  "eventType": "entry.published",
+  "status": "succeeded",
+  "attempts": 2,
+  "nextAttemptAt": null,
+  "lastStatusCode": 200,
+  "lastError": null,
+  "payload": { "id": "01a0e3c1-…", "type": "entry.published", "…": "…" },
+  "createdAt": "…",
+  "updatedAt": "…"
+}
+```
+
+## Redeliver and test
+
+- **`POST /webhooks/:id/deliveries/:deliveryId/redeliver`** answers `202` and sends the delivery again right away, with the same `Blixis-Delivery-Id` and event id, so your deduplication still works. It adds one attempt, also to a delivery that gave up. Send an `Idempotency-Key` to make retries of the request safe.
+- **`POST /webhooks/:id/test`** answers `202` and sends a signed **`webhook.ping`** to the endpoint through the normal delivery path (`data: { "webhookId": "…" }`). Use it to check your endpoint and signature verification. Inactive webhooks answer `409`.
 
 ## URL rules
 

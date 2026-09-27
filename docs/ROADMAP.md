@@ -68,7 +68,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md) | M6 | MVP | `completed` | 8/8 | 011 |
 | [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md) | M6 | MVP | `completed` | 5/5 | 012 |
 | [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `completed` | 6/6 | 012 |
-| [015 — Webhooks](./plans/015-webhooks/_index.md) | M7 | MVP | `in-progress` | 3/5 | 011 |
+| [015 — Webhooks](./plans/015-webhooks/_index.md) | M7 | MVP | `in-progress` | 4/5 | 011 |
 | [016 — Releases & Cloudflare Workflows](./plans/016-releases-and-workflows/_index.md) | M7 | Extended | `not-started` | 0/4 | 013, 014, 015 |
 | [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md) | M8 | MVP | `not-started` | 0/4 | 013, 014, 015 |
 | [018 — Extension Platform & Example Plugin](./plans/018-extension-platform/_index.md) | M8 | MVP | `not-started` | 0/5 | 017 |
@@ -367,7 +367,7 @@ Builds `@blixis/assets`: an object-storage port with an R2 adapter, asset metada
 
 #### 015 — Webhooks
 
-Status: `in-progress` · Progress: 3/5 · Scope: MVP  
+Status: `in-progress` · Progress: 4/5 · Scope: MVP  
 Plan: [015-webhooks/_index.md](./plans/015-webhooks/_index.md)  
 Depends on: [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md)
 
@@ -376,7 +376,7 @@ Builds `@blixis/webhooks`: space-scoped webhook configurations, fan-out from dom
 - [x] [015.001 — Create the webhooks module and configuration API](./plans/015-webhooks/001-webhook-configuration.md)
 - [x] [015.002 — Fan out domain events to webhook delivery requests](./plans/015-webhooks/002-event-fanout.md)
 - [x] [015.003 — Deliver webhooks with signatures, timeouts, and retries](./plans/015-webhooks/003-delivery-consumer.md)
-- [ ] [015.004 — Expose delivery logs, redelivery, and test pings](./plans/015-webhooks/004-delivery-logs-and-redelivery.md)
+- [x] [015.004 — Expose delivery logs, redelivery, and test pings](./plans/015-webhooks/004-delivery-logs-and-redelivery.md)
 - [ ] [015.005 — Verify webhooks end to end](./plans/015-webhooks/005-webhooks-end-to-end.md)
 
 #### 016 — Releases & Cloudflare Workflows

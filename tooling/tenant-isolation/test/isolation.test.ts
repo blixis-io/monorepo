@@ -173,9 +173,14 @@ describe.skipIf(!databaseTestsEnabled())(
             { organizationId: orgB.id, spaceId: spaceB1.id },
             { name: 'Victim hook', url: 'https://victim.example/hook', eventTypes: ['*'] },
           )
+        // A delivery in the victim's log (the test transport never sends it).
+        const ping = await services
+          .get(WEBHOOK_SERVICE)
+          .ping(asUser(owner.id), { organizationId: orgB.id, spaceId: spaceB1.id }, webhook.id)
         const attackerSpace = (await tenancy.listSpaces(asUser(attacker.id), orgA.id))[0]
         return {
           webhookId: webhook.id,
+          deliveryId: ping.id,
           assetId: asset.sys.id,
           uploadAssetId: upload.asset.sys.id,
           deliveryKey,
@@ -208,6 +213,7 @@ describe.skipIf(!databaseTestsEnabled())(
         keyId: seeded.deliveryKey.record.id,
         versionId: seeded.entryVersionId,
         webhookId: seeded.webhookId,
+        deliveryId: seeded.deliveryId,
         assetId: seeded.assetId,
         uploadAssetId: seeded.uploadAssetId,
         partNumber: '1',
@@ -260,6 +266,9 @@ describe.skipIf(!databaseTestsEnabled())(
         ),
         assets: await q(
           sql`select id, status, filename, version, object_key, published_at from assets.assets where organization_id = ${victimOrg}::uuid order by id`,
+        ),
+        webhookDeliveries: await q(
+          sql`select id, status, attempts, next_attempt_at from webhooks.deliveries where organization_id = ${victimOrg}::uuid order by id`,
         ),
         webhooks: await q(
           sql`select id, name, url, event_types, secret_encrypted, active, version from webhooks.webhooks where organization_id = ${victimOrg}::uuid order by id`,

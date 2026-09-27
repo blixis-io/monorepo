@@ -2762,6 +2762,115 @@
           ]
         },
         {
+          "name": "Send test ping",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/webhooks/{{webhookId}}/test",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "webhooks", "{{webhookId}}", "test"]
+            },
+            "description": "Sends a signed webhook.ping through the normal delivery path."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 202', () => pm.response.to.have.status(202));",
+                  "if (pm.response.code === 202) pm.environment.set('deliveryId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List deliveries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/webhooks/{{webhookId}}/deliveries",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "webhooks", "{{webhookId}}", "deliveries"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('status 200', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get delivery",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/webhooks/{{webhookId}}/deliveries/{{deliveryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "webhooks", "{{webhookId}}", "deliveries", "{{deliveryId}}"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('has attempt log', () => pm.expect(pm.response.json()).to.have.property('attemptLog'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Redeliver",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/webhooks/{{webhookId}}/deliveries/{{deliveryId}}/redeliver",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "webhooks",
+                "{{webhookId}}",
+                "deliveries",
+                "{{deliveryId}}",
+                "redeliver"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 202', () => pm.response.to.have.status(202));",
+                  "pm.environment.unset('deliveryId');"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Delete webhook",
           "request": {
             "method": "DELETE",

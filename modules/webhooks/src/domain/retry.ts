@@ -21,6 +21,9 @@ export const RETRY_DELAYS_SECONDS: readonly number[] = Object.freeze([
 /** Attempts per delivery: the first plus one per delay (about 22.5 hours in total). */
 export const MAX_ATTEMPTS = RETRY_DELAYS_SECONDS.length + 1
 
+/** Days finished deliveries (and their attempts) are kept in the log. */
+export const DELIVERY_LOG_DAYS = 30
+
 /** Consecutive failed attempts (across deliveries) that disable a webhook. */
 export const DISABLE_AFTER_FAILURES = 50
 

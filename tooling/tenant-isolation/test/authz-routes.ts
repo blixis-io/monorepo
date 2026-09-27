@@ -360,6 +360,30 @@ export const AUTHZ_ROUTES = defineAuthzMatrix([
     level: 'space',
   },
   {
+    method: 'GET',
+    path: '/api/v1/webhooks/:webhookId/deliveries',
+    permission: 'webhooks.read',
+    level: 'space',
+  },
+  {
+    method: 'GET',
+    path: '/api/v1/webhooks/:webhookId/deliveries/:deliveryId',
+    permission: 'webhooks.read',
+    level: 'space',
+  },
+  {
+    method: 'POST',
+    path: '/api/v1/webhooks/:webhookId/deliveries/:deliveryId/redeliver',
+    permission: 'webhooks.manage',
+    level: 'space',
+  },
+  {
+    method: 'POST',
+    path: '/api/v1/webhooks/:webhookId/test',
+    permission: 'webhooks.manage',
+    level: 'space',
+  },
+  {
     method: 'POST',
     path: '/api/v1/spaces/:spaceId/webhooks',
     body: { name: 'Matrix', url: 'https://hooks.example.com/matrix', eventTypes: ['entry.*'] },
