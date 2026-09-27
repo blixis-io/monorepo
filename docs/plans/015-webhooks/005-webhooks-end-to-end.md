@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -36,14 +36,14 @@ Validates events → fan-out → delivery → logs across modules.
 ### Create
 
 ```text
-apps/api/test/webhooks-e2e.worker.test.ts
+modules/webhooks/test/webhooks.e2e.test.ts
+docs/operations/webhooks.md
 ```
 
 ### Modify
 
 ```text
-apps/api/vitest.config.ts
-docs/api/webhooks.md
+docs/plans/015-webhooks/*, docs/ROADMAP.md
 ```
 
 ### Delete
@@ -66,7 +66,7 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] All scenarios pass in CI.
+- [x] All scenarios pass in CI.
 
 ## Validation
 
@@ -76,15 +76,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Evidence recorded in plan Technical notes.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Evidence recorded in plan Technical notes.
 
 ## Completion conditions
 
@@ -101,4 +101,6 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Scenarios** (`webhooks.e2e.test.ts`, REST only, local receiver via `WEBHOOK_FETCH`, no network): (1) create webhook → create + publish entry → one signed delivery whose signature verifies, body `entry.published` with the entry id, log `succeeded` with the same `Blixis-Delivery-Id`; (2) receiver answers 500, 500, then 204 → three attempts logged; (3) SSRF in deployed mode: five internal targets refused on save, and a URL saved while local targets were allowed is abandoned at send time (`URL refused: Use an https:// URL`) without contacting it.
+- **Events are delivered as after commit** (`captureEvents` deferred + `flush()`), matching the outbox in production.
+- **Staging verification** steps are in `docs/operations/webhooks.md`; they need `WEBHOOK_SECRET_KEYS`, migrations `0001`–`0003`, and an HTTPS receiver the owner controls.
