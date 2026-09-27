@@ -24,6 +24,7 @@ import { addUploads } from './infrastructure/migrations/0002_add_uploads.ts'
 import { ASSET_PERMISSIONS } from './permissions.ts'
 import { assetRoutes } from './rest/asset.routes.ts'
 import { deliveryRoutes } from './rest/delivery.routes.ts'
+import { ASSET_DELIVERY_OPERATIONS, ASSET_OPERATIONS } from './rest/operations.ts'
 
 /** Options for {@link assetsModule}; every limit has a default (ADR 0013). */
 export type AssetsModuleOptions = Partial<AssetsConfig>
@@ -165,9 +166,13 @@ export const assetsModule = defineModule((options: AssetsModuleOptions) => {
       )
     },
     rest: [
-      { path: '/', app: new Hono<ModuleHonoEnv>().route('/', assetRoutes) },
+      {
+        path: '/',
+        app: new Hono<ModuleHonoEnv>().route('/', assetRoutes),
+        operations: ASSET_OPERATIONS,
+      },
       // Files of published assets, outside the Management API (014.004).
-      { path: '/assets', root: true, app: deliveryRoutes },
+      { path: '/assets', root: true, app: deliveryRoutes, operations: ASSET_DELIVERY_OPERATIONS },
     ],
   }
 })

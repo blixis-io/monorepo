@@ -9,6 +9,7 @@ import { createRoleStore, ROLE_STORE } from './application/role.store.ts'
 import { systemRoles } from './domain/role.ts'
 import { createRoles } from './infrastructure/migrations/0001_create_roles.ts'
 import { ROLE_PERMISSIONS } from './permissions.ts'
+import { PERMISSIONS_OPERATIONS } from './rest/operations.ts'
 import { permissionsRoutes } from './rest/routes.ts'
 
 /**
@@ -70,5 +71,5 @@ export const permissionsModule = defineModule({
       { scope: 'request' },
     )
   },
-  rest: { path: '/', app: permissionsRoutes },
+  rest: { path: '/', app: permissionsRoutes, operations: PERMISSIONS_OPERATIONS },
 })

@@ -49,6 +49,43 @@ export interface RestContribution {
    * request scope, error mapping) applies. Default `false`.
    */
   readonly root?: boolean
+  /**
+   * Machine-readable description of the routes (plan 017, ADR 0015): the source of the OpenAPI
+   * document and the SDK's types. Paths are relative to where the app is mounted, in Hono syntax
+   * (`/spaces/:spaceId/entries`).
+   */
+  readonly operations?: readonly RestOperation[]
+}
+
+/** One documented HTTP operation of a {@link RestContribution}. */
+export interface RestOperation {
+  readonly method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  /** Hono path relative to the contribution, e.g. `/entries/:entryId/publish`. */
+  readonly path: string
+  /** Stable identifier, e.g. `publishEntry` (SDK method and OpenAPI `operationId`). */
+  readonly id: string
+  readonly summary: string
+  readonly description?: string
+  /** Groups operations in the reference, e.g. `Entries`. */
+  readonly tag: string
+  /** Permission the service checks, if any (documentation only). */
+  readonly permission?: string
+  /** `false` for public operations (sign-in, health). Default: a bearer token is needed. */
+  readonly auth?: boolean
+  readonly request?: {
+    /** Query parameters: an object schema. */
+    readonly query?: StandardSchemaV1
+    /** JSON body, or `'binary'` for a raw file body (uploads). */
+    readonly body?: StandardSchemaV1 | 'binary'
+    /** Request headers the operation reads, e.g. `{ 'If-Match': 'Current version, "3"' }`. */
+    readonly headers?: Readonly<Record<string, string>>
+    /** Supports `Idempotency-Key`. */
+    readonly idempotent?: boolean
+  }
+  /** Responses by status; `schema` is omitted for empty bodies (204). */
+  readonly responses: Readonly<
+    Record<number, { readonly description: string; readonly schema?: StandardSchemaV1 }>
+  >
 }
 
 /** A GraphQL resolver function. `TContext` is provided by `@blixis/graphql` (plan 012). */
@@ -130,3 +167,21 @@ export interface BlixisModule<TConfig = unknown> {
 export type ModuleFactory<TOptions = void, TConfig = unknown> = TOptions extends void
   ? () => BlixisModule<TConfig>
   : (options?: TOptions) => BlixisModule<TConfig>
+
+/**
+ * `true` when a schema's output type and a hand-written type describe the same shape — used by
+ * modules to keep operation schemas (ADR 0015) and their service types from drifting:
+ * `const check: SameShape<z.output<typeof entrySchema>, EntryView> = true`.
+ */
+export type SameShape<A, B> = [Plain<A>] extends [Plain<B>]
+  ? [Plain<B>] extends [Plain<A>]
+    ? true
+    : false
+  : false
+
+/** `T` as JSON sees it: no `readonly`, no `undefined` in properties — recursively. */
+type Plain<T> = T extends readonly (infer U)[]
+  ? Plain<U>[]
+  : T extends object
+    ? { -readonly [K in keyof T]: Plain<Exclude<T[K], undefined>> }
+    : T

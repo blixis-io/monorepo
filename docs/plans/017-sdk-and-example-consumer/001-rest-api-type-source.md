@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -36,18 +36,23 @@ Record ADR 0015 on how REST request/response types reach the SDK (OpenAPI genera
 
 ```text
 docs/decisions/0015-rest-api-type-source.md
-tooling/openapi/package.json
-tooling/openapi/src/generate.ts
-docs/api/openapi.json (generated)
+tooling/openapi/ (package.json, tsconfig.json, src/document.ts, src/cli.ts, test/openapi.test.ts)
+apps/api/openapi.json (generated)
+apps/api/src/openapi-module.ts
+modules/{spaces,users,permissions,auth,content,assets,webhooks}/src/rest/operations.ts
+packages/contracts/src/same-shape.test-d.ts
+apps/docs/src/content/docs/concepts/api-reference.mdx
 ```
 
 ### Modify
 
 ```text
-modules/*/src/rest/*.ts (route schema annotations as needed)
-package.json
-.github/workflows/ci.yml
-pnpm-lock.yaml
+packages/contracts/src/module.ts (RestOperation, RestContribution.operations, SameShape)
+modules/*/src/module.ts (operations), modules/users/src/index.ts
+apps/api/src/blixis.config.ts, .github/workflows/ci.yml, package.json, tsconfig.json, biome.json
+modules/auth/src/domain/password.test.ts (flaky timing test)
+tooling/postman/blixis.postman_collection.json
+apps/docs/src/content/docs/concepts/modules.mdx, docs/decisions/README.md, docs/ROADMAP.md
 ```
 
 ### Delete
@@ -72,26 +77,27 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `pnpm openapi:generate` produces a valid OpenAPI 3.1 document covering all Management routes.
-- [ ] CI fails when routes change without regenerating.
+- [x] `pnpm openapi:generate` produces a valid OpenAPI 3.1 document covering all Management routes.
+- [x] CI fails when routes change without regenerating.
 
 ## Validation
 
 ```bash
-pnpm openapi:generate && git diff --exit-code docs/api/openapi.json
+pnpm openapi:generate
+pnpm openapi:check && git diff --exit-code docs/api/openapi.json
 ```
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Worker bundle size unaffected in production (or impact recorded).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Worker bundle size unaffected in production (or impact recorded).
 
 ## Completion conditions
 
@@ -108,4 +114,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Decision (ADR 0015):** operations declared beside the routes (`RestContribution.operations`, Zod schemas), OpenAPI 3.1 generated at build time — not `@hono/zod-openapi` (a rewrite of every route and a second router) and not a shared DTO package (server types leaking into the published SDK). TS 7 has no compiler API, so SDK types will come from our own JSON-Schema emitter (017.002).
+- **Coverage:** 83 operations (81 module + 2 kernel health routes) in nine modules; the test compares registered routes and operations both ways, checks unique `operationId`s and that every `$ref` resolves. `GET /assets/…` (root delivery route) is documented too; `/graphql` (`ALL`) is not a REST operation.
+- **Drift:** every operations file asserts `SameShape<z.output<schema>, ServiceView>` for its views (ignoring `readonly` and optional `undefined`; a type test proves missing, extra, and retyped properties still fail). Writing them found no real drift, only `readonly` arrays and `exactOptionalPropertyTypes` noise, which `SameShape` normalizes.
+- **Generator details:** one Zod registry per direction — requests converted with `io: 'input'` (bodies with transforms, e.g. normalized emails), responses with `io: 'output'`; named schemas (`.meta({ id })`) become `components.schemas`, reused anonymous schemas are inlined; Zod's safe-integer bounds are dropped; standard errors are shared `components.responses`. A body is `required` when it is binary or has required properties.
+- **Served** at `/api/v1/openapi.json` (all environments, `max-age=300`) by `apps/api/src/openapi-module.ts` importing the committed JSON (bundle +~190 KB raw; gzip total 618 KB, within the size gate). The JSON is excluded from Biome (it must stay byte-identical to the generator's output).
+- **CI:** `pnpm openapi:check` step in `verify`.
+- **Also fixed:** the scrypt timing test in `@blixis/auth` compared single samples and failed under full-suite load (the earlier unexplained ship flake); it now interleaves five runs and compares medians.

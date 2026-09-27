@@ -22,6 +22,8 @@
     "auth:create-user": "node tooling/db/src/cli.ts create-user",
     "auth:generate-key": "node tooling/db/src/cli.ts generate-signing-key",
     "webhooks:generate-key": "node tooling/db/src/cli.ts generate-webhook-key",
+    "openapi:generate": "node tooling/openapi/src/cli.ts",
+    "openapi:check": "node tooling/openapi/src/cli.ts --check",
     "format": "biome format --write .",
     "format:check": "biome format .",
     "check": "biome check --write .",

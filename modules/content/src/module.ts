@@ -62,6 +62,7 @@ import { CONTENT_PERMISSIONS } from './permissions.ts'
 import { contentTypeRoutes } from './rest/content-type.routes.ts'
 import { entryRoutes } from './rest/entry.routes.ts'
 import { fieldTypeRoutes } from './rest/field-types.routes.ts'
+import { CONTENT_OPERATIONS } from './rest/operations.ts'
 
 /** Options for {@link contentModule}. */
 export interface ContentModuleOptions {
@@ -264,6 +265,7 @@ export const contentModule = defineModule((options: ContentModuleOptions) => {
         .route('/', fieldTypeRoutes)
         .route('/', contentTypeRoutes)
         .route('/', entryRoutes),
+      operations: CONTENT_OPERATIONS,
     },
   }
 })

@@ -122,6 +122,32 @@
               }
             }
           ]
+        },
+        {
+          "name": "OpenAPI document",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/openapi.json",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "openapi.json"]
+            },
+            "description": "The OpenAPI 3.1 description of the Management API (ADR 0015)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('OpenAPI 3.1', () => pm.expect(pm.response.json().openapi).to.eql('3.1.0'));"
+                ]
+              }
+            }
+          ]
         }
       ]
     },

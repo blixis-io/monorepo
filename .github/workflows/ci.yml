@@ -43,6 +43,8 @@ jobs:
         run: pnpm lint
       - name: Generated Worker types are up to date
         run: pnpm --filter @blixis/api types:check
+      - name: OpenAPI document is up to date (ADR 0015)
+        run: pnpm openapi:check
       - name: Typecheck
         run: pnpm typecheck
       - name: Test

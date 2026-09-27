@@ -41,6 +41,7 @@ import { createDeliveryKeys } from './infrastructure/migrations/0004_create_deli
 import { refreshTokenRepository } from './infrastructure/repositories.ts'
 import { AUTH_PERMISSIONS } from './permissions.ts'
 import { deliveryKeyRoutes } from './rest/delivery-key.routes.ts'
+import { AUTH_OPERATIONS, DELIVERY_KEY_OPERATIONS } from './rest/operations.ts'
 import { authRoutes } from './rest/routes.ts'
 
 /** Options for {@link authModule}. */
@@ -151,5 +152,9 @@ export const authModule = defineModule((options: AuthModuleOptions) => ({
     app: new Hono<ModuleHonoEnv>()
       .route('/auth', authRoutes({ allowSignUp: options.allowSignUp ?? false }))
       .route('/', deliveryKeyRoutes),
+    operations: [
+      ...AUTH_OPERATIONS.map((operation) => ({ ...operation, path: `/auth${operation.path}` })),
+      ...DELIVERY_KEY_OPERATIONS,
+    ],
   },
 }))
