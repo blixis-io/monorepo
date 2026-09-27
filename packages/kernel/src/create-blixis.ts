@@ -27,6 +27,7 @@ import { ModuleValidationError } from './errors.ts'
 import { HEALTH_CHECKS, HealthRegistry } from './health.ts'
 import type { BlixisHonoEnv } from './hono-env.ts'
 import { validateModuleConfigs } from './internal/config.ts'
+import type { CorsOptions } from './internal/cors.ts'
 import { validateModuleGraph } from './internal/graph.ts'
 import { type ActorResolver, installRest } from './internal/rest.ts'
 import { ServiceContainer } from './internal/services.ts'
@@ -56,6 +57,8 @@ export interface CreateBlixisOptions {
   readonly overrides?: readonly ServiceOverride[]
   /** Receives unexpected (5xx) errors of HTTP requests, e.g. for Sentry. */
   readonly errorReporter?: ErrorReporter
+  /** Cross-origin access for browser clients such as the admin (ADR 0017). Default: none. */
+  readonly cors?: CorsOptions
 }
 
 /**
@@ -236,6 +239,7 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
       : { trustRequestIdHeader: options.trustRequestIdHeader }),
     ...(options.errorReporter === undefined ? {} : { errorReporter: options.errorReporter }),
     healthChecks: health.checks,
+    ...(options.cors === undefined ? {} : { cors: options.cors }),
   })
 
   const runInScope = async <T>(

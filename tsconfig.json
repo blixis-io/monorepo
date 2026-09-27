@@ -116,6 +116,9 @@
       "path": "packages/sdk/tsconfig.test.json"
     },
     {
+      "path": "apps/admin"
+    },
+    {
       "path": "modules/webhooks/tsconfig.test.json"
     },
     {

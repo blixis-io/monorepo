@@ -44,7 +44,7 @@ const TEST_ONLY_PACKAGES = new Set(['@blixis/testing'])
 /** Workspace packages `apps/admin` may import (it is an API client, §50). */
 const ADMIN_ALLOWED_WORKSPACE_IMPORTS = new Set(['@blixis/sdk'])
 
-const TEST_FILE = /(\.test\.ts|\.test-d\.ts|\.worker\.test\.ts)$|(^|\/)test\//
+const TEST_FILE = /(\.test\.tsx?|\.test-d\.ts|\.worker\.test\.ts)$|(^|\/)test\//
 
 function isTestFile(file: string): boolean {
   return TEST_FILE.test(file)

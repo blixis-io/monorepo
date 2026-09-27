@@ -59,6 +59,14 @@ curl -s localhost:8787/api/v1/health
 
 Local Cloudflare resources (Queues, KV, R2, Cache) are simulated by Wrangler/Miniflare; Hyperdrive uses a local connection string that points at Docker Postgres. See [Cloudflare Workers](../operations/cloudflare.md#local-development).
 
+## Run the admin locally *(from plan 019)*
+
+```bash
+pnpm --filter @blixis/admin dev                # Vite → http://localhost:5173 (calls the API on :8787)
+```
+
+See [`apps/admin/README.md`](../../apps/admin/README.md).
+
 ## Create a first user *(from plan 007)*
 
 ```bash

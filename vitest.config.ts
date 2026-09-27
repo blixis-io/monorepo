@@ -10,6 +10,7 @@ export default defineConfig({
   test: {
     projects: [
       './apps/api/vitest.config.ts',
+      './apps/admin/vitest.config.ts',
       {
         // graphql 16 has no `exports` map: Vite would load its ESM build for our sources while
         // Node gives GraphQL Yoga's dependencies the CommonJS build — two realms of one library

@@ -64,5 +64,9 @@ jobs:
             awk -v s="$size" -v max="$MAX_GZIP_KIB" 'BEGIN { split(s, p, " "); kib = (p[2] == "MiB") ? p[1] * 1024 : p[1];
               if (kib > max) { printf "bundle too large: %.1f KiB gzip > %d KiB\n", kib, max; exit 1 } }'
           done
+      - name: Build admin (ADR 0017)
+        run: |
+          pnpm --filter @blixis/admin build:staging
+          pnpm --filter @blixis/admin exec wrangler deploy --dry-run --env staging
       - name: Build docs site
         run: pnpm --filter @blixis/docs build

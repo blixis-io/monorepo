@@ -72,7 +72,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [016 — Releases & Cloudflare Workflows](./plans/016-releases-and-workflows/_index.md) | M7 | Extended | `not-started` | 0/4 | 013, 014, 015 |
 | [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md) | M8 | MVP | `completed` | 4/4 | 013, 014, 015 |
 | [018 — Extension Platform & Example Plugin](./plans/018-extension-platform/_index.md) | M8 | MVP | `not-started` | 0/5 | 017 |
-| [019 — Admin UI Foundation](./plans/019-admin-ui-foundation/_index.md) | M8 | MVP | `not-started` | 0/4 | 017 |
+| [019 — Admin UI Foundation](./plans/019-admin-ui-foundation/_index.md) | M8 | MVP | `in-progress` | 1/4 | 017 |
 | [020 — Observability & Security Hardening](./plans/020-observability-and-security-hardening/_index.md) | M9 | MVP | `not-started` | 0/5 | 013, 014, 015 |
 | [021 — CI/CD & Release Engineering](./plans/021-ci-cd-and-release-engineering/_index.md) | M9 | MVP | `not-started` | 0/3 | 011 |
 | [022 — Production Readiness & Launch](./plans/022-production-readiness/_index.md) | M9 | MVP | `not-started` | 0/5 | 013, 014, 015, 018, 019, 020, 021 |
@@ -423,13 +423,13 @@ Proves the "internal and external modules share one contract" promise: moves sha
 
 #### 019 — Admin UI Foundation
 
-Status: `not-started` · Progress: 0/4 · Scope: MVP  
+Status: `in-progress` · Progress: 1/4 · Scope: MVP  
 Plan: [019-admin-ui-foundation/_index.md](./plans/019-admin-ui-foundation/_index.md)  
 Depends on: [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md)
 
 Creates `apps/admin` (React + shadcn/ui) as a pure client of the Management REST API via `@blixis/sdk`: stack/hosting decision, auth and session handling, organization/space navigation shell, content type editor, and entry editor with draft/publish/version history — the minimum editorial UI for the MVP.
 
-- [ ] [019.001 — Decide the admin stack and scaffold apps/admin](./plans/019-admin-ui-foundation/001-admin-stack-and-scaffold.md)
+- [x] [019.001 — Decide the admin stack and scaffold apps/admin](./plans/019-admin-ui-foundation/001-admin-stack-and-scaffold.md)
 - [ ] [019.002 — Implement admin authentication and navigation shell](./plans/019-admin-ui-foundation/002-admin-auth-and-shell.md)
 - [ ] [019.003 — Implement the content type editor](./plans/019-admin-ui-foundation/003-content-type-editor.md)
 - [ ] [019.004 — Implement the entry list and editor with publishing](./plans/019-admin-ui-foundation/004-entry-editor-and-publishing.md)
@@ -583,7 +583,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | D18 | REST type source for SDK (OpenAPI vs. shared schemas) | [017.001](./plans/017-sdk-and-example-consumer/001-rest-api-type-source.md) | **Operations with Zod schemas beside the routes (`RestContribution.operations`), compile-time shape checks against service types, OpenAPI 3.1 generated at build time and served at `/api/v1/openapi.json`, SDK types generated from it** ([ADR 0015](./decisions/0015-rest-api-type-source.md)) | decided |
 | D19 | Location of public content capability contracts | [018.001](./plans/018-extension-platform/001-public-content-capability-contracts.md) | New `@blixis/content-api` package | open |
 | D20 | npm scope ownership, licence, published package set | [018.005](./plans/018-extension-platform/005-package-versioning-and-publishing.md) | Must be confirmed by the project owner | open |
-| D21 | Admin stack and hosting (cookie strategy) | [019.001](./plans/019-admin-ui-foundation/001-admin-stack-and-scaffold.md) | Same-site hosting (Worker static assets or sibling subdomain) | open |
+| D21 | Admin stack and hosting (cookie strategy) | [019.001](./plans/019-admin-ui-foundation/001-admin-stack-and-scaffold.md) | **Separate `blixis-admin` Worker (static assets) at `admin.<domain>` beside `api.<domain>` (same site for the `SameSite=Strict` refresh cookie; `workers.dev` is a public suffix), credentialed CORS from `AUTH_ALLOWED_ORIGINS`; React 19 + Vite, shadcn/ui + Tailwind v4, TanStack Router/Query/Form, `@blixis/sdk` only** ([ADR 0017](./decisions/0017-admin-stack.md)) | decided |
 | D22 | Rate limiting mechanism | [020.003](./plans/020-observability-and-security-hardening/003-rate-limiting.md) | Workers Rate Limiting binding; WAF rules if a zone is available | open |
 | D23 | SLOs, RPO/RTO | [022.001](./plans/022-production-readiness/001-performance-and-load-testing.md) | Proposed defaults in 022; owner confirms | open |
 | D24 | Environments and release model | [021.001](./plans/021-ci-cd-and-release-engineering/001-staging-and-production-deploy-pipelines.md) | — | **resolved 2026-09-24:** `main` → staging; versions `vX.Y.Z` (release-please) → production ([Environments](./operations/environments.md), [Release & deployment](./operations/deployment.md)) |

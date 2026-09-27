@@ -1,0 +1,23 @@
+{
+  // Blixis admin — static assets only (ADR 0017). The API is a separate Worker.
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "blixis-admin",
+  "compatibility_date": "2026-08-15",
+  "assets": {
+    "directory": "./dist",
+    // Client-side routing: unknown paths serve index.html.
+    "not_found_handling": "single-page-application"
+  },
+  "env": {
+    "staging": {
+      // Worker name: blixis-admin-staging. Sign-in needs admin.<domain> next to api.<domain>
+      // (same site): on workers.dev (a public suffix) the refresh cookie is never shared.
+      "workers_dev": true,
+      "preview_urls": false
+    },
+    "production": {
+      "workers_dev": false,
+      "preview_urls": false
+    }
+  }
+}
