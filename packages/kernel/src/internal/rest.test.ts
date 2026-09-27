@@ -519,3 +519,67 @@ describe('actor resolver chain', () => {
     expect(() => app.services.get(ACTOR_RESOLVERS).register(token)).toThrow(/after setup/)
   })
 })
+
+describe('CORS (ADR 0017)', () => {
+  const app = () =>
+    createBlixis({
+      modules: [
+        defineModule({
+          meta: { name: '@test/cors', version: '1.0.0' },
+          rest: {
+            path: '/things',
+            app: new Hono<ModuleHonoEnv>().get('/', (c) => c.json({ ok: true })),
+          },
+        })(),
+      ],
+      logger: noopLogger,
+      cors: { origins: (env) => String(env['ORIGINS'] ?? '').split(',') },
+    })
+  const env = { ORIGINS: 'https://admin.example.com' }
+
+  it('answers preflights of allowed origins without running the pipeline', async () => {
+    const res = await app().fetch(
+      new Request('http://x/api/v1/things', {
+        method: 'OPTIONS',
+        headers: {
+          origin: 'https://admin.example.com',
+          'access-control-request-method': 'PATCH',
+          'access-control-request-headers': 'authorization, if-match',
+        },
+      }),
+      env,
+    )
+    expect(res.status).toBe(204)
+    expect(Object.fromEntries(res.headers)).toMatchObject({
+      'access-control-allow-origin': 'https://admin.example.com',
+      'access-control-allow-credentials': 'true',
+      'access-control-allow-methods': 'GET, POST, PUT, PATCH, DELETE',
+      vary: 'Origin',
+    })
+    expect(res.headers.get('access-control-allow-headers')).toContain('if-match')
+  })
+
+  it('adds CORS headers for allowed origins only', async () => {
+    const allowed = await app().fetch(
+      new Request('http://x/api/v1/things', { headers: { origin: 'https://admin.example.com' } }),
+      env,
+    )
+    expect(allowed.headers.get('access-control-allow-origin')).toBe('https://admin.example.com')
+    expect(allowed.headers.get('access-control-expose-headers')).toContain('etag')
+    const other = await app().fetch(
+      new Request('http://x/api/v1/things', { headers: { origin: 'https://evil.example' } }),
+      env,
+    )
+    expect(other.status).toBe(200)
+    expect(other.headers.get('access-control-allow-origin')).toBeNull()
+    expect(other.headers.get('vary')).toContain('Origin')
+    const preflight = await app().fetch(
+      new Request('http://x/api/v1/things', {
+        method: 'OPTIONS',
+        headers: { origin: 'https://evil.example', 'access-control-request-method': 'GET' },
+      }),
+      env,
+    )
+    expect(preflight.headers.get('access-control-allow-origin')).toBeNull()
+  })
+})

@@ -28,6 +28,8 @@ Pattern: `blixis-<resource>-<environment>`.
 | Workflow (release publish) | `PUBLISH_RELEASE` | `blixis-publish-release-staging` | `blixis-publish-release-production` | 016 |
 | Rate limiter | `RATE_LIMITER_*` | per env | per env | 007 / 020 |
 | Custom domain | — | `api.staging.<domain>` | `api.<domain>` | 004 / 021 |
+| Admin Worker (static assets, ADR 0017) | — | `blixis-admin-staging` (not deployed yet) | `blixis-admin-production` (not deployed) | 019.001 |
+| Admin custom domain | — | `admin.staging.<domain>` | `admin.<domain>` | 021 |
 | Docs Worker (static assets, single environment) | — | — | `blixis-docs` → https://blixis-docs.frosty-hill-6079.workers.dev | 023.004 |
 | Sentry DSN | `SENTRY_DSN` (var) | project `blixis-api` DSN | same DSN (split by `environment`) | 004.007 |
 | Version metadata | `CF_VERSION_METADATA` | ✓ | ✓ | 004.007 |

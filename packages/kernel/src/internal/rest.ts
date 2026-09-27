@@ -14,6 +14,7 @@ import type { ErrorReporter } from '../error-reporter.ts'
 import { type ModuleProblem, ModuleValidationError } from '../errors.ts'
 import { type HealthCheck, runHealthChecks } from '../health.ts'
 import type { BlixisHonoEnv } from '../hono-env.ts'
+import { type CorsOptions, installCors } from './cors.ts'
 import { toProblemResponse } from './errors-http.ts'
 import type { ServiceContainer } from './services.ts'
 import { provideRequestContext } from './tenant-binder.ts'
@@ -43,6 +44,8 @@ export interface RestOptions {
   readonly errorReporter?: ErrorReporter
   /** Checks run by the readiness endpoint. */
   readonly healthChecks?: readonly HealthCheck[]
+  /** Cross-origin access (ADR 0017); none by default. */
+  readonly cors?: CorsOptions
 }
 
 function joinPath(prefix: string, path: string): string {
@@ -100,6 +103,7 @@ export function installRest(
 ): void {
   const conflicts = findRouteConflicts(modules)
   if (conflicts.length > 0) throw new ModuleValidationError(conflicts)
+  if (options.cors !== undefined) installCors(app, options.cors)
 
   app.get(HEALTH_PATH, (c) => c.json({ status: 'ok' }))
 

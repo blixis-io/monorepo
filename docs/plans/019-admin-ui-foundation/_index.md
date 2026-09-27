@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 Milestone: Milestone 8 — Consumers & extension platform  
 Roadmap scope: MVP / initial platform  
-Progress: 0/4 tasks completed
+Progress: 1/4 tasks completed
 
 ## Objective
 
@@ -56,7 +56,7 @@ Depends on:
 
 ## Tasks
 
-- [ ] [001 — Decide the admin stack and scaffold apps/admin](./001-admin-stack-and-scaffold.md)
+- [x] [001 — Decide the admin stack and scaffold apps/admin](./001-admin-stack-and-scaffold.md)
 - [ ] [002 — Implement admin authentication and navigation shell](./002-admin-auth-and-shell.md)
 - [ ] [003 — Implement the content type editor](./003-content-type-editor.md)
 - [ ] [004 — Implement the entry list and editor with publishing](./004-entry-editor-and-publishing.md)
@@ -77,7 +77,7 @@ The plan may be marked `completed` when:
 
 ## Open questions
 
-- Hosting: same Worker (static assets) vs. separate Worker/Pages project on a subdomain? (ADR 0017.)
+- ~~Hosting: same Worker (static assets) vs. separate Worker/Pages project on a subdomain?~~ Decided: separate Worker at `admin.<domain>` ([ADR 0017](../../decisions/0017-admin-stack.md)).
 - Rich text editor library consistent with ADR 0010 format (e.g. Tiptap/ProseMirror)? Decide in 019.004.
 - Is admin localisation (UI language) required for MVP? Default: English only, i18n-ready string handling.
 
