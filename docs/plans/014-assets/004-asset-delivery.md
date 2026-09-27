@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 ## Parent plan
@@ -128,4 +128,5 @@ Change the status to `completed` only when all of the following hold:
 - **Kernel/contracts:** a module's `rest` may now be a list, so the assets module mounts its Management API routes and the root-level delivery route (`root: true`) side by side. Kernel test added; *Modules* concept updated.
 - **GraphQL `Asset.url` moves to 014.005:** the `Asset` type belongs to `@blixis/content`'s delivery schema, and content resolves assets through the optional `blixis.assets` capability there — the assets module can't extend a type it doesn't require.
 - **Isolation:** the delivery route has no `spaces/:spaceId` or `assets/:assetId` segment pair, so the isolation suite doesn't pick it up; `delivery.api.test.ts` covers other spaces' preview keys, delivery keys, anonymous callers, and a mismatched space in the URL.
+- **Staging (2026-09-27, deploy `b76f06c3`, real R2):** draft → `404` anonymous, `200 private, no-store` with a token; published → `200` in ~590 ms (cold), bytes identical, `public, max-age=86400`, `nosniff`, inline disposition, ETag = file id, CORS `*`; `If-None-Match` → `304`; `Range: bytes=0-7` → `206 bytes 0-7/85`; beyond the end → `416`; `HEAD` → `200`. GraphQL returned the absolute `https://blixis-api-staging…/assets/…` URL with 32×16; unpublishing the linked asset → `409`; after replacing the file the old URL → `302` to the new one and the cached GraphQL response was refreshed (`MISS`).
 - **Tests:** `parseRange` unit tests; delivery API tests (access, headers, `304`, ranges, `416`, `HEAD`, attachment, redirect). The `png` fixture moved to `test/fixtures.ts` (importing a `*.test.ts` file re-ran its tests). Postman: *Download asset (published)* and *Download asset range*.

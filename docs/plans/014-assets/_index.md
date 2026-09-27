@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 7 — Assets, integrations & durable processes  
 Roadmap scope: MVP / initial platform  
-Progress: 5/6 tasks completed
+Progress: 6/6 tasks completed
 
 ## Objective
 
@@ -63,7 +63,7 @@ Depends on:
 - [x] [001 — Decide upload strategy and implement the R2 object storage adapter](./001-upload-strategy-and-object-storage.md)
 - [x] [002 — Create the assets module schema and service](./002-asset-schema-and-service.md)
 - [x] [003 — Implement upload flows and asset management routes](./003-upload-flows-and-routes.md)
-- [ ] [004 — Serve published assets](./004-asset-delivery.md)
+- [x] [004 — Serve published assets](./004-asset-delivery.md)
 - [x] [005 — Validate asset links from content via capability](./005-content-asset-links.md)
 - [x] [006 — Implement idempotent asset deletion and orphan cleanup](./006-asset-deletion-and-cleanup.md)
 
@@ -71,9 +71,9 @@ Depends on:
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] Upload → metadata → event → link from entry → publish → public fetch works end to end.
-- [ ] Deleting an asset removes the R2 object exactly once even under redelivery.
+- [x] All tasks `completed`.
+- [x] Upload → metadata → event → link from entry → publish → public fetch works end to end.
+- [x] Deleting an asset removes the R2 object exactly once even under redelivery.
 
 ## Risks
 
@@ -89,4 +89,9 @@ The plan may be marked `completed` when:
 
 ## Technical notes
 
-No technical notes yet.
+- **Plan completed 2026-09-27** (PRs #112–#118), verified end to end on staging with real R2: upload (single and multipart) → metadata → `asset.created` → link from an entry → publish → public fetch with ranges and caching → GraphQL `Asset.url`; replacement redirects and refreshes cached deliveries; files are deleted after commit, idempotently.
+- **Decisions:** ADR 0013 (amended for the 1-day cache lifetime and the `fileId` in delivery URLs).
+- **Architecture additions:** `ObjectStorage` port (contracts) with R2 adapter and memory fake; ports `ASSET_LOOKUP`, `DELIVERY_INVALIDATION`, `ASSET_USAGE` keep content and assets free of package dependencies; a module's `rest` may be a list (root-level routes).
+- **Deviations:** raw-body uploads (no form data), multipart paths keyed by asset id, no §9 short forms, no Workers Cache API layer for files, no bucket-wide orphan scan (see task notes).
+- **Bug fixed on the way:** asset rows survived space deletion (`tenantScope` without environment fails closed).
+- **Operations:** `docs/operations/assets.md`.
