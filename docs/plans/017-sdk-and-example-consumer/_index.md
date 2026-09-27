@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 8 — Consumers & extension platform  
 Roadmap scope: MVP / initial platform  
-Progress: 1/4 tasks completed
+Progress: 2/4 tasks completed
 
 ## Objective
 
@@ -59,7 +59,7 @@ Depends on:
 ## Tasks
 
 - [x] [001 — Decide and implement the REST API type source](./001-rest-api-type-source.md)
-- [ ] [002 — Create @blixis/sdk core and Management REST client](./002-sdk-core-and-management-client.md)
+- [x] [002 — Create @blixis/sdk core and Management REST client](./002-sdk-core-and-management-client.md)
 - [ ] [003 — Add the GraphQL delivery client](./003-sdk-graphql-delivery-client.md)
 - [ ] [004 — Build the Astro example site](./004-example-astro-site.md)
 

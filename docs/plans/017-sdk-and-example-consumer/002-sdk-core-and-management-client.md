@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,21 +37,22 @@ Create `@blixis/sdk` with a fetch-based HTTP core (auth header, retries for idem
 ### Create
 
 ```text
-packages/sdk/package.json
-packages/sdk/tsconfig.json
-packages/sdk/src/index.ts
-packages/sdk/src/core/http.ts
-packages/sdk/src/core/errors.ts
-packages/sdk/src/management/client.ts
-packages/sdk/src/management/resources/
-packages/sdk/test/management.contract.test.ts
+packages/sdk/ (package.json, tsconfig*.json)
+packages/sdk/src/{index,client,http,errors}.ts
+packages/sdk/src/generated/api.ts (generated)
+packages/sdk/test/{harness,contract.test,http.test}.ts
+tooling/openapi/src/typescript.ts
+docs/sdk/README.md
+apps/docs/src/content/docs/getting-started/sdk.mdx
 ```
 
 ### Modify
 
 ```text
-tsconfig.json
-pnpm-lock.yaml
+tooling/openapi/src/cli.ts, tooling/openapi/test/openapi.test.ts
+biome.json, tsconfig.json, pnpm-lock.yaml, apps/docs/astro.config.mjs
+apps/docs/src/content/docs/getting-started/introduction.mdx
+docs/plans/017-sdk-and-example-consumer/*, docs/ROADMAP.md
 ```
 
 ### Delete
@@ -74,8 +75,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Contract tests create space → content type → entry → publish via the SDK.
-- [ ] Errors surface `code` and `requestId`.
+- [x] Contract tests create space → content type → entry → publish via the SDK.
+- [x] Errors surface `code` and `requestId`.
 
 ## Validation
 
@@ -85,15 +86,15 @@ pnpm --filter @blixis/sdk test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] SDK has no dependency on server packages at runtime (types only, if any).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] SDK has no dependency on server packages at runtime (types only, if any).
 
 ## Completion conditions
 
@@ -110,4 +111,9 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Generated types** (`src/generated/api.ts`, from `apps/api/openapi.json`): a JSON-Schema-to-TypeScript emitter in `tooling/openapi/src/typescript.ts` (TS 7 has no compiler API for off-the-shelf generators). Named schemas become types; `Operations` maps every `operationId` to params, query, body, and success response; `ROUTES` carries method, path, body kind, `auth: false`, `idempotent: true`. Optional properties are emitted as `?: T | undefined` so consumers with `exactOptionalPropertyTypes` can pass `undefined`. Generated with the spec by `pnpm openapi:generate`; the OpenAPI test checks both are current; Biome skips the generated file.
+- **Zero runtime dependencies**, ESM, `lib: es2023 + webworker` (no Node types). `call(operationId, …)` covers all 83 operations; resources (`organizations`, `spaces`, `contentTypes`, `entries`, `assets`, `webhooks`, `deliveryKeys`, `apiTokens`) are thin conveniences; `entries.iterate` / `assets.iterate` are async iterators over cursors; `assets.uploadLarge` slices a Blob into parts and aborts the upload on failure.
+- **Retries** only where repeating is safe: GET/PUT/DELETE, and POST/PATCH with `Idempotency-Key`. Operations that accept a key get one automatically (`crypto.randomUUID()`), reused on every retry (tested). `Retry-After` is honoured; streams are never retried.
+- **Uploads** set `Content-Length` from Blob/ArrayBuffer/typed-array bodies: browsers ignore the header (they compute it), Workers and Node accept a correct one, and an in-process `Request` needs it — the contract test found that.
+- **Contract tests** run in Node against the real modules in-process (DB-backed tests can't run in the Workers pool: quarantined, docs/conventions/testing.md). Real sign-up and bearer tokens; the harness validates every JSON response against its operation schema (18 operations covered; the suite requires ≥ 15 and no mismatches).
+- **Errors:** `BlixisApiError` with `status`, `code` (API codes plus `NETWORK_ERROR`), `errors`, `requestId`, `details`.

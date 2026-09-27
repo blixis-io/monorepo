@@ -901,6 +901,63 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
 
+  packages/sdk:
+    devDependencies:
+      '@blixis/assets':
+        specifier: workspace:*
+        version: link:../../modules/assets
+      '@blixis/auth':
+        specifier: workspace:*
+        version: link:../../modules/auth
+      '@blixis/content':
+        specifier: workspace:*
+        version: link:../../modules/content
+      '@blixis/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@blixis/database':
+        specifier: workspace:*
+        version: link:../database
+      '@blixis/events':
+        specifier: workspace:*
+        version: link:../events
+      '@blixis/graphql':
+        specifier: workspace:*
+        version: link:../graphql
+      '@blixis/kernel':
+        specifier: workspace:*
+        version: link:../kernel
+      '@blixis/permissions':
+        specifier: workspace:*
+        version: link:../../modules/permissions
+      '@blixis/spaces':
+        specifier: workspace:*
+        version: link:../../modules/spaces
+      '@blixis/testing':
+        specifier: workspace:*
+        version: link:../testing
+      '@blixis/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/tsconfig
+      '@blixis/users':
+        specifier: workspace:*
+        version: link:../../modules/users
+      '@blixis/webhooks':
+        specifier: workspace:*
+        version: link:../../modules/webhooks
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.13.6
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.6)(@vitest/coverage-v8@4.1.11)(esbuild@0.28.2)(jiti@2.6.1)(yaml@2.9.1)
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.5
+
   packages/shared:
     devDependencies:
       '@blixis/tsconfig':
