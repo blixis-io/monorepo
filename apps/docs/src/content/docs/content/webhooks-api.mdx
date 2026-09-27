@@ -96,6 +96,17 @@ A JSON `POST` per event and webhook:
 - **At least once:** the same event may arrive more than once. Deduplicate on `id`.
 - **Ignore unknown fields:** new optional fields may be added; incompatible changes get a new `version`.
 
+## Verify requests
+
+Every request carries `Blixis-Signature: t=<unix seconds>,v1=<hex HMAC-SHA256 of "<t>.<raw body>">`, signed with the webhook's secret, and `Blixis-Delivery-Id`, `Blixis-Event-Id`, `Blixis-Event-Type`. Verify the signature on the **raw** body and reject timestamps older than a few minutes. A complete, tested example (Web Crypto: Node, Workers, Deno, Bun) is in [the receiver contract](https://github.com/blixis-io/monorepo/blob/main/docs/api/webhooks.md#verify-the-signature); `@blixis/webhooks` exports the same check as [`verifyWebhookSignature`](/api/webhooks/functions/verifywebhooksignature/).
+
+## Retries and failures
+
+- Answer **2xx within 10 seconds**; queue slow work.
+- **408, 429, 5xx, redirects, timeouts, network errors** are retried after about 1 min, 5 min, 15 min, 1 h, 3 h, 6 h and 12 h (8 attempts, ~22 hours).
+- **Other 4xx** answers stop retries for that delivery.
+- After **50 consecutive failed attempts**, Blixis disables the webhook (`active: false`, `disabledReason`). Reactivate it with `PATCH { "active": true }` once the endpoint works.
+
 ## URL rules
 
 Blixis fetches webhook URLs from its own servers, so it refuses URLs that could reach internal systems:

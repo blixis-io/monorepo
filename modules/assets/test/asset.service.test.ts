@@ -256,7 +256,7 @@ describe.skipIf(!databaseTestsEnabled())('AssetService (Postgres)', () => {
     const { asset } = await as((a) =>
       a.createPending(editor, tenant, { filename: 'a.png', mimeType: 'image/png' }),
     )
-    const denied = (actor: Actor, fn: (a: AssetService) => Promise<unknown>) =>
+    const denied = (_actor: Actor, fn: (a: AssetService) => Promise<unknown>) =>
       as(fn).catch((e) => e.constructor)
     expect(await as((a) => a.get(viewer, tenant, asset.sys.id))).toBeDefined()
     expect(
