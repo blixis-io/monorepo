@@ -36,3 +36,6 @@ Every event is listed here with its delivery class. Rows are added by the task t
 | `asset.deleted` | 1 | **transactional** | `@blixis/assets` | **file cleanup** (`delete-file`, idempotent); **delivery cache** (`delivery-invalidation`); webhooks (015). Also emitted for deleted pending uploads | [`modules/assets/src/events.ts`](../../modules/assets/src/events.ts) |
 | `asset.published` | 1 | **transactional** | `@blixis/assets` | **delivery cache** (`delivery-invalidation` → content's stamp, ADR 0012); webhooks (015) | [`modules/assets/src/events.ts`](../../modules/assets/src/events.ts) |
 | `asset.unpublished` | 1 | **transactional** | `@blixis/assets` | **delivery cache** (`delivery-invalidation`); webhooks (015) | [`modules/assets/src/events.ts`](../../modules/assets/src/events.ts) |
+| `webhook.delivery.requested` | 1 | **transactional** | `@blixis/webhooks` | internal: the webhooks delivery consumer (015.003) sends the delivery; never delivered to webhooks | [`modules/webhooks/src/events.ts`](../../modules/webhooks/src/events.ts) |
+
+**Webhooks:** every public event type (`entry.*`, `content-type.*`, `asset.*`) is also consumed by `@blixis/webhooks` (`fan-out.<type>`), which turns it into deliveries for matching webhooks. The public body is documented in [`docs/api/webhooks.md`](../api/webhooks.md).

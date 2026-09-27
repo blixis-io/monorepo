@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,10 +37,10 @@ Subscribe to public domain events and, for each matching active webhook, create 
 ### Create
 
 ```text
-modules/webhooks/src/events/fanout.ts
-modules/webhooks/src/domain/payload.ts
+modules/webhooks/src/infrastructure/migrations/0002_create_deliveries.ts
 modules/webhooks/src/infrastructure/delivery.repository.ts
-modules/webhooks/src/infrastructure/migrations/0002_create_webhook_deliveries.sql
+modules/webhooks/src/domain/payload.ts
+modules/webhooks/src/application/{fanout,public-events}.ts
 modules/webhooks/src/events.ts
 modules/webhooks/test/fanout.test.ts
 docs/api/webhooks.md
@@ -49,8 +49,11 @@ docs/api/webhooks.md
 ### Modify
 
 ```text
-modules/webhooks/src/module.ts
+modules/webhooks/src/{module,index}.ts, src/infrastructure/schema.ts
+modules/webhooks/package.json, tsconfig.json (content and assets event definitions)
 docs/contracts/events.md
+apps/docs/src/content/docs/content/webhooks-api.mdx
+docs/plans/015-webhooks/*, docs/ROADMAP.md, pnpm-lock.yaml
 ```
 
 ### Delete
@@ -74,7 +77,7 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] One `entry.published` with two matching webhooks creates exactly two delivery rows even if redelivered.
+- [x] One `entry.published` with two matching webhooks creates exactly two delivery rows even if redelivered.
 
 ## Validation
 
@@ -84,15 +87,15 @@ pnpm --filter @blixis/webhooks test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Payload schema documented as public contract with version.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Payload schema documented as public contract with version.
 
 ## Completion conditions
 
@@ -109,4 +112,8 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Idempotency without processed-event markers:** the unique `(webhook_id, event_id)` plus `insert … on conflict do nothing returning` creates rows only once; `webhook.delivery.requested` is emitted in the same transaction for the rows actually created. A redelivered event creates and requests nothing (tested by calling the subscription twice). Transactional idempotency (`processed` markers) wasn't needed and would require the outbox module in every test.
+- **Payload decision (open question):** ids only, plus `id` (event id, for receiver deduplication), `type`, `version` (event schema version), `createdAt`, `spaceId`, `environmentId`. `data` is an explicit allow-list per group (entry, content-type, asset), so internal fields such as asset storage keys or organization ids never leak when event payloads grow (tested). Contract in `docs/api/webhooks.md`.
+- **Event definitions:** `@blixis/webhooks` imports the public event definitions from `@blixis/content` and `@blixis/assets` (peer dependencies) — subscribing needs them; the emitting modules stay optional at runtime (`meta.requires` lists only spaces and permissions). A test keeps `PUBLIC_EVENT_DEFINITIONS` equal to the documented `PUBLIC_WEBHOOK_EVENTS`.
+- **Matching:** active webhooks of the space; `environmentId` null or equal to the event's; any `eventTypes` pattern matching (`exact`, `group.*`, `*`). Inactive webhooks get nothing.
+- **Deliveries** are created `pending` with `next_attempt_at = now()`; attempts, status codes and errors are filled by 015.003. Deleting a webhook (or its space) cascades to its deliveries.

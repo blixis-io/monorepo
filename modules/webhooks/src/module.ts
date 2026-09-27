@@ -1,6 +1,8 @@
 import {
   AUTHORIZATION_SERVICE,
   BLIXIS_CAPABILITIES,
+  EVENT_BUS,
+  type EventDefinition,
   type ModuleHonoEnv,
   subscribe,
 } from '@blixis/contracts'
@@ -8,9 +10,12 @@ import { DATABASE } from '@blixis/database'
 import { defineModule } from '@blixis/kernel'
 import { ENVIRONMENT_SERVICE, spaceDeleted } from '@blixis/spaces'
 import { Hono } from 'hono'
+import { fanOut } from './application/fanout.ts'
+import { PUBLIC_EVENT_DEFINITIONS } from './application/public-events.ts'
 import { createWebhookService, WEBHOOK_SERVICE } from './application/webhook.service.ts'
 import { WEBHOOKS_CONFIG } from './config.ts'
 import { createWebhooks } from './infrastructure/migrations/0001_create_webhooks.ts'
+import { createDeliveries } from './infrastructure/migrations/0002_create_deliveries.ts'
 import { webhookRepository } from './infrastructure/webhook.repository.ts'
 import { WEBHOOK_PERMISSIONS } from './permissions.ts'
 import { webhookRoutes } from './rest/webhook.routes.ts'
@@ -28,8 +33,19 @@ export const webhooksModule = defineModule({
     requiresCapabilities: [BLIXIS_CAPABILITIES.database, BLIXIS_CAPABILITIES.events],
   },
   permissions: Object.values(WEBHOOK_PERMISSIONS),
-  migrations: [createWebhooks],
+  migrations: [createWebhooks, createDeliveries],
   events: [
+    // Fan-out (015.002): every public event becomes deliveries for the space's matching webhooks.
+    ...PUBLIC_EVENT_DEFINITIONS.map((event) =>
+      subscribe(
+        event as EventDefinition<string, unknown>,
+        `fan-out.${event.type}`,
+        (envelope, { services }) =>
+          fanOut({ db: services.get(DATABASE), events: services.get(EVENT_BUS) }, envelope).then(
+            () => undefined,
+          ),
+      ),
+    ),
     // Space data belongs to its modules: delete this module's rows with the space (plan 008).
     subscribe(spaceDeleted, 'delete-space-webhooks', async ({ payload }, { services }) => {
       await webhookRepository.deleteAllForSpace(services.get(DATABASE), payload)

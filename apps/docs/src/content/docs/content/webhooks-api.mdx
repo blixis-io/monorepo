@@ -76,6 +76,26 @@ The **`secret` is returned only here** (and when you rotate it). Store it in you
 
 Other events (users, memberships, sign-ins) are never sent to webhooks.
 
+## What your endpoint receives
+
+A JSON `POST` per event and webhook:
+
+```json
+{
+  "id": "01a0e3c1-…",
+  "type": "entry.published",
+  "version": 1,
+  "createdAt": "2026-09-27T10:00:00.000Z",
+  "spaceId": "01a0da7b-…",
+  "environmentId": "01a0da7b-…",
+  "data": { "entryId": "…", "contentTypeId": "…", "versionId": "…" }
+}
+```
+
+- **`data` holds ids only:** fetch the content itself through the [Delivery API](/content/delivery-api/). Entries send `entryId`, `contentTypeId`, `versionId`; content types `contentTypeId`, `apiId`, `kind`, `version`; assets `assetId`, `version`.
+- **At least once:** the same event may arrive more than once. Deduplicate on `id`.
+- **Ignore unknown fields:** new optional fields may be added; incompatible changes get a new `version`.
+
 ## URL rules
 
 Blixis fetches webhook URLs from its own servers, so it refuses URLs that could reach internal systems:
