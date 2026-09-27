@@ -667,6 +667,9 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
+      '@blixis/assets':
+        specifier: workspace:*
+        version: link:../assets
       '@blixis/content':
         specifier: workspace:*
         version: link:../content

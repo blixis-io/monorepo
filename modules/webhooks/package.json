@@ -21,6 +21,8 @@
     "zod": "catalog:"
   },
   "peerDependencies": {
+    "@blixis/assets": "workspace:*",
+    "@blixis/content": "workspace:*",
     "@blixis/contracts": "workspace:*",
     "@blixis/database": "workspace:*",
     "@blixis/kernel": "workspace:*",
@@ -29,6 +31,7 @@
     "hono": "^4.0.0"
   },
   "devDependencies": {
+    "@blixis/assets": "workspace:*",
     "@blixis/content": "workspace:*",
     "@blixis/contracts": "workspace:*",
     "@blixis/database": "workspace:*",

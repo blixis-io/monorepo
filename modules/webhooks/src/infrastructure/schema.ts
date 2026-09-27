@@ -1,5 +1,5 @@
 import { idColumn, tenantColumns, timestamps } from '@blixis/database'
-import { boolean, integer, pgSchema, text, uuid } from 'drizzle-orm/pg-core'
+import { boolean, integer, jsonb, pgSchema, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 export const webhooksSchema = pgSchema('webhooks')
 
@@ -20,5 +20,22 @@ export const webhooks = webhooksSchema.table('webhooks', {
   version: integer('version').notNull().default(1),
   createdBy: text('created_by').notNull(),
   updatedBy: text('updated_by').notNull(),
+  ...timestamps(),
+})
+
+export type DeliveryStatus = 'pending' | 'succeeded' | 'failed' | 'abandoned'
+
+export const deliveries = webhooksSchema.table('deliveries', {
+  id: idColumn(),
+  ...tenantColumns(),
+  webhookId: uuid('webhook_id').notNull(),
+  eventId: uuid('event_id').notNull(),
+  eventType: text('event_type').notNull(),
+  payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
+  status: text('status').$type<DeliveryStatus>().notNull().default('pending'),
+  attempts: integer('attempts').notNull().default(0),
+  nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }),
+  lastStatusCode: integer('last_status_code'),
+  lastError: text('last_error'),
   ...timestamps(),
 })
