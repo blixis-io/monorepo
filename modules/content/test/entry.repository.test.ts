@@ -223,4 +223,29 @@ describe.skipIf(!databaseTestsEnabled())('entry repository (Postgres)', () => {
     )
     expect(left.rows[0]?.['n']).toBe(0)
   })
+
+  it('pages entries saved within one millisecond without skipping any', async () => {
+    const page = await type('page')
+    const ids: string[] = []
+    for (const n of [1, 2, 3]) {
+      const { entry } = await tx((t) => entryRepository.create(t, tenant, page.id, input({ n })))
+      ids.push(entry.id)
+    }
+    // Two entries in the same millisecond, microseconds apart (as `now()` can produce), and one older.
+    await db.db.execute(sql`update content.entries set updated_at = case id
+      when ${ids[0]}::uuid then '2026-09-27T10:00:00.123400Z'::timestamptz
+      when ${ids[1]}::uuid then '2026-09-27T10:00:00.123900Z'::timestamptz
+      else '2026-09-27T09:00:00Z'::timestamptz end`)
+    const seen: string[] = []
+    let cursor: { updatedAt: string; id: string } | undefined
+    for (let i = 0; i < 5; i++) {
+      const rows = await entryRepository.list(db.db, tenant, { state: 'draft', cursor, limit: 1 })
+      const last = rows.at(-1)
+      if (last === undefined) break
+      seen.push(last.entry.id)
+      // The API's cursor carries the millisecond timestamp of the last row.
+      cursor = { updatedAt: last.entry.updatedAt, id: last.entry.id }
+    }
+    expect(seen.sort()).toEqual([...ids].sort())
+  })
 })
