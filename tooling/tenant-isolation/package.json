@@ -20,6 +20,7 @@
     "@blixis/testing": "workspace:*",
     "@blixis/tsconfig": "workspace:*",
     "@blixis/users": "workspace:*",
+    "@blixis/webhooks": "workspace:*",
     "@types/node": "catalog:",
     "drizzle-orm": "catalog:",
     "typescript": "catalog:",

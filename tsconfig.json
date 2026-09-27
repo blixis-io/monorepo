@@ -104,6 +104,12 @@
       "path": "modules/assets/tsconfig.test.json"
     },
     {
+      "path": "modules/webhooks"
+    },
+    {
+      "path": "modules/webhooks/tsconfig.test.json"
+    },
+    {
       "path": "apps/api"
     }
   ]

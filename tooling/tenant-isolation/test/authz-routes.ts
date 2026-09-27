@@ -346,6 +346,45 @@ export const AUTHZ_ROUTES = defineAuthzMatrix([
     permission: 'assets.delete',
     level: 'space',
   },
+  // Webhooks
+  {
+    method: 'GET',
+    path: '/api/v1/spaces/:spaceId/webhooks',
+    permission: 'webhooks.read',
+    level: 'space',
+  },
+  {
+    method: 'GET',
+    path: '/api/v1/webhooks/:webhookId',
+    permission: 'webhooks.read',
+    level: 'space',
+  },
+  {
+    method: 'POST',
+    path: '/api/v1/spaces/:spaceId/webhooks',
+    body: { name: 'Matrix', url: 'https://hooks.example.com/matrix', eventTypes: ['entry.*'] },
+    permission: 'webhooks.manage',
+    level: 'space',
+  },
+  {
+    method: 'PATCH',
+    path: '/api/v1/webhooks/:webhookId',
+    body: { expectedVersion: 1, name: 'Renamed' },
+    permission: 'webhooks.manage',
+    level: 'space',
+  },
+  {
+    method: 'POST',
+    path: '/api/v1/webhooks/:webhookId/rotate-secret',
+    permission: 'webhooks.manage',
+    level: 'space',
+  },
+  {
+    method: 'DELETE',
+    path: '/api/v1/webhooks/:webhookId',
+    permission: 'webhooks.manage',
+    level: 'space',
+  },
   // Delivery keys
   {
     method: 'GET',

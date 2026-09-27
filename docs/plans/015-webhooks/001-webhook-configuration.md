@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -40,33 +40,29 @@ Create `modules/webhooks` with configuration schema, service, permissions, and R
 ### Create
 
 ```text
-modules/webhooks/package.json
-modules/webhooks/tsconfig.json
-modules/webhooks/src/index.ts
-modules/webhooks/src/module.ts
-modules/webhooks/src/permissions.ts
-modules/webhooks/src/domain/webhook.ts
-modules/webhooks/src/domain/url-policy.ts
-modules/webhooks/src/application/webhook.service.ts
-modules/webhooks/src/infrastructure/webhook.repository.ts
-modules/webhooks/src/infrastructure/secret-box.ts
-modules/webhooks/src/infrastructure/migrations/0001_create_webhooks.sql
-modules/webhooks/src/rest/routes.ts
-modules/webhooks/test/
+modules/webhooks/ (package.json, tsconfig*.json)
+modules/webhooks/src/{index,module,config,permissions}.ts
+modules/webhooks/src/domain/{url,webhook}.ts
+modules/webhooks/src/application/{crypto,webhook.service}.ts
+modules/webhooks/src/infrastructure/{schema,webhook.repository}.ts
+modules/webhooks/src/infrastructure/migrations/0001_create_webhooks.ts
+modules/webhooks/src/rest/webhook.routes.ts
+modules/webhooks/test/{url,crypto,webhooks.api}.test.ts
+apps/api/src/webhooks-config.ts
+apps/docs/src/content/docs/content/webhooks-api.mdx
 ```
 
 ### Modify
 
 ```text
-apps/api/src/blixis.config.ts
-apps/api/package.json
-apps/api/.dev.vars.example
-apps/api/src/env.ts
-apps/api/test/tenant-routes.allowlist.ts
-apps/api/test/authz-matrix.worker.test.ts
-docs/operations/configuration.md
-tsconfig.json
-pnpm-lock.yaml
+apps/api/src/{blixis.config,env}.ts, apps/api/package.json, apps/api/tsconfig.json, apps/api/.dev.vars.example
+tooling/db/src/cli.ts, tooling/db/package.json, tooling/db/tsconfig.json, package.json (webhooks:generate-key)
+packages/testing/src/isolation.ts (TENANT_SEGMENTS)
+tooling/tenant-isolation/ (routes, authz-routes, isolation + matrix seeds, package.json, tsconfig.json)
+tooling/postman/blixis.postman_collection.json
+apps/docs/astro.config.mjs
+docs/operations/{cloudflare,configuration}.md
+tsconfig.json, pnpm-lock.yaml, docs/ROADMAP.md, docs/plans/015-webhooks/*
 ```
 
 ### Delete
@@ -90,8 +86,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Webhook creation rejects `http://localhost` and private IPs in production config.
-- [ ] Secret shown once; encrypted at rest.
+- [x] Webhook creation rejects `http://localhost` and private IPs in production config.
+- [x] Secret shown once; encrypted at rest.
 
 ## Validation
 
@@ -102,15 +98,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Encryption key handling documented.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Encryption key handling documented.
 
 ## Completion conditions
 
@@ -127,4 +123,11 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Secrets:** `whsec_` + 32 random bytes (base64url), returned only on create and rotate. Stored as `v1.<kid>.<iv>.<ciphertext>` (AES-GCM, 96-bit IV) with the **webhook id as additional data**, so a ciphertext can't be moved to another webhook. Keys come from `WEBHOOK_SECRET_KEYS` (`kid:base64key[,…]`): the first encrypts, all decrypt — rotation without re-encrypting everything at once. Parsed keys are cached per isolate. `secretHint` (`whsec_…abcd`) lets people recognise a secret.
+- **Config through a token, not bindings:** `WEBHOOKS_CONFIG` (secret keys, `allowPrivateUrls`) is provided by `apps/api/src/webhooks-config.ts`, like `AUTH_CONFIG`; `allowPrivateUrls` is true only for `BLIXIS_ENV=local`. Missing keys break only webhook management and delivery. Generator: `node tooling/db/src/cli.ts generate-webhook-key <kid>` (`pnpm webhooks:generate-key`).
+- **URL policy** (`checkWebhookUrl`): `https:` only (plus `http:` locally); no credentials; ≤ 2048 characters; host names: no `localhost`, `*.localhost|local|internal|home.arpa|lan|corp`, metadata hosts, single-label names; IPv4 literals outside private/reserved ranges (the WHATWG parser normalizes `2130706433` and `0x7f.1` first — tested); IPv6 only global unicast `2000::/3` outside `2001:db8::/32`, with mapped/NAT64 addresses judged by their IPv4 part. DNS names resolving to private addresses aren't resolved here: Workers can't reach private networks, and delivery (003) re-checks the URL.
+- **Event types:** a public allow-list (entries, content types, assets); patterns `group.*` and `*` are accepted when they match at least one public type. Internal events (users, memberships, auth) are never deliverable.
+- **Environment:** `environment_id` is nullable (all environments). The Drizzle property is `onlyEnvironmentId` so `tenantScope` scopes by organization and space only.
+- **Deviation:** no `failure_count` updates or events yet (003), and `webhooks.read`/`webhooks.manage` default to **admins only** — webhooks export data.
+- **Coverage:** `webhooks/:webhookId` joined `TENANT_SEGMENTS`; all 6 routes are in the isolation suite (fingerprint includes webhooks) and the authorization matrix; Postman *Webhooks* folder including a refused metadata URL.
+- **Staging needs:** `WEBHOOK_SECRET_KEYS` secret and `pnpm db:migrate` (webhooks `0001`) before deploying.

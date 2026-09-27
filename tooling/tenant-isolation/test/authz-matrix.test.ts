@@ -31,6 +31,7 @@ import {
   type TestDatabase,
 } from '@blixis/testing/database'
 import { USER_SERVICE } from '@blixis/users'
+import { generateWebhookKey, WEBHOOK_SERVICE, WEBHOOKS_CONFIG } from '@blixis/webhooks'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { apiModules } from './api.ts'
 import { AUTHZ_ROUTES } from './authz-routes.ts'
@@ -57,6 +58,10 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
         serviceOverride(QUEUE_SENDER, { send: async () => undefined }),
         // Uploads stream into memory instead of R2.
         serviceOverride(OBJECT_STORAGE, createMemoryObjectStorage()),
+        serviceOverride(WEBHOOKS_CONFIG, {
+          secretKeys: generateWebhookKey('test'),
+          allowPrivateUrls: false,
+        }),
       ],
     })
     const catalog = t.services.get(PERMISSION_CATALOG).list()
@@ -161,6 +166,15 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
             size: 5,
           })
         const [upload, aborted] = [await multipart(), await multipart()]
+        const { webhook } = await services.get(WEBHOOK_SERVICE).create(
+          owner,
+          { organizationId: org.id, spaceId: space.id },
+          {
+            name: 'Hook',
+            url: 'https://hooks.example.com/case',
+            eventTypes: ['entry.published'],
+          },
+        )
         const actor = await join({ ...ids, owner, services })
         return {
           actor,
@@ -174,6 +188,7 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
             entryId: entry.sys.id,
             keyId: deliveryKey.record.id,
             versionId: firstVersion?.sys.id ?? '',
+            webhookId: webhook.id,
             assetId: asset.sys.id,
             uploadAssetId: upload.asset.sys.id,
             abortAssetId: aborted.asset.sys.id,

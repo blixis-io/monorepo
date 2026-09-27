@@ -22,6 +22,7 @@ import {
   type TestDatabase,
 } from '@blixis/testing/database'
 import { MEMBERSHIP_SERVICE, USER_SERVICE } from '@blixis/users'
+import { generateWebhookKey, WEBHOOK_SERVICE, WEBHOOKS_CONFIG } from '@blixis/webhooks'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { apiModules } from './api.ts'
@@ -44,7 +45,13 @@ describe.skipIf(!databaseTestsEnabled())(
         modules,
         database: db,
         // No queue in tests: best-effort events are dropped, transactional ones stay in the outbox.
-        overrides: [serviceOverride(QUEUE_SENDER, { send: async () => undefined })],
+        overrides: [
+          serviceOverride(QUEUE_SENDER, { send: async () => undefined }),
+          serviceOverride(WEBHOOKS_CONFIG, {
+            secretKeys: generateWebhookKey('test'),
+            allowPrivateUrls: false,
+          }),
+        ],
       })
       const seeded = await t.app.runInScope({}, async ({ services }) => {
         const users = services.get(USER_SERVICE)
@@ -159,8 +166,16 @@ describe.skipIf(!databaseTestsEnabled())(
           filename: 'uploading.png',
           mimeType: 'image/png',
         })
+        const { webhook } = await services
+          .get(WEBHOOK_SERVICE)
+          .create(
+            asUser(owner.id),
+            { organizationId: orgB.id, spaceId: spaceB1.id },
+            { name: 'Victim hook', url: 'https://victim.example/hook', eventTypes: ['*'] },
+          )
         const attackerSpace = (await tenancy.listSpaces(asUser(attacker.id), orgA.id))[0]
         return {
+          webhookId: webhook.id,
           assetId: asset.sys.id,
           uploadAssetId: upload.asset.sys.id,
           deliveryKey,
@@ -192,6 +207,7 @@ describe.skipIf(!databaseTestsEnabled())(
         entryId: seeded.entry.sys.id,
         keyId: seeded.deliveryKey.record.id,
         versionId: seeded.entryVersionId,
+        webhookId: seeded.webhookId,
         assetId: seeded.assetId,
         uploadAssetId: seeded.uploadAssetId,
         partNumber: '1',
@@ -244,6 +260,9 @@ describe.skipIf(!databaseTestsEnabled())(
         ),
         assets: await q(
           sql`select id, status, filename, version, object_key, published_at from assets.assets where organization_id = ${victimOrg}::uuid order by id`,
+        ),
+        webhooks: await q(
+          sql`select id, name, url, event_types, secret_encrypted, active, version from webhooks.webhooks where organization_id = ${victimOrg}::uuid order by id`,
         ),
         deliveryKeys: await q(
           sql`select id, name, revoked_at from auth.delivery_keys where organization_id = ${victimOrg}::uuid order by id`,

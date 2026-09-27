@@ -17,6 +17,7 @@ const [authTypeDoc, authSidebar] = createStarlightTypeDocPlugin()
 const [spacesTypeDoc, spacesSidebar] = createStarlightTypeDocPlugin()
 const [permissionsTypeDoc, permissionsSidebar] = createStarlightTypeDocPlugin()
 const [assetsTypeDoc, assetsSidebar] = createStarlightTypeDocPlugin()
+const [webhooksTypeDoc, webhooksSidebar] = createStarlightTypeDocPlugin()
 
 /** Shared TypeDoc options for all documented packages (ADR 0018). */
 const typeDoc = {
@@ -136,6 +137,13 @@ export default defineConfig({
           sidebar: { label: '@blixis/assets' },
           typeDoc,
         }),
+        webhooksTypeDoc({
+          entryPoints: ['../../modules/webhooks/src/index.ts'],
+          tsconfig: '../../modules/webhooks/tsconfig.json',
+          output: 'api/webhooks',
+          sidebar: { label: '@blixis/webhooks' },
+          typeDoc,
+        }),
       ],
       sidebar: [
         { label: 'Getting started', items: [{ autogenerate: { directory: 'getting-started' } }] },
@@ -160,6 +168,7 @@ export default defineConfig({
             permissionsSidebar,
             contentSidebar,
             assetsSidebar,
+            webhooksSidebar,
           ],
         },
       ],

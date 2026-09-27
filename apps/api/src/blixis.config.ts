@@ -11,7 +11,9 @@ import { createMemoryResponseCache, graphqlModule } from '@blixis/graphql'
 import { permissionsModule } from '@blixis/permissions'
 import { spacesModule } from '@blixis/spaces'
 import { usersModule } from '@blixis/users'
+import { webhooksModule } from '@blixis/webhooks'
 import { authConfigModule } from './auth-config.ts'
+import { webhooksConfigModule } from './webhooks-config.ts'
 
 /**
  * The explicit module list of the API Worker (architecture §2.3). Modules are imported by
@@ -41,6 +43,9 @@ export const modules: readonly BlixisModule[] = [
   contentModule(),
   // Files in the ASSETS bucket with metadata in Postgres (ADR 0013).
   assetsModule(),
+  // Signed notifications to endpoints a space registers (plan 015).
+  webhooksConfigModule(),
+  webhooksModule(),
   // GET/POST /graphql (delivery API, §10) — composed from module contributions. Published
   // delivery responses are cached (ADR 0012): isolate memory, then the Cache API (per data center).
   graphqlModule({

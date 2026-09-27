@@ -9,6 +9,8 @@ export interface ApiEnv extends CloudflareEnvBase {
   readonly HYPERDRIVE: { readonly connectionString: string }
   /** Ed25519 private JWKs (JSON array) signing access tokens — secret (ADR 0009). */
   readonly AUTH_SIGNING_KEYS?: string
+  /** `kid:base64key[,…]` AES keys encrypting webhook signing secrets — secret (plan 015). */
+  readonly WEBHOOK_SECRET_KEYS?: string
   /** Comma-separated origins allowed for cookie-based refresh/sign-out. */
   readonly AUTH_ALLOWED_ORIGINS?: string
   /** Events queue producer, used only through `@blixis/events` (§15). */
@@ -27,6 +29,8 @@ export const apiEnvSchema = defineEnvSchema(
     // authConfigModule), never the whole API. An empty secret once took staging down.
     AUTH_SIGNING_KEYS: z.string().optional(),
     AUTH_ALLOWED_ORIGINS: z.string().optional(),
+    // Optional like AUTH_SIGNING_KEYS: missing keys only break webhook management and delivery.
+    WEBHOOK_SECRET_KEYS: z.string().optional(),
     // Shape check only; the connection string is never logged.
     HYPERDRIVE: z.looseObject({ connectionString: z.string().min(1) }),
     EVENTS: z.custom<unknown>(

