@@ -1,13 +1,19 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 import type { BlixisModule } from '@blixis/contracts'
 import { buildDocument } from './document.ts'
+import { emitSdkTypes } from './typescript.ts'
 
 const root = path.resolve(import.meta.dirname, '../../..')
 export const SPEC_PATH = path.join(root, 'apps/api/openapi.json')
+export const SDK_TYPES_PATH = path.join(root, 'packages/sdk/src/generated/api.ts')
+
+/** The SDK's generated types for a document. */
+export const generateSdkTypes = (spec: string): string =>
+  emitSdkTypes(JSON.parse(spec) as Record<string, unknown>)
 
 /** The OpenAPI document of the API Worker's real module list, as committed text. */
 export async function generateSpec(): Promise<string> {
@@ -31,17 +37,29 @@ export async function generateSpec(): Promise<string> {
 
 async function main(args: readonly string[]): Promise<number> {
   const spec = await generateSpec()
+  const types = generateSdkTypes(spec)
+  const outputs: [string, string][] = [
+    [SPEC_PATH, spec],
+    [SDK_TYPES_PATH, types],
+  ]
   if (args.includes('--check')) {
-    const committed = readFileSync(SPEC_PATH, 'utf8')
-    if (committed !== spec) {
-      console.error('apps/api/openapi.json is out of date: run pnpm openapi:generate')
-      return 1
-    }
-    console.log('openapi: up to date')
-    return 0
+    const stale = outputs.filter(([file, text]) => {
+      try {
+        return readFileSync(file, 'utf8') !== text
+      } catch {
+        return true
+      }
+    })
+    for (const [file] of stale)
+      console.error(`${path.relative(root, file)} is out of date: run pnpm openapi:generate`)
+    if (stale.length === 0) console.log('openapi: up to date')
+    return stale.length === 0 ? 0 : 1
   }
-  writeFileSync(SPEC_PATH, spec)
-  console.log(`openapi: wrote ${path.relative(root, SPEC_PATH)}`)
+  for (const [file, text] of outputs) {
+    mkdirSync(path.dirname(file), { recursive: true })
+    writeFileSync(file, text)
+    console.log(`openapi: wrote ${path.relative(root, file)}`)
+  }
   return 0
 }
 

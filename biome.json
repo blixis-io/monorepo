@@ -8,7 +8,8 @@
       "!**/coverage",
       "!**/*.tsbuildinfo",
       "!**/worker-configuration.d.ts",
-      "!apps/api/openapi.json"
+      "!apps/api/openapi.json",
+      "!packages/sdk/src/generated"
     ]
   },
   "formatter": {

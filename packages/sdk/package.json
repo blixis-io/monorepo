@@ -1,0 +1,45 @@
+{
+  "name": "@blixis/sdk",
+  "version": "0.0.0",
+  "description": "Blixis SDK: typed clients for the Management API and the GraphQL delivery API",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run --root ../.. packages/sdk"
+  },
+  "devDependencies": {
+    "@blixis/assets": "workspace:*",
+    "@blixis/auth": "workspace:*",
+    "@blixis/content": "workspace:*",
+    "@blixis/contracts": "workspace:*",
+    "@blixis/database": "workspace:*",
+    "@blixis/events": "workspace:*",
+    "@blixis/graphql": "workspace:*",
+    "@blixis/kernel": "workspace:*",
+    "@blixis/permissions": "workspace:*",
+    "@blixis/spaces": "workspace:*",
+    "@blixis/testing": "workspace:*",
+    "@blixis/tsconfig": "workspace:*",
+    "@blixis/users": "workspace:*",
+    "@blixis/webhooks": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "zod": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/sdk"
+  }
+}

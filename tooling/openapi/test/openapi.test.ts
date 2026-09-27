@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url'
 import type { BlixisModule } from '@blixis/contracts'
 import { createBlixis, noopLogger } from '@blixis/kernel'
 import { describe, expect, it } from 'vitest'
-import { generateSpec, SPEC_PATH } from '../src/cli.ts'
+import { generateSdkTypes, generateSpec, SDK_TYPES_PATH, SPEC_PATH } from '../src/cli.ts'
 import { collectOperations } from '../src/document.ts'
 
 const root = path.resolve(import.meta.dirname, '../../..')
@@ -37,8 +37,10 @@ describe('OpenAPI document (ADR 0015)', () => {
     expect([...described].filter((route) => !registered.has(route)).sort()).toEqual([])
   })
 
-  it('is committed up to date (pnpm openapi:generate)', async () => {
-    expect(readFileSync(SPEC_PATH, 'utf8')).toBe(await generateSpec())
+  it('is committed up to date, with the SDK types (pnpm openapi:generate)', async () => {
+    const spec = await generateSpec()
+    expect(readFileSync(SPEC_PATH, 'utf8')).toBe(spec)
+    expect(readFileSync(SDK_TYPES_PATH, 'utf8')).toBe(generateSdkTypes(spec))
   })
 
   it('has unique operation ids and resolvable references', async () => {

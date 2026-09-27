@@ -110,6 +110,12 @@
       "path": "modules/webhooks"
     },
     {
+      "path": "packages/sdk"
+    },
+    {
+      "path": "packages/sdk/tsconfig.test.json"
+    },
+    {
       "path": "modules/webhooks/tsconfig.test.json"
     },
     {

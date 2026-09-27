@@ -1,0 +1,20 @@
+{
+  "extends": "@blixis/tsconfig/test.json",
+  "compilerOptions": { "lib": ["es2023", "webworker"], "types": ["node"] },
+  "references": [
+    { "path": "./tsconfig.json" },
+    { "path": "../contracts" },
+    { "path": "../kernel" },
+    { "path": "../database" },
+    { "path": "../events" },
+    { "path": "../graphql" },
+    { "path": "../testing" },
+    { "path": "../../modules/users" },
+    { "path": "../../modules/auth" },
+    { "path": "../../modules/spaces" },
+    { "path": "../../modules/permissions" },
+    { "path": "../../modules/content" },
+    { "path": "../../modules/assets" },
+    { "path": "../../modules/webhooks" }
+  ]
+}

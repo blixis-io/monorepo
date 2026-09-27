@@ -1,0 +1,106 @@
+---
+title: SDK
+description: Use @blixis/sdk to manage spaces, content, assets, and webhooks from any JavaScript runtime — typed, retried, and with clear errors.
+sidebar:
+  order: 3
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+`@blixis/sdk` is the typed client for the Blixis APIs. It has **no dependencies** and runs wherever `fetch` does: Cloudflare Workers, browsers, Node 20+, Deno, Bun, and frameworks such as Astro. Its types are generated from the [OpenAPI document](/concepts/api-reference/), so they always match the API.
+
+## Connect
+
+```ts
+import { createBlixisClient } from '@blixis/sdk'
+
+const blixis = createBlixisClient({
+  baseUrl: 'https://api.example.com',
+  token: process.env.BLIXIS_TOKEN, // an API token (blx_pat_…) from POST /api/v1/auth/tokens
+})
+```
+
+| Option | Default | |
+|---|---|---|
+| `baseUrl` | — | the API's origin |
+| `token` | — | an API token or an access token |
+| `timeoutMs` | 30 000 | per attempt |
+| `retries` | 2 | for `429`, `502`–`504`, and network errors, on requests that are safe to repeat |
+| `fetch` | global `fetch` | replace for tests or instrumentation |
+
+For scripts, `signIn({ baseUrl }, { email, password })` returns a session whose `accessToken` works as `token` (15 minutes).
+
+<Aside type="caution">
+Keep management tokens on the server. Never ship them to browsers; websites read content with delivery keys through GraphQL.
+</Aside>
+
+## Manage content
+
+```ts
+const page = await blixis.contentTypes.create(spaceId, {
+  apiId: 'page',
+  name: 'Page',
+  fields: [{ apiId: 'title', name: 'Title', type: 'text', required: true }],
+})
+
+const draft = await blixis.entries.create(spaceId, 'page', { title: 'Home' })
+const saved = await blixis.entries.update(draft.sys.id, { title: 'Welcome' }, draft.sys.version)
+await blixis.entries.publish(saved.sys.id)
+
+// Every entry, fetching pages as you go
+for await (const entry of blixis.entries.iterate(spaceId, { contentType: 'page' })) {
+  console.log(entry.fields.title)
+}
+```
+
+- **Versions:** `update` takes the version you edited; if someone saved in between, it throws a `409` (`CONFLICT`). Reload and retry.
+- **Commands are safe to retry:** `publish`, `unpublish`, and redeliveries send an `Idempotency-Key` automatically, the same on every retry. Pass `{ idempotencyKey }` to deduplicate across processes.
+
+## Upload files
+
+```ts
+const asset = await blixis.assets.upload(spaceId, file, { filename: file.name }) // up to 90 MiB
+await blixis.assets.publish(asset.sys.id)
+
+// Large files: in parts, with progress
+await blixis.assets.uploadLarge(spaceId, bigFile, {
+  filename: bigFile.name,
+  onProgress: (sent, total) => console.log(`${Math.round((sent / total) * 100)}%`),
+})
+```
+
+Pass `contentType` when the body isn't a `Blob` with a type, `sha256` (hex) to have the server verify the bytes, and `size` for streams.
+
+## Everything else
+
+The resources cover the common flows: `organizations`, `spaces`, `contentTypes`, `entries`, `assets`, `webhooks`, `deliveryKeys`, `apiTokens`. **Every** operation is also available by its `operationId`, fully typed:
+
+```ts
+const { locales } = await blixis.call('listLocales', { params: { spaceId } })
+await blixis.call('createLocale', { params: { spaceId }, body: { code: 'nl-NL', fallbackCode: 'en-US' } })
+```
+
+The operation ids are in the [OpenAPI document](/concepts/api-reference/) (`GET /api/v1/openapi.json`).
+
+## Errors
+
+Failed calls throw `BlixisApiError`:
+
+```ts
+import { BlixisApiError } from '@blixis/sdk'
+
+try {
+  await blixis.entries.publish(entryId)
+} catch (error) {
+  if (error instanceof BlixisApiError && error.code === 'VALIDATION_FAILED') {
+    for (const issue of error.errors) console.log(issue.path.join('.'), issue.message)
+  } else throw error
+}
+```
+
+| Property | |
+|---|---|
+| `status` | HTTP status; `0` when no answer arrived |
+| `code` | `VALIDATION_FAILED`, `NOT_FOUND`, `CONFLICT`, `FORBIDDEN`, `UNAUTHORIZED`, `RATE_LIMITED`, …, or `NETWORK_ERROR` ([errors](/concepts/errors/)) |
+| `errors` | validation issues: `path` and `message` |
+| `requestId` | the request in the server's logs — include it when you report a problem |
