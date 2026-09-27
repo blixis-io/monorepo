@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,20 +37,23 @@ Create `apps/example-site` (Astro) that renders a sample content model (e.g. blo
 ### Create
 
 ```text
-apps/example-site/package.json
-apps/example-site/astro.config.mjs
-apps/example-site/tsconfig.json
-apps/example-site/src/pages/index.astro
-apps/example-site/src/pages/posts/[slug].astro
-apps/example-site/src/lib/blixis.ts
+apps/example-site/ (package.json, astro.config.mjs, tsconfig.json, .gitignore, README.md)
+apps/example-site/src/lib/{blixis,rich-text}.ts
+apps/example-site/src/layouts/Layout.astro
+apps/example-site/src/pages/[...lang]/index.astro
+apps/example-site/src/pages/[...lang]/posts/[slug].astro
 apps/example-site/scripts/seed.ts
-apps/example-site/README.md
+apps/example-site/test/site.test.ts
+apps/api/test/sdk.worker.test.ts
 ```
 
 ### Modify
 
 ```text
-pnpm-lock.yaml
+vitest.config.ts (example-site tests), biome.json (example-site Node files, .astro rules)
+apps/api/package.json, apps/api/tsconfig.json (SDK in workerd)
+apps/docs/src/content/docs/getting-started/sdk.mdx
+docs/plans/017-sdk-and-example-consumer/*, docs/ROADMAP.md, pnpm-lock.yaml
 ```
 
 ### Delete
@@ -74,8 +77,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] `pnpm --filter example-site build` succeeds against a seeded local API.
-- [ ] Preview shows draft changes; production build shows published only.
+- [x] `pnpm --filter example-site build` succeeds against a seeded local API.
+- [x] Preview shows draft changes; production build shows published only.
 
 ## Validation
 
@@ -86,15 +89,15 @@ pnpm --filter example-site seed && pnpm --filter example-site build
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Example uses only public SDK APIs.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Example uses only public SDK APIs.
 
 ## Completion conditions
 
@@ -111,4 +114,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Preview without an SSR adapter:** the site is fully static; preview is a second build with `BLIXIS_PREVIEW=1` and the preview key (`build:preview` → `dist-preview/`), and `astro dev` shows drafts live. Keys are read at build time through `process.env` only; the HTML never contains them (tested). An SSR preview route would need `@astrojs/cloudflare` — not worth a dependency for the example.
+- **Env loading:** Astro doesn't put `.env` into `process.env`; scripts run Astro through `node --env-file-if-exists=.env`.
+- **Seed script** (`scripts/seed.ts`, Node's built-in TypeScript): locales, `author` and `post` types, three generated PNGs (no binary files in the repo), an author, two published posts (one translated) and a draft, and a delivery and a preview key — all through `@blixis/sdk`; prints the `.env` lines.
+- **Rich text** (`src/lib/rich-text.ts`): paragraphs, headings (h2–h6), lists, quotes, code, rules, breaks, marks (bold, italic, underline, strike, code, link with the same href rule the API validates), embedded assets; everything escaped; unknown nodes keep their text.
+- **End-to-end test** (`test/site.test.ts`, with the DB tests): the real modules in-process behind a local HTTP server, seeded through the SDK; `astro build` runs as a child process for the published and preview sites; assertions on posts, locales, rich text, image URLs, drafts only in preview, and no keys in the output.
+- **SDK in a web-standard runtime:** `apps/api/test/sdk.worker.test.ts` runs the SDK in workerd (no Node APIs, like browsers): retries with one idempotency key, uploads, persisted queries, error mapping. DB-backed contract tests stay in Node (the Workers-pool DB quarantine).
+- **Lint:** Biome can't see template usage in `.astro` files, so `noUnusedImports`/`noUnusedVariables` are off for them (Biome's recommendation); `apps/example-site/**` may use Node built-ins (build scripts and tests).

@@ -1,0 +1,33 @@
+---
+import Layout from '../../../layouts/Layout.astro'
+import { LOCALES, post, posts, type SiteLocale } from '../../../lib/blixis'
+import { renderRichText } from '../../../lib/rich-text'
+
+export async function getStaticPaths() {
+  const paths = []
+  for (const locale of LOCALES)
+    for (const item of await posts(locale))
+      paths.push({
+        params: { lang: locale.prefix === '' ? undefined : locale.prefix, slug: item.slug ?? '' },
+        props: { locale, slug: item.slug ?? '' },
+      })
+  return paths
+}
+
+const { locale, slug } = Astro.props as { locale: SiteLocale; slug: string }
+const entry = await post(locale, slug)
+if (entry === undefined) throw new Error(`Post ${slug} disappeared during the build`)
+const body = renderRichText(entry.body?.json, entry.body?.assets ?? [])
+---
+
+<Layout title={entry.title ?? slug} locale={locale} path={`posts/${slug}`}>
+  <article>
+    {entry.cover && <img src={entry.cover.url} alt={entry.cover.title ?? ''} width={entry.cover.width ?? undefined} height={entry.cover.height ?? undefined} />}
+    <h1>{entry.title}</h1>
+    <p class="meta">
+      {entry.author?.name}
+      {entry.sys.publishedAt && ` · ${new Date(entry.sys.publishedAt).toLocaleDateString(locale.code)}`}
+    </p>
+    <Fragment set:html={body} />
+  </article>
+</Layout>

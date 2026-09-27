@@ -135,6 +135,10 @@ const data = await delivery.query(Pages, { locale: 'nl-NL' }) // data.pageCollec
 
 Introspection needs a member token in production; generate against staging or with a member's token.
 
+## Example site
+
+`apps/example-site` in the repository is a small Astro blog built with the SDK: a seed script that creates the content model and posts, typed queries, rich-text rendering, locales, and a preview build with drafts. Its README walks through running it against a local API and rebuilding on webhooks.
+
 ## Errors
 
 Failed calls throw `BlixisApiError`:
