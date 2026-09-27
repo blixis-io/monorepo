@@ -7,6 +7,6 @@ export default defineConfig({
   test: {
     name: 'admin',
     environment: 'jsdom',
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'test/**/*.test.{ts,tsx}'],
   },
 })

@@ -23,12 +23,32 @@ const blixis = createBlixisClient({
 | Option | Default | |
 |---|---|---|
 | `baseUrl` | — | the API's origin |
-| `token` | — | an API token or an access token |
+| `token` | — | an API token or an access token, or a function returning one (asked before every request) |
 | `timeoutMs` | 30 000 | per attempt |
 | `retries` | 2 | for `429`, `502`–`504`, and network errors, on requests that are safe to repeat |
 | `fetch` | global `fetch` | replace for tests or instrumentation |
+| `credentials` | fetch's default | `include` sends cookies cross-origin |
+| `onUnauthorized` | — | called on a `401`; resolve `true` after renewing the token to repeat the request once |
 
 For scripts, `signIn({ baseUrl }, { email, password })` returns a session whose `accessToken` works as `token` (15 minutes).
+
+### Sign in from a browser app
+
+First-party browser apps, such as the admin, use `createBrowserSession`. The access token stays in memory; the refresh token is an `HttpOnly; SameSite=Strict` cookie that scripts can't read. The session renews the access token before it expires and after a `401`, one refresh at a time (across tabs too, with the Web Locks API).
+
+```ts
+import { createBrowserSession } from '@blixis/sdk'
+
+const session = createBrowserSession({ baseUrl: 'https://api.example.com' })
+if ((await session.restore()) === null) await session.signIn({ email, password })
+const organizations = await session.client.organizations.list()
+session.subscribe((user) => {
+  if (user === null) showSignIn() // signed out, or the session expired
+})
+await session.signOut()
+```
+
+The page's origin must be listed in the API's `AUTH_ALLOWED_ORIGINS` (CORS and the cookie endpoints) and be on the same site as the API, e.g. `admin.example.com` beside `api.example.com`. Never put tokens in `localStorage`.
 
 <Aside type="caution">
 Keep management tokens on the server. Never ship them to browsers; websites read content with delivery keys through GraphQL.

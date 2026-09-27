@@ -67,6 +67,7 @@
       "includes": [
         "tooling/**",
         "apps/example-site/**",
+        "apps/admin/e2e/**",
         "**/*.config.ts",
         "**/*.config.js",
         "**/*.config.mjs"

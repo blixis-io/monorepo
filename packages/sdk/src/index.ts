@@ -27,3 +27,8 @@ export {
   type TypedDocument,
 } from './graphql.ts'
 export type { HttpOptions } from './http.ts'
+export {
+  type BrowserSession,
+  type BrowserSessionOptions,
+  createBrowserSession,
+} from './session.ts'
