@@ -11,7 +11,9 @@
     "build:production": "vite build --mode production",
     "preview": "vite preview",
     "deploy:staging": "vite build --mode staging && wrangler deploy --env staging",
-    "deploy:production": "vite build --mode production && wrangler deploy --env production"
+    "deploy:production": "vite build --mode production && wrangler deploy --env production",
+    "test": "vitest run --project admin --root ../..",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@blixis/sdk": "workspace:*",
@@ -24,10 +26,12 @@
     "radix-ui": "1.6.7",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "tailwind-merge": "3.7.0"
+    "tailwind-merge": "3.7.0",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@blixis/tsconfig": "workspace:*",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/vite": "4.3.3",
     "@testing-library/dom": "10.4.2",
     "@testing-library/react": "16.3.3",

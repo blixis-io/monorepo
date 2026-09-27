@@ -10,6 +10,6 @@
     "jsx": "react-jsx",
     "types": ["vite/client"]
   },
-  "include": ["src", "vite.config.ts", "vitest.config.ts"],
+  "include": ["src", "test", "e2e", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"],
   "references": [{ "path": "../../packages/sdk" }]
 }

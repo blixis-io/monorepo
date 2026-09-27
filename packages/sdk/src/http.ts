@@ -5,8 +5,18 @@ import type { BinaryBody } from './generated/api.ts'
 export interface HttpOptions {
   /** The API's origin, e.g. `https://api.example.com` (paths are added by the SDK). */
   readonly baseUrl: string
-  /** A bearer token: an API token (`blx_pat_…`) or an access token; a delivery/preview key for GraphQL. */
-  readonly token?: string | undefined
+  /**
+   * A bearer token: an API token (`blx_pat_…`) or an access token; a delivery/preview key for
+   * GraphQL. A function is asked before every request (e.g. a short-lived access token).
+   */
+  readonly token?: string | (() => string | undefined | Promise<string | undefined>) | undefined
+  /** `include` sends cookies cross-origin (the browser session's refresh cookie). Default: fetch's. */
+  readonly credentials?: RequestCredentials | undefined
+  /**
+   * Called when an authenticated request answers `401`; resolve `true` after renewing the token to
+   * repeat the request once (streams excepted). The browser session uses it to refresh.
+   */
+  readonly onUnauthorized?: (() => Promise<boolean>) | undefined
   /** Replace `fetch`, e.g. for tests or instrumentation. Default: the global `fetch`. */
   readonly fetch?: ((request: Request) => Promise<Response>) | undefined
   /** Per-attempt timeout in milliseconds. Default 30 000. */
@@ -64,8 +74,12 @@ export function createHttp(options: HttpOptions) {
   async function send(request: HttpRequest): Promise<Response> {
     const headers = new Headers(request.headers)
     headers.set('accept', 'application/json')
-    if (!request.anonymous && options.token !== undefined)
-      headers.set('authorization', `Bearer ${options.token}`)
+    const authorize = async () => {
+      const token = typeof options.token === 'function' ? await options.token() : options.token
+      if (token === undefined) headers.delete('authorization')
+      else headers.set('authorization', `Bearer ${token}`)
+    }
+    if (!request.anonymous) await authorize()
     let body: BodyInit | undefined
     if (request.binary !== undefined) {
       body = request.binary as BodyInit
@@ -87,6 +101,12 @@ export function createHttp(options: HttpOptions) {
     // A stream can be sent once only.
     const attempts = request.binary instanceof ReadableStream || !repeatable ? 1 : retries + 1
 
+    // One repeat after a renewed token, never for a stream (it was consumed).
+    let reauthorize =
+      !request.anonymous &&
+      options.onUnauthorized !== undefined &&
+      !(request.binary instanceof ReadableStream)
+
     for (let attempt = 1; ; attempt++) {
       let response: Response
       try {
@@ -96,6 +116,7 @@ export function createHttp(options: HttpOptions) {
             headers,
             ...(body === undefined ? {} : { body }),
             ...(request.binary instanceof ReadableStream ? { duplex: 'half' } : {}),
+            ...(options.credentials === undefined ? {} : { credentials: options.credentials }),
             signal: AbortSignal.timeout(options.timeoutMs ?? 30_000),
           } as RequestInit),
         )
@@ -112,6 +133,15 @@ export function createHttp(options: HttpOptions) {
         )
       }
       if (response.ok || response.status === 304) return response
+      if (response.status === 401 && reauthorize) {
+        reauthorize = false
+        if (await options.onUnauthorized?.()) {
+          await response.body?.cancel().catch(() => undefined)
+          await authorize()
+          attempt--
+          continue
+        }
+      }
       const retryable = attempt < attempts && RETRYABLE.has(response.status)
       if (request.raw === true && !retryable) return response
       if (attempt < attempts && RETRYABLE.has(response.status)) {
