@@ -39,3 +39,16 @@ export const deliveries = webhooksSchema.table('deliveries', {
   lastError: text('last_error'),
   ...timestamps(),
 })
+
+export const attempts = webhooksSchema.table('attempts', {
+  id: idColumn(),
+  ...tenantColumns(),
+  deliveryId: uuid('delivery_id').notNull(),
+  number: integer('number').notNull(),
+  startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
+  durationMs: integer('duration_ms').notNull(),
+  statusCode: integer('status_code'),
+  error: text('error'),
+  responseExcerpt: text('response_excerpt'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})

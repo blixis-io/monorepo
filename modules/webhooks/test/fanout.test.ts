@@ -17,6 +17,7 @@ import { PUBLIC_EVENT_DEFINITIONS } from '../src/application/public-events.ts'
 import {
   generateWebhookKey,
   PUBLIC_WEBHOOK_EVENTS,
+  WEBHOOK_FETCH,
   WEBHOOK_SERVICE,
   WEBHOOKS_CONFIG,
   webhookBody,
@@ -97,6 +98,10 @@ describe.skipIf(!databaseTestsEnabled())('webhook fan-out (Postgres)', () => {
         serviceOverride(WEBHOOKS_CONFIG, {
           secretKeys: generateWebhookKey('t'),
           allowPrivateUrls: false,
+        }),
+        // No network in tests: any delivery attempt fails loudly.
+        serviceOverride(WEBHOOK_FETCH, async () => {
+          throw new Error('unexpected network call')
         }),
       ],
     })

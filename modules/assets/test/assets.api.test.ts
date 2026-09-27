@@ -10,7 +10,6 @@ import {
   createMemoryObjectStorage,
   createTestBlixis,
   serviceOverride,
-  type TestBlixis,
 } from '@blixis/testing'
 import {
   createTestDatabase,

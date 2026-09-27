@@ -11,6 +11,13 @@ export interface WebhooksConfig {
   readonly allowPrivateUrls: boolean
 }
 
+/**
+ * The `fetch` deliveries use. Optional: without a provider, the runtime's `fetch`. Tests
+ * override it with a local receiver (no network in CI).
+ */
+export const WEBHOOK_FETCH: ServiceToken<(request: Request) => Promise<Response>> =
+  createServiceToken<(request: Request) => Promise<Response>>('@blixis/webhooks.fetch')
+
 /** Request-scoped {@link WebhooksConfig}; the API provides it from the Worker environment. */
 export const WEBHOOKS_CONFIG: ServiceToken<WebhooksConfig> =
   createServiceToken<WebhooksConfig>('@blixis/webhooks.config')
