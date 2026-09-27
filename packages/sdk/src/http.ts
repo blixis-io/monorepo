@@ -27,6 +27,11 @@ export interface HttpRequest {
   readonly headers?: Readonly<Record<string, string>> | undefined
   /** Anonymous call (e.g. sign-in): no `Authorization` header. */
   readonly anonymous?: boolean | undefined
+  /**
+   * Return non-2xx responses instead of throwing (after retries) — GraphQL reports errors in the
+   * body, sometimes with a 4xx status.
+   */
+  readonly raw?: boolean | undefined
 }
 
 const RETRYABLE = new Set([429, 502, 503, 504])
@@ -107,6 +112,8 @@ export function createHttp(options: HttpOptions) {
         )
       }
       if (response.ok || response.status === 304) return response
+      const retryable = attempt < attempts && RETRYABLE.has(response.status)
+      if (request.raw === true && !retryable) return response
       if (attempt < attempts && RETRYABLE.has(response.status)) {
         await response.body?.cancel().catch(() => undefined)
         await sleep(retryAfter(response) ?? backoff(attempt))

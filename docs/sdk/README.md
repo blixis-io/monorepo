@@ -1,6 +1,6 @@
 # @blixis/sdk
 
-Typed clients for Blixis (plan 017): the **Management API** (REST) today, the **GraphQL delivery API** next (017.003). Zero dependencies; runs wherever `fetch` does — Cloudflare Workers, browsers, Node 20+, Deno, Bun, Astro.
+Typed clients for Blixis (plan 017): the **Management API** (REST, `createBlixisClient`) and the **GraphQL delivery API** (`createBlixisGraphQLClient`). Zero dependencies; runs wherever `fetch` does — Cloudflare Workers, browsers, Node 20+, Deno, Bun, Astro.
 
 The manual has the full guide: [SDK](../../apps/docs/src/content/docs/getting-started/sdk.mdx). This page is the maintainer's view.
 
@@ -11,9 +11,17 @@ The manual has the full guide: [SDK](../../apps/docs/src/content/docs/getting-st
 - **HTTP core** (`src/http.ts`): base URL, bearer token, timeout (`AbortSignal.timeout`, 30 s), retries of 429/502/503/504 and network errors for repeatable requests (GET/PUT/DELETE and commands with an `Idempotency-Key`), exponential backoff with jitter, `Retry-After`, and `BlixisApiError` from RFC 9457 problem details. Commands that support idempotency get a random key automatically, reused across retries.
 - **Uploads** set `Content-Length` from the body when it is known (Blob, ArrayBuffer, typed array); streams need `size` and are sent once (no retries).
 
+## GraphQL client
+
+- `query(document, variables, { preview, locale })`: the options become the `$preview` / `$locale` variables.
+- Automatic persisted queries by default: GET with only `extensions.persistedQuery.sha256Hash` first; on `PersistedQueryNotFound` (Yoga answers it with status 404) one POST with the query registers it. Hashes are cached per client.
+- GraphQL responses may carry errors with 4xx statuses, so the client reads JSON bodies whatever the status (`raw` in the HTTP core) and throws `BlixisApiError` with the first error's `extensions.code`; non-GraphQL answers (401, 413 problem details) map as REST errors.
+- Typed documents: anything with an optional `__apiType` (GraphQL Codegen client preset, `documentMode: 'string'`) — no GraphQL runtime dependency.
+
 ## Tests
 
 - `test/http.test.ts` — retries, `Retry-After`, idempotency keys, network errors, path encoding, `If-Match`, upload headers (no API needed).
+- `test/graphql.contract.test.ts` — delivery and preview keys, locales, typed documents, persisted queries producing delivery-cache `HIT`s, GraphQL error codes.
 - `test/contract.test.ts` — the SDK against the real API modules in-process (real sign-up and tokens, memory storage, no network). `test/harness.ts` validates **every** JSON response against its documented operation schema; the suite fails on any mismatch, and asserts that at least 15 operations were checked.
 
 ## Versioning

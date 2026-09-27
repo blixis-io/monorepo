@@ -70,7 +70,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [014 — Assets on R2](./plans/014-assets/_index.md) | M7 | MVP | `completed` | 6/6 | 012 |
 | [015 — Webhooks](./plans/015-webhooks/_index.md) | M7 | MVP | `completed` | 5/5 | 011 |
 | [016 — Releases & Cloudflare Workflows](./plans/016-releases-and-workflows/_index.md) | M7 | Extended | `not-started` | 0/4 | 013, 014, 015 |
-| [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md) | M8 | MVP | `in-progress` | 2/4 | 013, 014, 015 |
+| [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md) | M8 | MVP | `in-progress` | 3/4 | 013, 014, 015 |
 | [018 — Extension Platform & Example Plugin](./plans/018-extension-platform/_index.md) | M8 | MVP | `not-started` | 0/5 | 017 |
 | [019 — Admin UI Foundation](./plans/019-admin-ui-foundation/_index.md) | M8 | MVP | `not-started` | 0/4 | 017 |
 | [020 — Observability & Security Hardening](./plans/020-observability-and-security-hardening/_index.md) | M9 | MVP | `not-started` | 0/5 | 013, 014, 015 |
@@ -396,7 +396,7 @@ Introduces Cloudflare Workflows behind an adapter (how modules contribute durabl
 
 #### 017 — SDK & Example Astro Consumer
 
-Status: `in-progress` · Progress: 2/4 · Scope: MVP  
+Status: `in-progress` · Progress: 3/4 · Scope: MVP  
 Plan: [017-sdk-and-example-consumer/_index.md](./plans/017-sdk-and-example-consumer/_index.md)  
 Depends on: [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md), [014 — Assets on R2](./plans/014-assets/_index.md), [015 — Webhooks](./plans/015-webhooks/_index.md)
 
@@ -404,7 +404,7 @@ Builds `@blixis/sdk` — a Workers/browser/Node-compatible client with a typed M
 
 - [x] [017.001 — Decide and implement the REST API type source](./plans/017-sdk-and-example-consumer/001-rest-api-type-source.md)
 - [x] [017.002 — Create @blixis/sdk core and Management REST client](./plans/017-sdk-and-example-consumer/002-sdk-core-and-management-client.md)
-- [ ] [017.003 — Add the GraphQL delivery client](./plans/017-sdk-and-example-consumer/003-sdk-graphql-delivery-client.md)
+- [x] [017.003 — Add the GraphQL delivery client](./plans/017-sdk-and-example-consumer/003-sdk-graphql-delivery-client.md)
 - [ ] [017.004 — Build the Astro example site](./plans/017-sdk-and-example-consumer/004-example-astro-site.md)
 
 #### 018 — Extension Platform & Example Plugin

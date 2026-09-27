@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,15 +37,19 @@ Implement `createBlixisGraphQLClient` for delivery/preview queries with typed va
 ### Create
 
 ```text
-packages/sdk/src/delivery/client.ts
-packages/sdk/src/delivery/apq.ts
-packages/sdk/test/delivery.contract.test.ts
+packages/sdk/src/graphql.ts
+packages/sdk/test/graphql.contract.test.ts
 ```
 
 ### Modify
 
 ```text
-packages/sdk/src/index.ts
+packages/sdk/src/{index,http}.ts, packages/sdk/test/harness.ts
+packages/graphql/src/response-cache.ts, packages/graphql/src/response-cache.test.ts
+vitest.config.ts (testTimeout)
+apps/docs/src/content/docs/getting-started/sdk.mdx, apps/docs/src/content/docs/content/delivery-api.mdx
+docs/sdk/README.md, docs/operations/caching.md
+docs/plans/017-sdk-and-example-consumer/*, docs/ROADMAP.md
 ```
 
 ### Delete
@@ -68,8 +72,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Delivery queries succeed with delivery key; preview requires preview key.
-- [ ] APQ path produces cache HITs in the Workers-pool test (with 013 caching).
+- [x] Delivery queries succeed with delivery key; preview requires preview key.
+- [x] APQ path produces cache HITs in the Workers-pool test (with 013 caching).
 
 ## Validation
 
@@ -79,15 +83,15 @@ pnpm --filter @blixis/sdk test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Works in Workers and browser environments (test matrix).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Works in Workers and browser environments (test matrix).
 
 ## Completion conditions
 
@@ -104,4 +108,9 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **API:** `createBlixisGraphQLClient({ baseUrl, token, persistedQueries?, get?, environment?, space? })` and `query(document, variables, { preview, locale, headers })`. `preview`/`locale` are passed as the `$preview`/`$locale` variables (GraphQL arguments can't be injected into arbitrary documents), documented as such.
+- **Typed documents without a GraphQL dependency:** any string-like document with an optional `__apiType` (GraphQL Codegen client preset, `documentMode: 'string'`); plain strings give `Record<string, unknown>`. A type test in the contract suite checks inference.
+- **Persisted queries:** GET with only the hash first; Yoga answers an unknown hash with **status 404** and a `PersistedQueryNotFound` error, then one POST registers the query. GraphQL answers can carry errors with 4xx statuses, so the HTTP core got a `raw` mode: the GraphQL client reads JSON bodies whatever the status and maps the first error's `extensions.code`; non-GraphQL answers (401/413 problem details) map as REST errors.
+- **Found by the contract test, fixed in `@blixis/graphql`:** the response cache keyed a registering APQ request by its document and hash-only requests by `apq:<hash>`, so the first hash-only GET always missed; and `variables: {}` vs. none produced two entries. Now the hash keys the entry whenever present (the APQ plugin rejects a query that doesn't match its hash; errors are never cached), and empty variables are normalized. The second persisted GET is a cache `HIT` (tested).
+- **Tests:** delivery key reads published content in two locales; delivery key + `preview: true` → `FORBIDDEN`; preview key reads drafts; APQ request sequence (GET → POST, then GET only) with `HIT`; error codes and details.
+- **Test infrastructure:** the Node project's `testTimeout` is 15 s: a spaces API test timed out at 5 s under the full parallel run (module import time dominated).
