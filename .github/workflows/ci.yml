@@ -43,14 +43,15 @@ jobs:
         run: pnpm lint
       - name: Generated Worker types are up to date
         run: pnpm --filter @blixis/api types:check
-      - name: OpenAPI document is up to date (ADR 0015)
-        run: pnpm openapi:check
       - name: Typecheck
         run: pnpm typecheck
       - name: Test
         run: pnpm test
       - name: Build
         run: pnpm build
+      # After Build: the generator loads the API's module list, which resolves packages from dist.
+      - name: OpenAPI document is up to date (ADR 0015)
+        run: pnpm openapi:check
       - name: Worker bundles (dry-run deploy, size gate)
         env:
           MAX_GZIP_KIB: 1024
