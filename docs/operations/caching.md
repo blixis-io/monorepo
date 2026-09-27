@@ -19,6 +19,7 @@ request
 ```
 
 - **Authentication always runs first.** An unknown or revoked key gets `401` before any lookup, so a cached response is never served to it.
+- **Persisted queries are keyed by their hash**, whether or not the request also carries the query: the registering request and later hash-only requests (the SDK's GET) share one entry. No variables and `{}` are the same key.
 - **Credentials are never part of the key.** Every delivery key of the same space shares entries; the space id in the scope keeps spaces apart.
 
 ## Layers

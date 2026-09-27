@@ -18,4 +18,12 @@ export {
 export { BlixisApiError, type BlixisErrorCode } from './errors.ts'
 export type * from './generated/api.ts'
 export { ROUTES } from './generated/api.ts'
+export {
+  type BlixisGraphQLClient,
+  createBlixisGraphQLClient,
+  type GraphQLClientOptions,
+  type GraphQLErrorItem,
+  type QueryOptions,
+  type TypedDocument,
+} from './graphql.ts'
 export type { HttpOptions } from './http.ts'

@@ -95,10 +95,14 @@ export async function createApi(db: TestDatabase) {
   const index = operationIndex(modules)
   const violations: string[] = []
   const seen = new Set<string>()
+  const lastCache: { value: string | null } = { value: null }
   const fetch = async (request: Request): Promise<Response> => {
     const response = await t.app.fetch(request)
     await events.flush()
     const { pathname } = new URL(request.url)
+    lastCache.value = response.headers.get('x-blixis-cache')
+    // GraphQL has its own schema; only REST responses are checked against operations.
+    if (pathname === '/graphql') return response
     const match = index.find((i) => i.op.method === request.method && i.pattern.test(pathname))
     if (match === undefined) {
       violations.push(`${request.method} ${pathname}: no documented operation`)
@@ -130,5 +134,5 @@ export async function createApi(db: TestDatabase) {
     }
     return response
   }
-  return { t, fetch, violations, seen, baseUrl: 'http://blixis.test' }
+  return { t, fetch, violations, seen, lastCache, baseUrl: 'http://blixis.test' }
 }

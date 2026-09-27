@@ -82,17 +82,24 @@ async function sha256(text: string): Promise<string> {
 
 /** Cache key for an operation in a scope (ADR 0012 §4). Credentials are never part of it. */
 export async function cacheKey(scope: string, operation: Operation): Promise<string> {
+  // A persisted-query hash names the document exactly (the APQ plugin rejects a query that doesn't
+  // match its hash, and errors are never stored): registering and hash-only requests share entries.
   let document = operation.persistedHash === undefined ? '' : `apq:${operation.persistedHash}`
-  if (operation.query !== undefined) {
+  if (operation.query !== undefined && operation.persistedHash === undefined) {
     try {
       document = stripIgnoredCharacters(operation.query)
     } catch {
       document = operation.query.trim()
     }
   }
-  return sha256(
-    canonical([scope, operation.operationName ?? null, document, operation.variables ?? null]),
-  )
+  // No variables and `{}` are the same request.
+  const variables =
+    operation.variables === undefined ||
+    operation.variables === null ||
+    (typeof operation.variables === 'object' && Object.keys(operation.variables).length === 0)
+      ? null
+      : operation.variables
+  return sha256(canonical([scope, operation.operationName ?? null, document, variables]))
 }
 
 export const etagOf = async (body: string) => `"${(await sha256(body)).slice(0, 32)}"`

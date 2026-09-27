@@ -28,6 +28,8 @@ export default defineConfig({
             'tooling/*/test/**/*.test.ts',
           ],
           exclude: ['**/*.worker.test.ts', '**/node_modules/**', '**/dist/**'],
+          // Database-backed tests run many at once; 5 s (the default) timed out under full load.
+          testTimeout: 15_000,
         },
       },
     ],

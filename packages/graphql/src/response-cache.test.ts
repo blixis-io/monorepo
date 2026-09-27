@@ -162,8 +162,10 @@ describe('GraphQL response cache', () => {
     expect(unknown.body.errors[0].message).toBe('PersistedQueryNotFound')
     expect(unknown.cache).toBe('BYPASS')
     expect((await post(t, { query, extensions })).body.data).toEqual({ count: 20 })
+    // The hash names the document: hash-only requests share the entry the registration stored.
     const byHash = await post(t, { extensions })
-    expect(byHash.body.data).toEqual({ count: 30 })
-    expect((await post(t, { extensions })).cache).toBe('HIT')
+    expect(byHash).toMatchObject({ cache: 'HIT', body: { data: { count: 20 } } })
+    // No variables and {} are one request.
+    expect((await post(t, { extensions, variables: {} })).cache).toBe('HIT')
   })
 })

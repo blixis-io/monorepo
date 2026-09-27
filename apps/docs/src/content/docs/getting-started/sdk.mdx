@@ -82,6 +82,59 @@ await blixis.call('createLocale', { params: { spaceId }, body: { code: 'nl-NL', 
 
 The operation ids are in the [OpenAPI document](/concepts/api-reference/) (`GET /api/v1/openapi.json`).
 
+## Read content (GraphQL)
+
+Websites read published content through the [Delivery API](/content/delivery-api/) with a **delivery key**:
+
+```ts
+import { createBlixisGraphQLClient } from '@blixis/sdk'
+
+const delivery = createBlixisGraphQLClient({
+  baseUrl: 'https://api.example.com',
+  token: env.BLIXIS_DELIVERY_KEY, // blx_dk_…
+})
+
+const data = await delivery.query(
+  /* GraphQL */ `query Pages($locale: Locale, $preview: Boolean) {
+    pageCollection(locale: $locale, preview: $preview) { items { title slug } }
+  }`,
+  {},
+  { locale: 'nl-NL' },
+)
+```
+
+- **`locale` and `preview`** are passed as the `$locale` and `$preview` variables: declare them in your query to use the options.
+- **Preview** (`preview: true`) needs a **preview key** (`blx_pk_…`). Use it only on the server — never ship it to browsers.
+- **Persisted queries** are on by default: the SDK sends the query's SHA-256 as a short GET, which the [delivery cache](/content/delivery-api/#caching) and CDNs can serve; the full query is sent once, when the server doesn't know it yet. Turn them off with `persistedQueries: false`, and GET with `get: false`.
+- **Errors** in a GraphQL response throw `BlixisApiError` with the first error's `extensions.code` (`FORBIDDEN`, `VALIDATION_FAILED`, …); all errors and any partial `data` are in `error.details`.
+
+### Typed queries with GraphQL Codegen
+
+The delivery schema is typed per content model, so generate types for your queries from your own space with [GraphQL Codegen](https://the-guild.dev/graphql/codegen)'s client preset in **string mode**. The SDK accepts its documents and infers result and variable types:
+
+```ts
+// codegen.ts
+import type { CodegenConfig } from '@graphql-codegen/cli'
+
+const config: CodegenConfig = {
+  schema: {
+    'https://api.example.com/graphql': { headers: { authorization: `Bearer ${process.env.BLIXIS_DELIVERY_KEY}` } },
+  },
+  documents: ['src/**/*.{ts,astro}'],
+  generates: { './src/gql/': { preset: 'client', config: { documentMode: 'string' } } },
+}
+export default config
+```
+
+```ts
+import { graphql } from './gql'
+
+const Pages = graphql(`query Pages($locale: Locale) { pageCollection(locale: $locale) { items { title } } }`)
+const data = await delivery.query(Pages, { locale: 'nl-NL' }) // data.pageCollection.items[0].title: string | null
+```
+
+Introspection needs a member token in production; generate against staging or with a member's token.
+
 ## Errors
 
 Failed calls throw `BlixisApiError`:
