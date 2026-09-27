@@ -32,6 +32,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@blixis/sdk": "workspace:*",
     "@blixis/tsconfig": "workspace:*",
     "@cloudflare/vitest-pool-workers": "catalog:",
     "typescript": "catalog:",

@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 8 — Consumers & extension platform  
 Roadmap scope: MVP / initial platform  
-Progress: 3/4 tasks completed
+Progress: 4/4 tasks completed
 
 ## Objective
 
@@ -61,15 +61,15 @@ Depends on:
 - [x] [001 — Decide and implement the REST API type source](./001-rest-api-type-source.md)
 - [x] [002 — Create @blixis/sdk core and Management REST client](./002-sdk-core-and-management-client.md)
 - [x] [003 — Add the GraphQL delivery client](./003-sdk-graphql-delivery-client.md)
-- [ ] [004 — Build the Astro example site](./004-example-astro-site.md)
+- [x] [004 — Build the Astro example site](./004-example-astro-site.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] SDK tests pass against the Workers-pool API (contract tests) and in a browser-like environment.
-- [ ] Example site builds (SSG) and runs preview mode against local API.
+- [x] All tasks `completed`.
+- [x] SDK tests pass against the Workers-pool API (contract tests) and in a browser-like environment.
+- [x] Example site builds (SSG) and runs preview mode against local API.
 
 ## Risks
 
@@ -83,4 +83,7 @@ The plan may be marked `completed` when:
 
 ## Technical notes
 
-No technical notes yet.
+- **Plan completed 2026-09-27** (PRs #126–#129): ADR 0015 and the generated OpenAPI document; `@blixis/sdk` with a typed Management client and a GraphQL delivery client; the Astro example site with a seed script and preview build.
+- **Contract testing found real server bugs:** persisted-query cache keys (first hash-only GET always a MISS) and empty-variables cache splits, fixed in `@blixis/graphql`.
+- **Deviations:** contract tests run the API in-process in Node, not in the Workers pool (DB quarantine); SDK runtime neutrality is proven in workerd instead of a browser emulator; preview is a static build instead of an SSR route.
+- **Next consumers:** the admin UI (plan 019) reuses the Management client; npm publishing is plan 021.003.

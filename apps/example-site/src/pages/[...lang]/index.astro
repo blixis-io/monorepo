@@ -1,0 +1,30 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import { LOCALES, localePath, posts, type SiteLocale } from '../../lib/blixis'
+
+export function getStaticPaths() {
+  return LOCALES.map((locale) => ({
+    params: { lang: locale.prefix === '' ? undefined : locale.prefix },
+    props: { locale },
+  }))
+}
+
+const { locale } = Astro.props as { locale: SiteLocale }
+const list = await posts(locale)
+---
+
+<Layout title="Blixis example" locale={locale}>
+  <h1>{locale.code === 'nl-NL' ? 'Berichten' : 'Posts'}</h1>
+  <ul class="posts">
+    {list.map((item) => (
+      <li>
+        {item.cover && (
+          <img src={item.cover.url} alt={item.cover.title ?? ''} width={item.cover.width ?? undefined} height={item.cover.height ?? undefined} loading="lazy" />
+        )}
+        <h2><a href={localePath(locale, `posts/${item.slug}`)}>{item.title}</a></h2>
+        {item.excerpt && <p>{item.excerpt}</p>}
+        <p class="meta">{item.author?.name}{item.sys.publishedAt === null ? ' · draft' : ''}</p>
+      </li>
+    ))}
+  </ul>
+</Layout>

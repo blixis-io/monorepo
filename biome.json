@@ -63,11 +63,25 @@
   },
   "overrides": [
     {
-      "includes": ["tooling/**", "**/*.config.ts", "**/*.config.js", "**/*.config.mjs"],
+      "includes": [
+        "tooling/**",
+        "apps/example-site/**",
+        "**/*.config.ts",
+        "**/*.config.js",
+        "**/*.config.mjs"
+      ],
       "linter": {
         "rules": {
           "correctness": { "noNodejsModules": "off" },
           "suspicious": { "noConsole": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.astro"],
+      "linter": {
+        "rules": {
+          "correctness": { "noUnusedImports": "off", "noUnusedVariables": "off" }
         }
       }
     },

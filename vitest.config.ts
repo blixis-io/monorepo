@@ -26,6 +26,7 @@ export default defineConfig({
             'modules/*/test/**/*.test.ts',
             'tooling/*/src/**/*.test.ts',
             'tooling/*/test/**/*.test.ts',
+            'apps/example-site/test/**/*.test.ts',
           ],
           exclude: ['**/*.worker.test.ts', '**/node_modules/**', '**/dist/**'],
           // Database-backed tests run many at once; 5 s (the default) timed out under full load.

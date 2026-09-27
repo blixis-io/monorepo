@@ -1,0 +1,5 @@
+dist/
+dist-preview/
+dist-test/
+.astro/
+.env

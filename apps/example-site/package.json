@@ -1,0 +1,33 @@
+{
+  "name": "@blixis/example-site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Example Astro site reading Blixis through @blixis/sdk (plan 017.004)",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env ./node_modules/astro/bin/astro.mjs dev",
+    "build": "node --env-file-if-exists=.env ./node_modules/astro/bin/astro.mjs build",
+    "build:preview": "BLIXIS_PREVIEW=1 node --env-file-if-exists=.env ./node_modules/astro/bin/astro.mjs build --outDir dist-preview",
+    "preview": "node --env-file-if-exists=.env ./node_modules/astro/bin/astro.mjs preview",
+    "seed": "node scripts/seed.ts"
+  },
+  "dependencies": {
+    "@blixis/sdk": "workspace:*",
+    "astro": "catalog:"
+  },
+  "devDependencies": {
+    "@blixis/assets": "workspace:*",
+    "@blixis/auth": "workspace:*",
+    "@blixis/content": "workspace:*",
+    "@blixis/contracts": "workspace:*",
+    "@blixis/database": "workspace:*",
+    "@blixis/events": "workspace:*",
+    "@blixis/graphql": "workspace:*",
+    "@blixis/permissions": "workspace:*",
+    "@blixis/spaces": "workspace:*",
+    "@blixis/testing": "workspace:*",
+    "@blixis/users": "workspace:*",
+    "@types/node": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -14,6 +14,7 @@
     { "path": "../../modules/permissions" },
     { "path": "../../modules/content" },
     { "path": "../../modules/assets" },
-    { "path": "../../modules/webhooks" }
+    { "path": "../../modules/webhooks" },
+    { "path": "../../packages/sdk" }
   ]
 }
