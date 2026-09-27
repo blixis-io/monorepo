@@ -56,6 +56,7 @@ import { entryRepository } from './infrastructure/entry.repository.ts'
 import { createContentTypes } from './infrastructure/migrations/0001_create_content_types.ts'
 import { createEntries } from './infrastructure/migrations/0002_create_entries.ts'
 import { createDeliveryStamps } from './infrastructure/migrations/0003_create_delivery_stamps.ts'
+import { millisecondEntryTimestamps } from './infrastructure/migrations/0004_millisecond_entry_timestamps.ts'
 import { stampRepository } from './infrastructure/stamp.repository.ts'
 import { CONTENT_PERMISSIONS } from './permissions.ts'
 import { contentTypeRoutes } from './rest/content-type.routes.ts'
@@ -97,7 +98,12 @@ export const contentModule = defineModule((options: ContentModuleOptions) => {
     // Delivery API base (ADR 0011): interfaces and generic entry/entries; typed per-model schemas
     // come from GRAPHQL_SCHEMA_EXTENSION below.
     graphql: { typeDefs: DELIVERY_BASE_TYPE_DEFS, resolvers: deliveryBaseResolvers as never },
-    migrations: [createContentTypes, createEntries, createDeliveryStamps],
+    migrations: [
+      createContentTypes,
+      createEntries,
+      createDeliveryStamps,
+      millisecondEntryTimestamps,
+    ],
     events: [
       // Space data belongs to its modules: delete this module's rows with the space (plan 008).
       // Delivery cache invalidation (ADR 0012): anything that changes delivered content bumps
