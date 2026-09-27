@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -36,16 +36,20 @@ Operational visibility is essential for integrators; manual redelivery reuses th
 ### Create
 
 ```text
-modules/webhooks/test/deliveries-api.test.ts
+modules/webhooks/test/logs.test.ts
 ```
 
 ### Modify
 
 ```text
-modules/webhooks/src/rest/routes.ts
-modules/webhooks/src/application/webhook.service.ts
-modules/webhooks/src/module.ts
-apps/api/test/tenant-routes.allowlist.ts
+modules/webhooks/src/application/webhook.service.ts (listDeliveries, getDelivery, redeliver, ping)
+modules/webhooks/src/infrastructure/delivery.repository.ts
+modules/webhooks/src/rest/webhook.routes.ts
+modules/webhooks/src/{module,index}.ts, src/domain/retry.ts
+tooling/tenant-isolation/test/{routes,authz-routes,isolation.test,authz-matrix.test}.ts
+tooling/postman/blixis.postman_collection.json
+apps/docs/src/content/docs/content/webhooks-api.mdx, docs/api/webhooks.md
+docs/plans/015-webhooks/*, docs/ROADMAP.md
 ```
 
 ### Delete
@@ -68,8 +72,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Redelivery produces a new attempt recorded in the log.
-- [ ] Test ping reaches receiver.
+- [x] Redelivery produces a new attempt recorded in the log.
+- [x] Test ping reaches receiver.
 
 ## Validation
 
@@ -79,15 +83,15 @@ pnpm --filter @blixis/api test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Retention period documented.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Retention period documented.
 
 ## Completion conditions
 
@@ -104,4 +108,8 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Routes:** `GET /webhooks/:id/deliveries` (status filter, `limit`, `cursor`; newest first by UUIDv7 id), `GET /webhooks/:id/deliveries/:deliveryId` (adds `attemptLog`), `POST …/redeliver` (`202`, `Idempotency-Key`), `POST /webhooks/:id/test` (`202`). Deliveries are always looked up together with their webhook and space, so another webhook's delivery id answers `404` (tested).
+- **Redelivery** sets the delivery `pending` and due now, and emits `webhook.delivery.requested` in the same transaction; the attempt keeps the delivery id and event id. After a delivery ran out of attempts, a redelivery is exactly one more attempt (`nextAttemptAt(9)` is undefined).
+- **Test pings** create a real delivery with a fresh event id and type `webhook.ping` (`data: { webhookId }`), signed and logged like any other. Inactive webhooks answer `409` (the consumer would abandon it anyway).
+- **Retention:** the per-minute sweep deletes finished deliveries (and, by cascade, their attempts) older than `DELIVERY_LOG_DAYS` (30) once an hour, at minute 7 of the trigger's `scheduledTime`; pending deliveries stay whatever their age.
+- **Coverage:** 4 new routes in the isolation suite (fingerprint includes deliveries) and the authorization matrix (seeds get a ping delivery; the test transport never sends it); Postman: *Send test ping*, *List deliveries*, *Get delivery*, *Redeliver*.

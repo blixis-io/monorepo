@@ -1,5 +1,5 @@
 import { type Database, newId, type Transaction } from '@blixis/database'
-import { and, asc, eq, inArray, lte, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, lt, lte, ne, sql } from 'drizzle-orm'
 import type { WebhookBody } from '../domain/payload.ts'
 import { attempts, type DeliveryStatus, deliveries, webhooks } from './schema.ts'
 import type { SpaceTenant } from './webhook.repository.ts'
@@ -149,5 +149,75 @@ export const deliveryRepository = {
       .where(and(eq(webhooks.id, webhookId), eq(webhooks.active, true)))
       .returning({ id: webhooks.id })
     return rows.length > 0
+  },
+
+  /** Deliveries of one webhook, newest first (UUIDv7 ids); `before` is the previous page's last id. */
+  async listForWebhook(
+    db: Queryable,
+    tenant: SpaceTenant,
+    webhookId: string,
+    query: { status?: DeliveryStatus | undefined; before?: string | undefined; limit: number },
+  ) {
+    return db
+      .select()
+      .from(deliveries)
+      .where(
+        and(
+          eq(deliveries.organizationId, tenant.organizationId),
+          eq(deliveries.spaceId, tenant.spaceId),
+          eq(deliveries.webhookId, webhookId),
+          query.status === undefined ? undefined : eq(deliveries.status, query.status),
+          query.before === undefined ? undefined : lt(deliveries.id, query.before),
+        ),
+      )
+      .orderBy(desc(deliveries.id))
+      .limit(query.limit)
+  },
+
+  async findForWebhook(db: Queryable, tenant: SpaceTenant, webhookId: string, id: string) {
+    const [row] = await db
+      .select()
+      .from(deliveries)
+      .where(
+        and(
+          eq(deliveries.organizationId, tenant.organizationId),
+          eq(deliveries.spaceId, tenant.spaceId),
+          eq(deliveries.webhookId, webhookId),
+          eq(deliveries.id, id),
+        ),
+      )
+    return row
+  },
+
+  async attemptsOf(db: Queryable, deliveryId: string) {
+    return db
+      .select()
+      .from(attempts)
+      .where(eq(attempts.deliveryId, deliveryId))
+      .orderBy(asc(attempts.number))
+  },
+
+  /** Makes a delivery due again (redelivery): pending, next attempt now. */
+  async requeue(db: Queryable, id: string) {
+    const [row] = await db
+      .update(deliveries)
+      .set({ status: 'pending', nextAttemptAt: sql`now()` })
+      .where(eq(deliveries.id, id))
+      .returning()
+    return row
+  },
+
+  /** Deletes finished deliveries (and their attempts) older than `days`. Returns the count. */
+  async deleteOlderThan(db: Queryable, days: number): Promise<number> {
+    const rows = await db
+      .delete(deliveries)
+      .where(
+        and(
+          ne(deliveries.status, 'pending'),
+          lt(deliveries.createdAt, sql`now() - make_interval(days => ${days})`),
+        ),
+      )
+      .returning({ id: deliveries.id })
+    return rows.length
   },
 }

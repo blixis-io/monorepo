@@ -141,6 +141,10 @@ export const ISOLATION_ROUTES: readonly IsolationRoute[] = [
     body: { expectedVersion: 1, url: 'https://attacker.example/hook' },
   },
   { method: 'POST', path: '/api/v1/webhooks/:webhookId/rotate-secret' },
+  { method: 'GET', path: '/api/v1/webhooks/:webhookId/deliveries' },
+  { method: 'GET', path: '/api/v1/webhooks/:webhookId/deliveries/:deliveryId' },
+  { method: 'POST', path: '/api/v1/webhooks/:webhookId/deliveries/:deliveryId/redeliver' },
+  { method: 'POST', path: '/api/v1/webhooks/:webhookId/test' },
   { method: 'DELETE', path: '/api/v1/webhooks/:webhookId' },
   // @blixis/auth — delivery keys
   { method: 'GET', path: '/api/v1/spaces/:spaceId/delivery-keys' },

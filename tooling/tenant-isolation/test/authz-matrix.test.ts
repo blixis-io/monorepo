@@ -175,6 +175,9 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
             eventTypes: ['entry.published'],
           },
         )
+        const ping = await services
+          .get(WEBHOOK_SERVICE)
+          .ping(owner, { organizationId: org.id, spaceId: space.id }, webhook.id)
         const actor = await join({ ...ids, owner, services })
         return {
           actor,
@@ -189,6 +192,7 @@ describe.skipIf(!databaseTestsEnabled())('authorization matrix (role × route ×
             keyId: deliveryKey.record.id,
             versionId: firstVersion?.sys.id ?? '',
             webhookId: webhook.id,
+            deliveryId: ping.id,
             assetId: asset.sys.id,
             uploadAssetId: upload.asset.sys.id,
             abortAssetId: aborted.asset.sys.id,

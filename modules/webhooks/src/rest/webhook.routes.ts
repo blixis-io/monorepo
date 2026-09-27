@@ -1,5 +1,6 @@
 import { type ModuleHonoEnv, TENANT_BINDER, ValidationError } from '@blixis/contracts'
 import { requireTenant } from '@blixis/database'
+import { idempotent } from '@blixis/database/idempotency'
 import { spaceScoped } from '@blixis/spaces'
 import type { Context, Next } from 'hono'
 import { Hono } from 'hono'
@@ -98,3 +99,42 @@ export const webhookRoutes = new Hono<ModuleHonoEnv>()
     await webhooks(c).delete(actorOf(c), tenantOf(c), webhookId(c))
     return c.body(null, 204)
   })
+  // Delivery log, redelivery, and test pings (015.004)
+  .get('/webhooks/:webhookId/deliveries', webhookScoped(), async (c) => {
+    const limit = c.req.query('limit')
+    return c.json(
+      await webhooks(c).listDeliveries(actorOf(c), tenantOf(c), webhookId(c), {
+        status: c.req.query('status'),
+        cursor: c.req.query('cursor'),
+        limit: limit === undefined ? undefined : Number(limit),
+      }),
+    )
+  })
+  .get('/webhooks/:webhookId/deliveries/:deliveryId', webhookScoped(), async (c) =>
+    c.json(
+      await webhooks(c).getDelivery(
+        actorOf(c),
+        tenantOf(c),
+        webhookId(c),
+        c.req.param('deliveryId') ?? '',
+      ),
+    ),
+  )
+  .post(
+    '/webhooks/:webhookId/deliveries/:deliveryId/redeliver',
+    webhookScoped(),
+    idempotent(),
+    async (c) =>
+      c.json(
+        await webhooks(c).redeliver(
+          actorOf(c),
+          tenantOf(c),
+          webhookId(c),
+          c.req.param('deliveryId') ?? '',
+        ),
+        202,
+      ),
+  )
+  .post('/webhooks/:webhookId/test', webhookScoped(), async (c) =>
+    c.json(await webhooks(c).ping(actorOf(c), tenantOf(c), webhookId(c)), 202),
+  )
