@@ -4,6 +4,7 @@
   "include-component-in-tag": true,
   "tag-separator": "-",
   "bump-minor-pre-major": true,
+  "initial-version": "0.1.0",
   "separate-pull-requests": false,
   "group-pull-request-title-pattern": "chore(release): publish packages",
   "pull-request-header": "Package releases. The public packages share one version (their peer ranges must match). Merging this PR tags each package (`<package>-vX.Y.Z`) and publishes it to npm under `@blixis-io` (ADR 0020). Platform releases (`vX.Y.Z`) are separate (plan 021).",

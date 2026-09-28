@@ -13,13 +13,14 @@ Check before merging: the PR's version bump matches the API surface changes (`do
 ## One-time setup (owner)
 
 1. **npm organization** `blixis-io` (done 2026-09-28).
-2. **GitHub environment** `npm` (Settings → Environments). Optionally restrict it to `main` and require a reviewer.
-3. **First publish** (trusted publishers can only be configured for packages that exist):
+2. **Let Actions open the release PR:** Settings → Actions → General → Workflow permissions → tick *Allow GitHub Actions to create and approve pull requests*.
+3. **GitHub environment** `npm` (Settings → Environments). Optionally restrict it to `main` and require a reviewer.
+4. **First publish** (trusted publishers can only be configured for packages that exist):
    - on npmjs.com create a granular access token with read/write for the `@blixis-io` scope, short expiry;
    - store it as the `NPM_TOKEN` secret of the `npm` environment;
    - merge the first release PR.
-4. **Switch to trusted publishing:** for each package on npmjs.com → Settings → Trusted publisher → GitHub Actions: repository `blixis-io/monorepo`, workflow `release-packages.yml`, environment `npm`. Then delete the `NPM_TOKEN` secret and revoke the token; the workflow uses OIDC when the secret is empty.
-5. Optionally, on npmjs.com require 2FA and disallow tokens for publishing once trusted publishing works.
+5. **Switch to trusted publishing:** for each package on npmjs.com → Settings → Trusted publisher → GitHub Actions: repository `blixis-io/monorepo`, workflow `release-packages.yml`, environment `npm`. Then delete the `NPM_TOKEN` secret and revoke the token; the workflow uses OIDC when the secret is empty.
+6. Optionally, on npmjs.com require 2FA and disallow tokens for publishing once trusted publishing works.
 
 ## Checks that protect releases
 
