@@ -306,6 +306,14 @@ export type SpaceDetails = {
   locales: Locale[]
 }
 
+/** CSS variable values for light and dark mode */
+export type Theme = {
+  name: string
+  preset: string | null
+  light: Record<string, string>
+  dark: Record<string, string>
+}
+
 /** A user account */
 export type User = {
   id: string
@@ -314,6 +322,12 @@ export type User = {
   status: "active" | "disabled"
   createdAt: string
   updatedAt: string
+}
+
+/** UI preferences of the signed-in user */
+export type UserPreferences = {
+  colorScheme: "system" | "light" | "dark"
+  theme: Theme | null
 }
 
 /** A webhook (never its secret) */
@@ -722,6 +736,13 @@ export interface Operations {
     query: Record<string, never>
     body: undefined
     response: Organization
+  }
+  /** GET /api/v1/users/me/preferences — Your UI preferences (color scheme and theme) */
+  getPreferences: {
+    params: Record<string, never>
+    query: Record<string, never>
+    body: undefined
+    response: UserPreferences
   }
   /** GET /api/v1/users/me — Your profile (users and API tokens) */
   getProfile: {
@@ -1189,6 +1210,13 @@ export interface Operations {
     }
     response: Organization
   }
+  /** PUT /api/v1/users/me/preferences — Replace your UI preferences; omitted fields reset to their defaults */
+  updatePreferences: {
+    params: Record<string, never>
+    query: Record<string, never>
+    body: UserPreferences
+    response: UserPreferences
+  }
   /** PATCH /api/v1/users/me — Change your display name */
   updateProfile: {
     params: Record<string, never>
@@ -1294,6 +1322,7 @@ export const ROUTES = {
   getJwks: { method: 'GET', path: '/api/v1/auth/jwks', body: 'none', auth: false },
   getOpenApiDocument: { method: 'GET', path: '/api/v1/openapi.json', body: 'none', auth: false },
   getOrganization: { method: 'GET', path: '/api/v1/organizations/{orgId}', body: 'none' },
+  getPreferences: { method: 'GET', path: '/api/v1/users/me/preferences', body: 'none' },
   getProfile: { method: 'GET', path: '/api/v1/users/me', body: 'none' },
   getReadiness: { method: 'GET', path: '/api/v1/health/ready', body: 'none', auth: false },
   getSpace: { method: 'GET', path: '/api/v1/spaces/{spaceId}', body: 'none' },
@@ -1340,6 +1369,7 @@ export const ROUTES = {
   updateEntry: { method: 'PATCH', path: '/api/v1/entries/{entryId}', body: 'json' },
   updateLocale: { method: 'PATCH', path: '/api/v1/spaces/{spaceId}/locales/{localeId}', body: 'json' },
   updateOrganization: { method: 'PATCH', path: '/api/v1/organizations/{orgId}', body: 'json' },
+  updatePreferences: { method: 'PUT', path: '/api/v1/users/me/preferences', body: 'json' },
   updateProfile: { method: 'PATCH', path: '/api/v1/users/me', body: 'json' },
   updateRole: { method: 'PATCH', path: '/api/v1/organizations/{orgId}/roles/{roleId}', body: 'json' },
   updateSpace: { method: 'PATCH', path: '/api/v1/spaces/{spaceId}', body: 'json' },

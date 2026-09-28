@@ -19,6 +19,13 @@ export {
   type SpaceRole,
 } from './domain/membership.ts'
 export {
+  preferencesSchema,
+  type Theme,
+  themeSchema,
+  type UpdatePreferencesInput,
+  type UserPreferences,
+} from './domain/preferences.ts'
+export {
   type CreateUserInput,
   displayNameSchema,
   emailSchema,

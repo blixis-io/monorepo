@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { type RouterHistory, RouterProvider } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { Toaster } from './components/ui/toaster.tsx'
+import { AppearanceProvider } from './lib/appearance-context.tsx'
 import { isRetryable } from './lib/errors.ts'
 import { SessionProvider } from './lib/session.tsx'
 import { createAdminRouter } from './routes/router.tsx'
@@ -59,8 +60,10 @@ export function App({ session, history }: { session: BrowserSession; history?: R
   return (
     <SessionProvider value={session}>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-        <Toaster />
+        <AppearanceProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+        </AppearanceProvider>
       </QueryClientProvider>
     </SessionProvider>
   )

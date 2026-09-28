@@ -1,5 +1,5 @@
 import { idColumn, timestamps } from '@blixis/database'
-import { pgSchema, text, uuid } from 'drizzle-orm/pg-core'
+import { jsonb, pgSchema, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 export const usersSchema = pgSchema('users')
 
@@ -20,4 +20,10 @@ export const memberships = usersSchema.table('memberships', {
   spaceId: uuid('space_id'),
   roleKey: text('role_key').notNull(),
   ...timestamps(),
+})
+
+export const preferences = usersSchema.table('preferences', {
+  userId: uuid('user_id').primaryKey(),
+  data: jsonb('data').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })

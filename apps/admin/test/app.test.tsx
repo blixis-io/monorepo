@@ -167,11 +167,12 @@ describe('theme', () => {
     await act(async () => {
       fireEvent.click(toggle) // system → light
     })
-    expect(localStorage.getItem('blixis.theme')).toBe('light')
+    const scheme = () => JSON.parse(localStorage.getItem('blixis.appearance') ?? '{}').colorScheme
+    expect(scheme()).toBe('light')
     fireEvent.click(toggle) // light → dark
     expect(document.documentElement.classList.contains('dark')).toBe(true)
-    expect(localStorage.getItem('blixis.theme')).toBe('dark')
+    expect(scheme()).toBe('dark')
     fireEvent.click(toggle) // dark → system
-    expect(localStorage.getItem('blixis.theme')).toBeNull()
+    expect(scheme()).toBe('system')
   })
 })

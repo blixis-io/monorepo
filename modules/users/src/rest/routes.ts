@@ -1,6 +1,7 @@
 import { type Actor, type ModuleHonoEnv, UnauthorizedError, validate } from '@blixis/contracts'
 import { Hono } from 'hono'
 import { USER_SERVICE } from '../application/user.service.ts'
+import { preferencesSchema } from '../domain/preferences.ts'
 import { updateProfileSchema } from '../domain/user.ts'
 
 /** The signed-in user's id; other actors (tokens act for users too — plan 009) are rejected. */
@@ -22,4 +23,15 @@ export const usersRoutes = new Hono<ModuleHonoEnv>()
       message: 'Invalid profile',
     })
     return c.json(await c.var.services.get(USER_SERVICE).updateProfile(userId, input))
+  })
+  .get('/me/preferences', async (c) => {
+    const userId = currentUserId(c.var.requestContext.actor)
+    return c.json(await c.var.services.get(USER_SERVICE).getPreferences(userId))
+  })
+  .put('/me/preferences', async (c) => {
+    const userId = currentUserId(c.var.requestContext.actor)
+    const input = await validate(preferencesSchema, await c.req.json(), {
+      message: 'Invalid preferences',
+    })
+    return c.json(await c.var.services.get(USER_SERVICE).updatePreferences(userId, input))
   })
