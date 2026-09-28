@@ -1,0 +1,24 @@
+# Its own pnpm project: installs Blixis and the example plugin from packed tarballs
+# (`pnpm pack:public` and the plugin's `pnpm pack`), as an app would from npm.
+packages: []
+
+overrides:
+  '@blixis/contracts': file:../../.artifacts/blixis-contracts-0.0.0.tgz
+  '@blixis/kernel': file:../../.artifacts/blixis-kernel-0.0.0.tgz
+  '@blixis/content-api': file:../../.artifacts/blixis-content-api-0.0.0.tgz
+  '@blixis/database': file:../../.artifacts/blixis-database-0.0.0.tgz
+  '@blixis/events': file:../../.artifacts/blixis-events-0.0.0.tgz
+  '@blixis/graphql': file:../../.artifacts/blixis-graphql-0.0.0.tgz
+  '@blixis/shared': file:../../.artifacts/blixis-shared-0.0.0.tgz
+  '@blixis/users': file:../../.artifacts/blixis-users-0.0.0.tgz
+  '@blixis/spaces': file:../../.artifacts/blixis-spaces-0.0.0.tgz
+  '@blixis/permissions': file:../../.artifacts/blixis-permissions-0.0.0.tgz
+  '@blixis/content': file:../../.artifacts/blixis-content-0.0.0.tgz
+
+minimumReleaseAgeExclude:
+  - hono@4.13.9
+  - wrangler@4.137.0
+
+allowBuilds:
+  esbuild: set this to true or false
+  workerd: set this to true or false

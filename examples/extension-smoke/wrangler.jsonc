@@ -1,0 +1,7 @@
+{
+  // Bundled only (wrangler deploy --dry-run), never deployed.
+  "name": "blixis-extension-smoke",
+  "main": "worker/worker.ts",
+  "compatibility_date": "2026-08-15",
+  "compatibility_flags": ["nodejs_compat"]
+}

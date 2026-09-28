@@ -71,7 +71,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [015 — Webhooks](./plans/015-webhooks/_index.md) | M7 | MVP | `completed` | 5/5 | 011 |
 | [016 — Releases & Cloudflare Workflows](./plans/016-releases-and-workflows/_index.md) | M7 | Extended | `not-started` | 0/4 | 013, 014, 015 |
 | [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md) | M8 | MVP | `completed` | 4/4 | 013, 014, 015 |
-| [018 — Extension Platform & Example Plugin](./plans/018-extension-platform/_index.md) | M8 | MVP | `in-progress` | 3/5 | 017 |
+| [018 — Extension Platform & Example Plugin](./plans/018-extension-platform/_index.md) | M8 | MVP | `in-progress` | 4/5 | 017 |
 | [019 — Admin UI Foundation](./plans/019-admin-ui-foundation/_index.md) | M8 | MVP | `completed` | 5/5 | 017 |
 | [020 — Observability & Security Hardening](./plans/020-observability-and-security-hardening/_index.md) | M9 | MVP | `not-started` | 0/5 | 013, 014, 015 |
 | [021 — CI/CD & Release Engineering](./plans/021-ci-cd-and-release-engineering/_index.md) | M9 | MVP | `not-started` | 0/3 | 011 |
@@ -409,7 +409,7 @@ Builds `@blixis/sdk` — a Workers/browser/Node-compatible client with a typed M
 
 #### 018 — Extension Platform & Example Plugin
 
-Status: `in-progress` · Progress: 3/5 · Scope: MVP  
+Status: `in-progress` · Progress: 4/5 · Scope: MVP  
 Plan: [018-extension-platform/_index.md](./plans/018-extension-platform/_index.md)  
 Depends on: [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md)
 
@@ -418,7 +418,7 @@ Proves the "internal and external modules share one contract" promise: moves sha
 - [x] [018.001 — Relocate public content capability contracts](./plans/018-extension-platform/001-public-content-capability-contracts.md)
 - [x] [018.002 — Write the module authoring guide and security model](./plans/018-extension-platform/002-authoring-guide-and-security-model.md)
 - [x] [018.003 — Build the example external SEO plugin](./plans/018-extension-platform/003-example-external-plugin.md)
-- [ ] [018.004 — Add the extension contract CI gate and API surface reports](./plans/018-extension-platform/004-extension-contract-ci-gate.md)
+- [x] [018.004 — Add the extension contract CI gate and API surface reports](./plans/018-extension-platform/004-extension-contract-ci-gate.md)
 - [ ] [018.005 — Version and publish public packages](./plans/018-extension-platform/005-package-versioning-and-publishing.md)
 
 #### 019 — Admin UI Foundation
@@ -555,7 +555,7 @@ Checkpoints are review gates where the architecture is validated against working
 - [x] **CP4 — Tenancy & authorization** (end of [009](./plans/009-authorization-and-permissions/_index.md)). Isolation suite and authz matrix cover every tenant-scoped route; no role-name checks outside `@blixis/permissions` (§30, §31). Passed 2026-09-25: isolation suite (24 routes × 3 intruders, including an every-scope API token) and authorization matrix (24 routes × 12 role/actor cases, fresh tenant per case) in CI with route-coverage checks; `role-name-check` boundary rule in `pnpm lint`.
 - [x] **CP5 — Content vertical slice** (end of [011](./plans/011-entries-and-publishing/_index.md)). request → Hono route → `ContentService` → repository → Hyperdrive → Neon, plus publish → outbox → Queue → subscriber, on staging; review against §48 rules. Passed 2026-09-25: the full path on staging (Postman 60/134 green; content smoke 13 requests OK, p50 ~200–250 ms; `Queue blixis-events-staging (10 messages) - Ok` after publish/unpublish/delete through the outbox); vertical-slice test with cross-module delivery; §48 review without findings. Latency follow-up: fewer DB round trips per request (plans 013/020).
 - [x] **CP6 — Delivery performance & cache correctness** (end of [013](./plans/013-delivery-caching/_index.md)). Measured before/after caching; bounded staleness after publish; no cross-tenant or preview cache leakage (§34). Passed 2026-09-26: cached p50 101–110 ms vs 221–225 ms uncached (network floor 77 ms); publish to fresh 0.2–5.8 s; isolation suite (spaces, locales, revoked keys) and bypass tests green; the Cache API also serves hits on `workers.dev`.
-- [ ] **CP7 — Extension contract sufficiency** (end of [018](./plans/018-extension-platform/_index.md)). Example plugin installed from a packed tarball works using only public packages; CI gate enforces it continuously (§42 Stage 8, §52).
+- [x] **CP7 — Extension contract sufficiency** (end of [018](./plans/018-extension-platform/_index.md)). Example plugin installed from a packed tarball works using only public packages; CI gate enforces it continuously (§42 Stage 8, §52). Passed 2026-09-28: `examples/blixis-example-seo` (service, REST, GraphQL field, permissions, three event handlers, migration) imports only `@blixis/contracts`, `@blixis/kernel`, `@blixis/content-api`, `@blixis/database` (boundary rule `plugin-internal-import`); the `extension contract` CI job installs it from packed tarballs, runs its Postgres tests, and bundles it into a Worker with first-party modules; API surface snapshots of the public packages are checked in `verify`. Four contract gaps found and fixed on the way (ADR 0016 addendum). Publishing (018.005) waits for the owner's npm scope and licence decision (D20).
 - [ ] **CP8 — Architecture conformance & launch** (end of [022](./plans/022-production-readiness/_index.md)). Conformance review against §2, §4, §24–§35, §46–§48 with no blocking violations; launch checklist complete.
 
 ## Open architectural decisions

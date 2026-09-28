@@ -31,7 +31,9 @@
     "test:db": "BLIXIS_TEST_DATABASE_URL=${BLIXIS_TEST_DATABASE_URL:-postgres://blixis:blixis@localhost:5432/blixis} pnpm test",
     "test:watch": "vitest",
     "test:coverage": "tsc -b && vitest run --coverage",
-    "pack:public": "pnpm build && rm -rf .artifacts && pnpm --filter @blixis/contracts --filter @blixis/kernel --filter @blixis/content-api --filter @blixis/database --filter @blixis/events --filter @blixis/graphql --filter @blixis/shared --filter @blixis/testing --filter @blixis/users --filter @blixis/spaces --filter @blixis/permissions --filter @blixis/content pack --pack-destination .artifacts"
+    "pack:public": "pnpm build && rm -rf .artifacts && pnpm --filter @blixis/contracts --filter @blixis/kernel --filter @blixis/content-api --filter @blixis/database --filter @blixis/events --filter @blixis/graphql --filter @blixis/shared --filter @blixis/testing --filter @blixis/users --filter @blixis/spaces --filter @blixis/permissions --filter @blixis/content pack --pack-destination .artifacts",
+    "api-surface:update": "node tooling/api-surface/src/cli.ts",
+    "api-surface:check": "node tooling/api-surface/src/cli.ts --check"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
