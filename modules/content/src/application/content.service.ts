@@ -1,34 +1,19 @@
-import {
-  CONTENT_SERVICE,
-  type ContentService,
-  type EntryListQuery,
-  type EntrySys,
-  type EntryVersionView,
-  type EntryView,
-} from '@blixis/content-api'
+import type { ContentService, EntryVersionView, EntryView } from '@blixis/content-api'
 import {
   type Actor,
   type AssetLookup,
   type AuthorizationService,
   actorId,
   ConflictError,
-  createServiceToken,
   type EventBus,
   NotFoundError,
   type PermissionId,
-  type ServiceToken,
   ValidationError,
 } from '@blixis/contracts'
 import { type Database, isId, toTransactionScope, withTransaction } from '@blixis/database'
 import type { LocaleService } from '@blixis/spaces'
 import type { ContentType } from '../domain/content-type.ts'
-import {
-  type Entry,
-  type EntryState,
-  type EntryStatus,
-  type EntryVersion,
-  entryStatus,
-} from '../domain/entry.ts'
+import { type Entry, type EntryVersion, entryStatus } from '../domain/entry.ts'
 import { collectLinks, collectLinkUsages } from '../domain/links.ts'
 import {
   entryCreated,
@@ -44,7 +29,7 @@ import {
 } from '../infrastructure/content-type.repository.ts'
 import { type EntryCursor, entryRepository } from '../infrastructure/entry.repository.ts'
 import { CONTENT_PERMISSIONS } from '../permissions.ts'
-import type { ApiFields, EntrySchemaCache } from './entry-schema.ts'
+import type { EntrySchemaCache } from './entry-schema.ts'
 
 export {
   CONTENT_SERVICE,

@@ -1,9 +1,4 @@
-import {
-  CONTENT_TYPE_SERVICE,
-  type ContentTypeService,
-  type ContentTypeView,
-  type FieldView,
-} from '@blixis/content-api'
+import type { ContentTypeService, ContentTypeView } from '@blixis/content-api'
 import {
   type Actor,
   type AuthorizationService,
@@ -22,14 +17,12 @@ import {
   CONTENT_LIMITS,
   type ContentType,
   type ContentTypeKind,
-  type CreateContentTypeInput,
   createContentTypeSchema,
   type FieldDefinition,
   type FieldGroup,
   type FieldInput,
   fieldInputSchema,
   newShortId,
-  type UpdateContentTypeInput,
   updateContentTypeSchema,
 } from '../domain/content-type.ts'
 import { contentTypeCreated, contentTypeDeleted, contentTypeUpdated } from '../events.ts'
