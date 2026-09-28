@@ -1,4 +1,5 @@
-import type { Organization, Space, User, UserPreferences } from '@blixis/sdk'
+import type { ContentType, Organization, Space, User, UserPreferences } from '@blixis/sdk'
+import fieldTypes from './fixtures/field-types.json' with { type: 'json' }
 
 const stamp = '2026-01-01T00:00:00.000Z'
 export const PASSWORD = 'correct horse battery'
@@ -45,6 +46,10 @@ export function createFakeApi(options: { signedIn?: boolean } = {}) {
   ]
   const calls: string[] = []
   let preferences: UserPreferences = { colorScheme: 'system', theme: null }
+  const contentTypes: ContentType[] = []
+  const contentTypeBodies: unknown[] = []
+  let unsafeChange: string | undefined
+  let fieldCounter = 0
   let failNext: Response | undefined
 
   const session = () => {
@@ -84,6 +89,118 @@ export function createFakeApi(options: { signedIn?: boolean } = {}) {
     ],
   })
 
+  type FieldInput = Partial<ContentType['fields'][number]> & {
+    apiId: string
+    name: string
+    type: string
+  }
+  const toFields = (inputs: FieldInput[] | undefined) =>
+    (inputs ?? []).map((f) => ({
+      id: f.id ?? `fld${String(++fieldCounter).padStart(5, '0')}`,
+      apiId: f.apiId,
+      name: f.name,
+      type: f.type,
+      required: f.required ?? false,
+      localized: f.localized ?? false,
+      disabled: f.disabled ?? false,
+      settings: f.settings ?? {},
+      ...(f.description === undefined ? {} : { description: f.description }),
+      ...(f.group === undefined ? {} : { group: f.group }),
+      ...(f.hidden === undefined ? {} : { hidden: f.hidden }),
+      ...(f.showWhen === undefined ? {} : { showWhen: f.showWhen }),
+    }))
+  /** Mirrors a few server checks so the editor's error paths can be exercised. */
+  const fieldIssues = (fields: FieldInput[]) =>
+    fields.flatMap((f, index) => [
+      ...(fields.findIndex((o) => o.apiId === f.apiId) !== index
+        ? [{ path: ['fields', index, 'apiId'], message: `Duplicate field apiId "${f.apiId}"` }]
+        : []),
+      ...(f.type === 'blocks' && !Array.isArray(f.settings?.['componentIds'])
+        ? [{ path: ['fields', index, 'settings', 'componentIds'], message: 'Required' }]
+        : []),
+    ])
+
+  async function contentTypeRoute(request: Request, id: string | undefined): Promise<Response> {
+    const found = contentTypes.find((t) => t.id === id)
+    if (request.method === 'GET' && id === undefined) return Response.json({ contentTypes })
+    if (request.method === 'GET')
+      return found === undefined
+        ? problem(404, 'NOT_FOUND', 'Content type not found', 'req-404')
+        : Response.json(found)
+    if (request.method === 'POST') {
+      const body = (await request.json()) as {
+        apiId: string
+        name: string
+        kind?: ContentType['kind']
+      }
+      if (contentTypes.some((t) => t.apiId === body.apiId))
+        return problem(
+          409,
+          'CONFLICT',
+          'Another content type or component in this environment uses this apiId',
+          'req-dup',
+        )
+      const type: ContentType = {
+        id: `ct-${contentTypes.length + 1}`,
+        environmentId: 'env',
+        kind: body.kind ?? 'entry',
+        apiId: body.apiId,
+        name: body.name,
+        description: '',
+        displayField: null,
+        groups: [],
+        fields: [],
+        version: 1,
+        createdAt: stamp,
+        updatedAt: stamp,
+      }
+      contentTypes.push(type)
+      return Response.json(type, { status: 201 })
+    }
+    if (found === undefined) return problem(404, 'NOT_FOUND', 'Content type not found', 'req-404')
+    if (request.method === 'DELETE') {
+      contentTypes.splice(contentTypes.indexOf(found), 1)
+      return new Response(null, { status: 204 })
+    }
+    const body = (await request.json()) as Partial<ContentType> & {
+      version: number
+      fields?: FieldInput[]
+    }
+    contentTypeBodies.push(body)
+    if (body.version !== found.version)
+      return problem(
+        409,
+        'CONFLICT',
+        `The content type changed since you loaded it (now version ${found.version}): reload and retry`,
+        'req-stale',
+      )
+    const issues = fieldIssues(body.fields ?? [])
+    if (issues.length > 0)
+      return Response.json(
+        {
+          type: 'about:blank',
+          title: 'VALIDATION_FAILED',
+          status: 400,
+          code: 'VALIDATION_FAILED',
+          detail: 'Invalid content type',
+          requestId: 'req-400',
+          errors: issues,
+        },
+        { status: 400 },
+      )
+    if (unsafeChange !== undefined)
+      return problem(409, 'CONFLICT', `Unsafe content type change: ${unsafeChange}`, 'req-unsafe')
+    const { version: _, fields, ...rest } = body
+    const next: ContentType = {
+      ...found,
+      ...rest,
+      fields: fields === undefined ? found.fields : toFields(fields),
+      version: found.version + 1,
+    }
+    contentTypes.splice(contentTypes.indexOf(found), 1, next)
+    return Response.json(next)
+  }
+
   async function fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
     const path = url.pathname.replace(/^\/api\/v1/, '')
@@ -110,6 +227,9 @@ export function createFakeApi(options: { signedIn?: boolean } = {}) {
       return response
     }
 
+    if (path === '/field-types') return Response.json(fieldTypes)
+    const typesPath = path.match(/^\/spaces\/([^/]+)\/content-types(?:\/([^/]+))?$/)
+    if (typesPath !== null) return contentTypeRoute(request, typesPath[2])
     if (path === '/users/me/preferences') {
       if (request.method === 'PUT') preferences = (await request.json()) as UserPreferences
       return Response.json(preferences)
@@ -166,6 +286,19 @@ export function createFakeApi(options: { signedIn?: boolean } = {}) {
       failNext = response
     },
     preferences: () => preferences,
+    contentTypes,
+    /** Bodies of every content type update, in order. */
+    contentTypeBodies,
+    /** The next saves answer 409 "Unsafe content type change: …" until reset. */
+    setUnsafeChange(message: string | undefined) {
+      unsafeChange = message
+    },
+    /** Someone else saves the content type (bumps its version). */
+    bumpVersion(id: string) {
+      const type = contentTypes.find((t) => t.id === id)
+      if (type !== undefined)
+        contentTypes.splice(contentTypes.indexOf(type), 1, { ...type, version: type.version + 1 })
+    },
     setPreferences(next: UserPreferences) {
       preferences = next
     },

@@ -104,6 +104,23 @@ Content types can then use `"type": "acme.color"`. Registration fails at startup
 Ship reusable field types as a package, e.g. `@acme/blixis-fields`, exporting the definitions. Keep `@blixis/content` and `zod` as peer dependencies, so the app decides the versions.
 </Aside>
 
+## In the admin
+
+Your type appears in the admin's **Add field** dialog with its `name` and `description`. The admin draws its settings form from the settings JSON Schema (`GET /api/v1/field-types`), so choose shapes it can show:
+
+| Setting | Shown as |
+|---|---|
+| `z.boolean()` | a checkbox |
+| `z.number()`, `z.int()` | a number input (min/max from the schema) |
+| `z.enum([...])` | a dropdown |
+| `z.string()` | a text input (`z.iso.date()`: a date picker) |
+| `z.array(z.enum([...]))`, small integer ranges | checkboxes |
+| `z.array(z.string())` | a comma-separated list |
+| `z.array(z.object({ ... }))` of strings | rows you add, reorder, and remove |
+| anything else | a JSON editor |
+
+Label and explain settings in the schema: `.meta({ title: 'Palette' })` becomes the label and `.describe('Hex colors editors may pick')` the hint. The form shows your defaults; settings an editor leaves alone stay unset, so your defaults apply. The server validates on save and the admin shows its messages next to the field.
+
 ## Test it
 
 Field types are plain objects, so test them without a database:

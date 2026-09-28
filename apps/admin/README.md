@@ -31,6 +31,16 @@ The **e2e test** needs Docker Postgres, migrated (`DATABASE_URL=postgres://blixi
 
 The API origin is chosen per build mode in `vite.config.ts` (`development`, `staging`, `production`); set `VITE_BLIXIS_API_URL` (environment or an ignored `.env.local`) to point a build elsewhere. The build writes `dist/_headers` with the Content-Security-Policy: scripts and styles from the admin itself, connections only to that API, no framing.
 
+## Content model editor
+
+`/spaces/:spaceId/content-types` lists content types and components; `…/content-types/:id` edits one (`src/features/content-types/`, task 019.003):
+
+- **Working copy:** `draft.ts` holds the editor state (fields keyed by id, or a temporary key until saved) and turns it into the full `PUT` body with `version` for optimistic concurrency. It keeps the display field and `showWhen` conditions in step when fields are renamed or removed.
+- **Settings forms** are generated from each field type's settings JSON Schema (`settings-form.tsx`); `ui-registry.ts` adds icons, labels, hints, and pickers (content types, components) for the built-in types. Plugin field types work without admin changes (see the manual: Extending → Custom field types).
+- **Errors:** validation issues (`fields.3.settings.max`) appear on their field; `CONFLICT` answers get guidance: a stale version offers to load the latest one, and unsafe changes explain how to disable a field before removing it. The server stays the judge; the admin only adds hints.
+- **Unsaved changes** block navigation with a confirmation dialog (and the browser's own prompt on reload).
+- The component tests use `test/fixtures/field-types.json`, a copy of `GET /api/v1/field-types`; `modules/content/test/admin-fixture.test.ts` fails when it drifts (`UPDATE_FIXTURES=1` rewrites it).
+
 ## Appearance and themes
 
 Every user picks a color scheme (system, light, dark) and a theme under **Account → Appearance**. Themes use the shadcn/ui variable set that [tweakcn](https://tweakcn.com) edits:

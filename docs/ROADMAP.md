@@ -72,7 +72,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [016 — Releases & Cloudflare Workflows](./plans/016-releases-and-workflows/_index.md) | M7 | Extended | `not-started` | 0/4 | 013, 014, 015 |
 | [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md) | M8 | MVP | `completed` | 4/4 | 013, 014, 015 |
 | [018 — Extension Platform & Example Plugin](./plans/018-extension-platform/_index.md) | M8 | MVP | `not-started` | 0/5 | 017 |
-| [019 — Admin UI Foundation](./plans/019-admin-ui-foundation/_index.md) | M8 | MVP | `in-progress` | 3/5 | 017 |
+| [019 — Admin UI Foundation](./plans/019-admin-ui-foundation/_index.md) | M8 | MVP | `in-progress` | 4/5 | 017 |
 | [020 — Observability & Security Hardening](./plans/020-observability-and-security-hardening/_index.md) | M9 | MVP | `not-started` | 0/5 | 013, 014, 015 |
 | [021 — CI/CD & Release Engineering](./plans/021-ci-cd-and-release-engineering/_index.md) | M9 | MVP | `not-started` | 0/3 | 011 |
 | [022 — Production Readiness & Launch](./plans/022-production-readiness/_index.md) | M9 | MVP | `not-started` | 0/5 | 013, 014, 015, 018, 019, 020, 021 |
@@ -423,7 +423,7 @@ Proves the "internal and external modules share one contract" promise: moves sha
 
 #### 019 — Admin UI Foundation
 
-Status: `in-progress` · Progress: 3/5 · Scope: MVP  
+Status: `in-progress` · Progress: 4/5 · Scope: MVP  
 Plan: [019-admin-ui-foundation/_index.md](./plans/019-admin-ui-foundation/_index.md)  
 Depends on: [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md)
 
@@ -431,7 +431,7 @@ Creates `apps/admin` (React + shadcn/ui) as a pure client of the Management REST
 
 - [x] [019.001 — Decide the admin stack and scaffold apps/admin](./plans/019-admin-ui-foundation/001-admin-stack-and-scaffold.md)
 - [x] [019.002 — Implement admin authentication and navigation shell](./plans/019-admin-ui-foundation/002-admin-auth-and-shell.md)
-- [ ] [019.003 — Implement the content type editor](./plans/019-admin-ui-foundation/003-content-type-editor.md)
+- [x] [019.003 — Implement the content type editor](./plans/019-admin-ui-foundation/003-content-type-editor.md)
 - [ ] [019.004 — Implement the entry list and editor with publishing](./plans/019-admin-ui-foundation/004-entry-editor-and-publishing.md)
 - [x] [019.005 — Let users choose and import themes (tweakcn)](./plans/019-admin-ui-foundation/005-user-themes.md)
 

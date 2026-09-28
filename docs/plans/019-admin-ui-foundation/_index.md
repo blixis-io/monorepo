@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 8 — Consumers & extension platform  
 Roadmap scope: MVP / initial platform  
-Progress: 3/5 tasks completed
+Progress: 4/5 tasks completed
 
 ## Objective
 
@@ -58,7 +58,7 @@ Depends on:
 
 - [x] [001 — Decide the admin stack and scaffold apps/admin](./001-admin-stack-and-scaffold.md)
 - [x] [002 — Implement admin authentication and navigation shell](./002-admin-auth-and-shell.md)
-- [ ] [003 — Implement the content type editor](./003-content-type-editor.md)
+- [x] [003 — Implement the content type editor](./003-content-type-editor.md)
 - [ ] [004 — Implement the entry list and editor with publishing](./004-entry-editor-and-publishing.md)
 - [x] [005 — Let users choose and import themes (tweakcn)](./005-user-themes.md)
 
