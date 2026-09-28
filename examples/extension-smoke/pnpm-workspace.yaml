@@ -3,17 +3,17 @@
 packages: []
 
 overrides:
-  '@blixis-io/contracts': file:../../.artifacts/blixis-io-contracts-0.0.0.tgz
-  '@blixis-io/kernel': file:../../.artifacts/blixis-io-kernel-0.0.0.tgz
-  '@blixis-io/content-api': file:../../.artifacts/blixis-io-content-api-0.0.0.tgz
-  '@blixis-io/database': file:../../.artifacts/blixis-io-database-0.0.0.tgz
-  '@blixis-io/events': file:../../.artifacts/blixis-io-events-0.0.0.tgz
-  '@blixis-io/graphql': file:../../.artifacts/blixis-io-graphql-0.0.0.tgz
-  '@blixis-io/shared': file:../../.artifacts/blixis-io-shared-0.0.0.tgz
-  '@blixis-io/users': file:../../.artifacts/blixis-io-users-0.0.0.tgz
-  '@blixis-io/spaces': file:../../.artifacts/blixis-io-spaces-0.0.0.tgz
-  '@blixis-io/permissions': file:../../.artifacts/blixis-io-permissions-0.0.0.tgz
-  '@blixis-io/content': file:../../.artifacts/blixis-io-content-0.0.0.tgz
+  '@blixis-io/contracts': file:../../.artifacts/blixis-io-contracts.tgz
+  '@blixis-io/kernel': file:../../.artifacts/blixis-io-kernel.tgz
+  '@blixis-io/content-api': file:../../.artifacts/blixis-io-content-api.tgz
+  '@blixis-io/database': file:../../.artifacts/blixis-io-database.tgz
+  '@blixis-io/events': file:../../.artifacts/blixis-io-events.tgz
+  '@blixis-io/graphql': file:../../.artifacts/blixis-io-graphql.tgz
+  '@blixis-io/shared': file:../../.artifacts/blixis-io-shared.tgz
+  '@blixis-io/users': file:../../.artifacts/blixis-io-users.tgz
+  '@blixis-io/spaces': file:../../.artifacts/blixis-io-spaces.tgz
+  '@blixis-io/permissions': file:../../.artifacts/blixis-io-permissions.tgz
+  '@blixis-io/content': file:../../.artifacts/blixis-io-content.tgz
 
 minimumReleaseAgeExclude:
   - hono@4.13.9

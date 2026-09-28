@@ -37,7 +37,7 @@ Run the migrations (`pnpm db:migrate`), deploy, and query `{ page(id: "…") { s
 It is its own pnpm project (see `pnpm-workspace.yaml` here), outside the monorepo's workspace:
 
 ```bash
-pnpm pack:public                          # at the repository root: build and pack into .artifacts/
+pnpm pack:public                          # at the repository root: build and pack into .artifacts/ (names without versions)
 cd examples/blixis-example-seo
 pnpm install --no-frozen-lockfile         # installs @blixis/* from the tarballs
 pnpm typecheck
