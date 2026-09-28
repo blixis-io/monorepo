@@ -19,6 +19,8 @@ export interface FieldDraft {
   readonly group: string
   readonly settings: Readonly<Record<string, unknown>>
   readonly showWhen?: { readonly field: string; readonly equals: unknown } | undefined
+  /** A new field's API ID follows its name until someone edits the API ID. */
+  readonly autoApiId?: boolean | undefined
 }
 
 export interface ContentTypeDraft {
@@ -145,6 +147,7 @@ export function newField(
     description: '',
     group: '',
     settings: {},
+    autoApiId: true,
   }
 }
 
@@ -210,4 +213,17 @@ export function issuesByField(
     byField.set(field.key, list)
   }
   return { general, byField }
+}
+
+/** Renames a field; a new field's API ID follows the name (unique among the others). */
+export function renameField(draft: ContentTypeDraft, key: string, name: string): ContentTypeDraft {
+  const field = draft.fields.find((f) => f.key === key)
+  if (field === undefined) return draft
+  const renamed = {
+    ...draft,
+    fields: draft.fields.map((f) => (f.key === key ? { ...f, name } : f)),
+  }
+  if (field.autoApiId !== true) return renamed
+  const others = draft.fields.filter((f) => f.key !== key).map((f) => f.apiId)
+  return renameApiId(renamed, key, uniqueApiId(toApiId(name), others))
 }

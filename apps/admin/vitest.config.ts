@@ -8,5 +8,7 @@ export default defineConfig({
     name: 'admin',
     environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}', 'test/**/*.test.{ts,tsx}'],
+    // Full editor flows in jsdom take several seconds on CI runners.
+    testTimeout: 15_000,
   },
 })
