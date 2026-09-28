@@ -16,7 +16,7 @@ Related: [Monorepo](../development/monorepo.md) · [Testing](./testing.md) · [C
 ## 2. Types
 
 - **No `any`.** Use `unknown` at untrusted boundaries and narrow after validation. A justified exception needs an inline comment explaining why.
-- **No non-null assertions (`!`)** except in tests; use `invariant()` from `@blixis/shared`.
+- **No non-null assertions (`!`)** except in tests; use `invariant()` from `@blixis-io/shared`.
 - **No unchecked casts (`as X`)** on data from outside the process (requests, queue messages, DB JSON, env). Validate with a schema instead.
 - Prefer `readonly` properties and `readonly T[]` for public contracts.
 - Prefer discriminated unions over boolean flags; use `assertNever()` for exhaustive switches.
@@ -37,7 +37,7 @@ Related: [Monorepo](../development/monorepo.md) · [Testing](./testing.md) · [C
 | Event types | `<aggregate>.<past-tense>` | `entry.published` |
 | Permission IDs | `<module>.<action>` / `<module>.<resource>.<action>` | `content.entries.publish` |
 | Capabilities | `<namespace>.<capability>` | `blixis.assets` |
-| Packages | `@blixis/<name>` | `@blixis/content` |
+| Packages | `@blixis/<name>` | `@blixis-io/content` |
 | Database tables/columns | snake_case, plural tables | `entry_versions.created_at` |
 | Environment variables/bindings | SCREAMING_SNAKE_CASE | `HYPERDRIVE`, `BLIXIS_ENV` |
 
@@ -48,10 +48,10 @@ No `I` prefix on interfaces, no `Impl` suffix on classes.
 - Organise by **domain module**, not technical layer (§2.1). Use the §23 layout (`domain/`, `application/`, `infrastructure/`, `rest/`, `graphql/`, `events/`) and create only the folders you need.
 - **Public API only via `src/index.ts`** and package `exports`. Never import another package's `src/` or internal files (§2.5, §24). Boundary checks enforce this.
 - Cross-module communication only through **service tokens, capabilities, and events** (§2.5).
-- **Named exports everywhere**, except the module factory, which is the package's default export (`export { default } from './module.ts'`) so consumers write `import content from '@blixis/content'`.
+- **Named exports everywhere**, except the module factory, which is the package's default export (`export { default } from './module.ts'`) so consumers write `import content from '@blixis-io/content'`.
 - No barrel files inside a package other than `src/index.ts`.
 - No circular dependencies between packages or between files within a package.
-- `@blixis/testing` is imported only from test files.
+- `@blixis-io/testing` is imported only from test files.
 
 ## 5. Layering rules
 
@@ -59,11 +59,11 @@ No `I` prefix on interfaces, no `Impl` suffix on classes.
 - **Services are transport-agnostic**: they receive a `RequestContext`, never a Hono `Context` or GraphQL `info`.
 - **Repositories** do data access only, always tenant-scoped (§31); they never enforce permissions.
 - **Authorization happens in services** via `AUTHORIZATION_SERVICE.require(...)`; no role-name checks anywhere (§30).
-- **Cloudflare bindings** are accessed only in adapters (`@blixis/cloudflare`, infrastructure folders); domain code never touches `env` (§19, §48 Architecture.7).
+- **Cloudflare bindings** are accessed only in adapters (`@blixis-io/cloudflare`, infrastructure folders); domain code never touches `env` (§19, §48 Architecture.7).
 
 ## 6. Errors
 
-- Throw the public error classes from `@blixis/contracts` (`ValidationError`, `NotFoundError`, `ConflictError`, `ForbiddenError`, `UnauthorizedError`, `RateLimitError`, `ModuleError`, `InfrastructureError`) (§28).
+- Throw the public error classes from `@blixis-io/contracts` (`ValidationError`, `NotFoundError`, `ConflictError`, `ForbiddenError`, `UnauthorizedError`, `RateLimitError`, `ModuleError`, `InfrastructureError`) (§28).
 - Never throw Hono `HTTPException` from services; transports map errors.
 - Translate driver/SDK errors at the infrastructure boundary; never leak internal messages, SQL, or connection details.
 - Don't swallow errors. If you catch, either handle meaningfully, rethrow with `cause`, or log and rethrow.
@@ -71,7 +71,7 @@ No `I` prefix on interfaces, no `Impl` suffix on classes.
 ## 7. Validation
 
 - Validate **all untrusted input at the boundary** — request bodies, params, query strings, GraphQL inputs, queue messages, webhook payloads, env, module config (§29).
-- Use **Zod 4** ([ADR 0004](../decisions/0004-validation-library.md)) through the Standard Schema interface (`validate` from `@blixis/contracts`); derive types from schemas (`InferOutput`) instead of duplicating interfaces.
+- Use **Zod 4** ([ADR 0004](../decisions/0004-validation-library.md)) through the Standard Schema interface (`validate` from `@blixis-io/contracts`); derive types from schemas (`InferOutput`) instead of duplicating interfaces.
 - Services re-check domain invariants; schemas check shape.
 
 ## 8. Async and Workers runtime
@@ -102,7 +102,7 @@ Before adding a dependency answer (§38): why is it needed, can a platform primi
 
 - Runtime dependencies of Worker packages must be ESM and Workers-compatible.
 - Pin shared versions via the pnpm catalog (see [Monorepo](../development/monorepo.md#dependency-versions)).
-- Third-party modules use `peerDependencies` on `@blixis/contracts` (§25).
+- Third-party modules use `peerDependencies` on `@blixis-io/contracts` (§25).
 
 ## 12. Formatting and linting
 
@@ -113,7 +113,7 @@ Before adding a dependency answer (§38): why is it needed, can a platform primi
 
 ## 13. Comments and documentation
 
-- TSDoc on every exported symbol of public packages (`@blixis/contracts`, `@blixis/kernel`, `@blixis/sdk`, `@blixis/content-api`).
+- TSDoc on every exported symbol of public packages (`@blixis-io/contracts`, `@blixis-io/kernel`, `@blixis-io/sdk`, `@blixis-io/content-api`).
 - Comments explain *why*, not *what*. No commented-out code.
 - `TODO` comments must reference a roadmap task or issue: `// TODO(011.001): replace stub`.
 - Update docs in the same PR as the behaviour they describe.

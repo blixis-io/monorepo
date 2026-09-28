@@ -7,7 +7,7 @@ sidebar:
 
 import { Aside } from '@astrojs/starlight/components'
 
-Services throw **public errors** from `@blixis/contracts`. Each has a stable `code`; REST and GraphQL translate the code into their protocol. Never throw HTTP- or GraphQL-specific errors from a service.
+Services throw **public errors** from `@blixis-io/contracts`. Each has a stable `code`; REST and GraphQL translate the code into their protocol. Never throw HTTP- or GraphQL-specific errors from a service.
 
 ## Error classes
 
@@ -67,7 +67,7 @@ Every error response uses [RFC 9457 problem details](https://www.rfc-editor.org/
 ## Throwing
 
 ```ts
-import { ConflictError, NotFoundError, ValidationError } from '@blixis/contracts'
+import { ConflictError, NotFoundError, ValidationError } from '@blixis-io/contracts'
 
 throw new NotFoundError('Entry not found')
 throw new ConflictError('Slug is already taken', { details: { field: 'slug' } })

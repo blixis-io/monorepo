@@ -1,4 +1,4 @@
-import { createServiceToken, type ServiceToken, type TransactionScope } from '@blixis/contracts'
+import { createServiceToken, type ServiceToken, type TransactionScope } from '@blixis-io/contracts'
 
 /**
  * Records which subscription has processed which event (§33), so redeliveries skip handlers

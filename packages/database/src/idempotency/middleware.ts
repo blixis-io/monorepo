@@ -1,4 +1,4 @@
-import { type Actor, type ModuleHonoEnv, ValidationError } from '@blixis/contracts'
+import { type Actor, type ModuleHonoEnv, ValidationError } from '@blixis-io/contracts'
 import type { Context, Next } from 'hono'
 import { IDEMPOTENCY } from './service.ts'
 

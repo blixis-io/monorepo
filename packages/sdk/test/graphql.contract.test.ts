@@ -1,9 +1,9 @@
-import { eventsModule } from '@blixis/events'
+import { eventsModule } from '@blixis-io/events'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
+} from '@blixis-io/testing/database'
 import { afterAll, beforeAll, describe, expect, expectTypeOf, it } from 'vitest'
 import {
   BlixisApiError,

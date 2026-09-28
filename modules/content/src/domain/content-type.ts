@@ -8,8 +8,8 @@ import {
   type FieldInput,
   type ShowWhen,
   type UpdateContentTypeInput,
-} from '@blixis/content-api'
-import type { SameShape } from '@blixis/contracts'
+} from '@blixis-io/content-api'
+import type { SameShape } from '@blixis-io/contracts'
 import { z } from 'zod'
 
 // The public shapes live in `@blixis/content-api` (ADR 0016); this module implements them.

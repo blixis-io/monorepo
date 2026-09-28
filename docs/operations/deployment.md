@@ -91,7 +91,7 @@ Manual redeploy of any tag: `gh workflow run release.yml -f tag=v0.4.1` (the wor
 Until plan 021 lands, deployments are manual and staging-only:
 
 ```bash
-pnpm --filter @blixis/api exec wrangler deploy --env staging
+pnpm --filter @blixis-io/api exec wrangler deploy --env staging
 DATABASE_URL=<staging migration url> pnpm db:migrate
 ```
 

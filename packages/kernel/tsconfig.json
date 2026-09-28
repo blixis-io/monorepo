@@ -1,5 +1,5 @@
 {
-  "extends": "@blixis/tsconfig/library.json",
+  "extends": "@blixis-io/tsconfig/library.json",
   "compilerOptions": {
     // Web platform globals (Request, Response, console) — the kernel targets Fetch-API runtimes.
     "lib": ["es2023", "webworker"]

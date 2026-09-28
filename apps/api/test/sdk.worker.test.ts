@@ -1,4 +1,4 @@
-import { BlixisApiError, createBlixisClient, createBlixisGraphQLClient } from '@blixis/sdk'
+import { BlixisApiError, createBlixisClient, createBlixisGraphQLClient } from '@blixis-io/sdk'
 import { describe, expect, it } from 'vitest'
 
 /**

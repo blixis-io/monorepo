@@ -31,6 +31,6 @@ The contracts' `ServiceRegistry.get` is synchronous (`get(token): T`), so every 
 
 ## Consequences
 
-- Database and other I/O clients must expose lazy connection (`@blixis/database`, 005.002).
+- Database and other I/O clients must expose lazy connection (`@blixis-io/database`, 005.002).
 - Transports must always create and dispose a scope around each invocation; the kernel provides the helper, so modules never do this themselves.
 - Circular resolutions are detected and reported with the module name.

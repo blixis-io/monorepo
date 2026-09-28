@@ -8,8 +8,8 @@ import {
   type ServiceToken,
   ValidationError,
   validate,
-} from '@blixis/contracts'
-import { type Database, withTransaction } from '@blixis/database'
+} from '@blixis-io/contracts'
+import { type Database, withTransaction } from '@blixis-io/database'
 import { z } from 'zod'
 import { type Environment, type Locale, localeCodeSchema, nameSchema } from '../domain/tenancy.ts'
 import { localeCreated, localeDeleted, localeUpdated } from '../events.ts'

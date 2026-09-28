@@ -2,15 +2,15 @@
 // it with `wrangler deploy --dry-run` to prove the plugin and the public packages build for
 // Workers (plan 018.004). Behavior is tested by the plugin's own tests.
 
-import { contentModule } from '@blixis/content'
-import { databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { graphqlModule } from '@blixis/graphql'
-import { createBlixis } from '@blixis/kernel'
-import { permissionsModule } from '@blixis/permissions'
-import { spacesModule } from '@blixis/spaces'
-import { usersModule } from '@blixis/users'
 import seo from '@blixis-example/seo'
+import { contentModule } from '@blixis-io/content'
+import { databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { graphqlModule } from '@blixis-io/graphql'
+import { createBlixis } from '@blixis-io/kernel'
+import { permissionsModule } from '@blixis-io/permissions'
+import { spacesModule } from '@blixis-io/spaces'
+import { usersModule } from '@blixis-io/users'
 import { z } from 'zod'
 
 z.config({ jitless: true })

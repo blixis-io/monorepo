@@ -1,4 +1,4 @@
-import type { ContentService, EntryVersionView, EntryView } from '@blixis/content-api'
+import type { ContentService, EntryVersionView, EntryView } from '@blixis-io/content-api'
 import {
   type Actor,
   type AssetLookup,
@@ -9,9 +9,9 @@ import {
   NotFoundError,
   type PermissionId,
   ValidationError,
-} from '@blixis/contracts'
-import { type Database, isId, toTransactionScope, withTransaction } from '@blixis/database'
-import type { LocaleService } from '@blixis/spaces'
+} from '@blixis-io/contracts'
+import { type Database, isId, toTransactionScope, withTransaction } from '@blixis-io/database'
+import type { LocaleService } from '@blixis-io/spaces'
 import type { ContentType } from '../domain/content-type.ts'
 import { type Entry, type EntryVersion, entryStatus } from '../domain/entry.ts'
 import { collectLinks, collectLinkUsages } from '../domain/links.ts'
@@ -38,7 +38,7 @@ export {
   type EntrySys,
   type EntryVersionView,
   type EntryView,
-} from '@blixis/content-api'
+} from '@blixis-io/content-api'
 
 /** Everything the content service needs (plus its later capabilities). */
 export interface ContentServiceDeps {

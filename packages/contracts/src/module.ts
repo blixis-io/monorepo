@@ -9,7 +9,11 @@ import type { StandardSchemaV1 } from './standard-schema.ts'
 
 /** Identity and dependency metadata of a module (architecture §5). */
 export interface ModuleMeta {
-  /** Package name, e.g. `@blixis/content` or `@acme/blixis-seo`. Must be unique in an app. */
+  /**
+   * Module name: a stable identifier, unique in an app (migrations are recorded under it). Usually
+   * the package name, e.g. `@acme/blixis-seo`; first-party modules keep `@blixis/content` etc.
+   * although their packages are `@blixis-io/content` (ADR 0020).
+   */
   readonly name: string
   /** Semantic version of the module package. */
   readonly version: string

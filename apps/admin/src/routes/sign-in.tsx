@@ -1,4 +1,4 @@
-import { BlixisApiError } from '@blixis/sdk'
+import { BlixisApiError } from '@blixis-io/sdk'
 import { useForm } from '@tanstack/react-form'
 import { createRoute, redirect, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'

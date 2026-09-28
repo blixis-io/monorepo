@@ -1,27 +1,31 @@
 // The plugin boots with first-party modules installed from tarballs, as in a real app. Tests may
 // import them; the plugin's source may not (public packages only).
 
-import { contentModule } from '@blixis/content'
-import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE, type EnvironmentTenant } from '@blixis/content-api'
-import type { Actor } from '@blixis/contracts'
-import { databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { graphqlModule } from '@blixis/graphql'
-import { permissionsModule } from '@blixis/permissions'
-import { MEMBER_SERVICE, spacesModule, TENANCY_SERVICE } from '@blixis/spaces'
+import { contentModule } from '@blixis-io/content'
+import {
+  CONTENT_SERVICE,
+  CONTENT_TYPE_SERVICE,
+  type EnvironmentTenant,
+} from '@blixis-io/content-api'
+import type { Actor } from '@blixis-io/contracts'
+import { databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { graphqlModule } from '@blixis-io/graphql'
+import { permissionsModule } from '@blixis-io/permissions'
+import { MEMBER_SERVICE, spacesModule, TENANCY_SERVICE } from '@blixis-io/spaces'
 import {
   asDeliveryKey,
   asUser,
   captureEvents,
   createTestBlixis,
   type TestBlixis,
-} from '@blixis/testing'
+} from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { USER_SERVICE, usersModule } from '@blixis-io/users'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import seo, { SEO_SERVICE } from '../src/index.ts'
 

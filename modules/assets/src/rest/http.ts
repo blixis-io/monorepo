@@ -1,4 +1,4 @@
-import { ValidationError } from '@blixis/contracts'
+import { ValidationError } from '@blixis-io/contracts'
 
 /**
  * The file name from `Content-Disposition` (`filename*=UTF-8''…` preferred, then `filename="…"`,

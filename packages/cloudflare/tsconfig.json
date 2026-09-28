@@ -1,5 +1,5 @@
 {
-  "extends": "@blixis/tsconfig/library.json",
+  "extends": "@blixis-io/tsconfig/library.json",
   "compilerOptions": {
     // Cloudflare Workers runtime globals (Request, ExecutionContext, Queue, …).
     "types": ["@cloudflare/workers-types"]

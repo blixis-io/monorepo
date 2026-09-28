@@ -15,7 +15,7 @@ Constraints:
 - it runs on Workers with Web Crypto only (no Node crypto KDFs, no runtime WASM compilation);
 - the API bundle budget is 1024 KiB gzip, with the API at 339 KiB today;
 - tables are module-owned with UUIDv7 IDs (ADR 0007);
-- events go through `@blixis/events`.
+- events go through `@blixis-io/events`.
 
 The roadmap suggested Postgres-backed opaque sessions. The project owner chose **JWT with refresh tokens**.
 
@@ -31,7 +31,7 @@ The roadmap suggested Postgres-backed opaque sessions. The project owner chose *
 
 ## Decision
 
-1. **Custom implementation** in two modules: `@blixis/users`, which owns user records, and `@blixis/auth`, which owns credentials, refresh tokens, and API tokens. There is no auth library. The only new dependency is `@noble/hashes`, which is audited and has no dependencies.
+1. **Custom implementation** in two modules: `@blixis-io/users`, which owns user records, and `@blixis-io/auth`, which owns credentials, refresh tokens, and API tokens. There is no auth library. The only new dependency is `@noble/hashes`, which is audited and has no dependencies.
 2. **Access tokens are JWTs**, signed with **EdDSA (Ed25519)** through Web Crypto.
    - They live **15 minutes** and are sent as `Authorization: Bearer <jwt>`.
    - Claims: `iss` (API origin), `aud` (`blixis-api`), `sub` (user ID), `sid` (refresh-token family), `iat`, `exp`, `jti`. There are no roles or permissions in the token; authorization is looked up per request (plan 009), so a permission change applies immediately.
@@ -48,7 +48,7 @@ The roadmap suggested Postgres-backed opaque sessions. The project owner chose *
 5. **CSRF:** API requests authenticate with the `Authorization` header, not cookies, so they aren't exposed to CSRF. The cookie-using endpoints (`refresh`, `sign-out`) additionally require an `Origin` that matches an allow-list and a JSON content type.
 6. **Passwords** are hashed with **scrypt N=2^15, r=8, p=1, 32-byte key, 16-byte random salt** (`@noble/hashes`; ~91 ms CPU, 32 MiB). The hash is stored in a versioned format: `scrypt$v=1$N=32768,r=8,p=1$<salt>$<hash>`. Parameters are upgraded by rehashing on the next sign-in. Passwords are 12–256 characters with no composition rules, and are checked against a small list of common passwords (NIST SP 800-63B). Comparisons are constant-time.
 7. **Personal API tokens** stay **opaque**: `blx_pat_<32 random bytes base64url>`. Only the SHA-256 hash is stored, along with a displayable prefix (`blx_pat_ab12…`), an optional expiry, and scopes (permission IDs, enforced by plan 009). The token is shown once at creation. The prefix separates them from JWTs.
-8. **Actor resolution** (the kernel `actorResolver`, provided by `@blixis/auth`):
+8. **Actor resolution** (the kernel `actorResolver`, provided by `@blixis-io/auth`):
    - a `Bearer` JWT → `{ type: 'user', userId }`;
    - a `Bearer blx_pat_…` → `{ type: 'apiToken', tokenId, ownerId, scopes }`;
    - nothing → anonymous;

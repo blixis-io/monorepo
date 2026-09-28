@@ -4,7 +4,7 @@ import {
   type Transaction,
   tenantScope,
   translateDatabaseError,
-} from '@blixis/database'
+} from '@blixis-io/database'
 import { and, asc, eq, inArray } from 'drizzle-orm'
 import type { Environment, Locale, Organization, Space } from '../domain/tenancy.ts'
 import { environments, locales, organizations, spaces } from './schema.ts'

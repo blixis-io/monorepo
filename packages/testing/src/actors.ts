@@ -7,7 +7,7 @@ import {
   type PermissionId,
   type SystemActor,
   type UserActor,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 
 /** A signed-in user actor. */
 export function asUser(userId: string): UserActor {

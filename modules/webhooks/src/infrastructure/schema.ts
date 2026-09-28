@@ -1,4 +1,4 @@
-import { idColumn, tenantColumns, timestamps } from '@blixis/database'
+import { idColumn, tenantColumns, timestamps } from '@blixis-io/database'
 import { boolean, integer, jsonb, pgSchema, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 export const webhooksSchema = pgSchema('webhooks')

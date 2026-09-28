@@ -1,4 +1,4 @@
-import type { GraphQLContribution, GraphQLResolverContext } from '@blixis/contracts'
+import type { GraphQLContribution, GraphQLResolverContext } from '@blixis-io/contracts'
 import { SEO_SERVICE, type SeoMetadata } from './service.ts'
 
 /**

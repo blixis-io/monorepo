@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import type { BlixisModule } from '@blixis/contracts'
-import { createBlixis, noopLogger } from '@blixis/kernel'
+import type { BlixisModule } from '@blixis-io/contracts'
+import { createBlixis, noopLogger } from '@blixis-io/kernel'
 import { describe, expect, it } from 'vitest'
 
 const root = path.resolve(import.meta.dirname, '..')

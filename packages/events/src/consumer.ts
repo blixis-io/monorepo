@@ -1,5 +1,5 @@
-import { type EventSubscription, type Logger, ValidationError } from '@blixis/contracts'
-import type { Attributed, QueueBatchLike, QueueMessageLike, RunInScope } from '@blixis/kernel'
+import { type EventSubscription, type Logger, ValidationError } from '@blixis-io/contracts'
+import type { Attributed, QueueBatchLike, QueueMessageLike, RunInScope } from '@blixis-io/kernel'
 import { dispatchEnvelope } from './dispatch.ts'
 import type { EventRegistry } from './registry.ts'
 

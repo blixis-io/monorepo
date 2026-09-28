@@ -1,4 +1,4 @@
-import { type Database, toTransactionScope, withTransaction } from '@blixis/database'
+import { type Database, toTransactionScope, withTransaction } from '@blixis-io/database'
 import { sql } from 'drizzle-orm'
 import type { ProcessedEvents } from '../processed.ts'
 

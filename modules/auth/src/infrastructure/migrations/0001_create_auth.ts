@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /**
  * Credentials and refresh tokens (ADR 0009). Only hashes are stored. `user_id` references

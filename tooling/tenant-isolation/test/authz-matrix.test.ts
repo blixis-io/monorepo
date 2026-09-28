@@ -1,17 +1,17 @@
-import { ASSET_SERVICE } from '@blixis/assets'
-import { DELIVERY_KEY_SERVICE } from '@blixis/auth'
-import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE } from '@blixis/content'
+import { ASSET_SERVICE } from '@blixis-io/assets'
+import { DELIVERY_KEY_SERVICE } from '@blixis-io/auth'
+import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE } from '@blixis-io/content'
 import {
   type Actor,
   OBJECT_STORAGE,
   type PermissionId,
   type ServiceRegistry,
   type UserActor,
-} from '@blixis/contracts'
-import { QUEUE_SENDER } from '@blixis/events'
-import { serviceOverride } from '@blixis/kernel'
-import { PERMISSION_CATALOG, ROLE_SERVICE, type Role, systemRoles } from '@blixis/permissions'
-import { LOCALE_SERVICE, MEMBER_SERVICE, TENANCY_SERVICE } from '@blixis/spaces'
+} from '@blixis-io/contracts'
+import { QUEUE_SENDER } from '@blixis-io/events'
+import { serviceOverride } from '@blixis-io/kernel'
+import { PERMISSION_CATALOG, ROLE_SERVICE, type Role, systemRoles } from '@blixis-io/permissions'
+import { LOCALE_SERVICE, MEMBER_SERVICE, TENANCY_SERVICE } from '@blixis-io/spaces'
 import {
   type AuthzCase,
   type AuthzLevel,
@@ -24,14 +24,14 @@ import {
   createTestBlixis,
   type TestBlixis,
   uncoveredTenantRoutes,
-} from '@blixis/testing'
+} from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { USER_SERVICE } from '@blixis/users'
-import { generateWebhookKey, WEBHOOK_SERVICE, WEBHOOKS_CONFIG } from '@blixis/webhooks'
+} from '@blixis-io/testing/database'
+import { USER_SERVICE } from '@blixis-io/users'
+import { generateWebhookKey, WEBHOOK_SERVICE, WEBHOOKS_CONFIG } from '@blixis-io/webhooks'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { apiModules } from './api.ts'
 import { AUTHZ_ROUTES } from './authz-routes.ts'

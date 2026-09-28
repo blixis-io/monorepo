@@ -1,4 +1,4 @@
-import { createServiceToken, ModuleError, type ServiceToken } from '@blixis/contracts'
+import { createServiceToken, ModuleError, type ServiceToken } from '@blixis-io/contracts'
 import { z } from 'zod'
 
 /** How strictly entry values are checked (plan 011): drafts may be incomplete. */

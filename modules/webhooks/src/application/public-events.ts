@@ -4,7 +4,7 @@ import {
   assetPublished,
   assetUnpublished,
   assetUpdated,
-} from '@blixis/assets'
+} from '@blixis-io/assets'
 import {
   contentTypeCreated,
   contentTypeDeleted,
@@ -14,8 +14,8 @@ import {
   entryPublished,
   entryUnpublished,
   entryUpdated,
-} from '@blixis/content-api'
-import type { EventDefinition } from '@blixis/contracts'
+} from '@blixis-io/content-api'
+import type { EventDefinition } from '@blixis-io/contracts'
 
 /**
  * Definitions of the events webhooks deliver — the same set as `PUBLIC_WEBHOOK_EVENTS` (a test

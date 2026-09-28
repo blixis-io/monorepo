@@ -3,18 +3,18 @@
 packages: []
 
 overrides:
-  '@blixis/contracts': file:../../.artifacts/blixis-contracts-0.0.0.tgz
-  '@blixis/kernel': file:../../.artifacts/blixis-kernel-0.0.0.tgz
-  '@blixis/content-api': file:../../.artifacts/blixis-content-api-0.0.0.tgz
-  '@blixis/database': file:../../.artifacts/blixis-database-0.0.0.tgz
-  '@blixis/events': file:../../.artifacts/blixis-events-0.0.0.tgz
-  '@blixis/graphql': file:../../.artifacts/blixis-graphql-0.0.0.tgz
-  '@blixis/shared': file:../../.artifacts/blixis-shared-0.0.0.tgz
-  '@blixis/testing': file:../../.artifacts/blixis-testing-0.0.0.tgz
-  '@blixis/users': file:../../.artifacts/blixis-users-0.0.0.tgz
-  '@blixis/spaces': file:../../.artifacts/blixis-spaces-0.0.0.tgz
-  '@blixis/permissions': file:../../.artifacts/blixis-permissions-0.0.0.tgz
-  '@blixis/content': file:../../.artifacts/blixis-content-0.0.0.tgz
+  '@blixis-io/contracts': file:../../.artifacts/blixis-io-contracts-0.0.0.tgz
+  '@blixis-io/kernel': file:../../.artifacts/blixis-io-kernel-0.0.0.tgz
+  '@blixis-io/content-api': file:../../.artifacts/blixis-io-content-api-0.0.0.tgz
+  '@blixis-io/database': file:../../.artifacts/blixis-io-database-0.0.0.tgz
+  '@blixis-io/events': file:../../.artifacts/blixis-io-events-0.0.0.tgz
+  '@blixis-io/graphql': file:../../.artifacts/blixis-io-graphql-0.0.0.tgz
+  '@blixis-io/shared': file:../../.artifacts/blixis-io-shared-0.0.0.tgz
+  '@blixis-io/testing': file:../../.artifacts/blixis-io-testing-0.0.0.tgz
+  '@blixis-io/users': file:../../.artifacts/blixis-io-users-0.0.0.tgz
+  '@blixis-io/spaces': file:../../.artifacts/blixis-io-spaces-0.0.0.tgz
+  '@blixis-io/permissions': file:../../.artifacts/blixis-io-permissions-0.0.0.tgz
+  '@blixis-io/content': file:../../.artifacts/blixis-io-content-0.0.0.tgz
 
 # Install scripts allowed, as in the monorepo (pnpm 12 refuses unapproved ones in CI).
 allowBuilds:

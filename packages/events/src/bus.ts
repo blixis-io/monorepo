@@ -6,7 +6,7 @@ import {
   ModuleError,
   type RequestContext,
   type ServiceRegistry,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import { createEnvelope } from './envelope.ts'
 import type { EventRegistry } from './registry.ts'
 

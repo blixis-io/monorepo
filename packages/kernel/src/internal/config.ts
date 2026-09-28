@@ -1,4 +1,4 @@
-import { type BlixisModule, isBlixisError, ValidationError, validate } from '@blixis/contracts'
+import { type BlixisModule, isBlixisError, ValidationError, validate } from '@blixis-io/contracts'
 import { type ModuleProblem, ModuleValidationError } from '../errors.ts'
 
 /**

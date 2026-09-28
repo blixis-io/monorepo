@@ -1,4 +1,4 @@
-import type { IsolationRoute } from '@blixis/testing'
+import type { IsolationRoute } from '@blixis-io/testing'
 
 /**
  * Every tenant-scoped route of the API with a request that would change or reveal data if

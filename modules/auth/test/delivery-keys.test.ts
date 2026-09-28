@@ -1,17 +1,17 @@
-import type { ModuleHonoEnv } from '@blixis/contracts'
-import { databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { outboxModule } from '@blixis/events/outbox'
-import { defineModule, serviceOverride } from '@blixis/kernel'
-import { permissionsModule } from '@blixis/permissions'
-import { MEMBER_SERVICE, spacesModule, TENANCY_SERVICE } from '@blixis/spaces'
-import { asUser, captureEvents, createTestBlixis, type TestBlixis } from '@blixis/testing'
+import type { ModuleHonoEnv } from '@blixis-io/contracts'
+import { databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { outboxModule } from '@blixis-io/events/outbox'
+import { defineModule, serviceOverride } from '@blixis-io/kernel'
+import { permissionsModule } from '@blixis-io/permissions'
+import { MEMBER_SERVICE, spacesModule, TENANCY_SERVICE } from '@blixis-io/spaces'
+import { asUser, captureEvents, createTestBlixis, type TestBlixis } from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { USER_SERVICE, usersModule } from '@blixis-io/users'
 import { Hono } from 'hono'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { AUTH_CONFIG, authModule, type DeliveryKeyRecord } from '../src/index.ts'

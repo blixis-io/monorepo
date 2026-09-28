@@ -1,6 +1,6 @@
-# `@blixis/contracts`
+# `@blixis-io/contracts`
 
-The developer documentation for `@blixis/contracts` lives in the **developer manual** — [blixis-docs.frosty-hill-6079.workers.dev](https://blixis-docs.frosty-hill-6079.workers.dev) (source in [`apps/docs`](../../apps/docs)), with an API reference generated from the TSDoc in [`packages/contracts/src`](../../packages/contracts/src). Run it locally with `pnpm --filter @blixis/docs dev`.
+The developer documentation for `@blixis-io/contracts` lives in the **developer manual** — [blixis-docs.frosty-hill-6079.workers.dev](https://blixis-docs.frosty-hill-6079.workers.dev) (source in [`apps/docs`](../../apps/docs)), with an API reference generated from the TSDoc in [`packages/contracts/src`](../../packages/contracts/src). Run it locally with `pnpm --filter @blixis-io/docs dev`.
 
 | Topic | Manual page (source) |
 |---|---|
@@ -23,7 +23,7 @@ The developer documentation for `@blixis/contracts` lives in the **developer man
 - Semantic versioning; breaking changes use `feat(contracts)!:` + `BREAKING CHANGE:`. Unstable APIs are marked `@experimental`.
 - Every export has TSDoc — it becomes the generated API reference.
 - `*.test-d.ts` type tests (checked by `pnpm typecheck`) keep the public types honest; `src/module.test-d.ts` is a complete third-party-style module that must keep compiling.
-- **API surface snapshots** (`docs/api-surface/*.api.md`, plan 018.004): the declarations reachable from the exports of `@blixis/contracts`, `@blixis/kernel`, `@blixis/content-api`, and `@blixis/database`. CI (`pnpm api-surface:check`, after Build) fails when they differ from the built packages.
+- **API surface snapshots** (`docs/api-surface/*.api.md`, plan 018.004): the declarations reachable from the exports of `@blixis-io/contracts`, `@blixis-io/kernel`, `@blixis-io/content-api`, and `@blixis-io/database`. CI (`pnpm api-surface:check`, after Build) fails when they differ from the built packages.
 
 ### Changing the public API on purpose
 
@@ -33,12 +33,12 @@ The developer documentation for `@blixis/contracts` lives in the **developer man
 
 ## Public capability packages (ADR 0016)
 
-Contracts stay small and domain-free. What other modules need from a first-party capability lives in its own public API package, which depends on `@blixis/contracts` only (as a peer; enforced by `tooling/boundaries`, rule `public-api-dependency`):
+Contracts stay small and domain-free. What other modules need from a first-party capability lives in its own public API package, which depends on `@blixis-io/contracts` only (as a peer; enforced by `tooling/boundaries`, rule `public-api-dependency`):
 
 | Package | Contents | Implemented by |
 |---|---|---|
-| [`@blixis/content-api`](../../packages/content-api/src/index.ts) | `CONTENT_SERVICE`, `CONTENT_TYPE_SERVICE`, entry and content type views and inputs, the `entry.*` and `content-type.*` event definitions | `@blixis/content` (re-exports everything) |
+| [`@blixis-io/content-api`](../../packages/content-api/src/index.ts) | `CONTENT_SERVICE`, `CONTENT_TYPE_SERVICE`, entry and content type views and inputs, the `entry.*` and `content-type.*` event definitions | `@blixis-io/content` (re-exports everything) |
 
-Modules, first-party or not, import these capabilities from the API package, never from the implementation: `import { CONTENT_SERVICE, entryPublished } from '@blixis/content-api'`. Token ids and event types are the implementation's (`@blixis/content.entries`, `entry.published`), so the move is invisible at runtime. Event payload schemas are dependency-free Standard Schemas (`struct` from `@blixis/contracts`), so the package needs no schema library.
+Modules, first-party or not, import these capabilities from the API package, never from the implementation: `import { CONTENT_SERVICE, entryPublished } from '@blixis-io/content-api'`. Token ids and event types are the implementation's (`@blixis/content.entries`, `entry.published`), so the move is invisible at runtime. Event payload schemas are dependency-free Standard Schemas (`struct` from `@blixis-io/contracts`), so the package needs no schema library.
 
 Platform events every module must handle live in contracts too: `spaceDeleted` (`space.deleted`: delete your data for the space). Resolvers contributed through `graphql` receive a `GraphQLResolverContext`.

@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /**
  * Memberships link users to organizations (`space_id` null) or spaces (§20: owned by users).

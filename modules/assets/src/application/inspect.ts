@@ -1,4 +1,4 @@
-import { ValidationError } from '@blixis/contracts'
+import { ValidationError } from '@blixis-io/contracts'
 import { HEADER_BYTES, imageDimensions, signatureMismatch } from '../domain/sniff.ts'
 
 /** What {@link inspectUpload} learned while the bytes passed through. */

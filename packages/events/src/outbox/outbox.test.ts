@@ -1,4 +1,4 @@
-import { defineEvent, EVENT_BUS, type EventEnvelope } from '@blixis/contracts'
+import { defineEvent, EVENT_BUS, type EventEnvelope } from '@blixis-io/contracts'
 import {
   createDatabase,
   DATABASE,
@@ -6,9 +6,9 @@ import {
   databaseModule,
   toTransactionScope,
   withTransaction,
-} from '@blixis/database'
-import { runMigrations } from '@blixis/database/migrations'
-import { createBlixis, noopLogger, serviceOverride } from '@blixis/kernel'
+} from '@blixis-io/database'
+import { runMigrations } from '@blixis-io/database/migrations'
+import { createBlixis, noopLogger, serviceOverride } from '@blixis-io/kernel'
 import { sql } from 'drizzle-orm'
 import { Client } from 'pg'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'

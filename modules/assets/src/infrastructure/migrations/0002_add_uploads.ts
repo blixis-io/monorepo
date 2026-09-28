@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /**
  * Multipart uploads in progress (ADR 0013 §1): the storage's upload id, the declared size, and

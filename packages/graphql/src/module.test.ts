@@ -3,8 +3,8 @@ import {
   ERROR_REPORTER,
   ModuleValidationError,
   serviceOverride,
-} from '@blixis/kernel'
-import { asUser, createTestBlixis } from '@blixis/testing'
+} from '@blixis-io/kernel'
+import { asUser, createTestBlixis } from '@blixis-io/testing'
 import { describe, expect, it } from 'vitest'
 import type { GraphQLContext } from './context.ts'
 import { GRAPHQL_SCHEMA_EXTENSION, type SchemaExtensionProvider } from './extensions.ts'

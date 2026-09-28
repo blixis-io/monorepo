@@ -16,9 +16,15 @@ import {
   type UploadedPart,
   ValidationError,
   type ValidationIssue,
-} from '@blixis/contracts'
-import { type Database, isId, newId, toTransactionScope, withTransaction } from '@blixis/database'
-import type { LocaleService } from '@blixis/spaces'
+} from '@blixis-io/contracts'
+import {
+  type Database,
+  isId,
+  newId,
+  toTransactionScope,
+  withTransaction,
+} from '@blixis-io/database'
+import type { LocaleService } from '@blixis-io/spaces'
 import type { AssetsConfig } from '../config.ts'
 import {
   type Asset,

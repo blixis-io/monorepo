@@ -1,5 +1,5 @@
-import { ConflictError, type ModuleHonoEnv } from '@blixis/contracts'
-import { createBlixis, defineModule, noopLogger, serviceOverride } from '@blixis/kernel'
+import { ConflictError, type ModuleHonoEnv } from '@blixis-io/contracts'
+import { createBlixis, defineModule, noopLogger, serviceOverride } from '@blixis-io/kernel'
 import { sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { Client } from 'pg'

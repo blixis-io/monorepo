@@ -1,4 +1,4 @@
-import { inspectUpload } from '@blixis/assets'
+import { inspectUpload } from '@blixis-io/assets'
 import { describe, expect, it } from 'vitest'
 
 const png = new Uint8Array([

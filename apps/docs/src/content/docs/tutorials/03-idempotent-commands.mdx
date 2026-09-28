@@ -12,7 +12,7 @@ A client creates a note, and the network drops before the response arrives. Shou
 ## Add the middleware
 
 ```ts title="src/routes.ts"
-import { idempotent } from '@blixis/database/idempotency'
+import { idempotent } from '@blixis-io/database/idempotency'
 
 export const routes = new Hono<ModuleHonoEnv>()
   .post('/:spaceId/notes', idempotent(), async (c) => {
@@ -20,7 +20,7 @@ export const routes = new Hono<ModuleHonoEnv>()
   })
 ```
 
-The app needs `idempotencyModule()` (from `@blixis/database/idempotency`) in its module list.
+The app needs `idempotencyModule()` (from `@blixis-io/database/idempotency`) in its module list.
 
 ## What clients see
 

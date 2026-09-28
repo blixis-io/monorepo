@@ -1,4 +1,4 @@
-import { type ModuleHonoEnv, UnauthorizedError } from '@blixis/contracts'
+import { type ModuleHonoEnv, UnauthorizedError } from '@blixis-io/contracts'
 import type { Context } from 'hono'
 import { Hono } from 'hono'
 import { PERMISSION_CATALOG } from '../application/catalog.ts'

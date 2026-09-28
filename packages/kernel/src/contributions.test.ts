@@ -1,4 +1,4 @@
-import { defineEvent, defineMigration, definePermission, subscribe } from '@blixis/contracts'
+import { defineEvent, defineMigration, definePermission, subscribe } from '@blixis-io/contracts'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { collectContributions, KERNEL_CONTRIBUTIONS } from './contributions.ts'

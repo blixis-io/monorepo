@@ -1,4 +1,4 @@
-import type { BlixisClient } from '@blixis/sdk'
+import type { BlixisClient } from '@blixis-io/sdk'
 import { queryOptions } from '@tanstack/react-query'
 
 /** Server-state queries (TanStack Query); keys are shared so mutations can invalidate them. */

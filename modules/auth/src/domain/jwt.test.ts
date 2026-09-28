@@ -1,4 +1,4 @@
-import { UnauthorizedError } from '@blixis/contracts'
+import { UnauthorizedError } from '@blixis-io/contracts'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { toBase64Url } from './encoding.ts'
 import {

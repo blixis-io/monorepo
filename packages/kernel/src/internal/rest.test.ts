@@ -10,7 +10,7 @@ import {
   REQUEST_CONTEXT,
   UnauthorizedError,
   ValidationError,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import { Hono } from 'hono'
 import { describe, expect, it } from 'vitest'
 import { ACTOR_RESOLVERS, type ActorResolverEntry } from '../actors.ts'

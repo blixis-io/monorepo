@@ -1,4 +1,4 @@
-import type { Entry } from '@blixis/sdk'
+import type { Entry } from '@blixis-io/sdk'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { ErrorView } from '../../components/error-view.tsx'

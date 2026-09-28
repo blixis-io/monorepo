@@ -1,12 +1,12 @@
-import type { Actor, BlixisModule, ServiceRegistry } from '@blixis/contracts'
-import { DATABASE, type Database } from '@blixis/database'
+import type { Actor, BlixisModule, ServiceRegistry } from '@blixis-io/contracts'
+import { DATABASE, type Database } from '@blixis-io/database'
 import {
   ACTOR_RESOLVERS,
   type BlixisApp,
   createBlixis,
   type ServiceOverride,
   serviceOverride,
-} from '@blixis/kernel'
+} from '@blixis-io/kernel'
 import { asAnonymous, encodeTestActor, TEST_ACTOR_HEADER } from './actors.ts'
 import { type CapturingLogger, createCapturingLogger } from './logger.ts'
 

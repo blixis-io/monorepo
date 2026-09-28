@@ -28,8 +28,8 @@
 
 ### 1. Versioned keys with a per-space content stamp in Postgres
 
-- **The stamp:** each space has a **content stamp**, a number in `content.delivery_stamps` owned by `@blixis/content`. Every cache key includes it.
-- **Bumping it:** the stamp is bumped by an **event subscription** (`@blixis/content`) on:
+- **The stamp:** each space has a **content stamp**, a number in `content.delivery_stamps` owned by `@blixis-io/content`. Every cache key includes it.
+- **Bumping it:** the stamp is bumped by an **event subscription** (`@blixis-io/content`) on:
   - `entry.published`, `entry.unpublished`, `entry.deleted`;
   - `content-type.created`, `content-type.updated`, `content-type.deleted`;
   - `locale.created`, `locale.updated`, `locale.deleted` (fallback changes affect delivered values).
@@ -94,7 +94,7 @@ If the post-commit dispatch fails, the 1-minute outbox sweep delivers the event,
 - **KV stamps:** fast reads at the edge, but eventually consistent (up to 60 s), write-limited, and a new resource per environment. Postgres with a 2-second memo gives a tighter bound without new infrastructure.
 - **TTL-only caching:** simple, but the bound equals the TTL. Short TTLs barely help, and long ones make stale publishes visible.
 - **Zone purge by tag:** precise, but needs a custom domain, a zone API token, and purge-rate budgets. It's reconsidered with a custom domain (plan 021).
-- **Stamp bumped inside the publish transaction:** exact, but `@blixis/content` would have to know about every layer that affects delivery (locales live in `@blixis/spaces`). Events keep the modules decoupled, and the bound is small.
+- **Stamp bumped inside the publish transaction:** exact, but `@blixis-io/content` would have to know about every layer that affects delivery (locales live in `@blixis-io/spaces`). Events keep the modules decoupled, and the bound is small.
 - **Caching per entry instead of per response:** finer invalidation, but a GraphQL response spans many entries. It's deferred until measurements show whole-space invalidation hurting.
 
 ## Consequences

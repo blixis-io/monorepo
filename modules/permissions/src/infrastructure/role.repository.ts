@@ -1,5 +1,5 @@
-import type { PermissionId } from '@blixis/contracts'
-import { type Database, newId, type Transaction, translateDatabaseError } from '@blixis/database'
+import type { PermissionId } from '@blixis-io/contracts'
+import { type Database, newId, type Transaction, translateDatabaseError } from '@blixis-io/database'
 import { and, asc, eq } from 'drizzle-orm'
 import type { Role } from '../domain/role.ts'
 import { roles } from './schema.ts'

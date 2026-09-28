@@ -1,5 +1,5 @@
-import { entryDeleted, entryPublished } from '@blixis/content-api'
-import { spaceDeleted, subscribe } from '@blixis/contracts'
+import { entryDeleted, entryPublished } from '@blixis-io/content-api'
+import { spaceDeleted, subscribe } from '@blixis-io/contracts'
 import { SEO_SERVICE } from './service.ts'
 
 /** Remembers when an entry was published (idempotent: an upsert with the event's time). */

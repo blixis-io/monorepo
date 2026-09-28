@@ -1,5 +1,5 @@
-import { type EventEnvelope, REQUEST_CONTEXT } from '@blixis/contracts'
-import { KERNEL_CONTRIBUTIONS, RUN_IN_SCOPE } from '@blixis/kernel'
+import { type EventEnvelope, REQUEST_CONTEXT } from '@blixis-io/contracts'
+import { KERNEL_CONTRIBUTIONS, RUN_IN_SCOPE } from '@blixis-io/kernel'
 import type { EventTransport, PublishContext } from './bus.ts'
 import { type DispatchOptions, type DispatchResult, dispatchEnvelope } from './dispatch.ts'
 import { EVENT_REGISTRY } from './module.ts'

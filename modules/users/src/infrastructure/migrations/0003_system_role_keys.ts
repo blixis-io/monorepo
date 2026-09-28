@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /**
  * Plan 009: memberships reference roles of `@blixis/permissions` — a system role key (`owner`,

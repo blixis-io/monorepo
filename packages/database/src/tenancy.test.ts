@@ -1,4 +1,4 @@
-import { ForbiddenError } from '@blixis/contracts'
+import { ForbiddenError } from '@blixis-io/contracts'
 import { PgDialect, pgSchema, text } from 'drizzle-orm/pg-core'
 import { describe, expect, it } from 'vitest'
 import { idColumn, timestamps } from './ids.ts'
@@ -70,7 +70,7 @@ describe('column helpers', () => {
 describe('assertSameTenant', () => {
   it('passes for matching or absent ids and 404s on any mismatch', async () => {
     const { assertSameTenant } = await import('./tenancy.ts')
-    const { NotFoundError } = await import('@blixis/contracts')
+    const { NotFoundError } = await import('@blixis-io/contracts')
     const tenant = { organizationId: 'o1', spaceId: 's1', environmentId: 'e1' }
     expect(() => assertSameTenant({ organizationId: 'o1', spaceId: 's1' }, tenant)).not.toThrow()
     expect(() => assertSameTenant({ spaceId: 's1', environmentId: null }, tenant)).not.toThrow()

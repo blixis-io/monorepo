@@ -3,8 +3,8 @@ import {
   type ErrorCode,
   InfrastructureError,
   ValidationError,
-} from '@blixis/contracts'
-import { ERROR_REPORTER } from '@blixis/kernel'
+} from '@blixis-io/contracts'
+import { ERROR_REPORTER } from '@blixis-io/kernel'
 import { type ExecutionResult, GraphQLError } from 'graphql'
 import type { Plugin } from 'graphql-yoga'
 import type { GraphQLContext } from './context.ts'

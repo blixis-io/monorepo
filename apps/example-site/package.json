@@ -1,9 +1,9 @@
 {
-  "name": "@blixis/example-site",
+  "name": "@blixis-io/example-site",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Example Astro site reading Blixis through @blixis/sdk (plan 017.004)",
+  "description": "Example Astro site reading Blixis through @blixis-io/sdk (plan 017.004)",
   "scripts": {
     "dev": "node --env-file-if-exists=.env ./node_modules/astro/bin/astro.mjs dev",
     "build": "node --env-file-if-exists=.env ./node_modules/astro/bin/astro.mjs build",
@@ -12,21 +12,21 @@
     "seed": "node scripts/seed.ts"
   },
   "dependencies": {
-    "@blixis/sdk": "workspace:*",
+    "@blixis-io/sdk": "workspace:*",
     "astro": "catalog:"
   },
   "devDependencies": {
-    "@blixis/assets": "workspace:*",
-    "@blixis/auth": "workspace:*",
-    "@blixis/content": "workspace:*",
-    "@blixis/contracts": "workspace:*",
-    "@blixis/database": "workspace:*",
-    "@blixis/events": "workspace:*",
-    "@blixis/graphql": "workspace:*",
-    "@blixis/permissions": "workspace:*",
-    "@blixis/spaces": "workspace:*",
-    "@blixis/testing": "workspace:*",
-    "@blixis/users": "workspace:*",
+    "@blixis-io/assets": "workspace:*",
+    "@blixis-io/auth": "workspace:*",
+    "@blixis-io/content": "workspace:*",
+    "@blixis-io/contracts": "workspace:*",
+    "@blixis-io/database": "workspace:*",
+    "@blixis-io/events": "workspace:*",
+    "@blixis-io/graphql": "workspace:*",
+    "@blixis-io/permissions": "workspace:*",
+    "@blixis-io/spaces": "workspace:*",
+    "@blixis-io/testing": "workspace:*",
+    "@blixis-io/users": "workspace:*",
     "@types/node": "catalog:",
     "vitest": "catalog:"
   }

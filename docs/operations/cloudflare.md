@@ -77,14 +77,14 @@ The buckets stay private: assets are served by the Worker (ADR 0013), never thro
 - Configured in `apps/api/wrangler.jsonc` (`env.staging`, `env.production`); vars and bindings are declared per environment.
 - **Staging:** `workers_dev: true` until the domain is decided. First manual deploy 2026-09-24 (version `ccaa058b-781f-4f69-be84-6040c65f1a3d`, 872 KiB / 145 KiB gzip); health 200, TTFB ~0.17–0.21 s from the maintainer's location.
 - **Production:** `workers_dev: false`, not deployed — production releases start with plan 021 and a custom domain.
-- Manual deploy: `pnpm --filter @blixis/api deploy:staging` (local Wrangler login). Dry-run both environments: `pnpm --filter @blixis/api deploy:dry`. Rollback: `pnpm --filter @blixis/api exec wrangler rollback --env staging`.
+- Manual deploy: `pnpm --filter @blixis-io/api deploy:staging` (local Wrangler login). Dry-run both environments: `pnpm --filter @blixis-io/api deploy:dry`. Rollback: `pnpm --filter @blixis-io/api exec wrangler rollback --env staging`.
 - CI (`verify`): dry-runs both environments on every PR, writes the sizes to the job summary, and fails above **1024 KiB gzip** (`MAX_GZIP_KIB`).
 
 ### Developer docs Worker
 
 - `apps/docs/wrangler.jsonc`: assets-only Worker `blixis-docs` serving `apps/docs/dist` (`404-page` not-found handling, trailing-slash HTML).
 - Deploys from `.github/workflows/docs.yml` on pushes to `main` that touch the docs or packages, using the `docs` GitHub environment (branch policy: `main`). Secret `CLOUDFLARE_API_TOKEN` (scope: Account · Workers Scripts · Edit) must be added to that environment; until then the workflow builds and skips the deploy.
-- Manual deploy: `pnpm --filter @blixis/docs deploy` (uses your local Wrangler login). Rollback: `pnpm --filter @blixis/docs exec wrangler rollback`.
+- Manual deploy: `pnpm --filter @blixis-io/docs deploy` (uses your local Wrangler login). Rollback: `pnpm --filter @blixis-io/docs exec wrangler rollback`.
 
 ## `wrangler.jsonc` structure
 
@@ -147,7 +147,7 @@ Exact keys and limits must be checked against current Wrangler docs when impleme
 
 ## Type safety
 
-- `pnpm --filter @blixis/api types` regenerates `apps/api/worker-configuration.d.ts` (committed) after every `wrangler.jsonc` change; CI runs `types:check` and fails if it is stale. `apps/api/src/env.ts` asserts the generated `Env` satisfies `ApiEnv` (task 004.002), so config and code cannot drift silently.
+- `pnpm --filter @blixis-io/api types` regenerates `apps/api/worker-configuration.d.ts` (committed) after every `wrangler.jsonc` change; CI runs `types:check` and fails if it is stale. `apps/api/src/env.ts` asserts the generated `Env` satisfies `ApiEnv` (task 004.002), so config and code cannot drift silently.
 - **TypeScript 7 gotcha:** after the generated file changes, TS 7's incremental build info may not re-check `src/env.ts`; the `types` script therefore deletes `apps/api/tsconfig.tsbuildinfo`. CI always builds from scratch.
 - Runtime validation of vars/secrets happens on first invocation (task 004.004).
 
@@ -160,8 +160,8 @@ Exact keys and limits must be checked against current Wrangler docs when impleme
 ## Secrets
 
 ```bash
-pnpm --filter @blixis/api exec wrangler secret list --env staging
-pnpm --filter @blixis/api exec wrangler secret list --env production
+pnpm --filter @blixis-io/api exec wrangler secret list --env staging
+pnpm --filter @blixis-io/api exec wrangler secret list --env production
 ```
 
 - **`AUTH_SIGNING_KEYS`** (ADR 0009), per environment, without passing through shell history:
@@ -187,7 +187,7 @@ pnpm --filter @blixis/api exec wrangler secret list --env production
 ## Cache API and KV
 
 - **No KV namespace exists.** ADR 0012 keeps delivery cache stamps in Postgres (`content.delivery_stamps`, strongly consistent); KV is added only with a measured need (§14).
-- **The Cache API** (`caches.default`, no binding) is the L2 delivery response cache, through `createCacheApiStore()` from `@blixis/cloudflare`. It's per data center and needs no configuration. On 2026-09-26 it served hits on `workers.dev` too. See [Delivery caching](./caching.md).
+- **The Cache API** (`caches.default`, no binding) is the L2 delivery response cache, through `createCacheApiStore()` from `@blixis-io/cloudflare`. It's per data center and needs no configuration. On 2026-09-26 it served hits on `workers.dev` too. See [Delivery caching](./caching.md).
 - **Purging** isn't needed: cache keys include the space's content stamp, so a publish makes old entries unreachable.
 
 ## Local development
@@ -233,7 +233,7 @@ Resource creation (queues, buckets, Hyperdrive configs) is done once, manually o
   - The bundle is not minified, so Sentry frames are readable without maps (bundle file and line).
   - Mapping frames to `src/` needs the release deploy job (021.001) to upload maps, using the same release name as `SENTRY_RELEASE`:
     ```bash
-    pnpm --filter @blixis/api exec wrangler deploy --env production --outdir dist \
+    pnpm --filter @blixis-io/api exec wrangler deploy --env production --outdir dist \
       --var SENTRY_RELEASE:blixis-api@$VERSION
     pnpm dlx @sentry/cli sourcemaps upload --org private-m57 --project blixis-api \
       --release blixis-api@$VERSION --strip-prefix apps/api/dist apps/api/dist
@@ -249,8 +249,8 @@ Resource creation (queues, buckets, Hyperdrive configs) is done once, manually o
 ## Rollback
 
 ```bash
-pnpm --filter @blixis/api exec wrangler deployments list --env production
-pnpm --filter @blixis/api exec wrangler rollback --env production
+pnpm --filter @blixis-io/api exec wrangler deployments list --env production
+pnpm --filter @blixis-io/api exec wrangler rollback --env production
 ```
 
 See [Release & deployment](./deployment.md#rollback).

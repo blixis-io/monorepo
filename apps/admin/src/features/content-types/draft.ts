@@ -1,4 +1,4 @@
-import type { ContentType, Field, Operations } from '@blixis/sdk'
+import type { ContentType, Field, Operations } from '@blixis-io/sdk'
 
 /**
  * The content type editor's working copy. Fields keep a local `key` (their server `id`, or a

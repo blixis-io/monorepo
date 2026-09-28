@@ -22,9 +22,9 @@ For the complete version, with storage, authorization, batching, and tests, read
   "type": "module",
   "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
   "peerDependencies": {
-    "@blixis/content-api": "^1.0.0",
-    "@blixis/contracts": "^1.0.0",
-    "@blixis/kernel": "^1.0.0",
+    "@blixis-io/content-api": "^1.0.0",
+    "@blixis-io/contracts": "^1.0.0",
+    "@blixis-io/kernel": "^1.0.0",
     "hono": "^4.13.0"
   },
   "dependencies": {
@@ -33,7 +33,7 @@ For the complete version, with storage, authorization, batching, and tests, read
 }
 ```
 
-Blixis packages and `hono` are **peer dependencies**: the Blixis app provides exactly one copy of each. `@blixis/content-api` is the content module's public API: its services and events. Use any [Standard Schema](/concepts/validation/) library; Blixis itself uses Zod.
+Blixis packages and `hono` are **peer dependencies**: the Blixis app provides exactly one copy of each. `@blixis-io/content-api` is the content module's public API: its services and events. Use any [Standard Schema](/concepts/validation/) library; Blixis itself uses Zod.
 
 ## 2. Write the module
 
@@ -42,7 +42,7 @@ Blixis packages and `hono` are **peer dependencies**: the Blixis app provides ex
 1. **Define a service and its token.** Other modules find your service through the token, never through your internals.
 
    ```ts title="src/service.ts"
-   import { createServiceToken } from '@blixis/contracts'
+   import { createServiceToken } from '@blixis-io/contracts'
 
    export interface SeoService {
      titleFor(entryId: string): Promise<string>
@@ -54,7 +54,7 @@ Blixis packages and `hono` are **peer dependencies**: the Blixis app provides ex
 2. **Add REST routes.** Routes use `ModuleHonoEnv`, which gives you the request context and services on `c.var`.
 
    ```ts title="src/routes.ts"
-   import type { ModuleHonoEnv } from '@blixis/contracts'
+   import type { ModuleHonoEnv } from '@blixis-io/contracts'
    import { Hono } from 'hono'
    import { SEO_SERVICE } from './service.ts'
 
@@ -68,8 +68,8 @@ Blixis packages and `hono` are **peer dependencies**: the Blixis app provides ex
 3. **Handle an event.** Keep handlers idempotent — events can be delivered more than once.
 
    ```ts title="src/events.ts"
-   import { entryPublished } from '@blixis/content-api'
-   import { subscribe } from '@blixis/contracts'
+   import { entryPublished } from '@blixis-io/content-api'
+   import { subscribe } from '@blixis-io/contracts'
 
    export const refreshSeo = subscribe(entryPublished, 'refresh-seo', async (envelope, ctx) => {
      ctx.logger.info('refreshing seo', { entryId: envelope.payload.entryId })
@@ -79,8 +79,8 @@ Blixis packages and `hono` are **peer dependencies**: the Blixis app provides ex
 4. **Put it together with a factory.** The factory takes typed options; the kernel validates them with `configSchema` and hands the result to `setup` as `ctx.config`.
 
    ```ts title="src/index.ts"
-   import { defineMigration, definePermission } from '@blixis/contracts'
-   import { defineModule } from '@blixis/kernel'
+   import { defineMigration, definePermission } from '@blixis-io/contracts'
+   import { defineModule } from '@blixis-io/kernel'
    import { z } from 'zod'
    import { refreshSeo } from './events.ts'
    import { routes } from './routes.ts'
@@ -120,7 +120,7 @@ Blixis packages and `hono` are **peer dependencies**: the Blixis app provides ex
 ## 3. Register it in an app
 
 ```ts title="apps/api/src/blixis.config.ts"
-import { contentModule } from '@blixis/content'
+import { contentModule } from '@blixis-io/content'
 import seo from '@acme/blixis-seo'
 
 export const modules = [/* database, users, spaces, permissions, … */ contentModule(), seo({ defaultTitle: 'My site' })]
@@ -131,7 +131,7 @@ Modules are registered **explicitly** — Blixis never scans `node_modules`. At 
 ## 4. Test it
 
 ```ts title="test/seo.test.ts"
-import { asUser, createTestBlixis } from '@blixis/testing'
+import { asUser, createTestBlixis } from '@blixis-io/testing'
 
 const t = await createTestBlixis({ modules: [...firstParty(), seo({ defaultTitle: 'Home' })], database: db })
 const res = await t.request('/api/v1/seo/entries/42', { actor: asUser(ownerId) })

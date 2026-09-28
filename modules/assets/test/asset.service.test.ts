@@ -5,20 +5,20 @@ import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
-} from '@blixis/contracts'
-import { databaseModule } from '@blixis/database'
-import { eventsModule, QUEUE_SENDER, queueTransport } from '@blixis/events'
-import { outboxModule, outboxTransport } from '@blixis/events/outbox'
-import { serviceOverride } from '@blixis/kernel'
-import { permissionsModule } from '@blixis/permissions'
-import { LOCALE_SERVICE, MEMBER_SERVICE, spacesModule, TENANCY_SERVICE } from '@blixis/spaces'
-import { asUser, captureEvents, createTestBlixis, type TestBlixis } from '@blixis/testing'
+} from '@blixis-io/contracts'
+import { databaseModule } from '@blixis-io/database'
+import { eventsModule, QUEUE_SENDER, queueTransport } from '@blixis-io/events'
+import { outboxModule, outboxTransport } from '@blixis-io/events/outbox'
+import { serviceOverride } from '@blixis-io/kernel'
+import { permissionsModule } from '@blixis-io/permissions'
+import { LOCALE_SERVICE, MEMBER_SERVICE, spacesModule, TENANCY_SERVICE } from '@blixis-io/spaces'
+import { asUser, captureEvents, createTestBlixis, type TestBlixis } from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { USER_SERVICE, usersModule } from '@blixis-io/users'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import {

@@ -1,4 +1,4 @@
 {
-  "extends": "@blixis/tsconfig/node.json",
+  "extends": "@blixis-io/tsconfig/node.json",
   "include": ["src"]
 }

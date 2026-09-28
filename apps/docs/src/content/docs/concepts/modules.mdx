@@ -26,7 +26,7 @@ A module is a plain object implementing [`BlixisModule`](/api/contracts/interfac
 ## Factories
 
 ```ts
-import type { ModuleFactory } from '@blixis/contracts'
+import type { ModuleFactory } from '@blixis-io/contracts'
 
 // No options: () => BlixisModule
 const content: ModuleFactory = () => ({ meta: { name: '@blixis/content', version: '0.1.0' } })
@@ -43,10 +43,10 @@ Consumers always call the factory in the composition root: `modules: [content(),
 
 ### `defineModule`
 
-[`defineModule`](/api/kernel/functions/definemodule/) from `@blixis/kernel` is a convenience that always returns a factory and infers the types for you:
+[`defineModule`](/api/kernel/functions/definemodule/) from `@blixis-io/kernel` is a convenience that always returns a factory and infers the types for you:
 
 ```ts
-import { defineModule } from '@blixis/kernel'
+import { defineModule } from '@blixis-io/kernel'
 
 // Without options → content()
 export default defineModule({ meta: { name: '@blixis/content', version: '1.0.0' } })
@@ -59,7 +59,7 @@ export default defineModule((options: { defaultTitle?: string }) => ({
 }))
 ```
 
-It freezes the returned module and registers nothing globally. Third-party modules may use it (add `@blixis/kernel` as a peer dependency) or write the factory by hand against `@blixis/contracts` only.
+It freezes the returned module and registers nothing globally. Third-party modules may use it (add `@blixis-io/kernel` as a peer dependency) or write the factory by hand against `@blixis-io/contracts` only.
 
 ## Lifecycle
 
@@ -72,7 +72,7 @@ define → validate → setup (register) → boot (lazy) → ready
   ```text
   Invalid module configuration (2 problem(s)):
     - [@acme/blixis-seo] requires capability blixis.content, which no registered module provides
-    - [@acme/blixis-seo] requires @blixis/kernel@^2.0.0, but 1.4.0 is registered
+    - [@acme/blixis-seo] requires @blixis-io/kernel@^2.0.0, but 1.4.0 is registered
   ```
 
   Modules are then set up in dependency order: required packages and capability providers first, otherwise in the order you registered them.
@@ -88,7 +88,7 @@ Cloudflare Workers forbid I/O while the Worker script is being initialised. Do n
 The app's composition root lists modules explicitly and hands them to [`createBlixis`](/api/kernel/functions/createblixis/):
 
 ```ts
-import { createBlixis } from '@blixis/kernel'
+import { createBlixis } from '@blixis-io/kernel'
 import { modules } from './blixis.config.ts'
 
 const app = createBlixis({ modules })   // validates the module graph immediately
@@ -116,7 +116,7 @@ A module without `configSchema` receives its raw `config` (typed `unknown`).
 ## REST routes
 
 ```ts
-import type { ModuleHonoEnv } from '@blixis/contracts'
+import type { ModuleHonoEnv } from '@blixis-io/contracts'
 import { Hono } from 'hono'
 
 export const routes = new Hono<ModuleHonoEnv>().get('/:id', (c) => {

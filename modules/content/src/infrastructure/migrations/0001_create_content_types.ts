@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /**
  * Content types and components per environment (ADR 0010 §1). Fields and groups are JSONB

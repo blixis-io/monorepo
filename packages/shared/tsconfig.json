@@ -1,5 +1,5 @@
 {
-  "extends": "@blixis/tsconfig/library.json",
+  "extends": "@blixis-io/tsconfig/library.json",
   // Web Crypto (`crypto.getRandomValues`) for ID generation: available in Workers and Node.
   "compilerOptions": { "lib": ["es2023", "webworker"] }
 }

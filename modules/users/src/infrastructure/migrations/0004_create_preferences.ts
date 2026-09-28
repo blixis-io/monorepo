@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /** UI preferences per user (plan 019): one JSON document, validated by the service. */
 export const createPreferences = defineMigration({

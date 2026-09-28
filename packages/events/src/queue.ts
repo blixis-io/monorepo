@@ -3,7 +3,7 @@ import {
   type EventEnvelope,
   InfrastructureError,
   type ServiceToken,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import type { EventTransport } from './bus.ts'
 
 /**

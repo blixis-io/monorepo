@@ -1,4 +1,4 @@
-import { tenantColumns } from '@blixis/database'
+import { tenantColumns } from '@blixis-io/database'
 import { pgSchema, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 export const authSchema = pgSchema('auth')

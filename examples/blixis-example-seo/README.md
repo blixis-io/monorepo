@@ -1,6 +1,6 @@
 # @blixis-example/seo
 
-An example third-party Blixis module (plan 018.003): SEO metadata for entries. It exists to prove the extension contract (§42 Stage 8, §52): it uses **only public packages** (`@blixis/contracts`, `@blixis/kernel`, `@blixis/content-api`, `@blixis/database`), and it installs Blixis from packed tarballs, as a third party installs from npm.
+An example third-party Blixis module (plan 018.003): SEO metadata for entries. It exists to prove the extension contract (§42 Stage 8, §52): it uses **only public packages** (`@blixis-io/contracts`, `@blixis-io/kernel`, `@blixis-io/content-api`, `@blixis-io/database`), and it installs Blixis from packed tarballs, as a third party installs from npm.
 
 What it contributes:
 

@@ -1,4 +1,4 @@
-import type { ContentType } from '@blixis/sdk'
+import type { ContentType } from '@blixis-io/sdk'
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
 import { useId, useState } from 'react'
 import { Button } from '../../components/ui/button.tsx'

@@ -9,7 +9,7 @@ packages:
 # Fail install when the Node version does not match package.json#engines
 engineStrict: true
 
-# Peer dependencies must be declared explicitly (§25: modules peer-depend on @blixis/contracts)
+# Peer dependencies must be declared explicitly (§25: modules peer-depend on @blixis-io/contracts)
 autoInstallPeers: false
 
 # pnpm blocks dependency lifecycle scripts by default; allow-list only what needs them.

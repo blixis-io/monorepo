@@ -1,5 +1,5 @@
 {
-  "name": "@blixis/shared",
+  "name": "@blixis-io/shared",
   "version": "0.0.0",
   "description": "Tiny, dependency-free utilities shared by Blixis packages",
   "type": "module",
@@ -18,7 +18,7 @@
     "test": "vitest run --root ../.. packages/shared"
   },
   "devDependencies": {
-    "@blixis/tsconfig": "workspace:*",
+    "@blixis-io/tsconfig": "workspace:*",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },

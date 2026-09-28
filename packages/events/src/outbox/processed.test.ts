@@ -1,19 +1,19 @@
-import { defineEvent, subscribe } from '@blixis/contracts'
+import { defineEvent, subscribe } from '@blixis-io/contracts'
 import {
   createDatabase,
   DATABASE,
   type Database,
   databaseModule,
   fromTransactionScope,
-} from '@blixis/database'
-import { runMigrations } from '@blixis/database/migrations'
+} from '@blixis-io/database'
+import { runMigrations } from '@blixis-io/database/migrations'
 import {
   createBlixis,
   defineModule,
   noopLogger,
   type QueueMessageLike,
   serviceOverride,
-} from '@blixis/kernel'
+} from '@blixis-io/kernel'
 import { sql } from 'drizzle-orm'
 import { Client } from 'pg'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'

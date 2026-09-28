@@ -7,7 +7,7 @@ sidebar:
 
 import { Aside } from '@astrojs/starlight/components'
 
-Modules store binaries (uploads, imports, exports, generated files) through **one port**, [`ObjectStorage`](/api/contracts/interfaces/objectstorage/) from `@blixis/contracts`, resolved with the [`OBJECT_STORAGE`](/api/contracts/variables/object_storage/) token. The API Worker provides it on its R2 bucket; tests use an in-memory fake. Your module never depends on Cloudflare. See [ADR 0013](https://github.com/blixis-io/monorepo/blob/main/docs/decisions/0013-asset-uploads.md).
+Modules store binaries (uploads, imports, exports, generated files) through **one port**, [`ObjectStorage`](/api/contracts/interfaces/objectstorage/) from `@blixis-io/contracts`, resolved with the [`OBJECT_STORAGE`](/api/contracts/variables/object_storage/) token. The API Worker provides it on its R2 bucket; tests use an in-memory fake. Your module never depends on Cloudflare. See [ADR 0013](https://github.com/blixis-io/monorepo/blob/main/docs/decisions/0013-asset-uploads.md).
 
 ## Rules
 
@@ -19,8 +19,8 @@ Modules store binaries (uploads, imports, exports, generated files) through **on
 ## Use it
 
 ```ts
-import { OBJECT_STORAGE } from '@blixis/contracts'
-import { newId } from '@blixis/shared'
+import { OBJECT_STORAGE } from '@blixis-io/contracts'
+import { newId } from '@blixis-io/shared'
 
 const storage = services.get(OBJECT_STORAGE)
 const key = `${spaceId}/${exportId}/${newId()}`
@@ -46,13 +46,13 @@ if (file !== undefined) return new Response(file.body, { status: 206 })
 
 ## In the API Worker
 
-`r2StorageModule()` from `@blixis/cloudflare` provides `OBJECT_STORAGE` on the `ASSETS` R2 bucket binding (`r2StorageModule({ binding })` for another bucket). The adapter streams bodies, maps checksum and length mismatches to `ValidationError`, and treats a missing multipart upload as `NotFoundError`.
+`r2StorageModule()` from `@blixis-io/cloudflare` provides `OBJECT_STORAGE` on the `ASSETS` R2 bucket binding (`r2StorageModule({ binding })` for another bucket). The adapter streams bodies, maps checksum and length mismatches to `ValidationError`, and treats a missing multipart upload as `NotFoundError`.
 
 ## In tests
 
 ```ts
-import { OBJECT_STORAGE } from '@blixis/contracts'
-import { createMemoryObjectStorage, createTestBlixis, serviceOverride } from '@blixis/testing'
+import { OBJECT_STORAGE } from '@blixis-io/contracts'
+import { createMemoryObjectStorage, createTestBlixis, serviceOverride } from '@blixis-io/testing'
 
 const storage = createMemoryObjectStorage()
 const t = await createTestBlixis({

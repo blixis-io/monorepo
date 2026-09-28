@@ -5,8 +5,8 @@ import type {
   ModuleMeta,
   ServiceRegistry,
   ServiceToken,
-} from '@blixis/contracts'
-import { ModuleError, type RequestContext } from '@blixis/contracts'
+} from '@blixis-io/contracts'
+import { ModuleError, type RequestContext } from '@blixis-io/contracts'
 import { Hono } from 'hono'
 import { ACTOR_RESOLVERS, ActorResolverRegistry } from './actors.ts'
 import {

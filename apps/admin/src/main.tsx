@@ -1,4 +1,4 @@
-import { createBrowserSession } from '@blixis/sdk'
+import { createBrowserSession } from '@blixis-io/sdk'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './app.tsx'

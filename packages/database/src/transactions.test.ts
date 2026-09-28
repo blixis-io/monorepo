@@ -3,7 +3,7 @@ import {
   InfrastructureError,
   NotFoundError,
   type TransactionScope,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import { DrizzleQueryError } from 'drizzle-orm'
 import { describe, expect, it } from 'vitest'
 import type { Database } from './create-database.ts'

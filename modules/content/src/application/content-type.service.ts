@@ -1,4 +1,4 @@
-import type { ContentTypeService, ContentTypeView } from '@blixis/content-api'
+import type { ContentTypeService, ContentTypeView } from '@blixis-io/content-api'
 import {
   type Actor,
   type AuthorizationService,
@@ -11,8 +11,8 @@ import {
   ValidationError,
   type ValidationIssue,
   validate,
-} from '@blixis/contracts'
-import { type Database, isId } from '@blixis/database'
+} from '@blixis-io/contracts'
+import { type Database, isId } from '@blixis-io/database'
 import {
   CONTENT_LIMITS,
   type ContentType,
@@ -38,7 +38,7 @@ export {
   type ContentTypeService,
   type ContentTypeView,
   type FieldView,
-} from '@blixis/content-api'
+} from '@blixis-io/content-api'
 
 /**
  * How many entries use a content type — for components, how many entries contain one of its

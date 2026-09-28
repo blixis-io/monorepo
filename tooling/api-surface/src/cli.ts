@@ -6,10 +6,10 @@ import { collectSurface, renderSurface } from './surface.ts'
 
 /** Packages whose surface third-party modules depend on (ADR 0016). Build them first. */
 const PUBLIC = [
-  ['@blixis/contracts', 'packages/contracts', 'contracts'],
-  ['@blixis/kernel', 'packages/kernel', 'kernel'],
-  ['@blixis/content-api', 'packages/content-api', 'content-api'],
-  ['@blixis/database', 'packages/database', 'database'],
+  ['@blixis-io/contracts', 'packages/contracts', 'contracts'],
+  ['@blixis-io/kernel', 'packages/kernel', 'kernel'],
+  ['@blixis-io/content-api', 'packages/content-api', 'content-api'],
+  ['@blixis-io/database', 'packages/database', 'database'],
 ] as const
 
 const root = path.resolve(import.meta.dirname, '../../..')

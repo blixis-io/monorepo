@@ -1,4 +1,4 @@
-import type { ContentType } from '@blixis/sdk'
+import type { ContentType } from '@blixis-io/sdk'
 import { describe, expect, it } from 'vitest'
 import {
   draftFromApi,

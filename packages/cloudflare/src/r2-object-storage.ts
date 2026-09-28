@@ -7,8 +7,8 @@ import {
   type ObjectStorage,
   type StoredObject,
   ValidationError,
-} from '@blixis/contracts'
-import { defineModule } from '@blixis/kernel'
+} from '@blixis-io/contracts'
+import { defineModule } from '@blixis-io/kernel'
 
 /** R2 `delete` accepts at most this many keys per call. */
 const DELETE_BATCH = 1000

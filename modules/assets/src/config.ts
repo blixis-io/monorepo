@@ -1,4 +1,4 @@
-import { createServiceToken, type ServiceToken } from '@blixis/contracts'
+import { createServiceToken, type ServiceToken } from '@blixis-io/contracts'
 import { DEFAULT_ALLOWED_TYPES } from './domain/asset.ts'
 
 /** Upload limits and file types of the app (ADR 0013), from `assetsModule()` options. */

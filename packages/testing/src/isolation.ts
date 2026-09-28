@@ -1,5 +1,5 @@
-import type { Actor } from '@blixis/contracts'
-import type { BlixisApp } from '@blixis/kernel'
+import type { Actor } from '@blixis-io/contracts'
+import type { BlixisApp } from '@blixis-io/kernel'
 import type { TestBlixis } from './create-test-blixis.ts'
 
 /** A tenant-scoped route to probe: a registered pattern plus an optional body. */

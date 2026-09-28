@@ -36,7 +36,7 @@ Treat a module like any dependency with production access:
 
 - [ ] **Who publishes it?** A known vendor or maintainer, with a history and a way to report security issues.
 - [ ] **Read the code**, or at least: the routes (do they authorize before acting?), the migrations (which schema, which tables?), the event handlers, and every outbound `fetch`.
-- [ ] **Imports:** only public Blixis packages (`@blixis/contracts`, `@blixis/kernel`, `@blixis/content-api`, `@blixis/database`). Imports of implementation packages or deep paths mean it depends on internals.
+- [ ] **Imports:** only public Blixis packages (`@blixis-io/contracts`, `@blixis-io/kernel`, `@blixis-io/content-api`, `@blixis-io/database`). Imports of implementation packages or deep paths mean it depends on internals.
 - [ ] **Permissions it adds**, and which roles get them by default. Is that what you want your editors to have?
 - [ ] **Data it stores**, and whether it deletes it with the space (`space.deleted`).
 - [ ] **Dependencies:** few, maintained, and pinned by your lockfile. Run your usual audit.

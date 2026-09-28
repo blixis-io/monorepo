@@ -1,4 +1,4 @@
-import { InfrastructureError, type TransactionScope } from '@blixis/contracts'
+import { InfrastructureError, type TransactionScope } from '@blixis-io/contracts'
 import type { Database } from './create-database.ts'
 import { databaseErrorCode, isDatabaseError, translateDatabaseError } from './errors.ts'
 

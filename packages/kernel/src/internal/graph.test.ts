@@ -1,4 +1,4 @@
-import type { BlixisModule, ModuleMeta } from '@blixis/contracts'
+import type { BlixisModule, ModuleMeta } from '@blixis-io/contracts'
 import { describe, expect, it } from 'vitest'
 import { ModuleValidationError } from '../errors.ts'
 import { validateModuleGraph } from './graph.ts'

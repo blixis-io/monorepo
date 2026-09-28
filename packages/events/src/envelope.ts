@@ -7,8 +7,8 @@ import {
   type RequestContext,
   ValidationError,
   validate,
-} from '@blixis/contracts'
-import { isId, newId } from '@blixis/shared'
+} from '@blixis-io/contracts'
+import { isId, newId } from '@blixis-io/shared'
 import { assertJsonValue } from './json.ts'
 import type { EventRegistry } from './registry.ts'
 

@@ -1,6 +1,6 @@
 // Fixture: a first-party-style module providing a service behind a capability.
-import { createServiceToken } from '@blixis/contracts'
-import { defineModule } from '@blixis/kernel'
+import { createServiceToken } from '@blixis-io/contracts'
+import { defineModule } from '@blixis-io/kernel'
 
 export interface GreetingService {
   greet(name: string): string

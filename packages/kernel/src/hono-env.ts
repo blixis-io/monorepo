@@ -1,4 +1,4 @@
-import type { ModuleHonoEnv } from '@blixis/contracts'
+import type { ModuleHonoEnv } from '@blixis-io/contracts'
 
 /**
  * Hono environment of the root application: module variables (`requestContext`, `services`)

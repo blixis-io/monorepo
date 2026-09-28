@@ -14,7 +14,7 @@ Validate **all untrusted input at the boundary**: request bodies, route and quer
 Contracts accept any library implementing [Standard Schema](https://standardschema.dev) ([`StandardSchemaV1`](/api/contracts/interfaces/standardschemav1/)) — Zod, Valibot, ArkType, and others. Blixis's own modules use **Zod 4**.
 
 ```ts
-import { validate } from '@blixis/contracts'
+import { validate } from '@blixis-io/contracts'
 import { z } from 'zod'
 
 const CreateEntry = z.object({

@@ -1,4 +1,4 @@
-import { defineEvent } from '@blixis/contracts'
+import { defineEvent } from '@blixis-io/contracts'
 import { z } from 'zod'
 
 /** A user signed in (new refresh-token family). Best-effort: audit and analytics only. */

@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /** Users are global identities (not tenant-scoped); emails are stored normalized. */
 export const createUsers = defineMigration({

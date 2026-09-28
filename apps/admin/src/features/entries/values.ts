@@ -1,4 +1,4 @@
-import type { ContentType, Entry, Field } from '@blixis/sdk'
+import type { ContentType, Entry, Field } from '@blixis-io/sdk'
 
 /** Entry fields in API shape: values by apiId; localized fields map locale codes to values. */
 export type Fields = Readonly<Record<string, unknown>>

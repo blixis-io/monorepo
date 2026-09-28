@@ -1,10 +1,10 @@
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { AUTH_SERVICE, generateSigningKey } from '@blixis/auth'
-import type { BlixisModule } from '@blixis/contracts'
-import { createDatabase, DATABASE } from '@blixis/database'
-import { QUEUE_SENDER } from '@blixis/events'
-import { createBlixis, noopLogger, serviceOverride } from '@blixis/kernel'
+import { AUTH_SERVICE, generateSigningKey } from '@blixis-io/auth'
+import type { BlixisModule } from '@blixis-io/contracts'
+import { createDatabase, DATABASE } from '@blixis-io/database'
+import { QUEUE_SENDER } from '@blixis-io/events'
+import { createBlixis, noopLogger, serviceOverride } from '@blixis-io/kernel'
 
 /** `generate-signing-key [kid]`: a new Ed25519 key as the JSON array `AUTH_SIGNING_KEYS` expects. */
 export async function generateSigningKeyJson(kid: string): Promise<string> {

@@ -11,7 +11,7 @@ Related: [Events](./events.md) · [Cloudflare Workers](./cloudflare.md) · manua
 ```text
 request
   → authenticate (delivery key; remembered 30 s per isolate)
-  → GRAPHQL_CACHE_POLICY (@blixis/content)  ─ undefined → execute, x-blixis-cache: BYPASS
+  → GRAPHQL_CACHE_POLICY (@blixis-io/content)  ─ undefined → execute, x-blixis-cache: BYPASS
   → scope = space:environment:stamp (stamp remembered 2 s per isolate)
   → key = SHA-256(scope, operationName, normalised document or APQ hash, sorted variables)
   → L1 memory → L2 Cache API        ─ found → x-blixis-cache: HIT (304 on If-None-Match)
@@ -42,7 +42,7 @@ Configured in `apps/api/src/blixis.config.ts` (`graphqlModule({ cache: { stores,
 ## Keys and invalidation
 
 - **The stamp:** each space has a **content stamp** (`content.delivery_stamps`), part of every cache key.
-- **What bumps it:** these events, through `@blixis/content` subscriptions `delivery-stamp.<event>`:
+- **What bumps it:** these events, through `@blixis-io/content` subscriptions `delivery-stamp.<event>`:
   - `entry.published`, `entry.unpublished`, `entry.deleted`;
   - `content-type.created`, `content-type.updated`, `content-type.deleted`;
   - `locale.created`, `locale.updated`, `locale.deleted`.

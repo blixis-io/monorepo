@@ -1,4 +1,4 @@
-# @blixis/sdk
+# @blixis-io/sdk
 
 Typed clients for Blixis (plan 017): the **Management API** (REST, `createBlixisClient`) and the **GraphQL delivery API** (`createBlixisGraphQLClient`). Zero dependencies; runs wherever `fetch` does — Cloudflare Workers, browsers, Node 20+, Deno, Bun, Astro.
 

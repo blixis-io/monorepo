@@ -1,4 +1,4 @@
-import type { Database, Transaction } from '@blixis/database'
+import type { Database, Transaction } from '@blixis-io/database'
 import { and, eq, isNull, lt, sql } from 'drizzle-orm'
 import { credentials, refreshTokens } from './schema.ts'
 

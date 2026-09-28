@@ -1,4 +1,4 @@
-import { createBrowserSession } from '@blixis/sdk'
+import { createBrowserSession } from '@blixis-io/sdk'
 import { createMemoryHistory } from '@tanstack/react-router'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'

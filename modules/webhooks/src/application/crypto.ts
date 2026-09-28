@@ -1,4 +1,4 @@
-import { InfrastructureError } from '@blixis/contracts'
+import { InfrastructureError } from '@blixis-io/contracts'
 
 /** Prefix of webhook signing secrets. */
 export const WEBHOOK_SECRET_PREFIX = 'whsec_'

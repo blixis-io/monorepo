@@ -1,4 +1,4 @@
-import type { Logger } from '@blixis/contracts'
+import type { Logger } from '@blixis-io/contracts'
 
 /** The subset of Cloudflare's `ExecutionContext` Blixis needs. */
 export interface WaitUntilContext {

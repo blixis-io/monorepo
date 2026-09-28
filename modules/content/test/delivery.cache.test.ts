@@ -1,24 +1,24 @@
-import type { Actor } from '@blixis/contracts'
-import { DATABASE, databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { graphqlModule } from '@blixis/graphql'
-import { serviceOverride } from '@blixis/kernel'
-import { permissionsModule } from '@blixis/permissions'
-import { LOCALE_SERVICE, spacesModule, TENANCY_SERVICE } from '@blixis/spaces'
+import type { Actor } from '@blixis-io/contracts'
+import { DATABASE, databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { graphqlModule } from '@blixis-io/graphql'
+import { serviceOverride } from '@blixis-io/kernel'
+import { permissionsModule } from '@blixis-io/permissions'
+import { LOCALE_SERVICE, spacesModule, TENANCY_SERVICE } from '@blixis-io/spaces'
 import {
   asDeliveryKey,
   asUser,
   captureEvents,
   createTestBlixis,
   type TestBlixis,
-} from '@blixis/testing'
+} from '@blixis-io/testing'
 import {
   countQueries,
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { USER_SERVICE, usersModule } from '@blixis-io/users'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE, contentModule } from '../src/index.ts'
 

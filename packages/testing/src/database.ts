@@ -1,7 +1,7 @@
-import type { BlixisModule } from '@blixis/contracts'
-import { createDatabase, type Database } from '@blixis/database'
-import { runMigrations } from '@blixis/database/migrations'
-import { createBlixis, noopLogger } from '@blixis/kernel'
+import type { BlixisModule } from '@blixis-io/contracts'
+import { createDatabase, type Database } from '@blixis-io/database'
+import { runMigrations } from '@blixis-io/database/migrations'
+import { createBlixis, noopLogger } from '@blixis-io/kernel'
 import { Client } from 'pg'
 
 /**

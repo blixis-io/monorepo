@@ -1,4 +1,4 @@
-import { defineEvent, type EventPayload, struct } from '@blixis/contracts'
+import { defineEvent, type EventPayload, struct } from '@blixis-io/contracts'
 
 const contentTypePayload = struct({
   contentTypeId: 'string',

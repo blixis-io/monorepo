@@ -1,14 +1,14 @@
-import { ConflictError } from '@blixis/contracts'
-import { databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { permissionsModule } from '@blixis/permissions'
-import { newId } from '@blixis/shared'
+import { ConflictError } from '@blixis-io/contracts'
+import { databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { permissionsModule } from '@blixis-io/permissions'
+import { newId } from '@blixis-io/shared'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { usersModule } from '@blixis-io/users'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { spacesModule } from '../src/index.ts'
 import {

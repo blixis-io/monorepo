@@ -81,8 +81,8 @@ The checkbox marker is visual; the textual status inside each task file is autho
 
 | Milestone | Plans | Exit criteria |
 |---|---|---|
-| **M1 — Workspace & public contracts** | 001, 002, 023 | Monorepo with TS7, lint/boundary checks, tests, CI; `@blixis/contracts` complete with a type-checked sample third-party module. |
-| **M2 — Kernel walking skeleton on Cloudflare Workers** | 003, 004 | `@blixis/kernel` composes modules; `apps/api` Worker serves `/api/v1/health` in `workerd`; deploy dry-run in CI. Checkpoints CP1, CP2a. |
+| **M1 — Workspace & public contracts** | 001, 002, 023 | Monorepo with TS7, lint/boundary checks, tests, CI; `@blixis-io/contracts` complete with a type-checked sample third-party module. |
+| **M2 — Kernel walking skeleton on Cloudflare Workers** | 003, 004 | `@blixis-io/kernel` composes modules; `apps/api` Worker serves `/api/v1/health` in `workerd`; deploy dry-run in CI. Checkpoints CP1, CP2a. |
 | **M3 — Persistence & event infrastructure** | 005, 006 | Worker → Hyperdrive → Neon readiness slice; module-owned migrations; outbox → Queue → idempotent consumers proven. Checkpoints CP2b, CP3. |
 | **M4 — Identity, tenancy & authorization** | 007, 008, 009 | Sessions/API tokens, organizations/spaces/memberships, permission-based authorization; isolation and authz matrices in CI. Checkpoint CP4. |
 | **M5 — Content management core** | 010, 011 | Content types, fields, immutable entry versions, publish/unpublish with transactional events via REST. Checkpoint CP5. |
@@ -127,12 +127,12 @@ Status: `completed` · Progress: 7/7 · Scope: MVP
 Plan: [001-project-foundation/_index.md](./plans/001-project-foundation/_index.md)  
 Depends on: None
 
-Creates the pnpm monorepo, TypeScript 7 baseline, package conventions, linting/boundary checks, the test runner, and CI. Ends with one proving package (`@blixis/shared`) that builds, lints, and tests through the same pipeline every later package will use.
+Creates the pnpm monorepo, TypeScript 7 baseline, package conventions, linting/boundary checks, the test runner, and CI. Ends with one proving package (`@blixis-io/shared`) that builds, lints, and tests through the same pipeline every later package will use.
 
 - [x] [001.001 — Initialize pnpm workspace and repository](./plans/001-project-foundation/001-initialize-pnpm-workspace.md)
 - [x] [001.002 — Record toolchain decisions for TypeScript 7, build, test, and lint](./plans/001-project-foundation/002-record-toolchain-decisions.md)
 - [x] [001.003 — Configure root TypeScript 7 setup](./plans/001-project-foundation/003-configure-typescript.md)
-- [x] [001.004 — Define package conventions and create @blixis/shared](./plans/001-project-foundation/004-define-package-conventions.md)
+- [x] [001.004 — Define package conventions and create @blixis-io/shared](./plans/001-project-foundation/004-define-package-conventions.md)
 - [x] [001.005 — Configure linting, formatting, and package-boundary checks](./plans/001-project-foundation/005-configure-lint-format-and-boundaries.md)
 - [x] [001.006 — Configure the test runner for unit and Workers-runtime tests](./plans/001-project-foundation/006-configure-test-runner.md)
 - [x] [001.007 — Set up the continuous integration pipeline](./plans/001-project-foundation/007-setup-ci-pipeline.md)
@@ -143,9 +143,9 @@ Status: `completed` · Progress: 8/8 · Scope: MVP
 Plan: [002-public-contracts/_index.md](./plans/002-public-contracts/_index.md)  
 Depends on: [001 — Project Foundation](./plans/001-project-foundation/_index.md)
 
-Creates `@blixis/contracts`: the small, stable, dependency-light package that every internal and external module builds against — module and lifecycle contracts, typed service tokens, capabilities, public errors, validation (Standard Schema), events, permissions/actors, request context, and migration contracts.
+Creates `@blixis-io/contracts`: the small, stable, dependency-light package that every internal and external module builds against — module and lifecycle contracts, typed service tokens, capabilities, public errors, validation (Standard Schema), events, permissions/actors, request context, and migration contracts.
 
-- [x] [002.001 — Scaffold the @blixis/contracts package](./plans/002-public-contracts/001-scaffold-contracts-package.md)
+- [x] [002.001 — Scaffold the @blixis-io/contracts package](./plans/002-public-contracts/001-scaffold-contracts-package.md)
 - [x] [002.002 — Define module, metadata, contribution, and lifecycle contracts](./plans/002-public-contracts/002-define-module-contracts.md)
 - [x] [002.003 — Define typed service tokens and capability identifiers](./plans/002-public-contracts/003-define-service-tokens-and-capabilities.md)
 - [x] [002.004 — Define the public error model](./plans/002-public-contracts/004-define-public-errors.md)
@@ -160,7 +160,7 @@ Status: `completed` · Progress: 4/4 · Scope: MVP
 Plan: [023-developer-documentation-site/_index.md](./plans/023-developer-documentation-site/_index.md)  
 Depends on: [002 — Public Contracts](./plans/002-public-contracts/_index.md)
 
-Adds `apps/docs`: a Starlight (Astro) documentation site with a hand-written developer manual for module authors and an API reference generated from TSDoc, built in CI and deployed to Cloudflare. Starts with `@blixis/contracts`; every later plan that changes a public package extends it. Added on request of the project owner; executed before plan 003.
+Adds `apps/docs`: a Starlight (Astro) documentation site with a hand-written developer manual for module authors and an API reference generated from TSDoc, built in CI and deployed to Cloudflare. Starts with `@blixis-io/contracts`; every later plan that changes a public package extends it. Added on request of the project owner; executed before plan 003.
 
 - [x] [023.001 — Scaffold the Starlight documentation site](./plans/023-developer-documentation-site/001-scaffold-docs-site.md)
 - [x] [023.002 — Generate the API reference from TSDoc](./plans/023-developer-documentation-site/002-generate-api-reference.md)
@@ -175,16 +175,16 @@ Status: `completed` · Progress: 8/8 · Scope: MVP
 Plan: [003-module-kernel/_index.md](./plans/003-module-kernel/_index.md)  
 Depends on: [002 — Public Contracts](./plans/002-public-contracts/_index.md)
 
-Builds `@blixis/kernel` — `defineModule`, module graph validation, the typed service registry with scopes, the setup/boot lifecycle, module config validation, Hono REST mounting with error mapping and request context, contribution collection (events, GraphQL, permissions, migrations) — plus `@blixis/testing` with `createTestBlixis`.
+Builds `@blixis-io/kernel` — `defineModule`, module graph validation, the typed service registry with scopes, the setup/boot lifecycle, module config validation, Hono REST mounting with error mapping and request context, contribution collection (events, GraphQL, permissions, migrations) — plus `@blixis-io/testing` with `createTestBlixis`.
 
-- [x] [003.001 — Scaffold @blixis/kernel and implement defineModule](./plans/003-module-kernel/001-scaffold-kernel-and-define-module.md)
+- [x] [003.001 — Scaffold @blixis-io/kernel and implement defineModule](./plans/003-module-kernel/001-scaffold-kernel-and-define-module.md)
 - [x] [003.002 — Implement module graph validation and ordering](./plans/003-module-kernel/002-module-graph-validation.md)
 - [x] [003.003 — Implement the service registry with app and request scopes](./plans/003-module-kernel/003-service-registry-and-scopes.md)
 - [x] [003.004 — Implement the setup/boot lifecycle and createBlixis](./plans/003-module-kernel/004-lifecycle-and-create-blixis.md)
 - [x] [003.005 — Validate module configuration](./plans/003-module-kernel/005-module-configuration-validation.md)
 - [x] [003.006 — Mount module REST apps with request context and error mapping](./plans/003-module-kernel/006-rest-mounting-and-error-mapping.md)
 - [x] [003.007 — Collect event, GraphQL, permission, and migration contributions](./plans/003-module-kernel/007-contribution-registries.md)
-- [x] [003.008 — Create @blixis/testing with createTestBlixis](./plans/003-module-kernel/008-testing-package-create-test-blixis.md)
+- [x] [003.008 — Create @blixis-io/testing with createTestBlixis](./plans/003-module-kernel/008-testing-package-create-test-blixis.md)
 
 #### 004 — Cloudflare Worker Runtime
 
@@ -192,9 +192,9 @@ Status: `completed` · Progress: 7/7 · Scope: MVP
 Plan: [004-cloudflare-worker-runtime/_index.md](./plans/004-cloudflare-worker-runtime/_index.md)  
 Depends on: [003 — Module Kernel](./plans/003-module-kernel/_index.md)
 
-Creates `@blixis/cloudflare` (binding types, request-context helpers) and `apps/api` — the single modular-monolith Worker with `wrangler.jsonc`, explicit `blixis.config.ts`, typed env validation, `fetch`/`queue`/`scheduled` entry handlers, Workers-runtime tests, and a deployable-but-empty staging Worker.
+Creates `@blixis-io/cloudflare` (binding types, request-context helpers) and `apps/api` — the single modular-monolith Worker with `wrangler.jsonc`, explicit `blixis.config.ts`, typed env validation, `fetch`/`queue`/`scheduled` entry handlers, Workers-runtime tests, and a deployable-but-empty staging Worker.
 
-- [x] [004.001 — Scaffold @blixis/cloudflare with binding types and env validation](./plans/004-cloudflare-worker-runtime/001-scaffold-cloudflare-package-and-env-typing.md)
+- [x] [004.001 — Scaffold @blixis-io/cloudflare with binding types and env validation](./plans/004-cloudflare-worker-runtime/001-scaffold-cloudflare-package-and-env-typing.md)
 - [x] [004.002 — Create the apps/api Worker application](./plans/004-cloudflare-worker-runtime/002-create-api-worker-app.md)
 - [x] [004.003 — Implement the Worker entry adapter for fetch, queue, and scheduled](./plans/004-cloudflare-worker-runtime/003-worker-entry-adapter.md)
 - [x] [004.004 — Validate environment configuration at boot](./plans/004-cloudflare-worker-runtime/004-environment-configuration-validation.md)
@@ -210,10 +210,10 @@ Status: `completed` · Progress: 8/8 · Scope: MVP
 Plan: [005-database-foundation/_index.md](./plans/005-database-foundation/_index.md)  
 Depends on: [004 — Cloudflare Worker Runtime](./plans/004-cloudflare-worker-runtime/_index.md)
 
-Selects the Postgres driver/query layer/migration tooling (ADR), builds `@blixis/database` (per-request Hyperdrive connections, transactions, migration runner for module-owned migrations, health check), provisions Neon + Hyperdrive per environment, defines the test-database strategy, ID and tenancy conventions, and ends with a deployed DB readiness vertical slice.
+Selects the Postgres driver/query layer/migration tooling (ADR), builds `@blixis-io/database` (per-request Hyperdrive connections, transactions, migration runner for module-owned migrations, health check), provisions Neon + Hyperdrive per environment, defines the test-database strategy, ID and tenancy conventions, and ends with a deployed DB readiness vertical slice.
 
 - [x] [005.001 — Select the Postgres driver, query layer, and migration tooling](./plans/005-database-foundation/001-select-database-stack.md)
-- [x] [005.002 — Scaffold @blixis/database with per-request connections](./plans/005-database-foundation/002-scaffold-database-package-and-connection.md)
+- [x] [005.002 — Scaffold @blixis-io/database with per-request connections](./plans/005-database-foundation/002-scaffold-database-package-and-connection.md)
 - [x] [005.003 — Provision Neon and Hyperdrive and bind them to the API Worker](./plans/005-database-foundation/003-provision-neon-and-hyperdrive.md)
 - [x] [005.004 — Implement transaction helpers](./plans/005-database-foundation/004-transactions-and-unit-of-work.md)
 - [x] [005.005 — Build the migration runner for module-owned migrations](./plans/005-database-foundation/005-migration-infrastructure.md)
@@ -227,9 +227,9 @@ Status: `completed` · Progress: 7/7 · Scope: MVP
 Plan: [006-events-and-async-processing/_index.md](./plans/006-events-and-async-processing/_index.md)  
 Depends on: [005 — Database Foundation](./plans/005-database-foundation/_index.md)
 
-Builds `@blixis/events` (event registry, in-process bus, transactional outbox, idempotent consumer wrapper, command idempotency keys) and the Cloudflare Queue producer/consumer adapters in `@blixis/cloudflare`, ending with an end-to-end test proving at-least-once delivery is processed exactly once.
+Builds `@blixis-io/events` (event registry, in-process bus, transactional outbox, idempotent consumer wrapper, command idempotency keys) and the Cloudflare Queue producer/consumer adapters in `@blixis-io/cloudflare`, ending with an end-to-end test proving at-least-once delivery is processed exactly once.
 
-- [x] [006.001 — Scaffold @blixis/events with the event definition registry](./plans/006-events-and-async-processing/001-scaffold-events-package-and-registry.md)
+- [x] [006.001 — Scaffold @blixis-io/events with the event definition registry](./plans/006-events-and-async-processing/001-scaffold-events-package-and-registry.md)
 - [x] [006.002 — Implement the in-process event bus](./plans/006-events-and-async-processing/002-in-process-event-bus.md)
 - [x] [006.003 — Implement the Cloudflare Queue producer adapter](./plans/006-events-and-async-processing/003-cloudflare-queue-producer-adapter.md)
 - [x] [006.004 — Implement queue consumer dispatch to module subscriptions](./plans/006-events-and-async-processing/004-queue-consumer-dispatch.md)
@@ -245,7 +245,7 @@ Status: `completed` · Progress: 6/6 · Scope: MVP
 Plan: [007-identity-and-authentication/_index.md](./plans/007-identity-and-authentication/_index.md)  
 Depends on: [006 — Events & Async Processing](./plans/006-events-and-async-processing/_index.md)
 
-Decides the authentication approach (ADR), then builds `@blixis/users` (user records, `USER_SERVICE`, user events) and `@blixis/auth` (password sign-up/sign-in, Postgres-backed sessions, personal API tokens, actor resolution for the kernel), with login rate limiting and CSRF protection for cookie sessions.
+Decides the authentication approach (ADR), then builds `@blixis-io/users` (user records, `USER_SERVICE`, user events) and `@blixis-io/auth` (password sign-up/sign-in, Postgres-backed sessions, personal API tokens, actor resolution for the kernel), with login rate limiting and CSRF protection for cookie sessions.
 
 - [x] [007.001 — Select the authentication approach](./plans/007-identity-and-authentication/001-select-authentication-approach.md)
 - [x] [007.002 — Create the users module](./plans/007-identity-and-authentication/002-users-module.md)
@@ -260,7 +260,7 @@ Status: `completed` · Progress: 6/6 · Scope: MVP
 Plan: [008-tenancy-organizations-and-spaces/_index.md](./plans/008-tenancy-organizations-and-spaces/_index.md)  
 Depends on: [007 — Identity & Authentication](./plans/007-identity-and-authentication/_index.md)
 
-Builds `@blixis/spaces` (organizations, spaces, default environment, locales) and memberships in `@blixis/users`, tenant context resolution from routes with ownership verification, and a cross-tenant isolation test suite — the multi-tenancy backbone for every content record.
+Builds `@blixis-io/spaces` (organizations, spaces, default environment, locales) and memberships in `@blixis-io/users`, tenant context resolution from routes with ownership verification, and a cross-tenant isolation test suite — the multi-tenancy backbone for every content record.
 
 - [x] [008.001 — Create the spaces module with organization and space schema](./plans/008-tenancy-organizations-and-spaces/001-organizations-and-spaces-schema.md)
 - [x] [008.002 — Implement organization and space memberships](./plans/008-tenancy-organizations-and-spaces/002-memberships.md)
@@ -275,7 +275,7 @@ Status: `completed` · Progress: 5/5 · Scope: MVP
 Plan: [009-authorization-and-permissions/_index.md](./plans/009-authorization-and-permissions/_index.md)  
 Depends on: [008 — Tenancy: Organizations, Spaces & Memberships](./plans/008-tenancy-organizations-and-spaces/_index.md)
 
-Builds `@blixis/permissions`: a registry of module-declared permissions, system and custom roles mapped to permissions, the `AUTHORIZATION_SERVICE` (`can`/`require` with tenant-ownership checks and API-token scopes), enforcement in existing modules, and an authorization test matrix.
+Builds `@blixis-io/permissions`: a registry of module-declared permissions, system and custom roles mapped to permissions, the `AUTHORIZATION_SERVICE` (`can`/`require` with tenant-ownership checks and API-token scopes), enforcement in existing modules, and an authorization test matrix.
 
 - [x] [009.001 — Create the permissions module and registry](./plans/009-authorization-and-permissions/001-permissions-module-and-registry.md)
 - [x] [009.002 — Implement roles and role assignments](./plans/009-authorization-and-permissions/002-roles-and-role-assignments.md)
@@ -291,7 +291,7 @@ Status: `completed` · Progress: 5/5 · Scope: MVP
 Plan: [010-content-modeling/_index.md](./plans/010-content-modeling/_index.md)  
 Depends on: [009 — Authorization & Permissions](./plans/009-authorization-and-permissions/_index.md)
 
-Decides the content storage model (ADR), then builds the `@blixis/content` module's modeling half: content types, field definitions, an extensible field-type system, entry payload validation derived from content types, and content-type management REST routes with events and safe-change rules.
+Decides the content storage model (ADR), then builds the `@blixis-io/content` module's modeling half: content types, field definitions, an extensible field-type system, entry payload validation derived from content types, and content-type management REST routes with events and safe-change rules.
 
 - [x] [010.001 — Decide the content storage model](./plans/010-content-modeling/001-content-storage-design.md)
 - [x] [010.002 — Scaffold the content module and content type schema](./plans/010-content-modeling/002-content-module-scaffold-and-type-schema.md)
@@ -305,7 +305,7 @@ Status: `completed` · Progress: 7/7 · Scope: MVP
 Plan: [011-entries-and-publishing/_index.md](./plans/011-entries-and-publishing/_index.md)  
 Depends on: [010 — Content Modeling](./plans/010-content-modeling/_index.md)
 
-Completes `@blixis/content` with entries, immutable entry versions, publications (draft vs. published), explicit publish/unpublish commands with idempotency keys and transactional events, version history/restore, reference integrity, and an end-to-end content management vertical slice.
+Completes `@blixis-io/content` with entries, immutable entry versions, publications (draft vs. published), explicit publish/unpublish commands with idempotency keys and transactional events, version history/restore, reference integrity, and an end-to-end content management vertical slice.
 
 - [x] [011.001 — Create entry, version, and publication schema](./plans/011-entries-and-publishing/001-entry-and-version-schema.md)
 - [x] [011.002 — Implement ContentService draft lifecycle](./plans/011-entries-and-publishing/002-content-service-draft-lifecycle.md)
@@ -323,9 +323,9 @@ Status: `completed` · Progress: 8/8 · Scope: MVP
 Plan: [012-graphql-delivery-api/_index.md](./plans/012-graphql-delivery-api/_index.md)  
 Depends on: [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md)
 
-Builds `@blixis/graphql` (GraphQL Yoga on Workers at `/graphql`, schema composition from module contributions, context, error mapping), space-scoped delivery/preview API keys, the delivery schema strategy (ADR), published and preview content delivery resolvers backed by `ContentService`, and query safety limits with batching.
+Builds `@blixis-io/graphql` (GraphQL Yoga on Workers at `/graphql`, schema composition from module contributions, context, error mapping), space-scoped delivery/preview API keys, the delivery schema strategy (ADR), published and preview content delivery resolvers backed by `ContentService`, and query safety limits with batching.
 
-- [x] [012.001 — Scaffold @blixis/graphql with GraphQL Yoga on Workers](./plans/012-graphql-delivery-api/001-scaffold-graphql-package-with-yoga.md)
+- [x] [012.001 — Scaffold @blixis-io/graphql with GraphQL Yoga on Workers](./plans/012-graphql-delivery-api/001-scaffold-graphql-package-with-yoga.md)
 - [x] [012.002 — Compose and validate the schema from module contributions](./plans/012-graphql-delivery-api/002-schema-composition-and-scalars.md)
 - [x] [012.003 — Map Blixis errors to GraphQL errors](./plans/012-graphql-delivery-api/003-graphql-error-mapping.md)
 - [x] [012.004 — Implement delivery and preview API keys](./plans/012-graphql-delivery-api/004-delivery-and-preview-api-keys.md)
@@ -356,7 +356,7 @@ Status: `completed` · Progress: 6/6 · Scope: MVP
 Plan: [014-assets/_index.md](./plans/014-assets/_index.md)  
 Depends on: [012 — GraphQL Platform & Content Delivery API](./plans/012-graphql-delivery-api/_index.md)
 
-Builds `@blixis/assets`: an object-storage port with an R2 adapter, asset metadata in Postgres, upload flows streamed through the Worker (upload strategy ADR), management routes, public asset delivery with caching, asset events, content asset-link validation via capability, and idempotent R2 cleanup on deletion.
+Builds `@blixis-io/assets`: an object-storage port with an R2 adapter, asset metadata in Postgres, upload flows streamed through the Worker (upload strategy ADR), management routes, public asset delivery with caching, asset events, content asset-link validation via capability, and idempotent R2 cleanup on deletion.
 
 - [x] [014.001 — Decide upload strategy and implement the R2 object storage adapter](./plans/014-assets/001-upload-strategy-and-object-storage.md)
 - [x] [014.002 — Create the assets module schema and service](./plans/014-assets/002-asset-schema-and-service.md)
@@ -371,7 +371,7 @@ Status: `completed` · Progress: 5/5 · Scope: MVP
 Plan: [015-webhooks/_index.md](./plans/015-webhooks/_index.md)  
 Depends on: [011 — Entries, Versions & Publishing](./plans/011-entries-and-publishing/_index.md)
 
-Builds `@blixis/webhooks`: space-scoped webhook configurations, fan-out from domain events to delivery requests, a queue-driven delivery consumer with HMAC signatures, timeouts, backoff and SSRF protection, delivery logs with manual redelivery, and end-to-end tests.
+Builds `@blixis-io/webhooks`: space-scoped webhook configurations, fan-out from domain events to delivery requests, a queue-driven delivery consumer with HMAC signatures, timeouts, backoff and SSRF protection, delivery logs with manual redelivery, and end-to-end tests.
 
 - [x] [015.001 — Create the webhooks module and configuration API](./plans/015-webhooks/001-webhook-configuration.md)
 - [x] [015.002 — Fan out domain events to webhook delivery requests](./plans/015-webhooks/002-event-fanout.md)
@@ -400,10 +400,10 @@ Status: `completed` · Progress: 4/4 · Scope: MVP
 Plan: [017-sdk-and-example-consumer/_index.md](./plans/017-sdk-and-example-consumer/_index.md)  
 Depends on: [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md), [014 — Assets on R2](./plans/014-assets/_index.md), [015 — Webhooks](./plans/015-webhooks/_index.md)
 
-Builds `@blixis/sdk` — a Workers/browser/Node-compatible client with a typed Management REST client and a GraphQL delivery client (preview support) — and `apps/example-site`, an Astro site consuming published content through the SDK with preview mode and webhook-triggered rebuild guidance.
+Builds `@blixis-io/sdk` — a Workers/browser/Node-compatible client with a typed Management REST client and a GraphQL delivery client (preview support) — and `apps/example-site`, an Astro site consuming published content through the SDK with preview mode and webhook-triggered rebuild guidance.
 
 - [x] [017.001 — Decide and implement the REST API type source](./plans/017-sdk-and-example-consumer/001-rest-api-type-source.md)
-- [x] [017.002 — Create @blixis/sdk core and Management REST client](./plans/017-sdk-and-example-consumer/002-sdk-core-and-management-client.md)
+- [x] [017.002 — Create @blixis-io/sdk core and Management REST client](./plans/017-sdk-and-example-consumer/002-sdk-core-and-management-client.md)
 - [x] [017.003 — Add the GraphQL delivery client](./plans/017-sdk-and-example-consumer/003-sdk-graphql-delivery-client.md)
 - [x] [017.004 — Build the Astro example site](./plans/017-sdk-and-example-consumer/004-example-astro-site.md)
 
@@ -427,7 +427,7 @@ Status: `completed` · Progress: 5/5 · Scope: MVP
 Plan: [019-admin-ui-foundation/_index.md](./plans/019-admin-ui-foundation/_index.md)  
 Depends on: [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md)
 
-Creates `apps/admin` (React + shadcn/ui) as a pure client of the Management REST API via `@blixis/sdk`: stack/hosting decision, auth and session handling, organization/space navigation shell, content type editor, and entry editor with draft/publish/version history — the minimum editorial UI for the MVP.
+Creates `apps/admin` (React + shadcn/ui) as a pure client of the Management REST API via `@blixis-io/sdk`: stack/hosting decision, auth and session handling, organization/space navigation shell, content type editor, and entry editor with draft/publish/version history — the minimum editorial UI for the MVP.
 
 - [x] [019.001 — Decide the admin stack and scaffold apps/admin](./plans/019-admin-ui-foundation/001-admin-stack-and-scaffold.md)
 - [x] [019.002 — Implement admin authentication and navigation shell](./plans/019-admin-ui-foundation/002-admin-auth-and-shell.md)
@@ -545,17 +545,17 @@ Arrows point from prerequisite to dependent plan. `[CPn]` marks an architectural
 
 Checkpoints are review gates where the architecture is validated against working software. Record the evidence (test names, measurements, links) directly under each checkpoint when it is reached, and create follow-up tasks for any violation.
 
-- [x] **CP1 — Kernel contract proof** (end of [003](./plans/003-module-kernel/_index.md)). An "external-style" fixture module written with only `@blixis/contracts` + `defineModule` boots, provides/consumes services via capabilities, and serves a route; every §26 validation failure names the offending module. *Evidence:* 003.008 end-to-end kernel suite.
+- [x] **CP1 — Kernel contract proof** (end of [003](./plans/003-module-kernel/_index.md)). An "external-style" fixture module written with only `@blixis-io/contracts` + `defineModule` boots, provides/consumes services via capabilities, and serves a route; every §26 validation failure names the offending module. *Evidence:* 003.008 end-to-end kernel suite.
   - **Passed 2026-09-24.** `packages/testing/test/kernel.e2e.test.ts`: `@acme/blixis-external` (contracts + hono + zod only — not even `defineModule`) requires capability `fixture.greeting`, consumes `GREETING_SERVICE` in a REST route, validates its config, and maps a thrown `UnauthorizedError` to a 401 problem response. Missing capability, duplicate module, incompatible version, and duplicate service provider each fail with the module name. Contract gaps found on the way and fixed in contracts: `has()` token invariance (`AnyServiceToken`), `setup`/`boot` variance (methods), `EventSubscription.handle` variance.
 - [x] **CP2a — Kernel on `workerd`** (end of [004](./plans/004-cloudflare-worker-runtime/_index.md)). Lazy boot, per-request service scopes, `fetch`/`queue`/`scheduled` entry routing verified in the Workers runtime; bundle-size baseline recorded. Passed 2026-09-24: `apps/api/test/*.worker.test.ts` run the entry in `workerd`. Bundle baseline: ~254 KiB gzip with Sentry (gate 1024 KiB).
 - [x] **CP2b — Database path** (end of [005](./plans/005-database-foundation/_index.md)). `Worker → Hyperdrive → Neon` readiness verified on staging with latency numbers; request-scoped connections confirmed; module-owned migrations applied in module order. Passed 2026-09-24: staging `/api/v1/health/ready` through Hyperdrive → Neon (eu-central-1): first database check 89 ms, warm 7–15 ms (13 calls); request scopes close connections via `waitUntil`; runner applies module migrations in bootstrap order (integration tests in CI).
 - [x] **CP3 — Event consistency** (end of [006](./plans/006-events-and-async-processing/_index.md)). Rolled-back transactions emit nothing; committed transactional events are delivered via outbox → Queue; redeliveries are processed once (§32, §33). Passed 2026-09-25:
   - End-to-end test against Postgres: a rollback emits nothing; committed events go through outbox → queue → consumer; redeliveries and retries produce one effect; a queue outage is recovered by the sweep.
   - Staging: queue consumer attached, outbox cron `Ok` every minute, no Sentry issues.
-- [x] **CP4 — Tenancy & authorization** (end of [009](./plans/009-authorization-and-permissions/_index.md)). Isolation suite and authz matrix cover every tenant-scoped route; no role-name checks outside `@blixis/permissions` (§30, §31). Passed 2026-09-25: isolation suite (24 routes × 3 intruders, including an every-scope API token) and authorization matrix (24 routes × 12 role/actor cases, fresh tenant per case) in CI with route-coverage checks; `role-name-check` boundary rule in `pnpm lint`.
+- [x] **CP4 — Tenancy & authorization** (end of [009](./plans/009-authorization-and-permissions/_index.md)). Isolation suite and authz matrix cover every tenant-scoped route; no role-name checks outside `@blixis-io/permissions` (§30, §31). Passed 2026-09-25: isolation suite (24 routes × 3 intruders, including an every-scope API token) and authorization matrix (24 routes × 12 role/actor cases, fresh tenant per case) in CI with route-coverage checks; `role-name-check` boundary rule in `pnpm lint`.
 - [x] **CP5 — Content vertical slice** (end of [011](./plans/011-entries-and-publishing/_index.md)). request → Hono route → `ContentService` → repository → Hyperdrive → Neon, plus publish → outbox → Queue → subscriber, on staging; review against §48 rules. Passed 2026-09-25: the full path on staging (Postman 60/134 green; content smoke 13 requests OK, p50 ~200–250 ms; `Queue blixis-events-staging (10 messages) - Ok` after publish/unpublish/delete through the outbox); vertical-slice test with cross-module delivery; §48 review without findings. Latency follow-up: fewer DB round trips per request (plans 013/020).
 - [x] **CP6 — Delivery performance & cache correctness** (end of [013](./plans/013-delivery-caching/_index.md)). Measured before/after caching; bounded staleness after publish; no cross-tenant or preview cache leakage (§34). Passed 2026-09-26: cached p50 101–110 ms vs 221–225 ms uncached (network floor 77 ms); publish to fresh 0.2–5.8 s; isolation suite (spaces, locales, revoked keys) and bypass tests green; the Cache API also serves hits on `workers.dev`.
-- [x] **CP7 — Extension contract sufficiency** (end of [018](./plans/018-extension-platform/_index.md)). Example plugin installed from a packed tarball works using only public packages; CI gate enforces it continuously (§42 Stage 8, §52). Passed 2026-09-28: `examples/blixis-example-seo` (service, REST, GraphQL field, permissions, three event handlers, migration) imports only `@blixis/contracts`, `@blixis/kernel`, `@blixis/content-api`, `@blixis/database` (boundary rule `plugin-internal-import`); the `extension contract` CI job installs it from packed tarballs, runs its Postgres tests, and bundles it into a Worker with first-party modules; API surface snapshots of the public packages are checked in `verify`. Four contract gaps found and fixed on the way (ADR 0016 addendum). Publishing (018.005) waits for the owner's npm scope and licence decision (D20).
+- [x] **CP7 — Extension contract sufficiency** (end of [018](./plans/018-extension-platform/_index.md)). Example plugin installed from a packed tarball works using only public packages; CI gate enforces it continuously (§42 Stage 8, §52). Passed 2026-09-28: `examples/blixis-example-seo` (service, REST, GraphQL field, permissions, three event handlers, migration) imports only `@blixis-io/contracts`, `@blixis-io/kernel`, `@blixis-io/content-api`, `@blixis-io/database` (boundary rule `plugin-internal-import`); the `extension contract` CI job installs it from packed tarballs, runs its Postgres tests, and bundles it into a Worker with first-party modules; API surface snapshots of the public packages are checked in `verify`. Four contract gaps found and fixed on the way (ADR 0016 addendum). Publishing is 018.005 (scope, licence, and package set decided in ADR 0020).
 - [ ] **CP8 — Architecture conformance & launch** (end of [022](./plans/022-production-readiness/_index.md)). Conformance review against §2, §4, §24–§35, §46–§48 with no blocking violations; launch checklist complete.
 
 ## Open architectural decisions
@@ -566,7 +566,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 |---|---|---|---|---|
 | D1 | TS7 build & declaration emit, source vs. `dist` consumption, test runner, lint/format and boundary tooling | [001.002](./plans/001-project-foundation/002-record-toolchain-decisions.md) | `tsc -b` if TS7 emit is stable; Vitest + `@cloudflare/vitest-pool-workers`; tooling without compiler-API dependency | **resolved 2026-09-24:** TS 7.0.2 `tsc -b`, `nodenext` + `.ts` imports, `dist` consumption ([ADR 0001](./decisions/0001-typescript-7-build-strategy.md)); Vitest 4.1 + pool-workers 0.22 ([ADR 0002](./decisions/0002-test-runner.md)); Biome 2.5 + custom boundary checker ([ADR 0003](./decisions/0003-lint-format-and-boundaries.md)) |
 | D2 | CI provider | [001.007](./plans/001-project-foundation/007-setup-ci-pipeline.md) | GitHub Actions | **resolved 2026-09-24:** GitHub Actions on `blixis-io/monorepo` ([GitHub Actions](./operations/github-actions.md)) |
-| D3 | Hono types in `@blixis/contracts` (`RestContribution`) | [002.002](./plans/002-public-contracts/002-define-module-contracts.md) | `hono` as type-only peer dependency | open |
+| D3 | Hono types in `@blixis-io/contracts` (`RestContribution`) | [002.002](./plans/002-public-contracts/002-define-module-contracts.md) | `hono` as type-only peer dependency | open |
 | D4 | Validation library | [002.005](./plans/002-public-contracts/005-select-validation-library.md) | Standard Schema in contracts; one default library for first-party code | **resolved 2026-09-24:** Zod 4 for first-party code; contracts expose vendored Standard Schema v1 ([ADR 0004](./decisions/0004-validation-library.md)) |
 | D5 | Service scopes on Workers (app vs. request) | [003.003](./plans/003-module-kernel/003-service-registry-and-scopes.md) | App singletons + request-scoped factories for I/O-holding services | **resolved 2026-09-24:** app + request scopes, synchronous factories, scopes created by transports ([ADR 0005](./decisions/0005-service-scopes.md)) |
 | D6 | Postgres driver, query builder/ORM, migration format | [005.001](./plans/005-database-foundation/001-select-database-stack.md) | **pg + Drizzle ORM; SQL-file migrations per module** ([ADR 0006](./decisions/0006-database-stack.md)) | decided |
@@ -582,9 +582,9 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | D16 | Asset upload strategy and serving domain | [014.001](./plans/014-assets/001-upload-strategy-and-object-storage.md) | **Stream through the Worker to the R2 binding (≤ 90 MiB direct, multipart above, ≤ 1 GiB default), immutable `<space>/<asset>/<file>` keys, SHA-256 on direct uploads, type allow-list + signature check, nosniff/CSP-sandbox serving from the API origin until `assets.<domain>`** ([ADR 0013](./decisions/0013-asset-uploads.md)) | decided |
 | D17 | Workflows integration pattern & scheduling | [016.001](./plans/016-releases-and-workflows/001-workflows-integration-pattern.md) | Explicit class exports in composition root | open |
 | D18 | REST type source for SDK (OpenAPI vs. shared schemas) | [017.001](./plans/017-sdk-and-example-consumer/001-rest-api-type-source.md) | **Operations with Zod schemas beside the routes (`RestContribution.operations`), compile-time shape checks against service types, OpenAPI 3.1 generated at build time and served at `/api/v1/openapi.json`, SDK types generated from it** ([ADR 0015](./decisions/0015-rest-api-type-source.md)) | decided |
-| D19 | Location of public content capability contracts | [018.001](./plans/018-extension-platform/001-public-content-capability-contracts.md) | **New `@blixis/content-api` package: service tokens, views, inputs, and content events; depends on `@blixis/contracts` only; `@blixis/content` implements and re-exports it** ([ADR 0016](./decisions/0016-public-capability-contracts.md)) | decided |
-| D20 | npm scope ownership, licence, published package set | [018.005](./plans/018-extension-platform/005-package-versioning-and-publishing.md) | Must be confirmed by the project owner | open |
-| D21 | Admin stack and hosting (cookie strategy) | [019.001](./plans/019-admin-ui-foundation/001-admin-stack-and-scaffold.md) | **Separate `blixis-admin` Worker (static assets) at `admin.<domain>` beside `api.<domain>` (same site for the `SameSite=Strict` refresh cookie; `workers.dev` is a public suffix), credentialed CORS from `AUTH_ALLOWED_ORIGINS`; React 19 + Vite, shadcn/ui + Tailwind v4, TanStack Router/Query/Form, `@blixis/sdk` only** ([ADR 0017](./decisions/0017-admin-stack.md)) | decided |
+| D19 | Location of public content capability contracts | [018.001](./plans/018-extension-platform/001-public-content-capability-contracts.md) | **New `@blixis-io/content-api` package: service tokens, views, inputs, and content events; depends on `@blixis-io/contracts` only; `@blixis-io/content` implements and re-exports it** ([ADR 0016](./decisions/0016-public-capability-contracts.md)) | decided |
+| D20 | npm scope ownership, licence, published package set | [018.005](./plans/018-extension-platform/005-package-versioning-and-publishing.md) | **npm scope `@blixis-io` (all packages renamed; runtime module ids stay `@blixis/…`), MIT, published: contracts, kernel, content-api, database, testing, sdk** ([ADR 0020](./decisions/0020-package-scope-and-licence.md)) | decided |
+| D21 | Admin stack and hosting (cookie strategy) | [019.001](./plans/019-admin-ui-foundation/001-admin-stack-and-scaffold.md) | **Separate `blixis-admin` Worker (static assets) at `admin.<domain>` beside `api.<domain>` (same site for the `SameSite=Strict` refresh cookie; `workers.dev` is a public suffix), credentialed CORS from `AUTH_ALLOWED_ORIGINS`; React 19 + Vite, shadcn/ui + Tailwind v4, TanStack Router/Query/Form, `@blixis-io/sdk` only** ([ADR 0017](./decisions/0017-admin-stack.md)) | decided |
 | D22 | Rate limiting mechanism | [020.003](./plans/020-observability-and-security-hardening/003-rate-limiting.md) | Workers Rate Limiting binding; WAF rules if a zone is available | open |
 | D23 | SLOs, RPO/RTO | [022.001](./plans/022-production-readiness/001-performance-and-load-testing.md) | Proposed defaults in 022; owner confirms | open |
 | D24 | Environments and release model | [021.001](./plans/021-ci-cd-and-release-engineering/001-staging-and-production-deploy-pipelines.md) | — | **resolved 2026-09-24:** `main` → staging; versions `vX.Y.Z` (release-please) → production ([Environments](./operations/environments.md), [Release & deployment](./operations/deployment.md)) |

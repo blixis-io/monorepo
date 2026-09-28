@@ -8,7 +8,7 @@
 
 ## Context
 
-The developer documentation site (plan 023) needs an API reference that is generated from TSDoc so it never drifts from the code. All `@blixis/contracts` exports carry TSDoc (002.002). The packages are compiled with TypeScript 7, which has no JavaScript compiler API ([ADR 0001](./0001-typescript-7-build-strategy.md)).
+The developer documentation site (plan 023) needs an API reference that is generated from TSDoc so it never drifts from the code. All `@blixis-io/contracts` exports carry TSDoc (002.002). The packages are compiled with TypeScript 7, which has no JavaScript compiler API ([ADR 0001](./0001-typescript-7-build-strategy.md)).
 
 Findings (2026-09-24):
 
@@ -19,7 +19,7 @@ Findings (2026-09-24):
 | starlight-typedoc | 0.23.1 | Starlight ≥ 0.39, Astro ≥ 6, TypeDoc ≥ 0.28 |
 | API Extractor / other TS-API tools | — | same limitation (compiler API) |
 
-Spike: TypeDoc with **TypeScript 6.0.3** reads the TS 7 sources of `@blixis/contracts` (including `.ts` import specifiers, `rewriteRelativeImportExtensions`, `${configDir}` presets) without warnings and generates pages for all 9 classes, 15 functions, 3 constants, and every interface/type alias.
+Spike: TypeDoc with **TypeScript 6.0.3** reads the TS 7 sources of `@blixis-io/contracts` (including `.ts` import specifiers, `rewriteRelativeImportExtensions`, `${configDir}` presets) without warnings and generates pages for all 9 classes, 15 functions, 3 constants, and every interface/type alias.
 
 ## Decision
 

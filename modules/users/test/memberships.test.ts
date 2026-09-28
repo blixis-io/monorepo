@@ -1,13 +1,13 @@
-import { ConflictError, NotFoundError, ValidationError } from '@blixis/contracts'
-import { databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { newId } from '@blixis/shared'
-import { captureEvents, createTestBlixis } from '@blixis/testing'
+import { ConflictError, NotFoundError, ValidationError } from '@blixis-io/contracts'
+import { databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { newId } from '@blixis-io/shared'
+import { captureEvents, createTestBlixis } from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
+} from '@blixis-io/testing/database'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import {
   MEMBERSHIP_SERVICE,

@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /**
  * Entries with immutable versions (§22, ADR 0010, plan 011). An entry points at its current draft

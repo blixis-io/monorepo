@@ -1,5 +1,5 @@
 {
-  "extends": "@blixis/tsconfig/library.json",
+  "extends": "@blixis-io/tsconfig/library.json",
   "compilerOptions": {
     // Web streams (ReadableStream) in the ObjectStorage port — standard in Workers and Node.
     "lib": ["es2023", "webworker"]

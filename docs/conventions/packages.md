@@ -21,8 +21,8 @@ Related: [Monorepo](../development/monorepo.md) · [Code standards](./code-stand
 ```text
 packages/<name>/
 ├── package.json
-├── tsconfig.json          # build: extends @blixis/tsconfig/library.json
-├── tsconfig.test.json     # tests: extends @blixis/tsconfig/test.json (TS7 errors if it matches no files)
+├── tsconfig.json          # build: extends @blixis-io/tsconfig/library.json
+├── tsconfig.test.json     # tests: extends @blixis-io/tsconfig/test.json (TS7 errors if it matches no files)
 ├── README.md              # optional; required for published packages
 └── src/
     ├── index.ts           # the ONLY public entry
@@ -55,7 +55,7 @@ Domain modules use the §23 layout inside `src/` (`domain/`, `application/`, `in
   "dependencies": {},
   "peerDependencies": {},
   "devDependencies": {
-    "@blixis/tsconfig": "workspace:*",
+    "@blixis-io/tsconfig": "workspace:*",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
@@ -71,7 +71,7 @@ Rules:
 
 - **Name:** `@blixis/<name>` for everything first-party (§48 Packages.1). Tooling packages use `@blixis/<name>` too and are `"private": true`.
 - **ESM only:** `"type": "module"`; no CommonJS output.
-- **`exports`: root entry only.** Additional subpaths need a documented reason (e.g. `@blixis/tsconfig/*.json`). Never expose `src/` or internal files (§24).
+- **`exports`: root entry only.** Additional subpaths need a documented reason (e.g. `@blixis-io/tsconfig/*.json`). Never expose `src/` or internal files (§24).
 - **`types` condition first**, then `default`.
 - **`files: ["dist"]`** — only built output is published.
 - **`sideEffects: false`** unless the package really has import-time side effects (then document why).
@@ -83,26 +83,26 @@ Rules:
 | Situation | Use |
 |---|---|
 | Runtime code the package itself needs | `dependencies` |
-| Shared platform contract a *host* must provide exactly once (`@blixis/contracts`, `@blixis/kernel` for modules) | `peerDependencies` (+ `devDependencies` for local builds) — §25 |
+| Shared platform contract a *host* must provide exactly once (`@blixis-io/contracts`, `@blixis-io/kernel` for modules) | `peerDependencies` (+ `devDependencies` for local builds) — §25 |
 | Framework the host app provides (`hono` types in contracts) | `peerDependencies` |
 | Build/test tooling | `devDependencies` |
 
-Domain modules and third-party modules peer-depend on `@blixis/contracts`; `autoInstallPeers` is off, so the consuming app declares peers explicitly.
+Domain modules and third-party modules peer-depend on `@blixis-io/contracts`; `autoInstallPeers` is off, so the consuming app declares peers explicitly.
 
 ## TypeScript
 
 ```jsonc
 // tsconfig.json — build (emits dist/)
-{ "extends": "@blixis/tsconfig/library.json", "references": [{ "path": "../contracts" }] }
+{ "extends": "@blixis-io/tsconfig/library.json", "references": [{ "path": "../contracts" }] }
 
 // tsconfig.test.json — type-checks tests, never emits
-{ "extends": "@blixis/tsconfig/test.json", "references": [{ "path": "./tsconfig.json" }] }
+{ "extends": "@blixis-io/tsconfig/test.json", "references": [{ "path": "./tsconfig.json" }] }
 ```
 
 - Add a `references` entry for every workspace package the package depends on.
 - Register both configs in the root `tsconfig.json` `references` (the root is a solution file only).
 - Relative imports use the `.ts` extension: `import { x } from './x.ts'`.
-- Worker apps extend `@blixis/tsconfig/worker.json` (type-check only; Wrangler bundles).
+- Worker apps extend `@blixis-io/tsconfig/worker.json` (type-check only; Wrangler bundles).
 
 ## Source rules
 
@@ -119,8 +119,8 @@ Domain modules and third-party modules peer-depend on `@blixis/contracts`; `auto
 | Relative import that leaves the package (`../../other/src/…`) | bypasses `exports` | `tooling/boundaries` |
 | Workspace dependency cycles | §48 Packages.7 | `tooling/boundaries` |
 | Importing a workspace package not declared in `package.json` | hidden coupling | `tooling/boundaries` |
-| `@blixis/testing` in non-test files | test code in production bundles | `tooling/boundaries` |
-| `modules/*` → `@blixis/cloudflare` | domain code must not touch bindings (§4) | `tooling/boundaries` |
+| `@blixis-io/testing` in non-test files | test code in production bundles | `tooling/boundaries` |
+| `modules/*` → `@blixis-io/cloudflare` | domain code must not touch bindings (§4) | `tooling/boundaries` |
 | Default-exported "god objects" / service locators by string | untyped coupling (§7) | review |
 | `paths` aliases in tsconfig | bypass `exports` | review |
 

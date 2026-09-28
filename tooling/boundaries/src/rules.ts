@@ -3,7 +3,7 @@ import { extractImports } from './imports.ts'
 
 /** A workspace package as seen by the checker. */
 export interface WorkspacePackage {
-  /** Package name from package.json, e.g. `@blixis/kernel`. */
+  /** Package name from package.json, e.g. `@blixis-io/kernel`. */
   readonly name: string
   /** Directory relative to the repository root, e.g. `packages/kernel`. */
   readonly dir: string
@@ -41,10 +41,10 @@ export interface Violation {
 }
 
 /** Packages that may only be imported from test files. */
-const TEST_ONLY_PACKAGES = new Set(['@blixis/testing'])
+const TEST_ONLY_PACKAGES = new Set(['@blixis-io/testing'])
 
 /** Workspace packages `apps/admin` may import (it is an API client, §50). */
-const ADMIN_ALLOWED_WORKSPACE_IMPORTS = new Set(['@blixis/sdk'])
+const ADMIN_ALLOWED_WORKSPACE_IMPORTS = new Set(['@blixis-io/sdk'])
 
 const TEST_FILE = /(\.test\.tsx?|\.test-d\.ts|\.worker\.test\.ts)$|(^|\/)test\//
 
@@ -125,19 +125,19 @@ export function checkImports(
           message: `${target.name} may only be imported from test files`,
         })
       }
-      if (owner.dir.startsWith('modules/') && target.name === '@blixis/cloudflare') {
+      if (owner.dir.startsWith('modules/') && target.name === '@blixis-io/cloudflare') {
         violations.push({
           rule: 'forbidden-edge',
           ...at,
           message:
-            'domain modules must not depend on @blixis/cloudflare (bindings stay in adapters)',
+            'domain modules must not depend on @blixis-io/cloudflare (bindings stay in adapters)',
         })
       }
       if (owner.dir === 'apps/admin' && !ADMIN_ALLOWED_WORKSPACE_IMPORTS.has(target.name)) {
         violations.push({
           rule: 'forbidden-edge',
           ...at,
-          message: `apps/admin may only use @blixis/sdk from the workspace, not ${target.name}`,
+          message: `apps/admin may only use @blixis-io/sdk from the workspace, not ${target.name}`,
         })
       }
     }
@@ -183,9 +183,9 @@ export function findWorkspaceCycles(packages: readonly WorkspacePackage[]): stri
 
 /**
  * Public capability packages (ADR 0016): what third-party modules import instead of first-party
- * implementations. They may depend on `@blixis/contracts` only, as a peer.
+ * implementations. They may depend on `@blixis-io/contracts` only, as a peer.
  */
-const PUBLIC_API_PACKAGES = new Set(['@blixis/content-api'])
+const PUBLIC_API_PACKAGES = new Set(['@blixis-io/content-api'])
 
 /** Package-level rules that do not depend on source files. */
 export function checkPackages(packages: readonly WorkspacePackage[]): Violation[] {
@@ -194,23 +194,23 @@ export function checkPackages(packages: readonly WorkspacePackage[]): Violation[
     file: 'package.json',
     message: `workspace dependency cycle: ${cycle.join(' -> ')}`,
   }))
-  const contracts = packages.find((p) => p.name === '@blixis/contracts')
+  const contracts = packages.find((p) => p.name === '@blixis-io/contracts')
   if (contracts !== undefined && Object.keys(contracts.dependencies).length > 0) {
     violations.push({
       rule: 'contracts-runtime-dependency',
       file: `${contracts.dir}/package.json`,
-      message: `@blixis/contracts must have no runtime dependencies (§4); found: ${Object.keys(contracts.dependencies).join(', ')}`,
+      message: `@blixis-io/contracts must have no runtime dependencies (§4); found: ${Object.keys(contracts.dependencies).join(', ')}`,
     })
   }
   for (const pkg of packages.filter((p) => PUBLIC_API_PACKAGES.has(p.name))) {
     const extra = [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)].filter(
-      (name) => name !== '@blixis/contracts',
+      (name) => name !== '@blixis-io/contracts',
     )
-    if (extra.length > 0 || pkg.dependencies['@blixis/contracts'] !== undefined) {
+    if (extra.length > 0 || pkg.dependencies['@blixis-io/contracts'] !== undefined) {
       violations.push({
         rule: 'public-api-dependency',
         file: `${pkg.dir}/package.json`,
-        message: `${pkg.name} may only peer-depend on @blixis/contracts (ADR 0016); found: ${[...new Set([...Object.keys(pkg.dependencies), ...extra])].join(', ')}`,
+        message: `${pkg.name} may only peer-depend on @blixis-io/contracts (ADR 0016); found: ${[...new Set([...Object.keys(pkg.dependencies), ...extra])].join(', ')}`,
       })
     }
   }
@@ -236,7 +236,7 @@ const ROLE_NAME_CHECKS: readonly RegExp[] = [
 ]
 
 /**
- * Forbids comparing role names outside `@blixis/permissions` (plan 009.004): code checks
+ * Forbids comparing role names outside `@blixis-io/permissions` (plan 009.004): code checks
  * permissions through `AUTHORIZATION_SERVICE`, never `role === 'admin'`. Tests are exempt.
  */
 export function checkRoleNames(files: readonly SourceFile[]): Violation[] {
@@ -250,7 +250,7 @@ export function checkRoleNames(files: readonly SourceFile[]): Violation[] {
           file: file.path,
           line: index + 1,
           message:
-            'compares a role name; check a permission with AUTHORIZATION_SERVICE instead (roles are evaluated only by @blixis/permissions)',
+            'compares a role name; check a permission with AUTHORIZATION_SERVICE instead (roles are evaluated only by @blixis-io/permissions)',
         })
       }
     })
@@ -263,10 +263,10 @@ export function checkRoleNames(files: readonly SourceFile[]): Violation[] {
  * `defineModule`, public capability packages, and the database toolkit for modules that store data.
  */
 export const PLUGIN_PUBLIC_PACKAGES: ReadonlySet<string> = new Set([
-  '@blixis/contracts',
-  '@blixis/kernel',
-  '@blixis/content-api',
-  '@blixis/database',
+  '@blixis-io/contracts',
+  '@blixis-io/kernel',
+  '@blixis-io/content-api',
+  '@blixis-io/database',
 ])
 
 /**
@@ -281,7 +281,7 @@ export function checkPluginImports(files: readonly SourceFile[]): Violation[] {
     if (plugin === undefined || area !== 'src') continue
     for (const ref of extractImports(file.content)) {
       const at = { file: file.path, line: ref.line }
-      if (ref.specifier.startsWith('@blixis/')) {
+      if (ref.specifier.startsWith('@blixis-io/')) {
         const name = ref.specifier.split('/').slice(0, 2).join('/')
         if (!PLUGIN_PUBLIC_PACKAGES.has(name))
           violations.push({

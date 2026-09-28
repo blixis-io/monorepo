@@ -1,4 +1,4 @@
-import { type Database, newId, type Transaction } from '@blixis/database'
+import { type Database, newId, type Transaction } from '@blixis-io/database'
 import { and, asc, desc, eq, inArray, lt, lte, ne, sql } from 'drizzle-orm'
 import type { WebhookBody } from '../domain/payload.ts'
 import { attempts, type DeliveryStatus, deliveries, webhooks } from './schema.ts'

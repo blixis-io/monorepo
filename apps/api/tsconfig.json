@@ -1,5 +1,5 @@
 {
-  "extends": "@blixis/tsconfig/worker.json",
+  "extends": "@blixis-io/tsconfig/worker.json",
   "include": ["src", "test", "worker-configuration.d.ts"],
   "references": [
     { "path": "../../packages/contracts" },

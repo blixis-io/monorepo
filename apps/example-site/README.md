@@ -1,25 +1,25 @@
 # Example site (Astro)
 
-A small blog built from Blixis content with [`@blixis/sdk`](../../docs/sdk/README.md) (plan 017.004): a post list and post pages in English and Dutch, with authors, cover images, rich text, and a preview build that shows drafts.
+A small blog built from Blixis content with [`@blixis-io/sdk`](../../docs/sdk/README.md) (plan 017.004): a post list and post pages in English and Dutch, with authors, cover images, rich text, and a preview build that shows drafts.
 
 - **Static output.** Every page is rendered at build time from the GraphQL delivery API. Keys are read at build time only; the output is plain HTML that never contains them.
 - **Preview** is a second build with `BLIXIS_PREVIEW=1`, using the **preview key** — deploy it to a protected URL for editors. `pnpm dev` with `BLIXIS_PREVIEW=1` shows drafts live.
 
 ## Run it locally
 
-1. **Start the API** (see [getting started](../../docs/development/getting-started.md)): Docker Postgres, `pnpm db:migrate`, create a user (`pnpm auth:create-user`), then `pnpm --filter @blixis/api dev` (`http://localhost:8787`).
+1. **Start the API** (see [getting started](../../docs/development/getting-started.md)): Docker Postgres, `pnpm db:migrate`, create a user (`pnpm auth:create-user`), then `pnpm --filter @blixis-io/api dev` (`http://localhost:8787`).
 2. **Create an API token** for that user (`POST /api/v1/auth/tokens`, or Postman *API tokens*).
 3. **Seed** a space with the example model and content — it prints the `.env` lines:
    ```bash
    BLIXIS_API_URL=http://localhost:8787 BLIXIS_TOKEN=blx_pat_… \
-     pnpm --filter @blixis/example-site seed > apps/example-site/.env
+     pnpm --filter @blixis-io/example-site seed > apps/example-site/.env
    ```
    Set `BLIXIS_SPACE_ID` to seed an existing space instead of a new one.
 4. **Develop or build:**
    ```bash
-   pnpm --filter @blixis/example-site dev             # http://localhost:4321
-   pnpm --filter @blixis/example-site build           # dist/: published content
-   pnpm --filter @blixis/example-site build:preview   # dist-preview/: drafts too
+   pnpm --filter @blixis-io/example-site dev             # http://localhost:4321
+   pnpm --filter @blixis-io/example-site build           # dist/: published content
+   pnpm --filter @blixis-io/example-site build:preview   # dist-preview/: drafts too
    ```
 
 | Variable | |
@@ -43,7 +43,7 @@ A small blog built from Blixis content with [`@blixis/sdk`](../../docs/sdk/READM
 The build output is static, so any static host works. On Cloudflare:
 
 ```bash
-pnpm --filter @blixis/example-site build
+pnpm --filter @blixis-io/example-site build
 npx wrangler pages deploy apps/example-site/dist --project-name blixis-example
 ```
 

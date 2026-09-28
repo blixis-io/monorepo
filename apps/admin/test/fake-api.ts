@@ -1,4 +1,4 @@
-import type { ContentType, Organization, Space, User, UserPreferences } from '@blixis/sdk'
+import type { ContentType, Organization, Space, User, UserPreferences } from '@blixis-io/sdk'
 import { createContentFake } from './fake-content.ts'
 import fieldTypes from './fixtures/field-types.json' with { type: 'json' }
 

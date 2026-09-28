@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /**
  * The tenant hierarchy (§21). Child tables carry `organization_id` too (ADR 0007: tenant

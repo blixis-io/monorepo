@@ -6,7 +6,7 @@ import {
   isPermissionId,
   type MigrationDefinition,
   type PermissionDefinition,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import type { ModuleProblem } from './errors.ts'
 
 /** A contribution together with the module that made it. */

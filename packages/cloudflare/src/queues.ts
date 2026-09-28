@@ -1,6 +1,6 @@
-import { type EventEnvelope, InfrastructureError } from '@blixis/contracts'
-import { QUEUE_SENDER, type QueueSender } from '@blixis/events'
-import { defineModule } from '@blixis/kernel'
+import { type EventEnvelope, InfrastructureError } from '@blixis-io/contracts'
+import { QUEUE_SENDER, type QueueSender } from '@blixis-io/events'
+import { defineModule } from '@blixis-io/kernel'
 
 /** Cloudflare Queues limits (https://developers.cloudflare.com/queues/platform/limits/). */
 export const QUEUE_LIMITS = Object.freeze({

@@ -6,8 +6,8 @@ import {
   NotFoundError,
   type ServiceToken,
   TENANT_BINDER,
-} from '@blixis/contracts'
-import { type Database, isId } from '@blixis/database'
+} from '@blixis-io/contracts'
+import { type Database, isId } from '@blixis-io/database'
 import type { Context, Next } from 'hono'
 import { environmentRepository, spaceRepository } from '../infrastructure/repositories.ts'
 import { SPACES_PERMISSIONS } from '../permissions.ts'

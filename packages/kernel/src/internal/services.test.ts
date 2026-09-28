@@ -1,4 +1,4 @@
-import { createServiceToken, ModuleError } from '@blixis/contracts'
+import { createServiceToken, ModuleError } from '@blixis-io/contracts'
 import { describe, expect, it } from 'vitest'
 import { ServiceContainer } from './services.ts'
 

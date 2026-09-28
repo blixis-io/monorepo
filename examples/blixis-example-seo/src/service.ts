@@ -1,6 +1,6 @@
-import type { EnvironmentTenant } from '@blixis/content-api'
-import { createServiceToken, type ServiceToken } from '@blixis/contracts'
-import { type Database, tenantScope } from '@blixis/database'
+import type { EnvironmentTenant } from '@blixis-io/content-api'
+import { createServiceToken, type ServiceToken } from '@blixis-io/contracts'
+import { type Database, tenantScope } from '@blixis-io/database'
 import { and, eq, sql } from 'drizzle-orm'
 import { seoEntries } from './schema.ts'
 

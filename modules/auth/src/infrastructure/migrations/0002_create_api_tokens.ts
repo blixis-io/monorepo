@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /** Personal API tokens (ADR 0009 §7): only the SHA-256 hash is stored, plus a display prefix. */
 export const createApiTokens = defineMigration({

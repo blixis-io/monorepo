@@ -1,4 +1,4 @@
-import type { Asset } from '@blixis/sdk'
+import type { Asset } from '@blixis-io/sdk'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { FileIcon, Upload } from 'lucide-react'
 import { useId, useState } from 'react'

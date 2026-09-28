@@ -1,4 +1,4 @@
-import { ForbiddenError, NotFoundError, type TenantContext } from '@blixis/contracts'
+import { ForbiddenError, NotFoundError, type TenantContext } from '@blixis-io/contracts'
 import { and, eq, type SQL } from 'drizzle-orm'
 import { type PgColumn, uuid } from 'drizzle-orm/pg-core'
 

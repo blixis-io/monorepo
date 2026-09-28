@@ -1,4 +1,4 @@
-import { ValidationError } from '@blixis/contracts'
+import { ValidationError } from '@blixis-io/contracts'
 import { scryptAsync } from '@noble/hashes/scrypt.js'
 import { describe, expect, it } from 'vitest'
 import { toBase64Url } from './encoding.ts'

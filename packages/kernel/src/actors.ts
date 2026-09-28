@@ -5,7 +5,7 @@ import {
   ModuleError,
   type ServiceRegistry,
   UnauthorizedError,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 
 /**
  * Resolves the actor of a request from credentials it recognises (architecture §30):

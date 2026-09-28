@@ -1,4 +1,4 @@
-import { SYSTEM_ROLES, type SystemRoleKey } from '@blixis/contracts'
+import { SYSTEM_ROLES, type SystemRoleKey } from '@blixis-io/contracts'
 
 /**
  * System roles assignable per level (`role_key`). Roles are defined and evaluated by

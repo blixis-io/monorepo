@@ -1,5 +1,5 @@
 {
-  "name": "@blixis/postman",
+  "name": "@blixis-io/postman",
   "version": "0.0.0",
   "private": true,
   "description": "Postman collection and environments for the Blixis API, checked against the registered routes",
@@ -8,9 +8,9 @@
     "test": "vitest run --root ../.. tooling/postman"
   },
   "devDependencies": {
-    "@blixis/contracts": "workspace:*",
-    "@blixis/kernel": "workspace:*",
-    "@blixis/tsconfig": "workspace:*",
+    "@blixis-io/contracts": "workspace:*",
+    "@blixis-io/kernel": "workspace:*",
+    "@blixis-io/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

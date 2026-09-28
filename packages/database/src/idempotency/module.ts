@@ -1,4 +1,4 @@
-import { BACKGROUND_HANDLERS, defineModule } from '@blixis/kernel'
+import { BACKGROUND_HANDLERS, defineModule } from '@blixis-io/kernel'
 import { sql } from 'drizzle-orm'
 import { DATABASE } from '../module.ts'
 import {

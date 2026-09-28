@@ -7,7 +7,7 @@ import {
   type ObjectStorage,
   type StoredObject,
   ValidationError,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 
 interface Entry {
   readonly bytes: Uint8Array

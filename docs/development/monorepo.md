@@ -11,9 +11,9 @@ Related: [Getting started](./getting-started.md) · [Code standards](../conventi
 ```text
 monorepo/
 ├── apps/                    # deployables (private, never published)
-│   ├── api/                 # @blixis/api — Cloudflare Worker: REST + GraphQL (composition root)
-│   ├── admin/               # @blixis/admin — React + shadcn/ui admin
-│   └── example-site/        # example-site — Astro consumer of @blixis/sdk
+│   ├── api/                 # @blixis-io/api — Cloudflare Worker: REST + GraphQL (composition root)
+│   ├── admin/               # @blixis-io/admin — React + shadcn/ui admin
+│   └── example-site/        # example-site — Astro consumer of @blixis-io/sdk
 ├── packages/                # platform packages (@blixis/*)
 │   ├── contracts/           # public contracts (primary dependency for module authors)
 │   ├── kernel/              # module composition, lifecycle, service registry, REST mounting
@@ -45,8 +45,8 @@ apps ──▶ modules ──▶ packages (contracts, kernel, database, events, 
                         tooling is dev-only; examples consume packed tarballs
 ```
 
-- `modules/*` must not depend on `@blixis/cloudflare` (bindings stay in adapters).
-- `apps/admin` depends only on `@blixis/sdk` (plus UI libraries).
+- `modules/*` must not depend on `@blixis-io/cloudflare` (bindings stay in adapters).
+- `apps/admin` depends only on `@blixis-io/sdk` (plus UI libraries).
 - Nothing depends on `apps/*`.
 
 ## `pnpm-workspace.yaml`
@@ -97,9 +97,9 @@ Versions verified in the 001.002 spike (2026-09-24); entries are added to the re
     "test": "tsc -b && vitest run",                                  // ADR 0002
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "db:migrate": "pnpm --filter @blixis/db-tooling migrate",
-    "db:status": "pnpm --filter @blixis/db-tooling status",
-    "dev": "pnpm --filter @blixis/api dev"
+    "db:migrate": "pnpm --filter @blixis-io/db-tooling migrate",
+    "db:status": "pnpm --filter @blixis-io/db-tooling status",
+    "dev": "pnpm --filter @blixis-io/api dev"
   }
 }
 ```
@@ -110,7 +110,7 @@ Versions verified in the 001.002 spike (2026-09-24); entries are added to the re
 
 - Reference workspace packages with `"workspace:*"` in `dependencies` / `peerDependencies`.
 - Reference shared third-party versions with `"catalog:"`.
-- Import other packages only by name (`@blixis/kernel`), never by relative path.
+- Import other packages only by name (`@blixis-io/kernel`), never by relative path.
 - Workspace consumers resolve built `dist/` through the package `exports` map, exactly like external consumers ([ADR 0001](../decisions/0001-typescript-7-build-strategy.md)); `tsc -b` builds dependencies first. Keep `tsc -b --watch` running during development.
 
 ## Dependency versions
@@ -123,10 +123,10 @@ Versions verified in the 001.002 spike (2026-09-24); entries are added to the re
 ## Filtering cheat sheet
 
 ```bash
-pnpm --filter @blixis/kernel test          # one package (or: pnpm test packages/kernel)
+pnpm --filter @blixis-io/kernel test          # one package (or: pnpm test packages/kernel)
 pnpm --filter "./modules/**" test          # all modules
-pnpm --filter "...@blixis/contracts" build # contracts and everything depending on it
-pnpm --filter "@blixis/api..." build       # api and all its dependencies
+pnpm --filter "...@blixis-io/contracts" build # contracts and everything depending on it
+pnpm --filter "@blixis-io/api..." build       # api and all its dependencies
 pnpm -r ls --depth -1                      # list workspace packages
 ```
 
@@ -134,11 +134,11 @@ pnpm -r ls --depth -1                      # list workspace packages
 
 1. Follow [Package conventions](../conventions/packages.md) (reference implementation: `packages/shared`).
 2. Name it `@blixis/<name>`; `"type": "module"`; root-only `exports`; `sideEffects: false`.
-3. Extend `@blixis/tsconfig/library.json` (or `worker.json` for Worker-targeting code).
+3. Extend `@blixis-io/tsconfig/library.json` (or `worker.json` for Worker-targeting code).
 4. Add it to root `tsconfig.json` references.
 5. Run `pnpm install`, `pnpm lint`, `pnpm typecheck`, `pnpm test`.
 6. Modules: register in `apps/api/src/blixis.config.ts` explicitly (§2.3).
 
 ## Versioning of packages
 
-The deployable platform (API + admin) is versioned with repository tags `vX.Y.Z` — see [Release & deployment](../operations/deployment.md). Publishing public npm packages (`@blixis/contracts`, `@blixis/kernel`, `@blixis/content-api`, `@blixis/sdk`, `@blixis/testing`) is planned in roadmap task 018.005.
+The deployable platform (API + admin) is versioned with repository tags `vX.Y.Z` — see [Release & deployment](../operations/deployment.md). Publishing public npm packages (`@blixis-io/contracts`, `@blixis-io/kernel`, `@blixis-io/content-api`, `@blixis-io/sdk`, `@blixis-io/testing`) is planned in roadmap task 018.005.

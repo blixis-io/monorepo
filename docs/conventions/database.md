@@ -1,6 +1,6 @@
 # Database conventions
 
-How module code declares tables and queries Postgres. Decisions: [ADR 0006](../decisions/0006-database-stack.md) (pg + Drizzle) and [ADR 0007](../decisions/0007-ids-and-tenancy-conventions.md) (IDs, timestamps, tenancy). Helpers: `@blixis/database`.
+How module code declares tables and queries Postgres. Decisions: [ADR 0006](../decisions/0006-database-stack.md) (pg + Drizzle) and [ADR 0007](../decisions/0007-ids-and-tenancy-conventions.md) (IDs, timestamps, tenancy). Helpers: `@blixis-io/database`.
 
 Related: [Migrations](./migrations.md) · [Testing](./testing.md#test-database) · [Database operations](../operations/database.md)
 
@@ -9,7 +9,7 @@ Related: [Migrations](./migrations.md) · [Testing](./testing.md#test-database) 
 ## Declaring a table
 
 ```ts
-import { idColumn, tenantColumns, timestamps } from '@blixis/database'
+import { idColumn, tenantColumns, timestamps } from '@blixis-io/database'
 import { index, pgSchema, text, unique, uuid } from 'drizzle-orm/pg-core'
 
 export const content = pgSchema('content')            // one schema per module
@@ -43,8 +43,8 @@ export const entries = content.table(
 ## Querying: always scoped
 
 ```ts
-import { DATABASE, isId, requireTenant, tenantScope, translateDatabaseError } from '@blixis/database'
-import { NotFoundError } from '@blixis/contracts'
+import { DATABASE, isId, requireTenant, tenantScope, translateDatabaseError } from '@blixis-io/database'
+import { NotFoundError } from '@blixis-io/contracts'
 import { and, eq } from 'drizzle-orm'
 
 async function getEntry(ctx: RequestContext, id: string) {

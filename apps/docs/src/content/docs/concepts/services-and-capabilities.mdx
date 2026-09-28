@@ -10,7 +10,7 @@ sidebar:
 Modules share behaviour through **services** registered under typed **tokens** — never through string keys or imports of another module's internals.
 
 ```ts
-import { createServiceToken } from '@blixis/contracts'
+import { createServiceToken } from '@blixis-io/contracts'
 
 export interface SeoService {
   titleFor(entryId: string): Promise<string>

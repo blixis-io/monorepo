@@ -1,4 +1,4 @@
-import type { EventEnvelope } from '@blixis/contracts'
+import type { EventEnvelope } from '@blixis-io/contracts'
 
 /**
  * The public body of a webhook delivery (plan 015.002) — a versioned integration contract:

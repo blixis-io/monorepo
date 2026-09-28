@@ -1,4 +1,4 @@
-import { createServiceToken } from '@blixis/contracts'
+import { createServiceToken } from '@blixis-io/contracts'
 import { describe, expect, it } from 'vitest'
 import { BACKGROUND_HANDLERS, type QueueBatchLike } from './background.ts'
 import { createBlixis } from './create-blixis.ts'
@@ -141,7 +141,7 @@ describe('background dispatch', () => {
       },
       rest: {
         path: '/conn',
-        app: new Hono<import('@blixis/contracts').ModuleHonoEnv>().get('/', (c) =>
+        app: new Hono<import('@blixis-io/contracts').ModuleHonoEnv>().get('/', (c) =>
           c.json({ b: c.var.services.get(CONN).binding }),
         ),
       },

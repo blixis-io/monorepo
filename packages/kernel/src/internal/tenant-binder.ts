@@ -3,7 +3,7 @@ import {
   type RequestContext,
   TENANT_BINDER,
   type TenantContext,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import type { RequestServiceScope } from './services.ts'
 
 /** Provides `REQUEST_CONTEXT` and a `TENANT_BINDER` that re-binds it with a verified tenant. */

@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /**
  * Entry timestamps at millisecond precision. List cursors carry `updated_at` as an ISO string

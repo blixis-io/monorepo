@@ -1,4 +1,4 @@
-import { idColumn, timestamps } from '@blixis/database'
+import { idColumn, timestamps } from '@blixis-io/database'
 import { jsonb, pgSchema, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 export const usersSchema = pgSchema('users')

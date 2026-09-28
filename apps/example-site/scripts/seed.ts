@@ -10,7 +10,7 @@
  */
 import process from 'node:process'
 import { deflateSync } from 'node:zlib'
-import { type BlixisClient, createBlixisClient } from '@blixis/sdk'
+import { type BlixisClient, createBlixisClient } from '@blixis-io/sdk'
 
 /** A solid-colour PNG, generated so the example needs no binary files. */
 export function png(width: number, height: number, rgb: [number, number, number]): Uint8Array {

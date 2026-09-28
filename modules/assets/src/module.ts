@@ -9,10 +9,10 @@ import {
   type ModuleHonoEnv,
   OBJECT_STORAGE,
   subscribe,
-} from '@blixis/contracts'
-import { DATABASE, isId } from '@blixis/database'
-import { BACKGROUND_HANDLERS, defineModule } from '@blixis/kernel'
-import { LOCALE_SERVICE, spaceDeleted } from '@blixis/spaces'
+} from '@blixis-io/contracts'
+import { DATABASE, isId } from '@blixis-io/database'
+import { BACKGROUND_HANDLERS, defineModule } from '@blixis-io/kernel'
+import { LOCALE_SERVICE, spaceDeleted } from '@blixis-io/spaces'
 import { Hono } from 'hono'
 import { ASSET_SERVICE, createAssetService } from './application/asset.service.ts'
 import { ASSETS_CONFIG, type AssetsConfig, DEFAULT_ASSETS_CONFIG } from './config.ts'

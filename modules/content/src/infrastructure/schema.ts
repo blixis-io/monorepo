@@ -1,4 +1,4 @@
-import { idColumn, tenantColumns, timestamps } from '@blixis/database'
+import { idColumn, tenantColumns, timestamps } from '@blixis-io/database'
 import { integer, jsonb, pgSchema, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import type { ContentTypeKind, FieldDefinition, FieldGroup } from '../domain/content-type.ts'
 

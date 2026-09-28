@@ -1,4 +1,4 @@
-import { definePermission } from '@blixis/contracts'
+import { definePermission } from '@blixis-io/contracts'
 
 /** Permissions of the auth module. Personal API tokens need none: they belong to their owner. */
 export const AUTH_PERMISSIONS = {

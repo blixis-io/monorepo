@@ -1,4 +1,4 @@
-import { InfrastructureError, type MigrationExecutor } from '@blixis/contracts'
+import { InfrastructureError, type MigrationExecutor } from '@blixis-io/contracts'
 import { Client } from 'pg'
 import { translateDatabaseError } from '../errors.ts'
 import {

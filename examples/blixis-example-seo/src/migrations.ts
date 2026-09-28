@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /** Creates the plugin's schema. Migration ids are unique per module and never change. */
 export const createSeo = defineMigration({

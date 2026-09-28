@@ -1,4 +1,4 @@
-import { definePermission } from '@blixis/contracts'
+import { definePermission } from '@blixis-io/contracts'
 
 /** Permissions of the assets module. */
 export const ASSET_PERMISSIONS = {

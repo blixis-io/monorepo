@@ -1,5 +1,5 @@
-import { InfrastructureError, type StandardSchemaV1 } from '@blixis/contracts'
-import { type BlixisApp, type ErrorReporter, toProblemResponse } from '@blixis/kernel'
+import { InfrastructureError, type StandardSchemaV1 } from '@blixis-io/contracts'
+import { type BlixisApp, type ErrorReporter, toProblemResponse } from '@blixis-io/kernel'
 import { parseEnv } from './env.ts'
 
 /** The Worker default export produced by {@link createWorkerHandler} (all handlers present). */

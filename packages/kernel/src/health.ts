@@ -1,4 +1,4 @@
-import { createServiceToken, ModuleError, type ServiceRegistry } from '@blixis/contracts'
+import { createServiceToken, ModuleError, type ServiceRegistry } from '@blixis-io/contracts'
 
 /**
  * A readiness check contributed by a platform module (e.g. "can we query the database").

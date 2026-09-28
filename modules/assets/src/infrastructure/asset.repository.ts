@@ -1,4 +1,4 @@
-import { type Database, type Transaction, tenantScope } from '@blixis/database'
+import { type Database, type Transaction, tenantScope } from '@blixis-io/database'
 import { and, desc, eq, inArray, isNotNull, isNull, like, lt, type SQL, sql } from 'drizzle-orm'
 import type { Asset, AssetUploadStatus, LocalizedText } from '../domain/asset.ts'
 import { assets } from './schema.ts'

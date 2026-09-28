@@ -1,10 +1,10 @@
-import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE, contentModule } from '@blixis/content'
-import { OBJECT_STORAGE } from '@blixis/contracts'
-import { databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { graphqlModule } from '@blixis/graphql'
-import { permissionsModule } from '@blixis/permissions'
-import { LOCALE_SERVICE, spacesModule, TENANCY_SERVICE } from '@blixis/spaces'
+import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE, contentModule } from '@blixis-io/content'
+import { OBJECT_STORAGE } from '@blixis-io/contracts'
+import { databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { graphqlModule } from '@blixis-io/graphql'
+import { permissionsModule } from '@blixis-io/permissions'
+import { LOCALE_SERVICE, spacesModule, TENANCY_SERVICE } from '@blixis-io/spaces'
 import {
   asDeliveryKey,
   asUser,
@@ -13,13 +13,13 @@ import {
   createTestBlixis,
   serviceOverride,
   type TestBlixis,
-} from '@blixis/testing'
+} from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { USER_SERVICE, usersModule } from '@blixis-io/users'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { ASSET_SERVICE, assetsModule } from '../src/index.ts'
 import { png } from './fixtures.ts'

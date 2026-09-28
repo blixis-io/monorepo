@@ -1,4 +1,4 @@
-import { InfrastructureError, UnauthorizedError } from '@blixis/contracts'
+import { InfrastructureError, UnauthorizedError } from '@blixis-io/contracts'
 import { fromBase64Url, toBase64Url } from './encoding.ts'
 
 /** Claims of a Blixis access token (ADR 0009). No roles or permissions. */

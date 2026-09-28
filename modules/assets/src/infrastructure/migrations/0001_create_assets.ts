@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /**
  * Asset metadata per environment (§17, ADR 0013). The binary lives in object storage under

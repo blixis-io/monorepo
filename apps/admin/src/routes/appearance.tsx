@@ -1,4 +1,4 @@
-import type { Theme } from '@blixis/sdk'
+import type { Theme } from '@blixis-io/sdk'
 import { useQuery } from '@tanstack/react-query'
 import { createRoute } from '@tanstack/react-router'
 import { Check, ExternalLink, Monitor, Moon, Sun } from 'lucide-react'

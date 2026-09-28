@@ -1,18 +1,18 @@
 ---
 title: SDK
-description: Use @blixis/sdk to manage spaces, content, assets, and webhooks from any JavaScript runtime — typed, retried, and with clear errors.
+description: Use @blixis-io/sdk to manage spaces, content, assets, and webhooks from any JavaScript runtime — typed, retried, and with clear errors.
 sidebar:
   order: 3
 ---
 
 import { Aside } from '@astrojs/starlight/components'
 
-`@blixis/sdk` is the typed client for the Blixis APIs. It has **no dependencies** and runs wherever `fetch` does: Cloudflare Workers, browsers, Node 20+, Deno, Bun, and frameworks such as Astro. Its types are generated from the [OpenAPI document](/concepts/api-reference/), so they always match the API.
+`@blixis-io/sdk` is the typed client for the Blixis APIs. It has **no dependencies** and runs wherever `fetch` does: Cloudflare Workers, browsers, Node 20+, Deno, Bun, and frameworks such as Astro. Its types are generated from the [OpenAPI document](/concepts/api-reference/), so they always match the API.
 
 ## Connect
 
 ```ts
-import { createBlixisClient } from '@blixis/sdk'
+import { createBlixisClient } from '@blixis-io/sdk'
 
 const blixis = createBlixisClient({
   baseUrl: 'https://api.example.com',
@@ -37,7 +37,7 @@ For scripts, `signIn({ baseUrl }, { email, password })` returns a session whose 
 First-party browser apps, such as the admin, use `createBrowserSession`. The access token stays in memory; the refresh token is an `HttpOnly; SameSite=Strict` cookie that scripts can't read. The session renews the access token before it expires and after a `401`, one refresh at a time (across tabs too, with the Web Locks API).
 
 ```ts
-import { createBrowserSession } from '@blixis/sdk'
+import { createBrowserSession } from '@blixis-io/sdk'
 
 const session = createBrowserSession({ baseUrl: 'https://api.example.com' })
 if ((await session.restore()) === null) await session.signIn({ email, password })
@@ -108,7 +108,7 @@ The operation ids are in the [OpenAPI document](/concepts/api-reference/) (`GET 
 Websites read published content through the [Delivery API](/content/delivery-api/) with a **delivery key**:
 
 ```ts
-import { createBlixisGraphQLClient } from '@blixis/sdk'
+import { createBlixisGraphQLClient } from '@blixis-io/sdk'
 
 const delivery = createBlixisGraphQLClient({
   baseUrl: 'https://api.example.com',
@@ -165,7 +165,7 @@ Introspection needs a member token in production; generate against staging or wi
 Failed calls throw `BlixisApiError`:
 
 ```ts
-import { BlixisApiError } from '@blixis/sdk'
+import { BlixisApiError } from '@blixis-io/sdk'
 
 try {
   await blixis.entries.publish(entryId)

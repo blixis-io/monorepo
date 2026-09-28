@@ -1,4 +1,4 @@
-import { InfrastructureError, type Logger } from '@blixis/contracts'
+import { InfrastructureError, type Logger } from '@blixis-io/contracts'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { defineEnvSchema, parseEnv } from './env.ts'

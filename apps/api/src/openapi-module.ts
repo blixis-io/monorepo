@@ -1,5 +1,5 @@
-import type { ModuleHonoEnv } from '@blixis/contracts'
-import { defineModule } from '@blixis/kernel'
+import type { ModuleHonoEnv } from '@blixis-io/contracts'
+import { defineModule } from '@blixis-io/kernel'
 import { Hono } from 'hono'
 import spec from '../openapi.json' with { type: 'json' }
 

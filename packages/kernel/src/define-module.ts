@@ -1,4 +1,4 @@
-import type { BlixisModule, ModuleFactory } from '@blixis/contracts'
+import type { BlixisModule, ModuleFactory } from '@blixis-io/contracts'
 
 /**
  * Defines a module and returns its factory, so consumers always write `content()` in the

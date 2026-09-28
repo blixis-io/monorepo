@@ -6,8 +6,8 @@ import {
   REQUEST_CONTEXT,
   subscribe,
   ValidationError,
-} from '@blixis/contracts'
-import { createBlixis, createJsonLogger, defineModule } from '@blixis/kernel'
+} from '@blixis-io/contracts'
+import { createBlixis, createJsonLogger, defineModule } from '@blixis-io/kernel'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { inProcessTransport } from './in-process.ts'
@@ -147,7 +147,7 @@ describe('dispatchEnvelope with invalid input', () => {
     const { app } = setup()
     const { dispatchEnvelope } = await import('./dispatch.ts')
     const { EVENT_REGISTRY } = await import('./module.ts')
-    const { KERNEL_CONTRIBUTIONS, RUN_IN_SCOPE } = await import('@blixis/kernel')
+    const { KERNEL_CONTRIBUTIONS, RUN_IN_SCOPE } = await import('@blixis-io/kernel')
     await app.runInScope({}, async ({ services, logger }) => {
       await expect(
         dispatchEnvelope(

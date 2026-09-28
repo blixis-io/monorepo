@@ -1,11 +1,11 @@
-import type { EnvironmentTenant } from '@blixis/content-api'
+import type { EnvironmentTenant } from '@blixis-io/content-api'
 import {
   type Database,
   newId,
   type Transaction,
   tenantScope,
   translateDatabaseError,
-} from '@blixis/database'
+} from '@blixis-io/database'
 import { and, asc, count, eq } from 'drizzle-orm'
 import type { ContentType, ContentTypeKind } from '../domain/content-type.ts'
 import { contentTypes } from './schema.ts'

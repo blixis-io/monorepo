@@ -1,4 +1,4 @@
-import type { ContentType, Field } from '@blixis/sdk'
+import type { ContentType, Field } from '@blixis-io/sdk'
 import { describe, expect, it } from 'vitest'
 import {
   entryTitle,

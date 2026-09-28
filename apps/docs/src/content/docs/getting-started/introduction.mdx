@@ -11,18 +11,18 @@ Blixis is a **modular headless CMS** that runs on **Cloudflare Workers**. Everyt
 
 ## One contract for every module
 
-A module shipped with Blixis (`@blixis/content`) and a module you publish to npm (`@acme/blixis-seo`) implement **the same public contract** from [`@blixis/contracts`](/api/contracts/readme/). Nothing is special-cased. If a feature needs internal imports from another module, the contract is incomplete — and we treat that as a bug.
+A module shipped with Blixis (`@blixis-io/content`) and a module you publish to npm (`@acme/blixis-seo`) implement **the same public contract** from [`@blixis-io/contracts`](/api/contracts/readme/). Nothing is special-cased. If a feature needs internal imports from another module, the contract is incomplete — and we treat that as a bug.
 
 ```text
 apps/api (composition root)
   └─ modules: [auth(), users(), spaces(), content(), assets(), seo()]
         │
         ▼
-@blixis/kernel ── validates the module graph, registers services,
+@blixis-io/kernel ── validates the module graph, registers services,
                   mounts REST routes, composes GraphQL, wires events
         │
         ▼
-@blixis/contracts ── the types and helpers every module builds against
+@blixis-io/contracts ── the types and helpers every module builds against
 ```
 
 Modules communicate only through **public contracts**: typed [service tokens](/concepts/services-and-capabilities/), [capabilities](/concepts/services-and-capabilities/#capabilities), and [events](/concepts/events/).
@@ -31,22 +31,22 @@ Modules communicate only through **public contracts**: typed [service tokens](/c
 
 | Package | Status | What it gives you |
 |---|---|---|
-| `@blixis/contracts` | ✅ available | Module contract, service tokens, capabilities, errors, validation, events, permissions, request context, migrations |
-| `@blixis/kernel` | ✅ available | [`defineModule`](/api/kernel/functions/definemodule/) and [`createBlixis`](/api/kernel/functions/createblixis/): module graph validation, services and scopes, lifecycle, REST routes, error responses, health and readiness, queue and cron dispatch |
-| `@blixis/database` | ✅ available | Postgres through Hyperdrive with Drizzle: per-request connections, transactions, migrations, IDs and tenant scoping, idempotency keys ([Database](/concepts/database/)) |
-| `@blixis/events` | ✅ available | Typed events, the transactional outbox, Cloudflare Queues delivery, and idempotent consumers ([Events](/concepts/events/)) |
-| `@blixis/testing` | ✅ available | [`createTestBlixis`](/concepts/testing/), test databases, `captureEvents`, test actors, service overrides, captured logs |
-| `@blixis/shared` | ✅ available | Small runtime-neutral helpers: UUIDv7 ids ([`newId`](/api/shared/functions/newid/)) and invariants |
-| `@blixis/cloudflare` | ✅ available | The Worker entry (`createWorkerHandler`), typed env parsing, the Queues sender, and the Cache API store |
-| `@blixis/graphql` | ✅ available | `/graphql` with GraphQL Yoga: schema fragments from modules, per-request schemas, limits, batching, response caching ([GraphQL](/concepts/graphql/)) |
-| `@blixis/users` | ✅ available | Users and memberships |
-| `@blixis/auth` | ✅ available | Sign-in with JWT and rotating refresh tokens, API tokens, delivery and preview keys ([Authentication](/concepts/authentication/)) |
-| `@blixis/spaces` | ✅ available | Organizations, spaces, environments, locales ([Tenancy](/concepts/tenancy/)) |
-| `@blixis/permissions` | ✅ available | Permission catalog, system and custom roles, authorization ([Permissions](/concepts/permissions/)) |
-| `@blixis/content` | ✅ available | Content types, entries, versions, publishing, and the typed [Delivery API](/content/delivery-api/) with caching |
-| `@blixis/assets` | ✅ available | Files in R2 with metadata, uploads, delivery ([Assets API](/content/assets-api/)) |
-| `@blixis/webhooks` | ✅ available | Signed notifications with retries and logs ([Webhooks API](/content/webhooks-api/)) |
-| `@blixis/sdk` | ✅ available | Typed client for the Management API ([SDK](/getting-started/sdk/)) |
+| `@blixis-io/contracts` | ✅ available | Module contract, service tokens, capabilities, errors, validation, events, permissions, request context, migrations |
+| `@blixis-io/kernel` | ✅ available | [`defineModule`](/api/kernel/functions/definemodule/) and [`createBlixis`](/api/kernel/functions/createblixis/): module graph validation, services and scopes, lifecycle, REST routes, error responses, health and readiness, queue and cron dispatch |
+| `@blixis-io/database` | ✅ available | Postgres through Hyperdrive with Drizzle: per-request connections, transactions, migrations, IDs and tenant scoping, idempotency keys ([Database](/concepts/database/)) |
+| `@blixis-io/events` | ✅ available | Typed events, the transactional outbox, Cloudflare Queues delivery, and idempotent consumers ([Events](/concepts/events/)) |
+| `@blixis-io/testing` | ✅ available | [`createTestBlixis`](/concepts/testing/), test databases, `captureEvents`, test actors, service overrides, captured logs |
+| `@blixis-io/shared` | ✅ available | Small runtime-neutral helpers: UUIDv7 ids ([`newId`](/api/shared/functions/newid/)) and invariants |
+| `@blixis-io/cloudflare` | ✅ available | The Worker entry (`createWorkerHandler`), typed env parsing, the Queues sender, and the Cache API store |
+| `@blixis-io/graphql` | ✅ available | `/graphql` with GraphQL Yoga: schema fragments from modules, per-request schemas, limits, batching, response caching ([GraphQL](/concepts/graphql/)) |
+| `@blixis-io/users` | ✅ available | Users and memberships |
+| `@blixis-io/auth` | ✅ available | Sign-in with JWT and rotating refresh tokens, API tokens, delivery and preview keys ([Authentication](/concepts/authentication/)) |
+| `@blixis-io/spaces` | ✅ available | Organizations, spaces, environments, locales ([Tenancy](/concepts/tenancy/)) |
+| `@blixis-io/permissions` | ✅ available | Permission catalog, system and custom roles, authorization ([Permissions](/concepts/permissions/)) |
+| `@blixis-io/content` | ✅ available | Content types, entries, versions, publishing, and the typed [Delivery API](/content/delivery-api/) with caching |
+| `@blixis-io/assets` | ✅ available | Files in R2 with metadata, uploads, delivery ([Assets API](/content/assets-api/)) |
+| `@blixis-io/webhooks` | ✅ available | Signed notifications with retries and logs ([Webhooks API](/content/webhooks-api/)) |
+| `@blixis-io/sdk` | ✅ available | Typed client for the Management API ([SDK](/getting-started/sdk/)) |
 | Releases, admin UI | 🚧 next | Follow the [roadmap](https://github.com/blixis-io/monorepo/blob/main/docs/ROADMAP.md) |
 
 <Aside type="caution" title="Early development">

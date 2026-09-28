@@ -1,5 +1,5 @@
 {
-  "name": "@blixis/contracts",
+  "name": "@blixis-io/contracts",
   "version": "0.0.0",
   "description": "Public contracts for Blixis modules: module definition, services, capabilities, errors, events, permissions, and context",
   "type": "module",
@@ -21,7 +21,7 @@
     "hono": "^4.13.0"
   },
   "devDependencies": {
-    "@blixis/tsconfig": "workspace:*",
+    "@blixis-io/tsconfig": "workspace:*",
     "hono": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",

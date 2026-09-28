@@ -1,4 +1,4 @@
-import type { ErrorReporter } from '@blixis/kernel'
+import type { ErrorReporter } from '@blixis-io/kernel'
 import * as Sentry from '@sentry/cloudflare'
 
 type SentryEvent = Parameters<NonNullable<Sentry.CloudflareOptions['beforeSend']>>[0]

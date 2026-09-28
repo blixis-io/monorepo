@@ -1,4 +1,4 @@
-import type { GraphQLResolverContext } from '@blixis/contracts'
+import type { GraphQLResolverContext } from '@blixis-io/contracts'
 
 /**
  * The context every resolver receives (§10): the public `GraphQLResolverContext` of

@@ -1,16 +1,16 @@
-import { databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { outboxModule } from '@blixis/events/outbox'
-import { serviceOverride } from '@blixis/kernel'
-import { permissionsModule } from '@blixis/permissions'
-import { spacesModule } from '@blixis/spaces'
-import { captureEvents, createTestBlixis, type TestBlixis } from '@blixis/testing'
+import { databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { outboxModule } from '@blixis-io/events/outbox'
+import { serviceOverride } from '@blixis-io/kernel'
+import { permissionsModule } from '@blixis-io/permissions'
+import { spacesModule } from '@blixis-io/spaces'
+import { captureEvents, createTestBlixis, type TestBlixis } from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { usersModule } from '@blixis-io/users'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import {

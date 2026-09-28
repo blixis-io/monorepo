@@ -21,13 +21,13 @@ Import only these Blixis packages in a module's source. The repository's boundar
 
 | Package | For |
 |---|---|
-| `@blixis/contracts` | tokens, errors, events, permissions, validation, request context, the module contract |
-| `@blixis/kernel` | `defineModule` |
-| `@blixis/content-api` | `CONTENT_SERVICE`, `CONTENT_TYPE_SERVICE`, entry and content type types, `entry.*` and `content-type.*` events |
-| `@blixis/database` | the `DATABASE` token, tenancy helpers, and transactions, for modules that store data |
-| `@blixis/testing` | tests only: `createTestBlixis`, fake actors, a test database, captured events |
+| `@blixis-io/contracts` | tokens, errors, events, permissions, validation, request context, the module contract |
+| `@blixis-io/kernel` | `defineModule` |
+| `@blixis-io/content-api` | `CONTENT_SERVICE`, `CONTENT_TYPE_SERVICE`, entry and content type types, `entry.*` and `content-type.*` events |
+| `@blixis-io/database` | the `DATABASE` token, tenancy helpers, and transactions, for modules that store data |
+| `@blixis-io/testing` | tests only: `createTestBlixis`, fake actors, a test database, captured events |
 
-Never import a first-party implementation such as `@blixis/content` in a module's source: depend on its capability package instead.
+Never import a first-party implementation such as `@blixis-io/content` in a module's source: depend on its capability package instead.
 
 ## 1. Set up the package
 
@@ -39,10 +39,10 @@ Never import a first-party implementation such as `@blixis/content` in a module'
   "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
   "files": ["dist"],
   "peerDependencies": {
-    "@blixis/content-api": "^1.0.0",
-    "@blixis/contracts": "^1.0.0",
-    "@blixis/database": "^1.0.0",
-    "@blixis/kernel": "^1.0.0",
+    "@blixis-io/content-api": "^1.0.0",
+    "@blixis-io/contracts": "^1.0.0",
+    "@blixis-io/database": "^1.0.0",
+    "@blixis-io/kernel": "^1.0.0",
     "drizzle-orm": "^0.45.3",
     "hono": "^4.13.0"
   },
@@ -59,9 +59,9 @@ Never import a first-party implementation such as `@blixis/content` in a module'
 `defineModule` returns a factory, so apps always write `seo()` or `seo({ … })`. Options are validated with `configSchema` at startup and reach `setup` as `ctx.config`.
 
 ```ts title="src/index.ts"
-import { BLIXIS_CAPABILITIES } from '@blixis/contracts'
-import { DATABASE } from '@blixis/database'
-import { defineModule } from '@blixis/kernel'
+import { BLIXIS_CAPABILITIES } from '@blixis-io/contracts'
+import { DATABASE } from '@blixis-io/database'
+import { defineModule } from '@blixis-io/kernel'
 import { z } from 'zod'
 
 export interface SeoOptions {
@@ -117,8 +117,8 @@ export const modules = [/* first-party modules */, seo({ defaultTitle: 'My site'
 Expose your logic as a service behind a token. Other modules use the token, never your internals; tests can replace it with `serviceOverride`.
 
 ```ts title="src/service.ts"
-import type { EnvironmentTenant } from '@blixis/content-api'
-import { createServiceToken, type ServiceToken } from '@blixis/contracts'
+import type { EnvironmentTenant } from '@blixis-io/content-api'
+import { createServiceToken, type ServiceToken } from '@blixis-io/contracts'
 
 export interface SeoService {
   get(tenant: EnvironmentTenant, entryId: string): Promise<SeoMetadata>
@@ -135,7 +135,7 @@ Prefix token ids with your package name. Request-scoped factories (`{ scope: 're
 Each module owns its tables, in **its own Postgres schema**. Nobody else reads them, and there are no foreign keys to other modules' tables.
 
 ```ts title="src/schema.ts"
-import { tenantColumns, timestamps } from '@blixis/database'
+import { tenantColumns, timestamps } from '@blixis-io/database'
 import { pgSchema, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 export const seoSchema = pgSchema('acme_seo')
@@ -151,7 +151,7 @@ export const seoEntries = seoSchema.table('entries', {
 ```
 
 ```ts title="src/migrations.ts"
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 export const createSeo = defineMigration({
   id: '0001_create_seo',
@@ -188,8 +188,8 @@ const [row] = await db
 Routes are Hono apps typed with `ModuleHonoEnv`: `c.var.requestContext` (actor, tenant, logger) and `c.var.services`. They are mounted under `/api/v1` plus your `path`; several modules may share a prefix.
 
 ```ts title="src/routes.ts"
-import { CONTENT_SERVICE } from '@blixis/content-api'
-import { AUTHORIZATION_SERVICE, type ModuleHonoEnv, validate } from '@blixis/contracts'
+import { CONTENT_SERVICE } from '@blixis-io/content-api'
+import { AUTHORIZATION_SERVICE, type ModuleHonoEnv, validate } from '@blixis-io/contracts'
 import { Hono } from 'hono'
 
 export const seoRoutes = new Hono<ModuleHonoEnv>()
@@ -226,7 +226,7 @@ async function authorize(c: Context<ModuleHonoEnv>, permission: PermissionDefini
 ## 6. Permissions
 
 ```ts title="src/permissions.ts"
-import { definePermission } from '@blixis/contracts'
+import { definePermission } from '@blixis-io/contracts'
 
 export const SEO_PERMISSIONS = {
   read: definePermission({ id: 'seo.read', description: 'Read SEO metadata of entries', defaultRoles: ['admin', 'editor', 'viewer'] }),
@@ -241,7 +241,7 @@ Permissions are `<module>.<action>` (or `<module>.<resource>.<action>`), granted
 Contribute SDL and resolvers. Resolvers receive a `GraphQLResolverContext` (request context, services, per-request loaders, response headers).
 
 ```ts title="src/graphql.ts"
-import type { GraphQLContribution, GraphQLResolverContext } from '@blixis/contracts'
+import type { GraphQLContribution, GraphQLResolverContext } from '@blixis-io/contracts'
 
 export const seoGraphQL: GraphQLContribution<GraphQLResolverContext> = {
   typeDefs: /* GraphQL */ `
@@ -271,8 +271,8 @@ export const seoGraphQL: GraphQLContribution<GraphQLResolverContext> = {
 React to other modules' events with `subscribe`, and list the subscriptions in `events`:
 
 ```ts title="src/events.ts"
-import { entryDeleted, entryPublished } from '@blixis/content-api'
-import { spaceDeleted, subscribe } from '@blixis/contracts'
+import { entryDeleted, entryPublished } from '@blixis-io/content-api'
+import { spaceDeleted, subscribe } from '@blixis-io/contracts'
 
 export const onEntryPublished = subscribe(entryPublished, 'record-published', async (envelope, ctx) => {
   const { entryId, organizationId, spaceId, environmentId } = envelope.payload
@@ -293,14 +293,14 @@ export const onSpaceDeleted = subscribe(spaceDeleted, 'delete-space-seo', async 
 Boot your module with the first-party modules it needs, on a real Postgres database:
 
 ```ts title="test/seo.test.ts"
-import { contentModule } from '@blixis/content'
-import { databaseModule } from '@blixis/database'
-import { graphqlModule } from '@blixis/graphql'
-import { permissionsModule } from '@blixis/permissions'
-import { spacesModule } from '@blixis/spaces'
-import { captureEvents, createTestBlixis } from '@blixis/testing'
-import { createTestDatabase } from '@blixis/testing/database'
-import { usersModule } from '@blixis/users'
+import { contentModule } from '@blixis-io/content'
+import { databaseModule } from '@blixis-io/database'
+import { graphqlModule } from '@blixis-io/graphql'
+import { permissionsModule } from '@blixis-io/permissions'
+import { spacesModule } from '@blixis-io/spaces'
+import { captureEvents, createTestBlixis } from '@blixis-io/testing'
+import { createTestDatabase } from '@blixis-io/testing/database'
+import { usersModule } from '@blixis-io/users'
 import seo from '../src/index.ts'
 
 const firstParty = () => [databaseModule(), usersModule(), spacesModule(), permissionsModule(), contentModule(), graphqlModule()]
@@ -322,7 +322,7 @@ Tests may import first-party modules to boot a realistic app; the module's sourc
 
 ## Don't
 
-- Import `@blixis/content` or other implementation packages in a module's source, or reach into another package's files.
+- Import `@blixis-io/content` or other implementation packages in a module's source, or reach into another package's files.
 - Read or join another module's tables. Use its service.
 - Compare role names (`role === 'admin'`). Check permissions.
 - Trust ids from requests without a tenant check.

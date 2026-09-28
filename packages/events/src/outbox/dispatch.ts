@@ -1,5 +1,5 @@
-import type { EventEnvelope, Logger } from '@blixis/contracts'
-import { type Database, withTransaction } from '@blixis/database'
+import type { EventEnvelope, Logger } from '@blixis-io/contracts'
+import { type Database, withTransaction } from '@blixis-io/database'
 import { sql } from 'drizzle-orm'
 import type { QueueSender } from '../queue.ts'
 

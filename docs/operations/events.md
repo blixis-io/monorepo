@@ -69,7 +69,7 @@ from events.outbox group by type;
 ## Verifying the event path end to end
 
 1. Start `npx wrangler tail blixis-api-<env> --format pretty` with **no** `--search` filter. Queue invocations aren't log lines, so a search hides them.
-2. Run the content smoke test (`pnpm --filter @blixis/smoke content`, see `tooling/smoke`).
+2. Run the content smoke test (`pnpm --filter @blixis-io/smoke content`, see `tooling/smoke`).
 3. Expect the HTTP requests, then `outbox.dispatched` for the publish, unpublish and delete, and within about 5–10 s a `Queue blixis-events-<env> (N messages) - Ok` invocation. N counts every event of the run, best-effort ones included.
 
 Verified on staging on 2026-09-25 (CP5): the smoke run's 13 requests were followed by `Queue blixis-events-staging (10 messages) - Ok` one second after the last request.

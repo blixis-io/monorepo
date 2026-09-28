@@ -1,4 +1,4 @@
-import { createServiceToken } from '@blixis/contracts'
+import { createServiceToken } from '@blixis-io/contracts'
 import { test } from 'vitest'
 import { serviceOverride } from '../src/index.ts'
 

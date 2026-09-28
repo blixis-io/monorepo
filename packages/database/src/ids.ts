@@ -1,7 +1,7 @@
-import { newId } from '@blixis/shared'
+import { newId } from '@blixis-io/shared'
 import { timestamp, uuid } from 'drizzle-orm/pg-core'
 
-export { idTimestamp, isId, newId } from '@blixis/shared'
+export { idTimestamp, isId, newId } from '@blixis-io/shared'
 
 /** Primary key column: `id uuid primary key`, filled with {@link newId} by the application. */
 export const idColumn = () => uuid('id').primaryKey().$defaultFn(newId)

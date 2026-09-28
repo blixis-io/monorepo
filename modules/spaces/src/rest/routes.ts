@@ -1,5 +1,5 @@
-import { ForbiddenError, type ModuleHonoEnv } from '@blixis/contracts'
-import { requireTenant } from '@blixis/database'
+import { ForbiddenError, type ModuleHonoEnv } from '@blixis-io/contracts'
+import { requireTenant } from '@blixis-io/database'
 import type { Context } from 'hono'
 import { Hono } from 'hono'
 import { ENVIRONMENT_SERVICE, LOCALE_SERVICE } from '../application/locales.service.ts'

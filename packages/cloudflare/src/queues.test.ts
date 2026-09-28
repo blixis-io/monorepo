@@ -1,6 +1,11 @@
-import { defineEvent, EVENT_BUS, type EventEnvelope, InfrastructureError } from '@blixis/contracts'
-import { eventsModule, queueTransport } from '@blixis/events'
-import { createBlixis, noopLogger } from '@blixis/kernel'
+import {
+  defineEvent,
+  EVENT_BUS,
+  type EventEnvelope,
+  InfrastructureError,
+} from '@blixis-io/contracts'
+import { eventsModule, queueTransport } from '@blixis-io/events'
+import { createBlixis, noopLogger } from '@blixis-io/kernel'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { cloudflareQueueSender, eventsQueueModule, QUEUE_LIMITS } from './queues.ts'

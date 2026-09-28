@@ -1,4 +1,4 @@
-import { type Actor, isPermissionId, type PermissionId } from '@blixis/contracts'
+import { type Actor, isPermissionId, type PermissionId } from '@blixis-io/contracts'
 import type { TestBlixis } from './create-test-blixis.ts'
 import {
   type IsolationParams,

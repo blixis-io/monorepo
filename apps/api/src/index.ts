@@ -1,5 +1,5 @@
-import { createWorkerHandler } from '@blixis/cloudflare'
-import { createBlixis } from '@blixis/kernel'
+import { createWorkerHandler } from '@blixis-io/cloudflare'
+import { createBlixis } from '@blixis-io/kernel'
 import * as Sentry from '@sentry/cloudflare'
 import { z } from 'zod'
 import { modules } from './blixis.config.ts'

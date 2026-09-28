@@ -21,19 +21,19 @@ function pkg(name: string, dir: string, deps: Partial<WorkspacePackage> = {}): W
   }
 }
 
-const shared = pkg('@blixis/shared', 'packages/shared')
-const kernel = pkg('@blixis/kernel', 'packages/kernel', {
-  dependencies: { '@blixis/shared': 'workspace:*' },
+const shared = pkg('@blixis-io/shared', 'packages/shared')
+const kernel = pkg('@blixis-io/kernel', 'packages/kernel', {
+  dependencies: { '@blixis-io/shared': 'workspace:*' },
 })
-const testing = pkg('@blixis/testing', 'packages/testing')
-const cloudflare = pkg('@blixis/cloudflare', 'packages/cloudflare')
-const content = pkg('@blixis/content', 'modules/content', {
-  dependencies: { '@blixis/cloudflare': 'workspace:*', '@blixis/shared': 'workspace:*' },
-  devDependencies: { '@blixis/testing': 'workspace:*' },
+const testing = pkg('@blixis-io/testing', 'packages/testing')
+const cloudflare = pkg('@blixis-io/cloudflare', 'packages/cloudflare')
+const content = pkg('@blixis-io/content', 'modules/content', {
+  dependencies: { '@blixis-io/cloudflare': 'workspace:*', '@blixis-io/shared': 'workspace:*' },
+  devDependencies: { '@blixis-io/testing': 'workspace:*' },
 })
-const sdk = pkg('@blixis/sdk', 'packages/sdk')
-const admin = pkg('@blixis/admin', 'apps/admin', {
-  dependencies: { '@blixis/sdk': 'workspace:*', '@blixis/shared': 'workspace:*' },
+const sdk = pkg('@blixis-io/sdk', 'packages/sdk')
+const admin = pkg('@blixis-io/admin', 'apps/admin', {
+  dependencies: { '@blixis-io/sdk': 'workspace:*', '@blixis-io/shared': 'workspace:*' },
 })
 const all = [shared, kernel, testing, cloudflare, content, sdk, admin]
 
@@ -42,9 +42,9 @@ const rules = (path: string, content: string) =>
 
 describe('splitSpecifier', () => {
   it('splits scoped and unscoped specifiers', () => {
-    expect(splitSpecifier('@blixis/kernel')).toEqual({ name: '@blixis/kernel', subpath: '.' })
-    expect(splitSpecifier('@blixis/kernel/src/x.ts')).toEqual({
-      name: '@blixis/kernel',
+    expect(splitSpecifier('@blixis-io/kernel')).toEqual({ name: '@blixis-io/kernel', subpath: '.' })
+    expect(splitSpecifier('@blixis-io/kernel/src/x.ts')).toEqual({
+      name: '@blixis-io/kernel',
       subpath: './src/x.ts',
     })
     expect(splitSpecifier('hono/utils')).toEqual({ name: 'hono', subpath: './utils' })
@@ -54,7 +54,7 @@ describe('splitSpecifier', () => {
 describe('checkImports', () => {
   it('accepts public imports of declared workspace packages and in-package relative imports', () => {
     expect(
-      rules('packages/kernel/src/a.ts', "import { x } from '@blixis/shared'\nimport './b.ts'"),
+      rules('packages/kernel/src/a.ts', "import { x } from '@blixis-io/shared'\nimport './b.ts'"),
     ).toEqual([])
   })
 
@@ -65,34 +65,34 @@ describe('checkImports', () => {
   })
 
   it('flags undeclared workspace imports', () => {
-    expect(rules('packages/kernel/src/a.ts', "import { sdk } from '@blixis/sdk'")).toEqual([
+    expect(rules('packages/kernel/src/a.ts', "import { sdk } from '@blixis-io/sdk'")).toEqual([
       'undeclared-workspace-import',
     ])
   })
 
   it('flags non-exported subpaths', () => {
-    expect(rules('packages/kernel/src/a.ts', "import '@blixis/shared/src/assert.ts'")).toEqual([
+    expect(rules('packages/kernel/src/a.ts', "import '@blixis-io/shared/src/assert.ts'")).toEqual([
       'non-exported-subpath',
     ])
   })
 
-  it('allows @blixis/testing only in test files', () => {
-    expect(rules('modules/content/src/a.ts', "import '@blixis/testing'")).toEqual([
+  it('allows @blixis-io/testing only in test files', () => {
+    expect(rules('modules/content/src/a.ts', "import '@blixis-io/testing'")).toEqual([
       'test-only-import',
     ])
-    expect(rules('modules/content/src/a.test.ts', "import '@blixis/testing'")).toEqual([])
-    expect(rules('modules/content/test/flow.test.ts', "import '@blixis/testing'")).toEqual([])
+    expect(rules('modules/content/src/a.test.ts', "import '@blixis-io/testing'")).toEqual([])
+    expect(rules('modules/content/test/flow.test.ts', "import '@blixis-io/testing'")).toEqual([])
   })
 
-  it('forbids modules from importing @blixis/cloudflare', () => {
-    expect(rules('modules/content/src/a.ts', "import '@blixis/cloudflare'")).toEqual([
+  it('forbids modules from importing @blixis-io/cloudflare', () => {
+    expect(rules('modules/content/src/a.ts', "import '@blixis-io/cloudflare'")).toEqual([
       'forbidden-edge',
     ])
   })
 
-  it('restricts apps/admin to @blixis/sdk', () => {
-    expect(rules('apps/admin/src/a.ts', "import '@blixis/sdk'")).toEqual([])
-    expect(rules('apps/admin/src/a.ts', "import '@blixis/shared'")).toEqual(['forbidden-edge'])
+  it('restricts apps/admin to @blixis-io/sdk', () => {
+    expect(rules('apps/admin/src/a.ts', "import '@blixis-io/sdk'")).toEqual([])
+    expect(rules('apps/admin/src/a.ts', "import '@blixis-io/shared'")).toEqual(['forbidden-edge'])
   })
 
   it('ignores third-party packages', () => {
@@ -101,7 +101,7 @@ describe('checkImports', () => {
 
   it('reports file and line', () => {
     const [violation] = checkImports(all, [
-      { path: 'packages/kernel/src/a.ts', content: "\n\nimport '@blixis/sdk'" },
+      { path: 'packages/kernel/src/a.ts', content: "\n\nimport '@blixis-io/sdk'" },
     ])
     expect(violation).toMatchObject({ file: 'packages/kernel/src/a.ts', line: 3 })
   })
@@ -121,8 +121,8 @@ describe('findWorkspaceCycles', () => {
 })
 
 describe('checkPackages', () => {
-  it('reports cycles and runtime dependencies of @blixis/contracts', () => {
-    const contracts = pkg('@blixis/contracts', 'packages/contracts', {
+  it('reports cycles and runtime dependencies of @blixis-io/contracts', () => {
+    const contracts = pkg('@blixis-io/contracts', 'packages/contracts', {
       dependencies: { zod: '*' },
     })
     const x = pkg('x', 'packages/x', { dependencies: { y: '*' } })
@@ -132,17 +132,17 @@ describe('checkPackages', () => {
       'contracts-runtime-dependency',
     ])
   })
-  it('keeps public API packages on @blixis/contracts alone (ADR 0016)', () => {
-    const ok = pkg('@blixis/content-api', 'packages/content-api', {
-      peerDependencies: { '@blixis/contracts': '*' },
+  it('keeps public API packages on @blixis-io/contracts alone (ADR 0016)', () => {
+    const ok = pkg('@blixis-io/content-api', 'packages/content-api', {
+      peerDependencies: { '@blixis-io/contracts': '*' },
     })
     expect(checkPackages([ok])).toEqual([])
-    const heavy = pkg('@blixis/content-api', 'packages/content-api', {
+    const heavy = pkg('@blixis-io/content-api', 'packages/content-api', {
       dependencies: { zod: '*' },
-      peerDependencies: { '@blixis/contracts': '*', '@blixis/content': '*' },
+      peerDependencies: { '@blixis-io/contracts': '*', '@blixis-io/content': '*' },
     })
     expect(checkPackages([heavy]).map((v) => v.message)).toEqual([
-      '@blixis/content-api may only peer-depend on @blixis/contracts (ADR 0016); found: zod, @blixis/content',
+      '@blixis-io/content-api may only peer-depend on @blixis-io/contracts (ADR 0016); found: zod, @blixis-io/content',
     ])
   })
 })
@@ -150,7 +150,7 @@ describe('checkPackages', () => {
 describe('checkRoleNames', () => {
   const file = (path: string, content: string) => ({ path, content })
 
-  it('flags role-name comparisons outside @blixis/permissions', () => {
+  it('flags role-name comparisons outside @blixis-io/permissions', () => {
     const offenders = [
       "if (role === 'admin') return",
       'if (membership.roleKey !== "owner") throw error',
@@ -182,8 +182,8 @@ describe('checkPluginImports', () => {
 
   it('allows public packages, third-party packages, and files inside src', () => {
     const ok = [
-      "import { defineModule } from '@blixis/kernel'",
-      "import { CONTENT_SERVICE } from '@blixis/content-api'",
+      "import { defineModule } from '@blixis-io/kernel'",
+      "import { CONTENT_SERVICE } from '@blixis-io/content-api'",
       "import { z } from 'zod'",
       "import { seo } from './service.ts'",
     ].join('\n')
@@ -192,8 +192,8 @@ describe('checkPluginImports', () => {
 
   it('flags first-party implementations, deep imports, and escapes; tests are free', () => {
     const bad = [
-      "import { contentModule } from '@blixis/content'",
-      "import { x } from '@blixis/contracts/src/module.ts'",
+      "import { contentModule } from '@blixis-io/content'",
+      "import { x } from '@blixis-io/contracts/src/module.ts'",
       "import { y } from '../../../modules/content/src/index.ts'",
     ].join('\n')
     expect(checkPluginImports([file('examples/seo/src/index.ts', bad)]).map((v) => v.line)).toEqual(

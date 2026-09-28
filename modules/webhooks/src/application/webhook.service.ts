@@ -10,9 +10,15 @@ import {
   type ServiceToken,
   ValidationError,
   type ValidationIssue,
-} from '@blixis/contracts'
-import { type Database, isId, newId, toTransactionScope, withTransaction } from '@blixis/database'
-import type { EnvironmentService } from '@blixis/spaces'
+} from '@blixis-io/contracts'
+import {
+  type Database,
+  isId,
+  newId,
+  toTransactionScope,
+  withTransaction,
+} from '@blixis-io/database'
+import type { EnvironmentService } from '@blixis-io/spaces'
 import type { WebhooksConfig } from '../config.ts'
 import type { WebhookBody } from '../domain/payload.ts'
 import { checkWebhookUrl } from '../domain/url.ts'

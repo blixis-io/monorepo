@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import path from 'node:path'
 import process from 'node:process'
-import { migrationStatus, runMigrations } from '@blixis/database/migrations'
-import { generateWebhookKey } from '@blixis/webhooks'
+import { migrationStatus, runMigrations } from '@blixis-io/database/migrations'
+import { generateWebhookKey } from '@blixis-io/webhooks'
 import { createUser, generateSigningKeyJson } from './auth.ts'
 import { loadMigrations } from './load.ts'
 import { scaffoldMigration } from './scaffold.ts'

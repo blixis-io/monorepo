@@ -1,4 +1,4 @@
-import type { ContentType, Field } from '@blixis/sdk'
+import type { ContentType, Field } from '@blixis-io/sdk'
 import type { ReactNode } from 'react'
 
 /** What every field widget gets. Values are in API shape for one locale. */

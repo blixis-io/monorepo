@@ -12,7 +12,7 @@ Modules announce what happened with **events** and react to other modules' event
 ## Defining an event
 
 ```ts
-import { defineEvent } from '@blixis/contracts'
+import { defineEvent } from '@blixis-io/contracts'
 import { z } from 'zod'
 
 export const entryPublished = defineEvent({
@@ -42,15 +42,15 @@ Transactional events go through an **outbox** (ADR 0008):
 2. When your request ends, rows that committed are sent to the queue immediately.
 3. A cron sweep sends anything that was missed, every minute.
 
-Delivery is **at least once**, and there is **no ordering guarantee**, so handlers must tolerate duplicates and reordering. Apps register `outboxModule()` from `@blixis/events/outbox` and route transactional events to it with `queueTransport({ transactional: outboxTransport() })`.
+Delivery is **at least once**, and there is **no ordering guarantee**, so handlers must tolerate duplicates and reordering. Apps register `outboxModule()` from `@blixis-io/events/outbox` and route transactional events to it with `queueTransport({ transactional: outboxTransport() })`.
 
 ## Emitting
 
-Resolve the bus from your request's services. It's provided by the `eventsModule()` platform module from `@blixis/events`:
+Resolve the bus from your request's services. It's provided by the `eventsModule()` platform module from `@blixis-io/events`:
 
 ```ts
-import { EVENT_BUS } from '@blixis/contracts'
-import { toTransactionScope, withTransaction } from '@blixis/database'
+import { EVENT_BUS } from '@blixis-io/contracts'
+import { toTransactionScope, withTransaction } from '@blixis-io/database'
 
 await withTransaction(db, async (tx) => {
   const [version] = await tx.insert(entryVersions).values(input).returning()
@@ -72,8 +72,8 @@ Emitting a transactional event without `{ transaction }` fails immediately. Two 
 ## Handling
 
 ```ts
-import { entryPublished } from '@blixis/content-api'
-import { subscribe } from '@blixis/contracts'
+import { entryPublished } from '@blixis-io/content-api'
+import { subscribe } from '@blixis-io/contracts'
 
 export const invalidateCache = subscribe(entryPublished, 'invalidate-delivery-cache', async (envelope, ctx) => {
   ctx.logger.info('invalidating', { entryId: envelope.payload.entryId, attempt: ctx.attempt })
@@ -81,7 +81,7 @@ export const invalidateCache = subscribe(entryPublished, 'invalidate-delivery-ca
 // module: events: [invalidateCache]
 ```
 
-Content events (`entry.*`, `content-type.*`) and `CONTENT_SERVICE` come from [`@blixis/content-api`](/api/content-api/), the public API of the content module: a small package of types, tokens, and event definitions. Depend on it (as a peer) instead of `@blixis/content`, which implements it.
+Content events (`entry.*`, `content-type.*`) and `CONTENT_SERVICE` come from [`@blixis-io/content-api`](/api/content-api/), the public API of the content module: a small package of types, tokens, and event definitions. Depend on it (as a peer) instead of `@blixis-io/content`, which implements it.
 
 ### Idempotency
 
@@ -93,7 +93,7 @@ subscribe(entryPublished, 'send-notification', handler)
 
 // 'transactional': the marker and your database work commit together, so the effect happens exactly once.
 subscribe(orderPaid, 'book-revenue', async (envelope, ctx) => {
-  const tx = fromTransactionScope(ctx.transaction!)          // from @blixis/database
+  const tx = fromTransactionScope(ctx.transaction!)          // from @blixis-io/database
   await tx.insert(ledger).values({ orderId: envelope.payload.orderId, amount: envelope.payload.amount })
 }, { idempotency: 'transactional' })
 ```

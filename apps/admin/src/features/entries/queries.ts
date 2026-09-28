@@ -1,4 +1,4 @@
-import type { BlixisClient } from '@blixis/sdk'
+import type { BlixisClient } from '@blixis-io/sdk'
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query'
 
 const PAGE = 25

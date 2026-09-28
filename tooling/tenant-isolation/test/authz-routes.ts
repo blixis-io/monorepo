@@ -1,4 +1,4 @@
-import { defineAuthzMatrix } from '@blixis/testing'
+import { defineAuthzMatrix } from '@blixis-io/testing'
 
 /**
  * Every permission-guarded route of the API with the permission its service checks (roadmap

@@ -4,7 +4,7 @@ import {
   type StandardSchemaV1,
   ValidationError,
   validateSync,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 
 /** Deployment environment of a Blixis Worker (docs/operations/environments.md). */
 export type BlixisEnvironment = 'local' | 'preview' | 'staging' | 'production'

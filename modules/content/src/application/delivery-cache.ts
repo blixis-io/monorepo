@@ -1,5 +1,5 @@
-import type { Actor, EventEnvelope } from '@blixis/contracts'
-import type { Database } from '@blixis/database'
+import type { Actor, EventEnvelope } from '@blixis-io/contracts'
+import type { Database } from '@blixis-io/database'
 import { stampRepository } from '../infrastructure/stamp.repository.ts'
 
 /**

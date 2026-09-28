@@ -1,10 +1,10 @@
-import type { BlixisModule, EventEnvelope } from '@blixis/contracts'
+import type { BlixisModule, EventEnvelope } from '@blixis-io/contracts'
 import {
   eventsModule,
   type InProcessMode,
   type InProcessTransport,
   inProcessTransport,
-} from '@blixis/events'
+} from '@blixis-io/events'
 
 /** Result of {@link captureEvents}. */
 export interface CapturedEvents {

@@ -62,7 +62,7 @@ Local Cloudflare resources (Queues, KV, R2, Cache) are simulated by Wrangler/Min
 ## Run the admin locally *(from plan 019)*
 
 ```bash
-pnpm --filter @blixis/admin dev                # Vite → http://localhost:5173 (calls the API on :8787)
+pnpm --filter @blixis-io/admin dev                # Vite → http://localhost:5173 (calls the API on :8787)
 ```
 
 See [`apps/admin/README.md`](../../apps/admin/README.md).

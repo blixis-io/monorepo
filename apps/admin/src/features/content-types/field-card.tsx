@@ -1,4 +1,4 @@
-import type { ContentType, FieldType } from '@blixis/sdk'
+import type { ContentType, FieldType } from '@blixis-io/sdk'
 import { ArrowDown, ArrowUp, ChevronDown, Trash2 } from 'lucide-react'
 import { useId } from 'react'
 import { Button } from '../../components/ui/button.tsx'

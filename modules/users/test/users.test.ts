@@ -1,12 +1,18 @@
-import { ConflictError, NotFoundError, ValidationError } from '@blixis/contracts'
-import { DATABASE, databaseModule, toTransactionScope, withTransaction } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { asAnonymous, asApiToken, asUser, captureEvents, createTestBlixis } from '@blixis/testing'
+import { ConflictError, NotFoundError, ValidationError } from '@blixis-io/contracts'
+import { DATABASE, databaseModule, toTransactionScope, withTransaction } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import {
+  asAnonymous,
+  asApiToken,
+  asUser,
+  captureEvents,
+  createTestBlixis,
+} from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
+} from '@blixis-io/testing/database'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { USER_SERVICE, type User, type UserService, usersModule } from '../src/index.ts'

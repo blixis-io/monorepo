@@ -1,4 +1,4 @@
-import type { RestOperation, SameShape } from '@blixis/contracts'
+import type { RestOperation, SameShape } from '@blixis-io/contracts'
 import { z } from 'zod'
 import type { Member } from '../application/members.service.ts'
 import type { SpaceDetails } from '../application/tenancy.service.ts'

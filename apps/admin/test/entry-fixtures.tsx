@@ -1,7 +1,7 @@
 // biome-ignore lint/correctness/noNodejsModules: re-exported for upload tests (fetch needs Node's File)
 export { File as NodeFile } from 'node:buffer'
 
-import { type ContentType, createBrowserSession, type Field } from '@blixis/sdk'
+import { type ContentType, createBrowserSession, type Field } from '@blixis-io/sdk'
 import { createMemoryHistory } from '@tanstack/react-router'
 import { render } from '@testing-library/react'
 import { App } from '../src/app.tsx'
