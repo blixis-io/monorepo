@@ -29,6 +29,7 @@ export type RuleId =
   | 'forbidden-edge'
   | 'workspace-cycle'
   | 'contracts-runtime-dependency'
+  | 'public-api-dependency'
   | 'role-name-check'
 
 export interface Violation {
@@ -179,6 +180,12 @@ export function findWorkspaceCycles(packages: readonly WorkspacePackage[]): stri
   return cycles
 }
 
+/**
+ * Public capability packages (ADR 0016): what third-party modules import instead of first-party
+ * implementations. They may depend on `@blixis/contracts` only, as a peer.
+ */
+const PUBLIC_API_PACKAGES = new Set(['@blixis/content-api'])
+
 /** Package-level rules that do not depend on source files. */
 export function checkPackages(packages: readonly WorkspacePackage[]): Violation[] {
   const violations: Violation[] = findWorkspaceCycles(packages).map((cycle) => ({
@@ -193,6 +200,18 @@ export function checkPackages(packages: readonly WorkspacePackage[]): Violation[
       file: `${contracts.dir}/package.json`,
       message: `@blixis/contracts must have no runtime dependencies (§4); found: ${Object.keys(contracts.dependencies).join(', ')}`,
     })
+  }
+  for (const pkg of packages.filter((p) => PUBLIC_API_PACKAGES.has(p.name))) {
+    const extra = [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)].filter(
+      (name) => name !== '@blixis/contracts',
+    )
+    if (extra.length > 0 || pkg.dependencies['@blixis/contracts'] !== undefined) {
+      violations.push({
+        rule: 'public-api-dependency',
+        file: `${pkg.dir}/package.json`,
+        message: `${pkg.name} may only peer-depend on @blixis/contracts (ADR 0016); found: ${[...new Set([...Object.keys(pkg.dependencies), ...extra])].join(', ')}`,
+      })
+    }
   }
   return violations
 }

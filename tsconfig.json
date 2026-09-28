@@ -29,6 +29,12 @@
       "path": "packages/shared/tsconfig.test.json"
     },
     {
+      "path": "packages/content-api"
+    },
+    {
+      "path": "packages/content-api/tsconfig.test.json"
+    },
+    {
       "path": "packages/contracts"
     },
     {

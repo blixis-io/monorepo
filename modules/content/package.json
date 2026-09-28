@@ -22,6 +22,7 @@
     "@blixis/graphql": "workspace:*"
   },
   "peerDependencies": {
+    "@blixis/content-api": "workspace:*",
     "@blixis/contracts": "workspace:*",
     "@blixis/database": "workspace:*",
     "@blixis/kernel": "workspace:*",
@@ -30,6 +31,7 @@
     "hono": "^4.0.0"
   },
   "devDependencies": {
+    "@blixis/content-api": "workspace:*",
     "@blixis/contracts": "workspace:*",
     "@blixis/database": "workspace:*",
     "@blixis/events": "workspace:*",

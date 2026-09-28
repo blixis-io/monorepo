@@ -1,3 +1,4 @@
+import type { EnvironmentTenant } from '@blixis/content-api'
 import {
   type Database,
   newId,
@@ -12,12 +13,7 @@ import { contentTypes } from './schema.ts'
 type Queryable = Database | Transaction
 type Row = typeof contentTypes.$inferSelect
 
-/** A verified environment tenant (from `spaceScoped()`). */
-export interface EnvironmentTenant {
-  readonly organizationId: string
-  readonly spaceId: string
-  readonly environmentId: string
-}
+export type { EnvironmentTenant }
 
 const toContentType = (row: Row): ContentType => ({
   id: row.id,

@@ -1,0 +1,34 @@
+{
+  "name": "@blixis/content-api",
+  "version": "0.0.0",
+  "description": "Public content capabilities for Blixis modules: service tokens, entry and content type views, and content events (ADR 0016)",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run --root ../.. packages/content-api"
+  },
+  "peerDependencies": {
+    "@blixis/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@blixis/contracts": "workspace:*",
+    "@blixis/tsconfig": "workspace:*",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/content-api"
+  }
+}

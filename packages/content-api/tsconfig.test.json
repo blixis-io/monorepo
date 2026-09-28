@@ -1,0 +1,4 @@
+{
+  "extends": "@blixis/tsconfig/test.json",
+  "references": [{ "path": "./tsconfig.json" }]
+}

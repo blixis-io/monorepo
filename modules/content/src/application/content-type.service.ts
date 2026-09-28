@@ -1,3 +1,4 @@
+import type { ContentTypeService, ContentTypeView } from '@blixis/content-api'
 import {
   type Actor,
   type AuthorizationService,
@@ -16,14 +17,12 @@ import {
   CONTENT_LIMITS,
   type ContentType,
   type ContentTypeKind,
-  type CreateContentTypeInput,
   createContentTypeSchema,
   type FieldDefinition,
   type FieldGroup,
   type FieldInput,
   fieldInputSchema,
   newShortId,
-  type UpdateContentTypeInput,
   updateContentTypeSchema,
 } from '../domain/content-type.ts'
 import { contentTypeCreated, contentTypeDeleted, contentTypeUpdated } from '../events.ts'
@@ -34,63 +33,12 @@ import {
 } from '../infrastructure/content-type.repository.ts'
 import { CONTENT_PERMISSIONS } from '../permissions.ts'
 
-/** A field as the API returns it: `showWhen.field` names a sibling by `apiId`. */
-export interface FieldView extends Omit<FieldDefinition, 'showWhen'> {
-  readonly showWhen?: { readonly field: string; readonly equals: unknown }
-}
-
-/** A content type as the API returns it (`displayField` and `showWhen` use `apiId`s). */
-export interface ContentTypeView {
-  readonly id: string
-  readonly environmentId: string
-  readonly kind: ContentTypeKind
-  readonly apiId: string
-  readonly name: string
-  readonly description: string
-  readonly displayField: string | null
-  readonly groups: readonly FieldGroup[]
-  readonly fields: readonly FieldView[]
-  readonly version: number
-  readonly createdAt: string
-  readonly updatedAt: string
-}
-
-/**
- * Content types and components of one environment, on behalf of an actor (plan 010.005).
- * Reading needs `content.types.read`, changes `content.types.write`. Changes follow ADR 0010 §10:
- * additive changes are free; type/`localized` changes and removals are blocked while entries
- * exist; every change bumps `version`, which clients must send back. Request-scoped.
- */
-export interface ContentTypeService {
-  list(
-    actor: Actor,
-    tenant: EnvironmentTenant,
-    filter?: { kind?: ContentTypeKind },
-  ): Promise<ContentTypeView[]>
-  /** @throws NotFoundError */
-  get(actor: Actor, tenant: EnvironmentTenant, id: string): Promise<ContentTypeView>
-  /** Every type and component of the environment in storage form (for compilers). */
-  listStored(actor: Actor, tenant: EnvironmentTenant): Promise<ContentType[]>
-  /** @throws ValidationError, ConflictError (apiId taken, limit reached) */
-  create(
-    actor: Actor,
-    tenant: EnvironmentTenant,
-    input: CreateContentTypeInput,
-  ): Promise<ContentTypeView>
-  /** @throws NotFoundError, ValidationError, ConflictError (stale version, unsafe change) */
-  update(
-    actor: Actor,
-    tenant: EnvironmentTenant,
-    id: string,
-    input: UpdateContentTypeInput,
-  ): Promise<ContentTypeView>
-  /** @throws NotFoundError, ConflictError (entries exist, used by other types) */
-  delete(actor: Actor, tenant: EnvironmentTenant, id: string): Promise<void>
-}
-
-/** Request-scoped {@link ContentTypeService}, provided by `contentModule()`. */
-export const CONTENT_TYPE_SERVICE: ServiceToken<ContentTypeService> =
-  createServiceToken<ContentTypeService>('@blixis/content.content-types')
+export {
+  CONTENT_TYPE_SERVICE,
+  type ContentTypeService,
+  type ContentTypeView,
+  type FieldView,
+} from '@blixis/content-api'
 
 /**
  * How many entries use a content type — for components, how many entries contain one of its

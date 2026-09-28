@@ -21,3 +21,13 @@ The developer documentation for `@blixis/contracts` lives in the **developer man
 - Semantic versioning; breaking changes use `feat(contracts)!:` + `BREAKING CHANGE:`. Unstable APIs are marked `@experimental`.
 - Every export has TSDoc — it becomes the generated API reference.
 - `*.test-d.ts` type tests (checked by `pnpm typecheck`) keep the public types honest; `src/module.test-d.ts` is a complete third-party-style module that must keep compiling.
+
+## Public capability packages (ADR 0016)
+
+Contracts stay small and domain-free. What other modules need from a first-party capability lives in its own public API package, which depends on `@blixis/contracts` only (as a peer; enforced by `tooling/boundaries`, rule `public-api-dependency`):
+
+| Package | Contents | Implemented by |
+|---|---|---|
+| [`@blixis/content-api`](../../packages/content-api/src/index.ts) | `CONTENT_SERVICE`, `CONTENT_TYPE_SERVICE`, entry and content type views and inputs, the `entry.*` and `content-type.*` event definitions | `@blixis/content` (re-exports everything) |
+
+Modules, first-party or not, import these capabilities from the API package, never from the implementation: `import { CONTENT_SERVICE, entryPublished } from '@blixis/content-api'`. Token ids and event types are the implementation's (`@blixis/content.entries`, `entry.published`), so the move is invisible at runtime. Event payload schemas are dependency-free Standard Schemas (`struct`), so the package needs no schema library.

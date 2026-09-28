@@ -22,7 +22,7 @@
   },
   "peerDependencies": {
     "@blixis/assets": "workspace:*",
-    "@blixis/content": "workspace:*",
+    "@blixis/content-api": "workspace:*",
     "@blixis/contracts": "workspace:*",
     "@blixis/database": "workspace:*",
     "@blixis/kernel": "workspace:*",
@@ -33,6 +33,7 @@
   "devDependencies": {
     "@blixis/assets": "workspace:*",
     "@blixis/content": "workspace:*",
+    "@blixis/content-api": "workspace:*",
     "@blixis/contracts": "workspace:*",
     "@blixis/database": "workspace:*",
     "@blixis/events": "workspace:*",

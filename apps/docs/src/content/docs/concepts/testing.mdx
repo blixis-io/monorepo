@@ -62,7 +62,7 @@ await t.request('/api/v1/seo/entries/42', { method: 'PUT', json: { title: 'New' 
 Swap a dependency for a fake with [`serviceOverride`](/api/testing/functions/serviceoverride/). The value is type-checked against the token; the real module still runs, but its registration of that token is skipped.
 
 ```ts
-import { CONTENT_SERVICE } from '@blixis/content'
+import { CONTENT_SERVICE } from '@blixis/content-api'
 import { serviceOverride } from '@blixis/testing'
 
 const t = await createTestBlixis({

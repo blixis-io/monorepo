@@ -8,6 +8,7 @@ const [kernelTypeDoc, kernelSidebar] = createStarlightTypeDocPlugin()
 const [testingTypeDoc, testingSidebar] = createStarlightTypeDocPlugin()
 const [databaseTypeDoc, databaseSidebar] = createStarlightTypeDocPlugin()
 const [eventsTypeDoc, eventsSidebar] = createStarlightTypeDocPlugin()
+const [contentApiTypeDoc, contentApiSidebar] = createStarlightTypeDocPlugin()
 const [contentTypeDoc, contentSidebar] = createStarlightTypeDocPlugin()
 const [graphqlTypeDoc, graphqlSidebar] = createStarlightTypeDocPlugin()
 const [cloudflareTypeDoc, cloudflareSidebar] = createStarlightTypeDocPlugin()
@@ -73,6 +74,13 @@ export default defineConfig({
           tsconfig: '../../packages/events/tsconfig.json',
           output: 'api/events',
           sidebar: { label: '@blixis/events' },
+          typeDoc,
+        }),
+        contentApiTypeDoc({
+          entryPoints: ['../../packages/content-api/src/index.ts'],
+          tsconfig: '../../packages/content-api/tsconfig.json',
+          output: 'api/content-api',
+          sidebar: { label: '@blixis/content-api' },
           typeDoc,
         }),
         contentTypeDoc({
@@ -174,6 +182,7 @@ export default defineConfig({
             authSidebar,
             spacesSidebar,
             permissionsSidebar,
+            contentApiSidebar,
             contentSidebar,
             assetsSidebar,
             webhooksSidebar,

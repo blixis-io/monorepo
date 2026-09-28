@@ -1,3 +1,4 @@
+import type { ApiFields } from '@blixis/content-api'
 import type { ValidationIssue } from '@blixis/contracts'
 import { z } from 'zod'
 import type { ContentType, FieldDefinition } from '../domain/content-type.ts'
@@ -10,7 +11,7 @@ import {
 } from '../field-types/define.ts'
 
 /** Entry field values as clients send and receive them, keyed by field `apiId` (ADR 0010 §3). */
-export type ApiFields = Record<string, unknown>
+export type { ApiFields }
 /** Entry field values as stored in versions, keyed by stable field id. */
 export type StoredFields = Record<string, unknown>
 
