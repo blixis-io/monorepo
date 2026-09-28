@@ -6,6 +6,9 @@ name: release-packages
 on:
   push:
     branches: [main]
+  # Publishes every package whose current version isn't on npm yet: retries after a failed
+  # publish (the releases and tags already exist then).
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -34,7 +37,7 @@ jobs:
   publish:
     name: publish to npm
     needs: release-please
-    if: needs.release-please.outputs.releases_created == 'true'
+    if: needs.release-please.outputs.releases_created == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment: npm
     permissions:
@@ -53,11 +56,27 @@ jobs:
           # exist. Afterwards remove the secret; OIDC is used when it is empty.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          # npm reads the token only through an .npmrc entry; without it, trusted publishing (OIDC).
+          if [ -n "$NODE_AUTH_TOKEN" ]; then
+            npm config set //registry.npmjs.org/:_authToken '${NODE_AUTH_TOKEN}'
+          fi
+          # A manual run publishes every package; a release run the ones just released.
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            PATHS=$(jq -c 'keys' .release-please-manifest.json)
+          fi
           # pnpm pack resolves workspace: and catalog: versions; npm publishes with provenance.
+          # Versions already on npm are skipped, so a retry is safe.
           mkdir -p .publish
           for path in $(echo "$PATHS" | jq -r '.[]'); do
+            name=$(jq -r .name "$path/package.json")
+            version=$(jq -r .version "$path/package.json")
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "skip $name@$version (already published)"
+              continue
+            fi
             (cd "$path" && pnpm pack --pack-destination "$GITHUB_WORKSPACE/.publish")
           done
           for tarball in .publish/*.tgz; do
+            [ -e "$tarball" ] || continue
             npm publish "$tarball" --access public --provenance
           done
