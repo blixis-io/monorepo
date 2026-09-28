@@ -1,5 +1,8 @@
-import { defineEvent } from '@blixis/contracts'
+import { defineEvent, spaceDeleted } from '@blixis/contracts'
 import { z } from 'zod'
+
+/** Defined in `@blixis/contracts`: every module that stores per-space data must handle it. */
+export { spaceDeleted }
 
 /** An organization was created. Best-effort: no consumer derives state from it yet. */
 export const organizationCreated = defineEvent({
@@ -45,13 +48,6 @@ export const spaceUpdated = defineEvent({
  * A space was deleted, with its environments, locales, and space memberships. Transactional:
  * every module storing space data subscribes and deletes its own rows (no cross-module FKs).
  */
-export const spaceDeleted = defineEvent({
-  type: 'space.deleted',
-  version: 1,
-  delivery: 'transactional',
-  schema: z.object({ spaceId: z.string(), organizationId: z.string() }),
-  description: 'A space was deleted; modules must delete their data for it.',
-})
 
 const localeEventSchema = z.object({
   spaceId: z.string(),

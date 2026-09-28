@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   checkImports,
   checkPackages,
+  checkPluginImports,
   checkRoleNames,
   findWorkspaceCycles,
   splitSpecifier,
@@ -173,5 +174,31 @@ describe('checkRoleNames', () => {
         file('modules/spaces/src/e.ts', "  // never write role === 'admin'"),
       ]),
     ).toEqual([])
+  })
+})
+
+describe('checkPluginImports', () => {
+  const file = (path: string, content: string) => ({ path, content })
+
+  it('allows public packages, third-party packages, and files inside src', () => {
+    const ok = [
+      "import { defineModule } from '@blixis/kernel'",
+      "import { CONTENT_SERVICE } from '@blixis/content-api'",
+      "import { z } from 'zod'",
+      "import { seo } from './service.ts'",
+    ].join('\n')
+    expect(checkPluginImports([file('examples/seo/src/index.ts', ok)])).toEqual([])
+  })
+
+  it('flags first-party implementations, deep imports, and escapes; tests are free', () => {
+    const bad = [
+      "import { contentModule } from '@blixis/content'",
+      "import { x } from '@blixis/contracts/src/module.ts'",
+      "import { y } from '../../../modules/content/src/index.ts'",
+    ].join('\n')
+    expect(checkPluginImports([file('examples/seo/src/index.ts', bad)]).map((v) => v.line)).toEqual(
+      [1, 2, 3],
+    )
+    expect(checkPluginImports([file('examples/seo/test/seo.test.ts', bad)])).toEqual([])
   })
 })

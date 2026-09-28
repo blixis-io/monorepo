@@ -91,3 +91,25 @@ export function loadSourceFiles(root: string, packages: readonly WorkspacePackag
   for (const pkg of packages) walk(pkg.dir)
   return files
 }
+
+/** Source files of example plugins (`examples/<name>/src` and `test`), which live outside the workspace. */
+export function loadExampleFiles(root: string): SourceFile[] {
+  const base = path.join(root, 'examples')
+  let plugins: string[] = []
+  try {
+    plugins = readdirSync(base).filter((entry) => statSync(path.join(base, entry)).isDirectory())
+  } catch {
+    return []
+  }
+  return loadSourceFiles(
+    root,
+    plugins.map((name) => ({
+      name: `example:${name}`,
+      dir: `examples/${name}`,
+      dependencies: {},
+      devDependencies: {},
+      peerDependencies: {},
+      exportPaths: [],
+    })),
+  )
+}

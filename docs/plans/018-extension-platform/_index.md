@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 8 — Consumers & extension platform  
 Roadmap scope: MVP / initial platform  
-Progress: 1/5 tasks completed
+Progress: 2/5 tasks completed
 
 ## Objective
 
@@ -61,7 +61,7 @@ Depends on:
 
 - [x] [001 — Relocate public content capability contracts](./001-public-content-capability-contracts.md)
 - [ ] [002 — Write the module authoring guide and security model](./002-authoring-guide-and-security-model.md)
-- [ ] [003 — Build the example external SEO plugin](./003-example-external-plugin.md)
+- [x] [003 — Build the example external SEO plugin](./003-example-external-plugin.md)
 - [ ] [004 — Add the extension contract CI gate and API surface reports](./004-extension-contract-ci-gate.md)
 - [ ] [005 — Version and publish public packages](./005-package-versioning-and-publishing.md)
 

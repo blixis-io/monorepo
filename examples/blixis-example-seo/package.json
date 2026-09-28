@@ -1,0 +1,57 @@
+{
+  "name": "@blixis-example/seo",
+  "version": "0.1.0",
+  "description": "Example third-party Blixis module: SEO metadata for entries (REST, GraphQL, permissions, events, migration), built on public packages only",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.test.json --noEmit",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@blixis/content-api": "^0.0.0",
+    "@blixis/contracts": "^0.0.0",
+    "@blixis/database": "^0.0.0",
+    "@blixis/kernel": "^0.0.0",
+    "drizzle-orm": "^0.45.3",
+    "hono": "^4.13.0"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@blixis/contracts": "file:../../.artifacts/blixis-contracts-0.0.0.tgz",
+    "@blixis/kernel": "file:../../.artifacts/blixis-kernel-0.0.0.tgz",
+    "@blixis/content-api": "file:../../.artifacts/blixis-content-api-0.0.0.tgz",
+    "@blixis/database": "file:../../.artifacts/blixis-database-0.0.0.tgz",
+    "@blixis/events": "file:../../.artifacts/blixis-events-0.0.0.tgz",
+    "@blixis/graphql": "file:../../.artifacts/blixis-graphql-0.0.0.tgz",
+    "@blixis/shared": "file:../../.artifacts/blixis-shared-0.0.0.tgz",
+    "@blixis/testing": "file:../../.artifacts/blixis-testing-0.0.0.tgz",
+    "@blixis/users": "file:../../.artifacts/blixis-users-0.0.0.tgz",
+    "@blixis/spaces": "file:../../.artifacts/blixis-spaces-0.0.0.tgz",
+    "@blixis/permissions": "file:../../.artifacts/blixis-permissions-0.0.0.tgz",
+    "@blixis/content": "file:../../.artifacts/blixis-content-0.0.0.tgz",
+    "@types/node": "24.13.6",
+    "@types/pg": "8.23.0",
+    "drizzle-orm": "0.45.3",
+    "hono": "4.13.9",
+    "pg": "8.23.0",
+    "graphql": "16.14.2",
+    "graphql-yoga": "5.24.1",
+    "@graphql-yoga/plugin-apq": "3.24.1",
+    "typescript": "7.0.2",
+    "vitest": "4.1.11"
+  }
+}

@@ -45,4 +45,3 @@ export {
   entryUnpublished,
   entryUpdated,
 } from './events.ts'
-export { type FieldSpec, struct } from './schema.ts'

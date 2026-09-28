@@ -1,4 +1,4 @@
-import type { StandardSchemaV1 } from '@blixis/contracts'
+import type { StandardSchemaV1 } from './standard-schema.ts'
 
 /** A field of a {@link struct}: a primitive kind, optional with `?`, or a list of allowed strings. */
 export type FieldSpec = 'string' | 'string?' | 'int' | readonly string[]
@@ -13,7 +13,11 @@ type Output<S extends Readonly<Record<string, FieldSpec>>> = {
 
 /**
  * A dependency-free Standard Schema for flat event payloads (ADR 0016): an object with string,
- * optional string, integer, and enum fields. Unknown keys are dropped, like Zod objects do.
+ * optional string, integer, and enum fields. Unknown keys are dropped, like Zod objects do. Public
+ * event definitions use it so their packages need no schema library.
+ *
+ * @example
+ * const payload = struct({ spaceId: 'string', organizationId: 'string' })
  */
 export function struct<const S extends Readonly<Record<string, FieldSpec>>>(
   spec: S,
