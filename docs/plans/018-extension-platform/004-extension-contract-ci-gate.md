@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -35,19 +35,20 @@ Add a CI job that packs public packages, installs the example plugin into a scra
 ### Create
 
 ```text
-.github/workflows/extension-contract.yml
-tooling/api-surface/package.json
-tooling/api-surface/src/snapshot.ts
-docs/api-surface/contracts.api.md
-docs/api-surface/kernel.api.md
-docs/api-surface/content-api.api.md
+tooling/api-surface/{package.json,tsconfig.json}
+tooling/api-surface/src/{surface.ts,surface.test.ts,cli.ts}
+docs/api-surface/{contracts,kernel,content-api,database}.api.md
+examples/extension-smoke/{package.json,pnpm-workspace.yaml,wrangler.jsonc,worker/worker.ts}
 ```
 
 ### Modify
 
 ```text
-package.json
-docs/extensions/authoring-guide.md
+.github/workflows/ci.yml (api-surface check in verify; extension-contract job)
+package.json (api-surface:update, api-surface:check)
+tsconfig.json, pnpm-lock.yaml
+docs/contracts/README.md (snapshots, intentional changes), docs/extensions/README.md
+docs/ROADMAP.md (CP7), docs/plans/018-extension-platform/_index.md
 ```
 
 ### Delete
@@ -70,8 +71,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] CI job green; changing a public export without updating the snapshot fails CI.
-- [ ] CP7 recorded in ROADMAP.
+- [x] CI job green; changing a public export without updating the snapshot fails CI.
+- [x] CP7 recorded in ROADMAP.
 
 ## Validation
 
@@ -79,15 +80,15 @@ Requires:
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Gate cannot be bypassed silently (required status check noted in 021).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Gate cannot be bypassed silently (required status check noted in 021).
 
 ## Completion conditions
 
@@ -104,4 +105,9 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **API surface without a compiler API** (TS 7, ADR 0001): `tooling/api-surface` follows the relative imports of `tsc`'s emitted `.d.ts` files from each package's `exports` (tsc keeps `.ts` specifiers in declarations) and writes them, normalized, to `docs/api-surface/<pkg>.api.md`. Unexported internal files aren't part of it. Packages: `@blixis/contracts`, `@blixis/kernel`, `@blixis/content-api`, `@blixis/database` (the public set of ADR 0016). `pnpm api-surface:check` runs in `verify` after Build.
+- **Verified:** adding an export to contracts and rebuilding makes the check fail with the path of the stale snapshot; reverting makes it pass.
+- **`extension contract` job** (in `ci.yml`, on every PR and push, so it can become a required check in 021 without path filters leaving PRs pending): Postgres service → `pnpm pack:public` → the plugin's install, typecheck, tests, build, and `pnpm pack` → `examples/extension-smoke` installs the packed plugin with first-party tarballs and runs `wrangler deploy --dry-run` (about 445 kB gzip).
+- **Deviation:** the requirement's Workers-pool smoke test is replaced by the dry-run bundle plus the Node tests. `pg` can't connect inside the Vitest Workers pool (plan 005), so a Workers-pool test couldn't reach the plugin's routes; the bundle proves Worker compatibility and the Node tests prove behavior against Postgres.
+- **The smoke app** keeps its entry in `worker/`, not `src/`, because it imports first-party modules and the `plugin-internal-import` rule covers `examples/*/src`.
+- **Required status check:** noted for plan 021 (branch protection): `extension contract` alongside `verify`, `e2e (admin)`, and `pr-title`.

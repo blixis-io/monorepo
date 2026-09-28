@@ -52,6 +52,8 @@ jobs:
       # After Build: the generator loads the API's module list, which resolves packages from dist.
       - name: OpenAPI document is up to date (ADR 0015)
         run: pnpm openapi:check
+      - name: Public API surface is reviewed (plan 018.004)
+        run: pnpm api-surface:check
       - name: Worker bundles (dry-run deploy, size gate)
         env:
           MAX_GZIP_KIB: 1024
@@ -112,3 +114,44 @@ jobs:
           name: playwright-results
           path: apps/admin/test-results
           retention-days: 7
+
+  extension-contract:
+    name: extension contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # The example plugin, installed from packed tarballs like a third-party module (§42 Stage 8,
+    # §52): its tests against Postgres, and a Worker bundle with first-party modules.
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: blixis
+          POSTGRES_PASSWORD: blixis
+          POSTGRES_DB: blixis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U blixis -d blixis"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+    env:
+      BLIXIS_TEST_DATABASE_URL: postgres://blixis:blixis@localhost:5432/blixis
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - name: Build and pack the public packages
+        run: pnpm pack:public
+      - name: Example plugin (from tarballs)
+        working-directory: examples/blixis-example-seo
+        run: |
+          pnpm install --no-frozen-lockfile
+          pnpm typecheck
+          pnpm test
+          pnpm build
+          pnpm pack --pack-destination ../../.artifacts
+      - name: Worker bundle with the plugin installed
+        working-directory: examples/extension-smoke
+        run: |
+          pnpm install --no-frozen-lockfile
+          pnpm dry-run

@@ -17,6 +17,9 @@
       "path": "tooling/openapi"
     },
     {
+      "path": "tooling/api-surface"
+    },
+    {
       "path": "tooling/tenant-isolation"
     },
     {

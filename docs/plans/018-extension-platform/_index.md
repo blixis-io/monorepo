@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 8 — Consumers & extension platform  
 Roadmap scope: MVP / initial platform  
-Progress: 3/5 tasks completed
+Progress: 4/5 tasks completed
 
 ## Objective
 
@@ -62,7 +62,7 @@ Depends on:
 - [x] [001 — Relocate public content capability contracts](./001-public-content-capability-contracts.md)
 - [x] [002 — Write the module authoring guide and security model](./002-authoring-guide-and-security-model.md)
 - [x] [003 — Build the example external SEO plugin](./003-example-external-plugin.md)
-- [ ] [004 — Add the extension contract CI gate and API surface reports](./004-extension-contract-ci-gate.md)
+- [x] [004 — Add the extension contract CI gate and API surface reports](./004-extension-contract-ci-gate.md)
 - [ ] [005 — Version and publish public packages](./005-package-versioning-and-publishing.md)
 
 ## Completion criteria
@@ -70,8 +70,8 @@ Depends on:
 The plan may be marked `completed` when:
 
 - [ ] All tasks `completed`.
-- [ ] The example plugin, installed from a tarball, adds an SEO REST route, a GraphQL field on entries, a permission, and an `entry.published` handler — with zero imports outside `@blixis/contracts`, `@blixis/kernel`, and the public content API package.
-- [ ] Architectural checkpoint CP7 recorded.
+- [x] The example plugin, installed from a tarball, adds an SEO REST route, a GraphQL field on entries, a permission, and an `entry.published` handler — with zero imports outside `@blixis/contracts`, `@blixis/kernel`, and the public content API package (plus `@blixis/database` for its storage, ADR 0016 addendum).
+- [x] Architectural checkpoint CP7 recorded.
 
 ## Risks
 

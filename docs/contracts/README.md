@@ -23,6 +23,13 @@ The developer documentation for `@blixis/contracts` lives in the **developer man
 - Semantic versioning; breaking changes use `feat(contracts)!:` + `BREAKING CHANGE:`. Unstable APIs are marked `@experimental`.
 - Every export has TSDoc — it becomes the generated API reference.
 - `*.test-d.ts` type tests (checked by `pnpm typecheck`) keep the public types honest; `src/module.test-d.ts` is a complete third-party-style module that must keep compiling.
+- **API surface snapshots** (`docs/api-surface/*.api.md`, plan 018.004): the declarations reachable from the exports of `@blixis/contracts`, `@blixis/kernel`, `@blixis/content-api`, and `@blixis/database`. CI (`pnpm api-surface:check`, after Build) fails when they differ from the built packages.
+
+### Changing the public API on purpose
+
+1. Make the change, `pnpm build`, then `pnpm api-surface:update`, and review the snapshot diff in the PR like code.
+2. Additions are minor versions: `feat(contracts): …`. Changes or removals that can break a module are major: `feat(contracts)!: …` with a `BREAKING CHANGE:` footer, so the release tooling (plan 018.005) bumps the version correctly.
+3. Keep the example plugin building: the `extension contract` CI job installs it from packed tarballs, runs its tests on Postgres, and bundles it into a Worker. If it needs changes, so will third-party modules: say so in the changelog.
 
 ## Public capability packages (ADR 0016)
 

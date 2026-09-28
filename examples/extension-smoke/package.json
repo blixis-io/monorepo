@@ -1,0 +1,34 @@
+{
+  "name": "@blixis-example/extension-smoke",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A scratch Worker app that installs the example plugin from its tarball and bundles it with first-party modules (plan 018.004)",
+  "scripts": {
+    "dry-run": "wrangler deploy --dry-run --outdir dist"
+  },
+  "dependencies": {
+    "@blixis/contracts": "file:../../.artifacts/blixis-contracts-0.0.0.tgz",
+    "@blixis/kernel": "file:../../.artifacts/blixis-kernel-0.0.0.tgz",
+    "@blixis/content-api": "file:../../.artifacts/blixis-content-api-0.0.0.tgz",
+    "@blixis/database": "file:../../.artifacts/blixis-database-0.0.0.tgz",
+    "@blixis/events": "file:../../.artifacts/blixis-events-0.0.0.tgz",
+    "@blixis/graphql": "file:../../.artifacts/blixis-graphql-0.0.0.tgz",
+    "@blixis/shared": "file:../../.artifacts/blixis-shared-0.0.0.tgz",
+    "@blixis/users": "file:../../.artifacts/blixis-users-0.0.0.tgz",
+    "@blixis/spaces": "file:../../.artifacts/blixis-spaces-0.0.0.tgz",
+    "@blixis/permissions": "file:../../.artifacts/blixis-permissions-0.0.0.tgz",
+    "@blixis/content": "file:../../.artifacts/blixis-content-0.0.0.tgz",
+    "@blixis-example/seo": "file:../../.artifacts/blixis-example-seo-0.1.0.tgz",
+    "drizzle-orm": "0.45.3",
+    "hono": "4.13.9",
+    "pg": "8.23.0",
+    "zod": "4.6.5",
+    "graphql": "16.14.2",
+    "graphql-yoga": "5.24.1",
+    "@graphql-yoga/plugin-apq": "3.24.1"
+  },
+  "devDependencies": {
+    "wrangler": "4.137.0"
+  }
+}

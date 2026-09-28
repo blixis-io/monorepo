@@ -1,5 +1,5 @@
-# Its own pnpm project, outside the monorepo's workspace: it installs Blixis from packed tarballs
-# (`pnpm pack:public` at the repository root), the way a third party installs from npm.
+# Its own pnpm project: installs Blixis and the example plugin from packed tarballs
+# (`pnpm pack:public` and the plugin's `pnpm pack`), as an app would from npm.
 packages: []
 
 overrides:
@@ -10,16 +10,16 @@ overrides:
   '@blixis/events': file:../../.artifacts/blixis-events-0.0.0.tgz
   '@blixis/graphql': file:../../.artifacts/blixis-graphql-0.0.0.tgz
   '@blixis/shared': file:../../.artifacts/blixis-shared-0.0.0.tgz
-  '@blixis/testing': file:../../.artifacts/blixis-testing-0.0.0.tgz
   '@blixis/users': file:../../.artifacts/blixis-users-0.0.0.tgz
   '@blixis/spaces': file:../../.artifacts/blixis-spaces-0.0.0.tgz
   '@blixis/permissions': file:../../.artifacts/blixis-permissions-0.0.0.tgz
   '@blixis/content': file:../../.artifacts/blixis-content-0.0.0.tgz
 
+minimumReleaseAgeExclude:
+  - hono@4.13.9
+  - wrangler@4.137.0
+
 # Install scripts allowed, as in the monorepo (pnpm 12 refuses unapproved ones in CI).
 allowBuilds:
   esbuild: true
   workerd: true
-
-minimumReleaseAgeExclude:
-  - hono@4.13.9
