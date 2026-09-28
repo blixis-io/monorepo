@@ -72,6 +72,7 @@ Emitting a transactional event without `{ transaction }` fails immediately. Two 
 ## Handling
 
 ```ts
+import { entryPublished } from '@blixis/content-api'
 import { subscribe } from '@blixis/contracts'
 
 export const invalidateCache = subscribe(entryPublished, 'invalidate-delivery-cache', async (envelope, ctx) => {
@@ -79,6 +80,8 @@ export const invalidateCache = subscribe(entryPublished, 'invalidate-delivery-ca
 })
 // module: events: [invalidateCache]
 ```
+
+Content events (`entry.*`, `content-type.*`) and `CONTENT_SERVICE` come from [`@blixis/content-api`](/api/content-api/), the public API of the content module: a small package of types, tokens, and event definitions. Depend on it (as a peer) instead of `@blixis/content`, which implements it.
 
 ### Idempotency
 

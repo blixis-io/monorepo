@@ -14,7 +14,7 @@ import {
   entryPublished,
   entryUnpublished,
   entryUpdated,
-} from '@blixis/content'
+} from '@blixis/content-api'
 import type { EventDefinition } from '@blixis/contracts'
 
 /**

@@ -131,6 +131,19 @@ describe('checkPackages', () => {
       'contracts-runtime-dependency',
     ])
   })
+  it('keeps public API packages on @blixis/contracts alone (ADR 0016)', () => {
+    const ok = pkg('@blixis/content-api', 'packages/content-api', {
+      peerDependencies: { '@blixis/contracts': '*' },
+    })
+    expect(checkPackages([ok])).toEqual([])
+    const heavy = pkg('@blixis/content-api', 'packages/content-api', {
+      dependencies: { zod: '*' },
+      peerDependencies: { '@blixis/contracts': '*', '@blixis/content': '*' },
+    })
+    expect(checkPackages([heavy]).map((v) => v.message)).toEqual([
+      '@blixis/content-api may only peer-depend on @blixis/contracts (ADR 0016); found: zod, @blixis/content',
+    ])
+  })
 })
 
 describe('checkRoleNames', () => {

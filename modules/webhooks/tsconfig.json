@@ -7,7 +7,7 @@
     { "path": "../../packages/kernel" },
     { "path": "../../packages/database" },
     { "path": "../spaces" },
-    { "path": "../content" },
+    { "path": "../../packages/content-api" },
     { "path": "../assets" }
   ]
 }

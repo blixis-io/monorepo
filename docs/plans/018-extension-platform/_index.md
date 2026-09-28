@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 Milestone: Milestone 8 — Consumers & extension platform  
 Roadmap scope: MVP / initial platform  
-Progress: 0/5 tasks completed
+Progress: 1/5 tasks completed
 
 ## Objective
 
@@ -59,7 +59,7 @@ Depends on:
 
 ## Tasks
 
-- [ ] [001 — Relocate public content capability contracts](./001-public-content-capability-contracts.md)
+- [x] [001 — Relocate public content capability contracts](./001-public-content-capability-contracts.md)
 - [ ] [002 — Write the module authoring guide and security model](./002-authoring-guide-and-security-model.md)
 - [ ] [003 — Build the example external SEO plugin](./003-example-external-plugin.md)
 - [ ] [004 — Add the extension contract CI gate and API surface reports](./004-extension-contract-ci-gate.md)
@@ -80,7 +80,7 @@ The plan may be marked `completed` when:
 
 ## Open questions
 
-- Location of public content capabilities: inside `@blixis/contracts` (keeps one dependency but grows it) vs. a new `@blixis/content-api` package (keeps contracts small)? (ADR 0016; recommendation: `@blixis/content-api` types+tokens package, since §4 requires contracts to stay small.)
+- ~~Location of public content capabilities?~~ Decided: `@blixis/content-api` ([ADR 0016](../../decisions/0016-public-capability-contracts.md)).
 - Should the example plugin live in a separate Git repository instead of `examples/` outside workspace globs? Default: `examples/` excluded from workspace, consumed via `pnpm pack` tarballs — simulates npm install while keeping CI simple.
 - Third-party field types (from 010) — expose now? Decide based on what the SEO plugin needs.
 - Is the `@blixis` npm scope owned, and which licence applies? Both must be confirmed by the project owner before 018.005 publishes anything.

@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,22 +37,21 @@ Record ADR 0016 and move the public, consumer-facing content types and service t
 
 ```text
 docs/decisions/0016-public-capability-contracts.md
-packages/content-api/package.json
-packages/content-api/tsconfig.json
-packages/content-api/src/index.ts
+packages/content-api/{package.json,tsconfig.json,tsconfig.test.json}
+packages/content-api/src/{index.ts,content-types.ts,entries.ts,events.ts,schema.ts,schema.test.ts}
 ```
 
 ### Modify
 
 ```text
-modules/content/src/index.ts
-modules/content/src/application/content.service.ts
-modules/content/src/events.ts
-modules/content/package.json
-modules/releases/package.json (only if plan 016 is already implemented)
-modules/webhooks/package.json (if it imports content events)
+modules/content/src/{events.ts,domain/content-type.ts,domain/entry.ts,application/content.service.ts,application/content-type.service.ts,application/entry-schema.ts,infrastructure/content-type.repository.ts}
+modules/content/{package.json,tsconfig.json}
+modules/webhooks/src/application/public-events.ts, modules/webhooks/{package.json,tsconfig.json}
+tooling/boundaries/src/{rules.ts,rules.test.ts} (public-api-dependency)
 tsconfig.json
-docs/contracts/README.md
+apps/docs/astro.config.mjs (API reference), apps/docs/src/content/docs/concepts/{events,entries-and-publishing,testing}.mdx
+docs/contracts/{README.md,events.md}
+docs/decisions/README.md, docs/ROADMAP.md, docs/plans/018-extension-platform/_index.md
 pnpm-lock.yaml
 ```
 
@@ -77,8 +76,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] First-party consumers (webhooks, releases) import content tokens/events from the public package only.
-- [ ] Full test suite green.
+- [x] First-party consumers (webhooks, releases) import content tokens/events from the public package only.
+- [x] Full test suite green.
 
 ## Validation
 
@@ -88,15 +87,15 @@ pnpm typecheck && pnpm lint && pnpm test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Public package contains no implementation code.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Public package contains no implementation code.
 
 ## Completion conditions
 
@@ -113,4 +112,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Decision:** [ADR 0016](../../decisions/0016-public-capability-contracts.md), `@blixis/content-api` with `@blixis/contracts` as its only (peer) dependency. Enforced by the new boundary rule `public-api-dependency`.
+- **Moved:** `CONTENT_SERVICE`/`ContentService`, `CONTENT_TYPE_SERVICE`/`ContentTypeService`, `EntrySys`, `EntryView`, `EntryVersionView`, `EntryListQuery`, `EntryStatus`, `EntryState`, `ApiFields`, `EnvironmentTenant`, `ContentType`, `ContentTypeKind`, `CONTENT_TYPE_KINDS`, `FieldDefinition`, `FieldGroup`, `ShowWhen`, `FieldView`, `ContentTypeView`, the input types (`FieldInput`, `CreateContentTypeInput`, `UpdateContentTypeInput`), and the eight content events. `@blixis/content` imports and re-exports them, so no import breaks.
+- **No runtime change:** token ids (`@blixis/content.entries`, `@blixis/content.content-types`) and event types/versions/delivery classes are unchanged.
+- **Event schemas without Zod:** `struct()` is a tiny Standard Schema for flat payloads (string, optional string, integer, enum), dropping unknown keys like Zod objects. Tested with `validateSync`.
+- **Input types are plain interfaces;** the content module checks its Zod schemas against them with `SameShape` (compile time). Finding: Zod's input type makes `showWhen.equals` required (`z.unknown()` key), so the public type does too.
+- **Webhooks** now peer-depend on `@blixis/content-api` instead of `@blixis/content` (tests still use the implementation). Asset events stay in `@blixis/assets` for now (ADR 0016 §6).
+- **Field type authoring** (`defineFieldType`) stays in `@blixis/content` (Zod-based, registered through `contentModule({ fieldTypes })`).

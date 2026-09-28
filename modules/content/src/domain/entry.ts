@@ -35,11 +35,9 @@ export interface EntryVersion {
   readonly createdAt: string
 }
 
-/**
- * `draft`: never published, or unpublished. `published`: the current version is live.
- * `changed`: live, with newer unpublished changes.
- */
-export type EntryStatus = 'draft' | 'published' | 'changed'
+import type { EntryState, EntryStatus } from '@blixis/content-api'
+
+export type { EntryState, EntryStatus }
 
 export function entryStatus(
   entry: Pick<Entry, 'currentVersionId' | 'publishedVersionId'>,
@@ -53,6 +51,3 @@ export interface EntryLink {
   readonly type: 'entry' | 'asset'
   readonly id: string
 }
-
-/** Which version of entries to read: the latest draft or the published one. */
-export type EntryState = 'draft' | 'published'

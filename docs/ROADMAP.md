@@ -71,7 +71,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [015 — Webhooks](./plans/015-webhooks/_index.md) | M7 | MVP | `completed` | 5/5 | 011 |
 | [016 — Releases & Cloudflare Workflows](./plans/016-releases-and-workflows/_index.md) | M7 | Extended | `not-started` | 0/4 | 013, 014, 015 |
 | [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md) | M8 | MVP | `completed` | 4/4 | 013, 014, 015 |
-| [018 — Extension Platform & Example Plugin](./plans/018-extension-platform/_index.md) | M8 | MVP | `not-started` | 0/5 | 017 |
+| [018 — Extension Platform & Example Plugin](./plans/018-extension-platform/_index.md) | M8 | MVP | `in-progress` | 1/5 | 017 |
 | [019 — Admin UI Foundation](./plans/019-admin-ui-foundation/_index.md) | M8 | MVP | `completed` | 5/5 | 017 |
 | [020 — Observability & Security Hardening](./plans/020-observability-and-security-hardening/_index.md) | M9 | MVP | `not-started` | 0/5 | 013, 014, 015 |
 | [021 — CI/CD & Release Engineering](./plans/021-ci-cd-and-release-engineering/_index.md) | M9 | MVP | `not-started` | 0/3 | 011 |
@@ -409,13 +409,13 @@ Builds `@blixis/sdk` — a Workers/browser/Node-compatible client with a typed M
 
 #### 018 — Extension Platform & Example Plugin
 
-Status: `not-started` · Progress: 0/5 · Scope: MVP  
+Status: `in-progress` · Progress: 1/5 · Scope: MVP  
 Plan: [018-extension-platform/_index.md](./plans/018-extension-platform/_index.md)  
 Depends on: [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md)
 
 Proves the "internal and external modules share one contract" promise: moves shared public content capabilities to a public contract location, writes the module authoring guide, builds an example third-party plugin outside the workspace consumed as a packed npm package, adds a CI job that fails if the plugin needs internal imports, and makes public packages versioned and publishable.
 
-- [ ] [018.001 — Relocate public content capability contracts](./plans/018-extension-platform/001-public-content-capability-contracts.md)
+- [x] [018.001 — Relocate public content capability contracts](./plans/018-extension-platform/001-public-content-capability-contracts.md)
 - [ ] [018.002 — Write the module authoring guide and security model](./plans/018-extension-platform/002-authoring-guide-and-security-model.md)
 - [ ] [018.003 — Build the example external SEO plugin](./plans/018-extension-platform/003-example-external-plugin.md)
 - [ ] [018.004 — Add the extension contract CI gate and API surface reports](./plans/018-extension-platform/004-extension-contract-ci-gate.md)
@@ -582,7 +582,7 @@ Decisions the architecture intentionally leaves open. Each is resolved by the li
 | D16 | Asset upload strategy and serving domain | [014.001](./plans/014-assets/001-upload-strategy-and-object-storage.md) | **Stream through the Worker to the R2 binding (≤ 90 MiB direct, multipart above, ≤ 1 GiB default), immutable `<space>/<asset>/<file>` keys, SHA-256 on direct uploads, type allow-list + signature check, nosniff/CSP-sandbox serving from the API origin until `assets.<domain>`** ([ADR 0013](./decisions/0013-asset-uploads.md)) | decided |
 | D17 | Workflows integration pattern & scheduling | [016.001](./plans/016-releases-and-workflows/001-workflows-integration-pattern.md) | Explicit class exports in composition root | open |
 | D18 | REST type source for SDK (OpenAPI vs. shared schemas) | [017.001](./plans/017-sdk-and-example-consumer/001-rest-api-type-source.md) | **Operations with Zod schemas beside the routes (`RestContribution.operations`), compile-time shape checks against service types, OpenAPI 3.1 generated at build time and served at `/api/v1/openapi.json`, SDK types generated from it** ([ADR 0015](./decisions/0015-rest-api-type-source.md)) | decided |
-| D19 | Location of public content capability contracts | [018.001](./plans/018-extension-platform/001-public-content-capability-contracts.md) | New `@blixis/content-api` package | open |
+| D19 | Location of public content capability contracts | [018.001](./plans/018-extension-platform/001-public-content-capability-contracts.md) | **New `@blixis/content-api` package: service tokens, views, inputs, and content events; depends on `@blixis/contracts` only; `@blixis/content` implements and re-exports it** ([ADR 0016](./decisions/0016-public-capability-contracts.md)) | decided |
 | D20 | npm scope ownership, licence, published package set | [018.005](./plans/018-extension-platform/005-package-versioning-and-publishing.md) | Must be confirmed by the project owner | open |
 | D21 | Admin stack and hosting (cookie strategy) | [019.001](./plans/019-admin-ui-foundation/001-admin-stack-and-scaffold.md) | **Separate `blixis-admin` Worker (static assets) at `admin.<domain>` beside `api.<domain>` (same site for the `SameSite=Strict` refresh cookie; `workers.dev` is a public suffix), credentialed CORS from `AUTH_ALLOWED_ORIGINS`; React 19 + Vite, shadcn/ui + Tailwind v4, TanStack Router/Query/Form, `@blixis/sdk` only** ([ADR 0017](./decisions/0017-admin-stack.md)) | decided |
 | D22 | Rate limiting mechanism | [020.003](./plans/020-observability-and-security-hardening/003-rate-limiting.md) | Workers Rate Limiting binding; WAF rules if a zone is available | open |

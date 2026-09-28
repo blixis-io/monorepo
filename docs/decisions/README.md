@@ -51,7 +51,7 @@ What becomes easier or harder; follow-up tasks; risks.
 | [0013](./0013-asset-uploads.md) | Asset uploads: stream through the Worker to R2 (multipart for large files), immutable tenant-prefixed keys, safe serving headers | accepted |
 | 0014 | Reserved by roadmap decision tasks (see ROADMAP register) | — |
 | [0015](./0015-rest-api-type-source.md) | REST API type source: operations with Zod schemas beside the routes, OpenAPI 3.1 generated at build time, SDK types generated from it | accepted |
-| 0016 | Reserved by roadmap decision tasks (see ROADMAP register) | — |
+| [0016](./0016-public-capability-contracts.md) | Public capability contracts: `@blixis/content-api` (tokens, views, inputs, content events) depending on `@blixis/contracts` only; `@blixis/content` implements it | accepted |
 | [0017](./0017-admin-stack.md) | Admin stack and hosting: React 19 + Vite SPA (shadcn/ui, Tailwind v4, TanStack Router/Query/Form) on its own Worker at `admin.<domain>`, credentialed CORS from `AUTH_ALLOWED_ORIGINS` | accepted |
 | [0018](./0018-api-reference-generator.md) | API reference generator (TypeDoc with isolated TypeScript 6) | accepted |
 | [0019](./0019-hyperdrive-query-caching-disabled.md) | Hyperdrive query caching is disabled (read-your-writes for auth and tenancy) | accepted |
