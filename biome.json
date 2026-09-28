@@ -9,6 +9,7 @@
       "!**/*.tsbuildinfo",
       "!**/worker-configuration.d.ts",
       "!apps/api/openapi.json",
+      "!apps/admin/test/fixtures",
       "!packages/sdk/src/generated"
     ]
   },

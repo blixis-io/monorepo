@@ -1,13 +1,5 @@
-import { expect, type Page, test } from '@playwright/test'
-
-const email = () => process.env['E2E_EMAIL'] ?? ''
-const password = () => process.env['E2E_PASSWORD'] ?? ''
-
-async function signIn(page: Page) {
-  await page.getByLabel('Email').fill(email())
-  await page.getByLabel('Password').fill(password())
-  await page.getByRole('button', { name: 'Sign in' }).click()
-}
+import { expect, test } from '@playwright/test'
+import { email, signIn } from './helpers.ts'
 
 test('sign in, create and switch spaces, survive a reload, sign out', async ({ page }) => {
   const suffix = Date.now().toString(36)
@@ -30,7 +22,10 @@ test('sign in, create and switch spaces, survive a reload, sign out', async ({ p
   await expect(page.getByRole('heading', { name: `E2E Org ${suffix}` })).toBeVisible()
 
   for (const name of ['Alpha', 'Beta']) {
-    await page.getByRole('button', { name: 'New space' }).click()
+    await page
+      .getByRole('region', { name: `E2E Org ${suffix}` })
+      .getByRole('button', { name: 'New space' })
+      .click()
     await page.getByRole('dialog').getByLabel('Name').fill(`${name} ${suffix}`)
     await page.getByRole('button', { name: 'Create space' }).click()
     await expect(page.getByRole('heading', { name: `${name} ${suffix}`, level: 1 })).toBeVisible()

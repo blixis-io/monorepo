@@ -1,0 +1,450 @@
+{
+  "fieldTypes": [
+    {
+      "id": "text",
+      "name": "Text",
+      "description": "Single line of text (up to 256 characters): titles, labels, slugs, emails, URLs.",
+      "localizable": true,
+      "builtIn": true,
+      "settingsSchema": {
+        "type": "object",
+        "properties": {
+          "minLength": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "maxLength": {
+            "default": 256,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 256
+          },
+          "pattern": {
+            "type": "string"
+          },
+          "patternMessage": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "format": {
+            "default": "plain",
+            "type": "string",
+            "enum": [
+              "plain",
+              "slug",
+              "email",
+              "url"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "longText",
+      "name": "Long text",
+      "description": "Multiple lines of plain text (up to 50,000 characters): descriptions, excerpts.",
+      "localizable": true,
+      "builtIn": true,
+      "settingsSchema": {
+        "type": "object",
+        "properties": {
+          "minLength": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "maxLength": {
+            "default": 50000,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50000
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "richText",
+      "name": "Rich text",
+      "description": "Formatted text as a JSON document (ProseMirror/TipTap-compatible): paragraphs, headings, lists, quotes, code, tables, embedded entries and assets, and marks such as bold and links.",
+      "localizable": true,
+      "builtIn": true,
+      "settingsSchema": {
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "default": [
+              "heading",
+              "bulletList",
+              "orderedList",
+              "blockquote",
+              "codeBlock",
+              "horizontalRule",
+              "hardBreak",
+              "table",
+              "embeddedEntry",
+              "embeddedAsset"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "heading",
+                "bulletList",
+                "orderedList",
+                "blockquote",
+                "codeBlock",
+                "horizontalRule",
+                "hardBreak",
+                "table",
+                "embeddedEntry",
+                "embeddedAsset"
+              ]
+            }
+          },
+          "marks": {
+            "default": [
+              "bold",
+              "italic",
+              "underline",
+              "strike",
+              "code",
+              "link"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "bold",
+                "italic",
+                "underline",
+                "strike",
+                "code",
+                "link"
+              ]
+            }
+          },
+          "headingLevels": {
+            "default": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 6
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "number",
+      "name": "Number",
+      "description": "An integer or decimal number, optionally within a range.",
+      "localizable": true,
+      "builtIn": true,
+      "settingsSchema": {
+        "type": "object",
+        "properties": {
+          "integer": {
+            "default": false,
+            "type": "boolean"
+          },
+          "min": {
+            "type": "number"
+          },
+          "max": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "boolean",
+      "name": "Boolean",
+      "description": "A yes/no switch.",
+      "localizable": true,
+      "builtIn": true,
+      "settingsSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "date",
+      "name": "Date",
+      "description": "A calendar date (YYYY-MM-DD) without time or time zone.",
+      "localizable": true,
+      "builtIn": true,
+      "settingsSchema": {
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "max": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "dateTime",
+      "name": "Date and time",
+      "description": "A moment in time, ISO 8601 with a UTC offset (2026-09-25T14:30:00+02:00).",
+      "localizable": true,
+      "builtIn": true,
+      "settingsSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "select",
+      "name": "Select",
+      "description": "One value (or several, with `multiple`) from a fixed list of options.",
+      "localizable": true,
+      "builtIn": true,
+      "settingsSchema": {
+        "type": "object",
+        "properties": {
+          "options": {
+            "minItems": 1,
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              },
+              "required": [
+                "value",
+                "label"
+              ]
+            }
+          },
+          "multiple": {
+            "default": false,
+            "type": "boolean"
+          },
+          "min": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "max": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "options"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "reference",
+      "name": "Reference",
+      "description": "Links to one or more entries, optionally limited to some content types. Drafts may link to entries that do not exist yet; publishing checks them.",
+      "localizable": true,
+      "builtIn": true,
+      "settingsSchema": {
+        "type": "object",
+        "properties": {
+          "contentTypeIds": {
+            "default": [],
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "multiple": {
+            "default": false,
+            "type": "boolean"
+          },
+          "min": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "max": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "asset",
+      "name": "Asset",
+      "description": "Links to one or more assets (images, documents), optionally limited by MIME type such as image/* or application/pdf.",
+      "localizable": true,
+      "builtIn": true,
+      "settingsSchema": {
+        "type": "object",
+        "properties": {
+          "mimeTypes": {
+            "default": [],
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z]+\\/(\\*|[a-z0-9.+-]+)$"
+            }
+          },
+          "multiple": {
+            "default": false,
+            "type": "boolean"
+          },
+          "min": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "max": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "link",
+      "name": "Link",
+      "description": "A link for buttons and navigation: an internal entry, an external URL, an email address, or a phone number, with optional text, title, and new-tab flag.",
+      "localizable": true,
+      "builtIn": true,
+      "settingsSchema": {
+        "type": "object",
+        "properties": {
+          "kinds": {
+            "default": [
+              "entry",
+              "url"
+            ],
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "entry",
+                "url",
+                "email",
+                "phone"
+              ]
+            }
+          },
+          "contentTypeIds": {
+            "default": [],
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "text": {
+            "default": "optional",
+            "type": "string",
+            "enum": [
+              "none",
+              "optional",
+              "required"
+            ]
+          },
+          "allowNewTab": {
+            "default": true,
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "blocks",
+      "name": "Blocks",
+      "description": "An ordered list of components (such as hero, text section, image gallery) for building pages. Components are published and translated together with the entry.",
+      "localizable": true,
+      "builtIn": true,
+      "settingsSchema": {
+        "type": "object",
+        "properties": {
+          "componentIds": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          },
+          "min": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "max": {
+            "default": 100,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "componentIds"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "id": "json",
+      "name": "JSON",
+      "description": "Any JSON value up to 64 KiB, for structured data without a fixed shape.",
+      "localizable": true,
+      "builtIn": true,
+      "settingsSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    }
+  ]
+}

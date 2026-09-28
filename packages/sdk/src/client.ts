@@ -166,6 +166,11 @@ export function createBlixisClient(options: BlixisClientOptions) {
       delete: (spaceId: string) => call('deleteSpace', { params: { spaceId } }),
     },
 
+    /** Field types of this app (built-in and from plugins), with their settings JSON Schemas. */
+    fieldTypes: {
+      list: async () => (await call('listFieldTypes', {})).fieldTypes,
+    },
+
     contentTypes: {
       list: async (spaceId: string, query?: Operations['listContentTypes']['query']) =>
         (await call('listContentTypes', { params: { spaceId }, query })).contentTypes,

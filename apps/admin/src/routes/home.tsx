@@ -74,7 +74,7 @@ function OrganizationCard({
   const client = useClient()
   const spaces = useQuery(spacesQuery(client, organization.id))
   return (
-    <Card aria-labelledby={`org-${organization.id}`}>
+    <Card role="region" aria-labelledby={`org-${organization.id}`}>
       <CardHeader className="flex-row items-center justify-between">
         <CardTitle id={`org-${organization.id}`}>{organization.name}</CardTitle>
         <Button variant="ghost" size="sm" onClick={onNewSpace}>
