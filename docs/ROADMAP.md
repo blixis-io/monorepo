@@ -423,7 +423,7 @@ Proves the "internal and external modules share one contract" promise: moves sha
 
 #### 019 — Admin UI Foundation
 
-Status: `in-progress` · Progress: 4/5 · Scope: MVP  
+Status: `completed` · Progress: 5/5 · Scope: MVP  
 Plan: [019-admin-ui-foundation/_index.md](./plans/019-admin-ui-foundation/_index.md)  
 Depends on: [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md)
 
