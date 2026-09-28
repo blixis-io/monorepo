@@ -4,9 +4,9 @@ import {
   InfrastructureError,
   REQUEST_CONTEXT,
   type ServiceToken,
-} from '@blixis/contracts'
-import { DATABASE, fromTransactionScope, translateDatabaseError } from '@blixis/database'
-import { BACKGROUND_HANDLERS, defineModule } from '@blixis/kernel'
+} from '@blixis-io/contracts'
+import { DATABASE, fromTransactionScope, translateDatabaseError } from '@blixis-io/database'
+import { BACKGROUND_HANDLERS, defineModule } from '@blixis-io/kernel'
 import { sql } from 'drizzle-orm'
 import type { EventTransport } from '../bus.ts'
 import { PROCESSED_EVENTS } from '../processed.ts'

@@ -1,4 +1,4 @@
-import { definePermission } from '@blixis/contracts'
+import { definePermission } from '@blixis-io/contracts'
 
 /** Permissions granted per space; code checks them, never role names (§30). */
 export const SEO_PERMISSIONS = {

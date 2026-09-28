@@ -1,14 +1,14 @@
-import { databaseModule, withTransaction } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { permissionsModule } from '@blixis/permissions'
-import { newId } from '@blixis/shared'
-import { spacesModule } from '@blixis/spaces'
+import { databaseModule, withTransaction } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { permissionsModule } from '@blixis-io/permissions'
+import { newId } from '@blixis-io/shared'
+import { spacesModule } from '@blixis-io/spaces'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { usersModule } from '@blixis-io/users'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { entryStatus } from '../src/domain/entry.ts'

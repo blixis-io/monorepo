@@ -5,7 +5,7 @@
  * @packageDocumentation
  */
 
-export { type ServiceOverride, serviceOverride } from '@blixis/kernel'
+export { type ServiceOverride, serviceOverride } from '@blixis-io/kernel'
 export {
   asAnonymous,
   asApiToken,

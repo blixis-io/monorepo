@@ -24,7 +24,7 @@ Use [`actorId(actor)`](/api/contracts/functions/actorid/) for logs and metadata 
 ## Declaring permissions
 
 ```ts
-import { definePermission } from '@blixis/contracts'
+import { definePermission } from '@blixis-io/contracts'
 
 permissions: [
   definePermission({
@@ -43,7 +43,7 @@ IDs are `<module>.<action>` or `<module>.<resource>.<action>`, lowercase, with y
 
 ## Roles
 
-Roles group permissions. They are configuration, owned by `@blixis/permissions`:
+Roles group permissions. They are configuration, owned by `@blixis-io/permissions`:
 
 | Role | Permissions | Assignable to |
 |---|---|---|
@@ -57,7 +57,7 @@ Organizations can also define **custom roles**: a name plus a list of permission
 ## Checking permissions
 
 ```ts
-import { AUTHORIZATION_SERVICE } from '@blixis/contracts'
+import { AUTHORIZATION_SERVICE } from '@blixis-io/contracts'
 
 await ctx.services.get(AUTHORIZATION_SERVICE).require({
   actor: ctx.actor,
@@ -79,7 +79,7 @@ await ctx.services.get(AUTHORIZATION_SERVICE).require({
 
 ## How a check is evaluated
 
-`@blixis/permissions` implements `AUTHORIZATION_SERVICE`. It denies by default:
+`@blixis-io/permissions` implements `AUTHORIZATION_SERVICE`. It denies by default:
 
 | Actor | Permissions |
 |---|---|

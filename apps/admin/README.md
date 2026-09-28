@@ -1,24 +1,24 @@
 # Admin (React)
 
-The Blixis admin UI (plan 019, [ADR 0017](../../docs/decisions/0017-admin-stack.md)): a single-page app that talks to the Management API only through [`@blixis/sdk`](../../docs/sdk/README.md). It deploys as its own Worker (`blixis-admin`, static assets only) at `admin.<domain>`, beside the API at `api.<domain>`.
+The Blixis admin UI (plan 019, [ADR 0017](../../docs/decisions/0017-admin-stack.md)): a single-page app that talks to the Management API only through [`@blixis-io/sdk`](../../docs/sdk/README.md). It deploys as its own Worker (`blixis-admin`, static assets only) at `admin.<domain>`, beside the API at `api.<domain>`.
 
-Stack: React 19 + Vite 8, [shadcn/ui](https://ui.shadcn.com) components in `src/components/ui` on Tailwind CSS v4, TanStack Router (routes in `src/routes`), TanStack Query (server state), TanStack Form (forms). The boundary checker rejects any workspace import other than `@blixis/sdk`.
+Stack: React 19 + Vite 8, [shadcn/ui](https://ui.shadcn.com) components in `src/components/ui` on Tailwind CSS v4, TanStack Router (routes in `src/routes`), TanStack Query (server state), TanStack Form (forms). The boundary checker rejects any workspace import other than `@blixis-io/sdk`.
 
 ## Run it locally
 
 Start the API first (see [getting started](../../docs/development/getting-started.md)); its `AUTH_ALLOWED_ORIGINS` already allows `http://localhost:5173`.
 
 ```bash
-pnpm --filter @blixis/admin dev                # http://localhost:5173, API at http://localhost:8787
-pnpm --filter @blixis/admin build              # dist/ for production
-pnpm --filter @blixis/admin build:staging      # dist/ against the staging API
-pnpm --filter @blixis/admin test               # component tests (jsdom, fake API)
-pnpm --filter @blixis/admin e2e                # Playwright smoke test against the real local API
+pnpm --filter @blixis-io/admin dev                # http://localhost:5173, API at http://localhost:8787
+pnpm --filter @blixis-io/admin build              # dist/ for production
+pnpm --filter @blixis-io/admin build:staging      # dist/ against the staging API
+pnpm --filter @blixis-io/admin test               # component tests (jsdom, fake API)
+pnpm --filter @blixis-io/admin e2e                # Playwright smoke test against the real local API
 ```
 
 Sign in with a local user (`pnpm auth:create-user`, see getting started). Sessions follow ADR 0009: `createBrowserSession` from the SDK keeps the access token in memory and the refresh token in an `HttpOnly` cookie, so a reload resumes the session and nothing sensitive is in `localStorage`.
 
-The **e2e test** needs Docker Postgres, migrated (`DATABASE_URL=postgres://blixis:blixis@localhost:5432/blixis pnpm db:migrate`), `apps/api/.dev.vars` with `AUTH_SIGNING_KEYS`, and Playwright's Chromium (`pnpm --filter @blixis/admin exec playwright install chromium`). It starts the API (`:8787`) and the admin (`:5173`) unless they already run, and creates a throwaway user per run. CI runs it in the `e2e (admin)` job on a fresh database (traces of failed tests are uploaded).
+The **e2e test** needs Docker Postgres, migrated (`DATABASE_URL=postgres://blixis:blixis@localhost:5432/blixis pnpm db:migrate`), `apps/api/.dev.vars` with `AUTH_SIGNING_KEYS`, and Playwright's Chromium (`pnpm --filter @blixis-io/admin exec playwright install chromium`). It starts the API (`:8787`) and the admin (`:5173`) unless they already run, and creates a throwaway user per run. CI runs it in the `e2e (admin)` job on a fresh database (traces of failed tests are uploaded).
 
 ## Structure
 
@@ -58,7 +58,7 @@ Every user picks a color scheme (system, light, dark) and a theme under **Accoun
 
 - **Presets:** the 42 tweakcn presets (`src/lib/themes/tweakcn-presets.ts`, Apache-2.0, see `THIRD_PARTY_NOTICES.md`), loaded only on the Appearance page. Refresh them with `scripts/import-tweakcn-presets.ts` (instructions in the file).
 - **Your own theme:** design it in the [tweakcn editor](https://tweakcn.com/editor/theme), choose Code, and paste the CSS. `parseThemeCss` reads the `:root` and `.dark` blocks (Tailwind v4 or v3 exports), ignores derived variables, and skips unsafe values.
-- **Storage:** `GET/PUT /api/v1/users/me/preferences` (`@blixis/users`), so the theme follows the user to every device. This device caches it in `localStorage` (`blixis.appearance`, no secrets) to paint the right theme before the API answers.
+- **Storage:** `GET/PUT /api/v1/users/me/preferences` (`@blixis-io/users`), so the theme follows the user to every device. This device caches it in `localStorage` (`blixis.appearance`, no secrets) to paint the right theme before the API answers.
 - **Applying:** tokens are set on `<html>` with `style.setProperty` for the current mode, plus derived shadows (tweakcn's shadow model, via `color-mix`) and letter spacing. The CSP (`style-src 'self'`) allows this but not injected `<style>` elements. The API and the admin accept only plain values (colors, lengths, numbers, font lists), never `url(…)`, `;` or braces.
 - **Fonts** in a theme apply when they're installed on the device. Web fonts aren't loaded: that would need third-party font hosts in the CSP.
 - `styles.css` holds the default theme (tweakcn's default) and maps every token to Tailwind (`bg-card`, `bg-popover`, `shadow-md`, `rounded-lg`, `font-sans`, …). Use these tokens in components, never fixed colors.
@@ -74,7 +74,7 @@ Components use the theme tokens in `src/styles.css` (`bg-background`, `text-mute
 The owner deploys. The refresh cookie is `SameSite=Strict`, so sign-in with silent refresh needs the admin and the API on the same site: custom domains `admin.<domain>` and `api.<domain>` (plan 021). On `workers.dev` (a public suffix) the admin can't share the cookie with the API.
 
 ```bash
-pnpm --filter @blixis/admin deploy:staging     # vite build --mode staging && wrangler deploy --env staging
+pnpm --filter @blixis-io/admin deploy:staging     # vite build --mode staging && wrangler deploy --env staging
 ```
 
 Then add the admin origin to the API's `AUTH_ALLOWED_ORIGINS` for that environment (CORS and cookie endpoints).

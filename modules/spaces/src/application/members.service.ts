@@ -5,10 +5,10 @@ import {
   NotFoundError,
   type ServiceToken,
   validate,
-} from '@blixis/contracts'
-import { type Database, isId } from '@blixis/database'
-import type { RoleService } from '@blixis/permissions'
-import type { Membership, MembershipScope, MembershipService, UserService } from '@blixis/users'
+} from '@blixis-io/contracts'
+import { type Database, isId } from '@blixis-io/database'
+import type { RoleService } from '@blixis-io/permissions'
+import type { Membership, MembershipScope, MembershipService, UserService } from '@blixis-io/users'
 import { z } from 'zod'
 import { spaceRepository } from '../infrastructure/repositories.ts'
 import { SPACES_PERMISSIONS as P } from '../permissions.ts'

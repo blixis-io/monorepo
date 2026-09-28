@@ -1,16 +1,16 @@
-import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE, contentModule } from '@blixis/content'
-import type { EventEnvelope } from '@blixis/contracts'
-import { databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { permissionsModule } from '@blixis/permissions'
-import { spacesModule, TENANCY_SERVICE } from '@blixis/spaces'
-import { asUser, captureEvents, createTestBlixis, serviceOverride } from '@blixis/testing'
+import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE, contentModule } from '@blixis-io/content'
+import type { EventEnvelope } from '@blixis-io/contracts'
+import { databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { permissionsModule } from '@blixis-io/permissions'
+import { spacesModule, TENANCY_SERVICE } from '@blixis-io/spaces'
+import { asUser, captureEvents, createTestBlixis, serviceOverride } from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { USER_SERVICE, usersModule } from '@blixis-io/users'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { PUBLIC_EVENT_DEFINITIONS } from '../src/application/public-events.ts'

@@ -1,4 +1,4 @@
-import { BlixisApiError } from '@blixis/sdk'
+import { BlixisApiError } from '@blixis-io/sdk'
 
 /** What the UI shows for a failed call: a message and, for support, the request id. */
 export interface ErrorDescription {

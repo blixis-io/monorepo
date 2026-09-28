@@ -6,7 +6,7 @@
 
 ## Context
 
-§13 makes Neon Postgres, reached through Cloudflare Hyperdrive, the relational source of truth. Database creation stays behind `@blixis/database`. §13 leaves the driver and ORM open but requires a solution that supports TypeScript 7, works reliably on Workers, supports Postgres, needs no long-lived Node server state, and supports migrations and transactions. Modules own their tables (§2), and content storage in plan 010 relies on JSONB. The `MigrationDefinition` contract (002.008) already accepts a SQL string or a function as `up`.
+§13 makes Neon Postgres, reached through Cloudflare Hyperdrive, the relational source of truth. Database creation stays behind `@blixis-io/database`. §13 leaves the driver and ORM open but requires a solution that supports TypeScript 7, works reliably on Workers, supports Postgres, needs no long-lived Node server state, and supports migrations and transactions. Modules own their tables (§2), and content storage in plan 010 relies on JSONB. The `MigrationDefinition` contract (002.008) already accepts a SQL string or a function as `up`.
 
 Candidates (versions checked on 2026-09-24):
 - drivers: `pg` 8.23.0 (node-postgres) and `postgres` 3.4.9 (postgres.js);
@@ -46,7 +46,7 @@ The project owner chose this option.
 
 1. **Driver: `pg` (node-postgres)**, the driver Cloudflare recommends for Hyperdrive. It is actively maintained. The Worker needs the `nodejs_compat` compatibility flag, which the API Worker already has (added for Sentry in 004.007).
 2. **Query layer: Drizzle ORM.** Each module declares its tables in its own Postgres schema via `pgSchema('<module>')`. Row types are inferred from those declarations, so there are no duplicated interfaces. Raw SQL remains available through `sql```.
-3. **Connections: one `pg.Client` per request (or per unit of background work), created from `env.HYPERDRIVE.connectionString` inside the request scope.** It is closed through `waitUntil` when the scope is disposed. Hyperdrive does the pooling, so the Worker keeps no pool or global connection (§13: no long-lived state). `@blixis/database` wraps this (005.002).
+3. **Connections: one `pg.Client` per request (or per unit of background work), created from `env.HYPERDRIVE.connectionString` inside the request scope.** It is closed through `waitUntil` when the scope is disposed. Hyperdrive does the pooling, so the Worker keeps no pool or global connection (§13: no long-lived state). `@blixis-io/database` wraps this (005.002).
 4. **Migrations: plain SQL files per module, applied by our own runner (005.005).**
    - `drizzle-kit generate` is a developer tool that proposes the SQL from the schema diff. The generated file is reviewed, edited when needed (data migrations, `CONCURRENTLY`), and committed.
    - Each file becomes a `MigrationDefinition` with a SQL-string `up`. Its id uses the file name `NNNN_snake_case`, generated with `--name`.
@@ -56,16 +56,16 @@ The project owner chose this option.
 
 ## Alternatives considered
 
-- **postgres.js + Drizzle.** It has the smallest bundle (−19 KiB gzip) and the same Drizzle ergonomics. It was rejected because releases are slower and Cloudflare's Hyperdrive guidance now leads with node-postgres. Switching later only touches `@blixis/database`, because Drizzle's API stays the same.
+- **postgres.js + Drizzle.** It has the smallest bundle (−19 KiB gzip) and the same Drizzle ergonomics. It was rejected because releases are slower and Cloudflare's Hyperdrive guidance now leads with node-postgres. Switching later only touches `@blixis-io/database`, because Drizzle's API stays the same.
 - **pg + Kysely.** It stays close to SQL and needs no ORM layer. It was rejected because it has the largest bundle, table types must be hand-written or generated, and its migrations are TypeScript instead of reviewable SQL.
 - **Only a driver, with hand-written SQL.** It has the smallest surface, but offers no type inference for rows or queries across dozens of module tables.
 
 ## Consequences
 
-- Module authors write Drizzle table definitions and repositories. `@blixis/database` exposes the Drizzle instance and transaction helpers (005.002, 005.004). Only the database package imports `pg`.
+- Module authors write Drizzle table definitions and repositories. `@blixis-io/database` exposes the Drizzle instance and transaction helpers (005.002, 005.004). Only the database package imports `pg`.
 - The Drizzle core adds about 80 KiB gzip to the API Worker.
 - Migration SQL stays readable in PR review, and the runner does not depend on Drizzle's migration journal.
-- Tests (005.006) use Docker Postgres 18 locally and in CI, with one migrated database per test file (`@blixis/testing/database`). The Vitest Workers pool cannot load `pg`'s Cloudflare socket (`pg-cloudflare` is resolved without the `workerd` condition). Database behaviour is therefore tested in the Node pool, and the deployed path is verified on staging. See the testing conventions for known issues.
+- Tests (005.006) use Docker Postgres 18 locally and in CI, with one migrated database per test file (`@blixis-io/testing/database`). The Vitest Workers pool cannot load `pg`'s Cloudflare socket (`pg-cloudflare` is resolved without the `workerd` condition). Database behaviour is therefore tested in the Node pool, and the deployed path is verified on staging. See the testing conventions for known issues.
 - Risks:
   - Drizzle is pre-1.0, and breaking changes between minor versions are possible. Pinned versions and the test database suite (005.006) contain this.
   - `drizzle-kit` may lag behind new Postgres features. Hand-edited SQL is allowed.

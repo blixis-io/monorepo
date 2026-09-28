@@ -1,4 +1,4 @@
-import { idColumn, tenantColumns, timestamps } from '@blixis/database'
+import { idColumn, tenantColumns, timestamps } from '@blixis-io/database'
 import { bigint, integer, jsonb, pgSchema, text, timestamp } from 'drizzle-orm/pg-core'
 import type { AssetUploadStatus, LocalizedText } from '../domain/asset.ts'
 

@@ -26,8 +26,8 @@ Blixis is multi-tenant from the start. **Organizations** contain **spaces**, and
 Put `spaceScoped()` on every route under `/spaces/:spaceId/…`. It requires `spaces.read` on the space (404 for non-members) and fills in the request's tenant. Your service still checks its own permission for the operation:
 
 ```ts
-import { spaceScoped } from '@blixis/spaces'
-import { requireTenant, tenantScope } from '@blixis/database'
+import { spaceScoped } from '@blixis-io/spaces'
+import { requireTenant, tenantScope } from '@blixis-io/database'
 
 routes.get('/spaces/:spaceId/notes', spaceScoped(), async (c) => {
   const tenant = requireTenant(c.var.requestContext, 'organizationId', 'spaceId', 'environmentId')

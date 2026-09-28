@@ -13,13 +13,13 @@ The delivery API (`/graphql`, plan 012) serves published and preview content of 
 - builds in **~10 ms median** and ~21 ms cold;
 - workerd's V8 is comparable.
 
-`@blixis/graphql` already supports per-request schema extensions cached by key (`GRAPHQL_SCHEMA_EXTENSION`, 012.002).
+`@blixis-io/graphql` already supports per-request schema extensions cached by key (`GRAPHQL_SCHEMA_EXTENSION`, 012.002).
 
 ## Decision
 
 ### 1. Both: static base plus a typed schema per content model (option c)
 
-- **The static base** (`@blixis/content`'s contribution):
+- **The static base** (`@blixis-io/content`'s contribution):
   - the `Entry` interface (`sys: Sys!`), the `Block` interface (`_id`, `_type`), `Sys`, `Link`, `RichText`, `Asset` (placeholder until plan 014);
   - generic root fields `entry(id: ID!, locale: Locale, preview: Boolean): Entry` and `entries(contentType: String!, …): EntryCollection!`, which return typed objects through the interfaces.
 - **The typed extension** is generated per `(space, environment, content model)`:

@@ -1,17 +1,17 @@
-import { DATABASE, databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { graphqlModule } from '@blixis/graphql'
-import { serviceOverride } from '@blixis/kernel'
-import { permissionsModule } from '@blixis/permissions'
-import { spacesModule, TENANCY_SERVICE } from '@blixis/spaces'
-import { asDeliveryKey, asUser, captureEvents, createTestBlixis } from '@blixis/testing'
+import { DATABASE, databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { graphqlModule } from '@blixis-io/graphql'
+import { serviceOverride } from '@blixis-io/kernel'
+import { permissionsModule } from '@blixis-io/permissions'
+import { spacesModule, TENANCY_SERVICE } from '@blixis-io/spaces'
+import { asDeliveryKey, asUser, captureEvents, createTestBlixis } from '@blixis-io/testing'
 import {
   countQueries,
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { USER_SERVICE, usersModule } from '@blixis-io/users'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE, contentModule } from '../src/index.ts'
 

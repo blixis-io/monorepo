@@ -1,4 +1,4 @@
-import { ConflictError, InfrastructureError, NotFoundError } from '@blixis/contracts'
+import { ConflictError, InfrastructureError, NotFoundError } from '@blixis-io/contracts'
 import { DrizzleQueryError } from 'drizzle-orm'
 import { describe, expect, it } from 'vitest'
 import { translateDatabaseError } from './errors.ts'

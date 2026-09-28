@@ -14,7 +14,7 @@ Now the Notes module announces every new note with a `note.created` event, and a
 1. **Define the event.**
 
    ```ts title="src/events.ts"
-   import { defineEvent } from '@blixis/contracts'
+   import { defineEvent } from '@blixis-io/contracts'
    import { z } from 'zod'
 
    export const noteCreated = defineEvent({
@@ -33,8 +33,8 @@ Now the Notes module announces every new note with a `note.created` event, and a
    Replace the create handler's insert with a transaction:
 
    ```ts title="src/routes.ts (create handler)"
-   import { EVENT_BUS } from '@blixis/contracts'
-   import { DATABASE, toTransactionScope, withTransaction } from '@blixis/database'
+   import { EVENT_BUS } from '@blixis-io/contracts'
+   import { DATABASE, toTransactionScope, withTransaction } from '@blixis-io/database'
    import { noteCreated } from './events.ts'
 
    const note = await withTransaction(c.var.services.get(DATABASE), async (tx) => {
@@ -53,8 +53,8 @@ Now the Notes module announces every new note with a `note.created` event, and a
 3. **React to it.**
 
    ```ts title="src/subscriptions.ts"
-   import { subscribe } from '@blixis/contracts'
-   import { fromTransactionScope } from '@blixis/database'
+   import { subscribe } from '@blixis-io/contracts'
+   import { fromTransactionScope } from '@blixis-io/database'
    import { sql } from 'drizzle-orm'
    import { noteCreated } from './events.ts'
 

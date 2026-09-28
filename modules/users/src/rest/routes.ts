@@ -1,4 +1,4 @@
-import { type Actor, type ModuleHonoEnv, UnauthorizedError, validate } from '@blixis/contracts'
+import { type Actor, type ModuleHonoEnv, UnauthorizedError, validate } from '@blixis-io/contracts'
 import { Hono } from 'hono'
 import { USER_SERVICE } from '../application/user.service.ts'
 import { preferencesSchema } from '../domain/preferences.ts'

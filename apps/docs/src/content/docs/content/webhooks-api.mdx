@@ -102,7 +102,7 @@ A JSON `POST` per event and webhook:
 
 ## Verify requests
 
-Every request carries `Blixis-Signature: t=<unix seconds>,v1=<hex HMAC-SHA256 of "<t>.<raw body>">`, signed with the webhook's secret, and `Blixis-Delivery-Id`, `Blixis-Event-Id`, `Blixis-Event-Type`. Verify the signature on the **raw** body and reject timestamps older than a few minutes. A complete, tested example (Web Crypto: Node, Workers, Deno, Bun) is in [the receiver contract](https://github.com/blixis-io/monorepo/blob/main/docs/api/webhooks.md#verify-the-signature); `@blixis/webhooks` exports the same check as [`verifyWebhookSignature`](/api/webhooks/functions/verifywebhooksignature/).
+Every request carries `Blixis-Signature: t=<unix seconds>,v1=<hex HMAC-SHA256 of "<t>.<raw body>">`, signed with the webhook's secret, and `Blixis-Delivery-Id`, `Blixis-Event-Id`, `Blixis-Event-Type`. Verify the signature on the **raw** body and reject timestamps older than a few minutes. A complete, tested example (Web Crypto: Node, Workers, Deno, Bun) is in [the receiver contract](https://github.com/blixis-io/monorepo/blob/main/docs/api/webhooks.md#verify-the-signature); `@blixis-io/webhooks` exports the same check as [`verifyWebhookSignature`](/api/webhooks/functions/verifywebhooksignature/).
 
 ## Retries and failures
 

@@ -35,7 +35,7 @@ export interface EntryVersion {
   readonly createdAt: string
 }
 
-import type { EntryState, EntryStatus } from '@blixis/content-api'
+import type { EntryState, EntryStatus } from '@blixis-io/content-api'
 
 export type { EntryState, EntryStatus }
 

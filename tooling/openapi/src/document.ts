@@ -1,4 +1,4 @@
-import type { BlixisModule, RestContribution, RestOperation } from '@blixis/contracts'
+import type { BlixisModule, RestContribution, RestOperation } from '@blixis-io/contracts'
 import { z } from 'zod'
 
 /** Mount prefix of the Management API (kernel `API_PREFIX`). */

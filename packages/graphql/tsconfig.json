@@ -1,5 +1,5 @@
 {
-  "extends": "@blixis/tsconfig/library.json",
+  "extends": "@blixis-io/tsconfig/library.json",
   "compilerOptions": { "lib": ["es2023", "webworker"] },
   "references": [{ "path": "../contracts" }, { "path": "../kernel" }]
 }

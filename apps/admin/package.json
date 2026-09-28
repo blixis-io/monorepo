@@ -1,9 +1,9 @@
 {
-  "name": "@blixis/admin",
+  "name": "@blixis-io/admin",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Blixis admin UI: a client of the Management API through @blixis/sdk (plan 019, ADR 0017)",
+  "description": "Blixis admin UI: a client of the Management API through @blixis-io/sdk (plan 019, ADR 0017)",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -16,7 +16,7 @@
     "e2e": "playwright test"
   },
   "dependencies": {
-    "@blixis/sdk": "workspace:*",
+    "@blixis-io/sdk": "workspace:*",
     "@tanstack/react-form": "1.33.5",
     "@tanstack/react-query": "5.103.1",
     "@tanstack/react-router": "1.170.38",
@@ -35,7 +35,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@blixis/tsconfig": "workspace:*",
+    "@blixis-io/tsconfig": "workspace:*",
     "@playwright/test": "1.63.0",
     "@tailwindcss/vite": "4.3.3",
     "@testing-library/dom": "10.4.2",

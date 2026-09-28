@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /**
  * Every HTTP attempt of a delivery (plan 015.003): outcome, timing, and at most 1 KB of the

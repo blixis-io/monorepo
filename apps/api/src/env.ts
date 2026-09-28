@@ -1,4 +1,4 @@
-import { type CloudflareEnvBase, defineEnvSchema } from '@blixis/cloudflare'
+import { type CloudflareEnvBase, defineEnvSchema } from '@blixis-io/cloudflare'
 import { z } from 'zod'
 
 /** Bindings and variables of the API Worker. Extended by later plans. */

@@ -5,8 +5,8 @@ import {
   InfrastructureError,
   REQUEST_CONTEXT,
   type ServiceToken,
-} from '@blixis/contracts'
-import { BACKGROUND_HANDLERS, defineModule, KERNEL_CONTRIBUTIONS } from '@blixis/kernel'
+} from '@blixis-io/contracts'
+import { BACKGROUND_HANDLERS, defineModule, KERNEL_CONTRIBUTIONS } from '@blixis-io/kernel'
 import { createEventBus, type EventTransport } from './bus.ts'
 import { consumeEventBatch } from './consumer.ts'
 import { EventRegistry } from './registry.ts'

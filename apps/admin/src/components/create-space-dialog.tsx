@@ -1,4 +1,4 @@
-import type { Organization } from '@blixis/sdk'
+import type { Organization } from '@blixis-io/sdk'
 import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'

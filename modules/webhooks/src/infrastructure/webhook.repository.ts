@@ -1,4 +1,4 @@
-import { type Database, type Transaction, tenantScope } from '@blixis/database'
+import { type Database, type Transaction, tenantScope } from '@blixis-io/database'
 import { and, asc, eq } from 'drizzle-orm'
 import type { Webhook } from '../domain/webhook.ts'
 import { webhooks } from './schema.ts'

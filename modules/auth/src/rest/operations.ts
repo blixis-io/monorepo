@@ -1,5 +1,5 @@
-import type { RestOperation, SameShape } from '@blixis/contracts'
-import { userSchema } from '@blixis/users'
+import type { RestOperation, SameShape } from '@blixis-io/contracts'
+import { userSchema } from '@blixis-io/users'
 import { z } from 'zod'
 import type { ApiTokenRecord } from '../application/api-tokens.ts'
 import type { DeliveryKeyRecord } from '../application/delivery-keys.ts'

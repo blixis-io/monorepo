@@ -1,4 +1,4 @@
-import type { FieldType } from '@blixis/sdk'
+import type { FieldType } from '@blixis-io/sdk'
 import {
   Dialog,
   DialogContent,

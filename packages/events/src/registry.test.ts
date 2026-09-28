@@ -1,5 +1,5 @@
-import { defineEvent, type EventDefinition, ModuleError, subscribe } from '@blixis/contracts'
-import { createBlixis, defineModule, noopLogger } from '@blixis/kernel'
+import { defineEvent, type EventDefinition, ModuleError, subscribe } from '@blixis-io/contracts'
+import { createBlixis, defineModule, noopLogger } from '@blixis-io/kernel'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { EVENT_REGISTRY, eventsModule } from './module.ts'

@@ -2,7 +2,7 @@
 
 The GraphQL delivery API (`/graphql`, plan 012) is documented in the developer manual: [Content reference → Delivery API](../../apps/docs/src/content/docs/content/delivery-api.mdx). It covers authentication, the typed schema per content model (ADR 0011), locales, filters, pagination, preview, errors, and **limits**.
 
-Limits live in `@blixis/graphql` (`DEFAULT_LIMITS`, `graphqlModule({ limits })`):
+Limits live in `@blixis-io/graphql` (`DEFAULT_LIMITS`, `graphqlModule({ limits })`):
 
 | Limit | Default |
 |---|---|

@@ -1,11 +1,11 @@
-import { CONTENT_SERVICE } from '@blixis/content-api'
+import { CONTENT_SERVICE } from '@blixis-io/content-api'
 import {
   AUTHORIZATION_SERVICE,
   type ModuleHonoEnv,
   type PermissionDefinition,
   type RestOperation,
   validate,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import { type Context, Hono } from 'hono'
 import { z } from 'zod'
 import { SEO_PERMISSIONS } from './permissions.ts'

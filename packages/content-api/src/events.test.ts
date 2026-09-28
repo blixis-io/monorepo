@@ -1,4 +1,4 @@
-import { validateSync } from '@blixis/contracts'
+import { validateSync } from '@blixis-io/contracts'
 import { describe, expect, it } from 'vitest'
 import { entryPublished, entryUpdated } from './events.ts'
 

@@ -8,4 +8,4 @@ export {
   entryPublished,
   entryUnpublished,
   entryUpdated,
-} from '@blixis/content-api'
+} from '@blixis-io/content-api'

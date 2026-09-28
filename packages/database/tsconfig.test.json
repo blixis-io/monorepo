@@ -1,5 +1,5 @@
 {
-  "extends": "@blixis/tsconfig/test.json",
+  "extends": "@blixis-io/tsconfig/test.json",
   "compilerOptions": { "types": ["node"] },
   "references": [{ "path": "./tsconfig.json" }]
 }

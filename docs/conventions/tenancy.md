@@ -1,6 +1,6 @@
 # Tenancy
 
-How module routes and services get a **trustworthy tenant** (architecture §21, §31; plan 008). The hierarchy is Organization → Space → Environment and Locale, owned by `@blixis/spaces`. Memberships are owned by `@blixis/users`.
+How module routes and services get a **trustworthy tenant** (architecture §21, §31; plan 008). The hierarchy is Organization → Space → Environment and Locale, owned by `@blixis-io/spaces`. Memberships are owned by `@blixis-io/users`.
 
 Related: [Authorization](./authorization.md) · [Database conventions](./database.md) · [ADR 0007](../decisions/0007-ids-and-tenancy-conventions.md) · [Manual: Organizations & spaces](../../apps/docs/src/content/docs/concepts/tenancy.mdx)
 
@@ -21,8 +21,8 @@ Unknown spaces and environments, and spaces the actor can't access, get **404**,
 ## Canonical route
 
 ```ts
-import { spaceScoped } from '@blixis/spaces'
-import { requireTenant, tenantScope } from '@blixis/database'
+import { spaceScoped } from '@blixis-io/spaces'
+import { requireTenant, tenantScope } from '@blixis-io/database'
 
 routes.get('/spaces/:spaceId/entries/:id', spaceScoped(), async (c) => {
   const tenant = requireTenant(c.var.requestContext, 'organizationId', 'spaceId', 'environmentId')
@@ -38,7 +38,7 @@ routes.get('/spaces/:spaceId/entries/:id', spaceScoped(), async (c) => {
 
 - **Services receive the tenant** from the context (`requireTenant`), never from request bodies or query parameters.
 - **Every query filters by the tenant** (`tenantScope`), including updates and deletes.
-- **Resources loaded through another path**, such as another module's service by ID, are checked with `assertSameTenant(resource, ctx.tenant)` from `@blixis/database`. A mismatch is a 404.
+- **Resources loaded through another path**, such as another module's service by ID, are checked with `assertSameTenant(resource, ctx.tenant)` from `@blixis-io/database`. A mismatch is a 404.
 
 ## Writing services that use the tenant
 
@@ -81,4 +81,4 @@ Services check permissions through `AUTHORIZATION_SERVICE`, never roles (plan 00
 - **Non-members get 404:** the actor has no membership in the resource's tenant.
 - **Members without the permission get 403.** `require` implements both, so callers never choose.
 - **Pass the verified tenant in the `ResourceRef`:** use the tenant from `spaceScoped()`, or the organization/space you loaded by id, never ids from the request body.
-- **No role-name comparisons:** `role === 'admin'` and the like fail `pnpm lint` (the `role-name-check` rule) everywhere outside `@blixis/permissions`.
+- **No role-name comparisons:** `role === 'admin'` and the like fail `pnpm lint` (the `role-name-check` rule) everywhere outside `@blixis-io/permissions`.

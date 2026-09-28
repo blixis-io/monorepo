@@ -1,10 +1,10 @@
 // The tests from the "Test your module" tutorial — run as part of the Blixis suite.
 // #region test
-import { databaseModule } from '@blixis/database'
-import { idempotencyModule } from '@blixis/database/idempotency'
-import { eventsModule } from '@blixis/events'
-import { outboxModule } from '@blixis/events/outbox'
-import { newId } from '@blixis/shared'
+import { databaseModule } from '@blixis-io/database'
+import { idempotencyModule } from '@blixis-io/database/idempotency'
+import { eventsModule } from '@blixis-io/events'
+import { outboxModule } from '@blixis-io/events/outbox'
+import { newId } from '@blixis-io/shared'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { createTestDatabase, databaseTestsEnabled, type TestDatabase } from '../../src/database.ts'

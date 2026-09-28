@@ -1,22 +1,22 @@
-import { OBJECT_STORAGE } from '@blixis/contracts'
-import { databaseModule } from '@blixis/database'
-import { idempotencyModule } from '@blixis/database/idempotency'
-import { eventsModule } from '@blixis/events'
-import { permissionsModule } from '@blixis/permissions'
-import { spacesModule, TENANCY_SERVICE } from '@blixis/spaces'
+import { OBJECT_STORAGE } from '@blixis-io/contracts'
+import { databaseModule } from '@blixis-io/database'
+import { idempotencyModule } from '@blixis-io/database/idempotency'
+import { eventsModule } from '@blixis-io/events'
+import { permissionsModule } from '@blixis-io/permissions'
+import { spacesModule, TENANCY_SERVICE } from '@blixis-io/spaces'
 import {
   asUser,
   captureEvents,
   createMemoryObjectStorage,
   createTestBlixis,
   serviceOverride,
-} from '@blixis/testing'
+} from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { USER_SERVICE, usersModule } from '@blixis-io/users'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { type AssetView, assetsModule } from '../src/index.ts'
 import { png } from './fixtures.ts'

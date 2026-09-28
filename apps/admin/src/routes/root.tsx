@@ -1,4 +1,4 @@
-import type { BrowserSession } from '@blixis/sdk'
+import type { BrowserSession } from '@blixis-io/sdk'
 import type { QueryClient } from '@tanstack/react-query'
 import { createRootRouteWithContext, Link, Outlet } from '@tanstack/react-router'
 import { ErrorView } from '../components/error-view.tsx'

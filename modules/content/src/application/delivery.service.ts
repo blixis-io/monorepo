@@ -5,9 +5,9 @@ import {
   NotFoundError,
   type ServiceToken,
   ValidationError,
-} from '@blixis/contracts'
-import type { Database } from '@blixis/database'
-import type { LocaleService, TenantResolver } from '@blixis/spaces'
+} from '@blixis-io/contracts'
+import type { Database } from '@blixis-io/database'
+import type { LocaleService, TenantResolver } from '@blixis-io/spaces'
 import type { ContentType } from '../domain/content-type.ts'
 import type { Entry, EntryState, EntryVersion } from '../domain/entry.ts'
 import {

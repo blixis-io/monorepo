@@ -1,4 +1,4 @@
-import type { Organization } from '@blixis/sdk'
+import type { Organization } from '@blixis-io/sdk'
 import { useQuery } from '@tanstack/react-query'
 import { createRoute, Link } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'

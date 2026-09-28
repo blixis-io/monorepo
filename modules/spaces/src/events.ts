@@ -1,4 +1,4 @@
-import { defineEvent, spaceDeleted } from '@blixis/contracts'
+import { defineEvent, spaceDeleted } from '@blixis-io/contracts'
 import { z } from 'zod'
 
 /** Defined in `@blixis/contracts`: every module that stores per-space data must handle it. */

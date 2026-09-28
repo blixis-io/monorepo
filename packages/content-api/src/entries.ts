@@ -1,4 +1,4 @@
-import { type Actor, createServiceToken, type ServiceToken } from '@blixis/contracts'
+import { type Actor, createServiceToken, type ServiceToken } from '@blixis-io/contracts'
 import type { EnvironmentTenant } from './content-types.ts'
 
 /** Entry fields in API shape: values by field `apiId`; localized fields map locale codes to values. */

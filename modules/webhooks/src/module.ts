@@ -7,10 +7,10 @@ import {
   type ModuleHonoEnv,
   type ServiceRegistry,
   subscribe,
-} from '@blixis/contracts'
-import { DATABASE } from '@blixis/database'
-import { BACKGROUND_HANDLERS, defineModule } from '@blixis/kernel'
-import { ENVIRONMENT_SERVICE, spaceDeleted } from '@blixis/spaces'
+} from '@blixis-io/contracts'
+import { DATABASE } from '@blixis-io/database'
+import { BACKGROUND_HANDLERS, defineModule } from '@blixis-io/kernel'
+import { ENVIRONMENT_SERVICE, spaceDeleted } from '@blixis-io/spaces'
 import { Hono } from 'hono'
 import { attemptDelivery, sweepDueDeliveries } from './application/deliver.ts'
 import { fanOut } from './application/fanout.ts'

@@ -1,8 +1,8 @@
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import type { BlixisModule } from '@blixis/contracts'
-import type { ModuleMigration } from '@blixis/database/migrations'
-import { createBlixis, noopLogger } from '@blixis/kernel'
+import type { BlixisModule } from '@blixis-io/contracts'
+import type { ModuleMigration } from '@blixis-io/database/migrations'
+import { createBlixis, noopLogger } from '@blixis-io/kernel'
 
 /**
  * Loads an app's explicit module list (§2.3) and returns its migrations in bootstrap order.

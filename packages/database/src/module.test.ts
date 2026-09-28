@@ -1,4 +1,4 @@
-import { createBlixis, noopLogger, READY_PATH } from '@blixis/kernel'
+import { createBlixis, noopLogger, READY_PATH } from '@blixis-io/kernel'
 import { describe, expect, it } from 'vitest'
 import { DATABASE, databaseModule } from './module.ts'
 

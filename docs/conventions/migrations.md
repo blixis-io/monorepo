@@ -1,6 +1,6 @@
 # Migrations
 
-How modules own and evolve their database schema. This implements architecture §5, §13, and §20 and [ADR 0006](../decisions/0006-database-stack.md). The runner lives in `@blixis/database/migrations`, and the CLI in `tooling/db`.
+How modules own and evolve their database schema. This implements architecture §5, §13, and §20 and [ADR 0006](../decisions/0006-database-stack.md). The runner lives in `@blixis-io/database/migrations`, and the CLI in `tooling/db`.
 
 Related: [Database operations](../operations/database.md) · [Testing](./testing.md) · [Deployment](../operations/deployment.md)
 

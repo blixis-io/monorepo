@@ -5,8 +5,8 @@ import {
   type PermissionId,
   type ServiceToken,
   type SystemRoleKey,
-} from '@blixis/contracts'
-import type { Attributed } from '@blixis/kernel'
+} from '@blixis-io/contracts'
+import type { Attributed } from '@blixis-io/kernel'
 
 /** A registered permission with the module that declared it. */
 export interface CatalogPermission {

@@ -1,8 +1,8 @@
-import { AUTHORIZATION_SERVICE, BLIXIS_CAPABILITIES, EVENT_BUS } from '@blixis/contracts'
-import { DATABASE } from '@blixis/database'
-import { defineModule } from '@blixis/kernel'
-import { ROLE_SERVICE } from '@blixis/permissions'
-import { MEMBERSHIP_SERVICE, USER_SERVICE } from '@blixis/users'
+import { AUTHORIZATION_SERVICE, BLIXIS_CAPABILITIES, EVENT_BUS } from '@blixis-io/contracts'
+import { DATABASE } from '@blixis-io/database'
+import { defineModule } from '@blixis-io/kernel'
+import { ROLE_SERVICE } from '@blixis-io/permissions'
+import { MEMBERSHIP_SERVICE, USER_SERVICE } from '@blixis-io/users'
 import {
   createEnvironmentService,
   createLocaleService,

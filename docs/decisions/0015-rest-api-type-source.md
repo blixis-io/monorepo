@@ -20,7 +20,7 @@ TypeScript 7 (ADR 0001) has no JavaScript compiler API, so common OpenAPI-to-Typ
 
 **Option (c).**
 
-1. **`RestContribution.operations`** (`@blixis/contracts`): each operation has `method`, `path`, `id` (the SDK method and `operationId`), `summary`, `tag`, optional `permission`, `auth: false` for public operations, a request (`query`, `body` or `'binary'`, documented `headers`, `idempotent`), and responses by status with Standard Schema bodies. Modules keep them in `src/rest/operations.ts`.
+1. **`RestContribution.operations`** (`@blixis-io/contracts`): each operation has `method`, `path`, `id` (the SDK method and `operationId`), `summary`, `tag`, optional `permission`, `auth: false` for public operations, a request (`query`, `body` or `'binary'`, documented `headers`, `idempotent`), and responses by status with Standard Schema bodies. Modules keep them in `src/rest/operations.ts`.
 2. **Schemas are Zod** (ADR 0004). Reusable ones are named with `.meta({ id: 'Entry' })` and become `components.schemas`. Request bodies reuse the services' input schemas where they exist (`createContentTypeSchema`, `updateProfileSchema`, …).
 3. **No drift between schemas and service types:** each operations file asserts at compile time that the schema's output and the view interface have the same shape (`SameShape<z.output<typeof entrySchema>, EntryView>`, ignoring `readonly` and optional-`undefined`, as JSON does). Changing a view without its schema fails `tsc`.
 4. **No undocumented routes:** a test compares the registered routes with the operations, both ways.

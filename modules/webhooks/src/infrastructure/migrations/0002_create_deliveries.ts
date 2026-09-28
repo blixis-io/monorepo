@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /**
  * One row per (webhook, event): the unique pair makes fan-out idempotent — a redelivered event

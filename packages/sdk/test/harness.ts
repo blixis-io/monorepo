@@ -1,31 +1,31 @@
-import { assetsModule } from '@blixis/assets'
-import { AUTH_CONFIG, authModule, generateSigningKey } from '@blixis/auth'
-import { contentModule } from '@blixis/content'
+import { assetsModule } from '@blixis-io/assets'
+import { AUTH_CONFIG, authModule, generateSigningKey } from '@blixis-io/auth'
+import { contentModule } from '@blixis-io/content'
 import {
   type BlixisModule,
   OBJECT_STORAGE,
   type RestContribution,
   type RestOperation,
-} from '@blixis/contracts'
-import { databaseModule } from '@blixis/database'
-import { idempotencyModule } from '@blixis/database/idempotency'
-import { graphqlModule } from '@blixis/graphql'
-import { permissionsModule } from '@blixis/permissions'
-import { spacesModule } from '@blixis/spaces'
+} from '@blixis-io/contracts'
+import { databaseModule } from '@blixis-io/database'
+import { idempotencyModule } from '@blixis-io/database/idempotency'
+import { graphqlModule } from '@blixis-io/graphql'
+import { permissionsModule } from '@blixis-io/permissions'
+import { spacesModule } from '@blixis-io/spaces'
 import {
   captureEvents,
   createMemoryObjectStorage,
   createTestBlixis,
   serviceOverride,
-} from '@blixis/testing'
-import type { TestDatabase } from '@blixis/testing/database'
-import { usersModule } from '@blixis/users'
+} from '@blixis-io/testing'
+import type { TestDatabase } from '@blixis-io/testing/database'
+import { usersModule } from '@blixis-io/users'
 import {
   generateWebhookKey,
   WEBHOOK_FETCH,
   WEBHOOKS_CONFIG,
   webhooksModule,
-} from '@blixis/webhooks'
+} from '@blixis-io/webhooks'
 
 export const apiModules = (): BlixisModule[] => [
   databaseModule(),

@@ -1,11 +1,11 @@
-import { ASSET_SERVICE } from '@blixis/assets'
-import { DELIVERY_KEY_SERVICE } from '@blixis/auth'
-import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE } from '@blixis/content'
-import type { Actor } from '@blixis/contracts'
-import { QUEUE_SENDER } from '@blixis/events'
-import { serviceOverride } from '@blixis/kernel'
-import { PERMISSION_CATALOG, ROLE_SERVICE } from '@blixis/permissions'
-import { LOCALE_SERVICE, TENANCY_SERVICE } from '@blixis/spaces'
+import { ASSET_SERVICE } from '@blixis-io/assets'
+import { DELIVERY_KEY_SERVICE } from '@blixis-io/auth'
+import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE } from '@blixis-io/content'
+import type { Actor } from '@blixis-io/contracts'
+import { QUEUE_SENDER } from '@blixis-io/events'
+import { serviceOverride } from '@blixis-io/kernel'
+import { PERMISSION_CATALOG, ROLE_SERVICE } from '@blixis-io/permissions'
+import { LOCALE_SERVICE, TENANCY_SERVICE } from '@blixis-io/spaces'
 import {
   asApiToken,
   asDeliveryKey,
@@ -15,14 +15,14 @@ import {
   type IsolationParams,
   type TestBlixis,
   uncoveredTenantRoutes,
-} from '@blixis/testing'
+} from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { MEMBERSHIP_SERVICE, USER_SERVICE } from '@blixis/users'
-import { generateWebhookKey, WEBHOOK_SERVICE, WEBHOOKS_CONFIG } from '@blixis/webhooks'
+} from '@blixis-io/testing/database'
+import { MEMBERSHIP_SERVICE, USER_SERVICE } from '@blixis-io/users'
+import { generateWebhookKey, WEBHOOK_SERVICE, WEBHOOKS_CONFIG } from '@blixis-io/webhooks'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { apiModules } from './api.ts'

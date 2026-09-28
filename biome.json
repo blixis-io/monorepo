@@ -48,10 +48,10 @@
             "patterns": [
               {
                 "group": [
-                  "@blixis/*/src",
-                  "@blixis/*/src/**",
-                  "@blixis/*/dist",
-                  "@blixis/*/dist/**"
+                  "@blixis-io/*/src",
+                  "@blixis-io/*/src/**",
+                  "@blixis-io/*/dist",
+                  "@blixis-io/*/dist/**"
                 ],
                 "message": "Import other packages through their public entry only (docs/conventions/packages.md)."
               }

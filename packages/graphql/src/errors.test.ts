@@ -7,14 +7,14 @@ import {
   RateLimitError,
   UnauthorizedError,
   ValidationError,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import {
   defineModule,
   ERROR_REPORTER,
   type ErrorReportContext,
   serviceOverride,
-} from '@blixis/kernel'
-import { asUser, createTestBlixis } from '@blixis/testing'
+} from '@blixis-io/kernel'
+import { asUser, createTestBlixis } from '@blixis-io/testing'
 import { describe, expect, it } from 'vitest'
 import { graphqlModule } from './module.ts'
 

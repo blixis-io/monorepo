@@ -70,9 +70,9 @@ Editors upload images, PDFs, video and other files to a space (plan 014). §17: 
 
 ### 6. The storage port
 
-- **`ObjectStorage` in `@blixis/contracts`**, with the `OBJECT_STORAGE` service token. Third-party modules that need files (imports, exports, generated PDFs) get storage through the same port and capability, without depending on `@blixis/cloudflare`.
+- **`ObjectStorage` in `@blixis-io/contracts`**, with the `OBJECT_STORAGE` service token. Third-party modules that need files (imports, exports, generated PDFs) get storage through the same port and capability, without depending on `@blixis-io/cloudflare`.
 - **Operations:** `put`, `get` (with ranges), `head`, `delete` (idempotent, many keys), `list` (by prefix), and multipart `createMultipart`, `uploadPart`, `completeMultipart`, `abortMultipart`.
-- **Adapters:** `r2ObjectStorage(bucket)` and `r2StorageModule({ binding })` in `@blixis/cloudflare`; `createMemoryObjectStorage()` in `@blixis/testing`, which enforces the same multipart rules.
+- **Adapters:** `r2ObjectStorage(bucket)` and `r2StorageModule({ binding })` in `@blixis-io/cloudflare`; `createMemoryObjectStorage()` in `@blixis-io/testing`, which enforces the same multipart rules.
 - **Binding:** `ASSETS`, buckets `blixis-assets-staging` and `blixis-assets-production` (local: simulated by wrangler).
 
 ## Alternatives considered
@@ -81,7 +81,7 @@ Editors upload images, PDFs, video and other files to a space (plan 014). §17: 
 - **Presigned S3 URLs:** no Worker in the data path and no body limit, but credentials as secrets, bucket CORS, and no server-side check before the object exists (see §1).
 - **Keys from file names** (`<space>/<name>`): readable, but collisions, path tricks, and renames that move objects. Opaque ids avoid all three.
 - **Mutable object per asset** (overwrite on replace): fewer objects, but URLs can't be cached as immutable, and a failed replace can corrupt the only copy.
-- **Port inside `@blixis/assets`:** simpler, but other modules would have to depend on the assets module to store a file.
+- **Port inside `@blixis-io/assets`:** simpler, but other modules would have to depend on the assets module to store a file.
 
 ## Consequences
 

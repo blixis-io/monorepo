@@ -1,4 +1,4 @@
-import { createServiceToken, type ServiceToken } from '@blixis/contracts'
+import { createServiceToken, type ServiceToken } from '@blixis-io/contracts'
 import type { SchemaPart } from './compose.ts'
 import type { GraphQLContext } from './context.ts'
 

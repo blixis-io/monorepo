@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 import { describe, expect, it } from 'vitest'
 import {
   FUNCTION_CHECKSUM,

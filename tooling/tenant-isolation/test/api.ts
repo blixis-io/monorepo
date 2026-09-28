@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import type { BlixisModule } from '@blixis/contracts'
+import type { BlixisModule } from '@blixis-io/contracts'
 
 /** The API Worker's real module list, so the suites cover exactly what the API serves. */
 export async function apiModules(): Promise<readonly BlixisModule[]> {

@@ -12,8 +12,8 @@ import {
   type ResourceRef,
   type ServiceToken,
   UnauthorizedError,
-} from '@blixis/contracts'
-import type { Membership, MembershipService } from '@blixis/users'
+} from '@blixis-io/contracts'
+import type { Membership, MembershipService } from '@blixis-io/users'
 import type { PermissionCatalog } from './catalog.ts'
 import type { RoleStore } from './role.store.ts'
 

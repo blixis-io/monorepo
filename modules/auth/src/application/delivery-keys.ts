@@ -9,8 +9,8 @@ import {
   UnauthorizedError,
   ValidationError,
   validate,
-} from '@blixis/contracts'
-import { type Database, isId, newId, tenantScope } from '@blixis/database'
+} from '@blixis-io/contracts'
+import { type Database, isId, newId, tenantScope } from '@blixis-io/database'
 import { and, desc, eq, isNull, lt, or, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { randomBytes, sha256Hex, toBase64Url } from '../domain/encoding.ts'

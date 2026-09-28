@@ -4,15 +4,15 @@ import {
   EVENT_BUS,
   type ModuleHonoEnv,
   subscribe,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import {
   DATABASE,
   fromTransactionScope,
   newId,
   toTransactionScope,
   withTransaction,
-} from '@blixis/database'
-import { defineModule } from '@blixis/kernel'
+} from '@blixis-io/database'
+import { defineModule } from '@blixis-io/kernel'
 import { sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { z } from 'zod'

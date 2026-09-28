@@ -1,5 +1,10 @@
-import { ASSET_LOOKUP, type AssetSummary, NotFoundError, ValidationError } from '@blixis/contracts'
-import { createBatchLoader, type GraphQLContext, loader, type SchemaPart } from '@blixis/graphql'
+import {
+  ASSET_LOOKUP,
+  type AssetSummary,
+  NotFoundError,
+  ValidationError,
+} from '@blixis-io/contracts'
+import { createBatchLoader, type GraphQLContext, loader, type SchemaPart } from '@blixis-io/graphql'
 import {
   DELIVERY_SERVICE,
   type DeliveredEntry,

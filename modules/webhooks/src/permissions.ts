@@ -1,4 +1,4 @@
-import { definePermission } from '@blixis/contracts'
+import { definePermission } from '@blixis-io/contracts'
 
 /** Permissions of the webhooks module. Webhooks send data out of Blixis: admins by default. */
 export const WEBHOOK_PERMISSIONS = {

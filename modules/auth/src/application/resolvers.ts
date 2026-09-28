@@ -1,5 +1,5 @@
-import { type Actor, ANONYMOUS_ACTOR, UnauthorizedError } from '@blixis/contracts'
-import type { ActorResolverEntry } from '@blixis/kernel'
+import { type Actor, ANONYMOUS_ACTOR, UnauthorizedError } from '@blixis-io/contracts'
+import type { ActorResolverEntry } from '@blixis-io/kernel'
 import { verifyAccessToken } from '../domain/jwt.ts'
 import { API_TOKEN_PREFIX, API_TOKEN_SERVICE } from './api-tokens.ts'
 import { ACCESS_TOKEN_AUDIENCE } from './auth.service.ts'

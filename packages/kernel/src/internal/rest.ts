@@ -8,7 +8,7 @@ import {
   type RequestContext,
   type RestContribution,
   type ServiceRegistry,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import type { Hono } from 'hono'
 import type { ErrorReporter } from '../error-reporter.ts'
 import { type ModuleProblem, ModuleValidationError } from '../errors.ts'

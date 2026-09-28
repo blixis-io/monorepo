@@ -4,29 +4,29 @@ import { createServer, type Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import path from 'node:path'
 import { promisify } from 'node:util'
-import { assetsModule } from '@blixis/assets'
-import { AUTH_CONFIG, authModule, generateSigningKey } from '@blixis/auth'
-import { contentModule } from '@blixis/content'
-import { OBJECT_STORAGE } from '@blixis/contracts'
-import { databaseModule } from '@blixis/database'
-import { idempotencyModule } from '@blixis/database/idempotency'
-import { eventsModule } from '@blixis/events'
-import { graphqlModule } from '@blixis/graphql'
-import { permissionsModule } from '@blixis/permissions'
-import { createBlixisClient } from '@blixis/sdk'
-import { spacesModule } from '@blixis/spaces'
+import { assetsModule } from '@blixis-io/assets'
+import { AUTH_CONFIG, authModule, generateSigningKey } from '@blixis-io/auth'
+import { contentModule } from '@blixis-io/content'
+import { OBJECT_STORAGE } from '@blixis-io/contracts'
+import { databaseModule } from '@blixis-io/database'
+import { idempotencyModule } from '@blixis-io/database/idempotency'
+import { eventsModule } from '@blixis-io/events'
+import { graphqlModule } from '@blixis-io/graphql'
+import { permissionsModule } from '@blixis-io/permissions'
+import { createBlixisClient } from '@blixis-io/sdk'
+import { spacesModule } from '@blixis-io/spaces'
 import {
   captureEvents,
   createMemoryObjectStorage,
   createTestBlixis,
   serviceOverride,
-} from '@blixis/testing'
+} from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { usersModule } from '@blixis-io/users'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { seed } from '../scripts/seed.ts'
 

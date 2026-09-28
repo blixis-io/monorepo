@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
-import type { BlixisModule } from '@blixis/contracts'
+import type { BlixisModule } from '@blixis-io/contracts'
 import { buildDocument } from './document.ts'
 import { emitSdkTypes } from './typescript.ts'
 

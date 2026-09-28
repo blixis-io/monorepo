@@ -1,4 +1,4 @@
-import { createServiceToken, type LogFields, ModuleError } from '@blixis/contracts'
+import { createServiceToken, type LogFields, ModuleError } from '@blixis-io/contracts'
 import { Hono } from 'hono'
 import { describe, expect, it } from 'vitest'
 import { createBlixis } from './create-blixis.ts'

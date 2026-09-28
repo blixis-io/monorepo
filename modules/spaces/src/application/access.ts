@@ -1,4 +1,4 @@
-import { type Actor, type ResourceRef, UnauthorizedError } from '@blixis/contracts'
+import { type Actor, type ResourceRef, UnauthorizedError } from '@blixis-io/contracts'
 
 /**
  * The user an actor acts for: users themselves, API tokens their owner (§30). Only for data that

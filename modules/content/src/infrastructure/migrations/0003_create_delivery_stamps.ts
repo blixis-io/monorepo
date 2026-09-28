@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /**
  * The content stamp of each space (ADR 0012 §1): part of every delivery cache key, bumped when

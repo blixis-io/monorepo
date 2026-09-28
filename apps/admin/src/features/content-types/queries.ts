@@ -1,4 +1,4 @@
-import type { BlixisClient } from '@blixis/sdk'
+import type { BlixisClient } from '@blixis-io/sdk'
 import { queryOptions } from '@tanstack/react-query'
 
 export const contentTypesQuery = (client: BlixisClient, spaceId: string) =>

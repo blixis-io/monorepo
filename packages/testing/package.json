@@ -1,5 +1,5 @@
 {
-  "name": "@blixis/testing",
+  "name": "@blixis-io/testing",
   "version": "0.0.0",
   "description": "Test utilities for Blixis modules: createTestBlixis, test actors, and a capturing logger",
   "type": "module",
@@ -22,15 +22,15 @@
     "test": "vitest run --root ../.. packages/testing"
   },
   "dependencies": {
-    "@blixis/contracts": "workspace:*",
-    "@blixis/database": "workspace:*",
-    "@blixis/events": "workspace:*",
-    "@blixis/kernel": "workspace:*",
+    "@blixis-io/contracts": "workspace:*",
+    "@blixis-io/database": "workspace:*",
+    "@blixis-io/events": "workspace:*",
+    "@blixis-io/kernel": "workspace:*",
     "pg": "catalog:"
   },
   "devDependencies": {
-    "@blixis/shared": "workspace:*",
-    "@blixis/tsconfig": "workspace:*",
+    "@blixis-io/shared": "workspace:*",
+    "@blixis-io/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "drizzle-orm": "catalog:",

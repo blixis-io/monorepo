@@ -265,7 +265,7 @@ importers:
 
   apps/admin:
     dependencies:
-      '@blixis/sdk':
+      '@blixis-io/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
       '@tanstack/react-form':
@@ -317,7 +317,7 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@playwright/test':
@@ -365,43 +365,43 @@ importers:
 
   apps/api:
     dependencies:
-      '@blixis/assets':
+      '@blixis-io/assets':
         specifier: workspace:*
         version: link:../../modules/assets
-      '@blixis/auth':
+      '@blixis-io/auth':
         specifier: workspace:*
         version: link:../../modules/auth
-      '@blixis/cloudflare':
+      '@blixis-io/cloudflare':
         specifier: workspace:*
         version: link:../../packages/cloudflare
-      '@blixis/content':
+      '@blixis-io/content':
         specifier: workspace:*
         version: link:../../modules/content
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@blixis/database':
+      '@blixis-io/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@blixis/events':
+      '@blixis-io/events':
         specifier: workspace:*
         version: link:../../packages/events
-      '@blixis/graphql':
+      '@blixis-io/graphql':
         specifier: workspace:*
         version: link:../../packages/graphql
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
-      '@blixis/permissions':
+      '@blixis-io/permissions':
         specifier: workspace:*
         version: link:../../modules/permissions
-      '@blixis/spaces':
+      '@blixis-io/spaces':
         specifier: workspace:*
         version: link:../../modules/spaces
-      '@blixis/users':
+      '@blixis-io/users':
         specifier: workspace:*
         version: link:../../modules/users
-      '@blixis/webhooks':
+      '@blixis-io/webhooks':
         specifier: workspace:*
         version: link:../../modules/webhooks
       '@sentry/cloudflare':
@@ -417,10 +417,10 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
-      '@blixis/sdk':
+      '@blixis-io/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@cloudflare/vitest-pool-workers':
@@ -463,44 +463,44 @@ importers:
 
   apps/example-site:
     dependencies:
-      '@blixis/sdk':
+      '@blixis-io/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
       astro:
         specifier: 'catalog:'
         version: 7.3.5(@types/node@24.13.6)(jiti@2.6.1)(yaml@2.9.1)
     devDependencies:
-      '@blixis/assets':
+      '@blixis-io/assets':
         specifier: workspace:*
         version: link:../../modules/assets
-      '@blixis/auth':
+      '@blixis-io/auth':
         specifier: workspace:*
         version: link:../../modules/auth
-      '@blixis/content':
+      '@blixis-io/content':
         specifier: workspace:*
         version: link:../../modules/content
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@blixis/database':
+      '@blixis-io/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@blixis/events':
+      '@blixis-io/events':
         specifier: workspace:*
         version: link:../../packages/events
-      '@blixis/graphql':
+      '@blixis-io/graphql':
         specifier: workspace:*
         version: link:../../packages/graphql
-      '@blixis/permissions':
+      '@blixis-io/permissions':
         specifier: workspace:*
         version: link:../../modules/permissions
-      '@blixis/spaces':
+      '@blixis-io/spaces':
         specifier: workspace:*
         version: link:../../modules/spaces
-      '@blixis/testing':
+      '@blixis-io/testing':
         specifier: workspace:*
         version: link:../../packages/testing
-      '@blixis/users':
+      '@blixis-io/users':
         specifier: workspace:*
         version: link:../../modules/users
       '@types/node':
@@ -516,40 +516,40 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
-      '@blixis/content':
+      '@blixis-io/content':
         specifier: workspace:*
         version: link:../content
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@blixis/database':
+      '@blixis-io/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@blixis/events':
+      '@blixis-io/events':
         specifier: workspace:*
         version: link:../../packages/events
-      '@blixis/graphql':
+      '@blixis-io/graphql':
         specifier: workspace:*
         version: link:../../packages/graphql
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
-      '@blixis/permissions':
+      '@blixis-io/permissions':
         specifier: workspace:*
         version: link:../permissions
-      '@blixis/shared':
+      '@blixis-io/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@blixis/spaces':
+      '@blixis-io/spaces':
         specifier: workspace:*
         version: link:../spaces
-      '@blixis/testing':
+      '@blixis-io/testing':
         specifier: workspace:*
         version: link:../../packages/testing
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
-      '@blixis/users':
+      '@blixis-io/users':
         specifier: workspace:*
         version: link:../users
       '@types/node':
@@ -577,31 +577,31 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@blixis/database':
+      '@blixis-io/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@blixis/events':
+      '@blixis-io/events':
         specifier: workspace:*
         version: link:../../packages/events
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
-      '@blixis/permissions':
+      '@blixis-io/permissions':
         specifier: workspace:*
         version: link:../permissions
-      '@blixis/spaces':
+      '@blixis-io/spaces':
         specifier: workspace:*
         version: link:../spaces
-      '@blixis/testing':
+      '@blixis-io/testing':
         specifier: workspace:*
         version: link:../../packages/testing
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
-      '@blixis/users':
+      '@blixis-io/users':
         specifier: workspace:*
         version: link:../users
       '@types/node':
@@ -622,44 +622,44 @@ importers:
 
   modules/content:
     dependencies:
-      '@blixis/graphql':
+      '@blixis-io/graphql':
         specifier: workspace:*
         version: link:../../packages/graphql
       zod:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
-      '@blixis/content-api':
+      '@blixis-io/content-api':
         specifier: workspace:*
         version: link:../../packages/content-api
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@blixis/database':
+      '@blixis-io/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@blixis/events':
+      '@blixis-io/events':
         specifier: workspace:*
         version: link:../../packages/events
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
-      '@blixis/permissions':
+      '@blixis-io/permissions':
         specifier: workspace:*
         version: link:../permissions
-      '@blixis/shared':
+      '@blixis-io/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@blixis/spaces':
+      '@blixis-io/spaces':
         specifier: workspace:*
         version: link:../spaces
-      '@blixis/testing':
+      '@blixis-io/testing':
         specifier: workspace:*
         version: link:../../packages/testing
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
-      '@blixis/users':
+      '@blixis-io/users':
         specifier: workspace:*
         version: link:../users
       '@types/node':
@@ -684,28 +684,28 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@blixis/database':
+      '@blixis-io/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@blixis/events':
+      '@blixis-io/events':
         specifier: workspace:*
         version: link:../../packages/events
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
-      '@blixis/shared':
+      '@blixis-io/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@blixis/testing':
+      '@blixis-io/testing':
         specifier: workspace:*
         version: link:../../packages/testing
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
-      '@blixis/users':
+      '@blixis-io/users':
         specifier: workspace:*
         version: link:../users
       '@types/node':
@@ -730,31 +730,31 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@blixis/database':
+      '@blixis-io/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@blixis/events':
+      '@blixis-io/events':
         specifier: workspace:*
         version: link:../../packages/events
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
-      '@blixis/permissions':
+      '@blixis-io/permissions':
         specifier: workspace:*
         version: link:../permissions
-      '@blixis/shared':
+      '@blixis-io/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@blixis/testing':
+      '@blixis-io/testing':
         specifier: workspace:*
         version: link:../../packages/testing
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
-      '@blixis/users':
+      '@blixis-io/users':
         specifier: workspace:*
         version: link:../users
       '@types/node':
@@ -779,25 +779,25 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@blixis/database':
+      '@blixis-io/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@blixis/events':
+      '@blixis-io/events':
         specifier: workspace:*
         version: link:../../packages/events
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
-      '@blixis/shared':
+      '@blixis-io/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@blixis/testing':
+      '@blixis-io/testing':
         specifier: workspace:*
         version: link:../../packages/testing
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@types/node':
@@ -822,43 +822,43 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
-      '@blixis/assets':
+      '@blixis-io/assets':
         specifier: workspace:*
         version: link:../assets
-      '@blixis/content':
+      '@blixis-io/content':
         specifier: workspace:*
         version: link:../content
-      '@blixis/content-api':
+      '@blixis-io/content-api':
         specifier: workspace:*
         version: link:../../packages/content-api
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@blixis/database':
+      '@blixis-io/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@blixis/events':
+      '@blixis-io/events':
         specifier: workspace:*
         version: link:../../packages/events
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
-      '@blixis/permissions':
+      '@blixis-io/permissions':
         specifier: workspace:*
         version: link:../permissions
-      '@blixis/shared':
+      '@blixis-io/shared':
         specifier: workspace:*
         version: link:../../packages/shared
-      '@blixis/spaces':
+      '@blixis-io/spaces':
         specifier: workspace:*
         version: link:../spaces
-      '@blixis/testing':
+      '@blixis-io/testing':
         specifier: workspace:*
         version: link:../../packages/testing
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
-      '@blixis/users':
+      '@blixis-io/users':
         specifier: workspace:*
         version: link:../users
       '@types/node':
@@ -879,17 +879,17 @@ importers:
 
   packages/cloudflare:
     dependencies:
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@blixis/events':
+      '@blixis-io/events':
         specifier: workspace:*
         version: link:../events
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../kernel
     devDependencies:
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@cloudflare/workers-types':
@@ -907,10 +907,10 @@ importers:
 
   packages/content-api:
     devDependencies:
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       typescript:
@@ -922,7 +922,7 @@ importers:
 
   packages/contracts:
     devDependencies:
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       hono:
@@ -940,13 +940,13 @@ importers:
 
   packages/database:
     dependencies:
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../kernel
-      '@blixis/shared':
+      '@blixis-io/shared':
         specifier: workspace:*
         version: link:../shared
       drizzle-orm:
@@ -956,7 +956,7 @@ importers:
         specifier: 'catalog:'
         version: 8.23.0
     devDependencies:
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@types/node':
@@ -977,23 +977,23 @@ importers:
 
   packages/events:
     dependencies:
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@blixis/database':
+      '@blixis-io/database':
         specifier: workspace:*
         version: link:../database
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../kernel
-      '@blixis/shared':
+      '@blixis-io/shared':
         specifier: workspace:*
         version: link:../shared
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.3(@cloudflare/workers-types@5.20260924.1)(@opentelemetry/api@1.9.1)(@types/pg@8.23.0)(pg@8.23.0)
     devDependencies:
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@types/node':
@@ -1020,10 +1020,10 @@ importers:
 
   packages/graphql:
     dependencies:
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../kernel
       '@graphql-yoga/plugin-apq':
@@ -1036,10 +1036,10 @@ importers:
         specifier: 'catalog:'
         version: 5.24.1(graphql@16.14.2)
     devDependencies:
-      '@blixis/testing':
+      '@blixis-io/testing':
         specifier: workspace:*
         version: link:../testing
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       hono:
@@ -1054,14 +1054,14 @@ importers:
 
   packages/kernel:
     dependencies:
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../contracts
       hono:
         specifier: 'catalog:'
         version: 4.13.9
     devDependencies:
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       typescript:
@@ -1076,46 +1076,46 @@ importers:
 
   packages/sdk:
     devDependencies:
-      '@blixis/assets':
+      '@blixis-io/assets':
         specifier: workspace:*
         version: link:../../modules/assets
-      '@blixis/auth':
+      '@blixis-io/auth':
         specifier: workspace:*
         version: link:../../modules/auth
-      '@blixis/content':
+      '@blixis-io/content':
         specifier: workspace:*
         version: link:../../modules/content
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@blixis/database':
+      '@blixis-io/database':
         specifier: workspace:*
         version: link:../database
-      '@blixis/events':
+      '@blixis-io/events':
         specifier: workspace:*
         version: link:../events
-      '@blixis/graphql':
+      '@blixis-io/graphql':
         specifier: workspace:*
         version: link:../graphql
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../kernel
-      '@blixis/permissions':
+      '@blixis-io/permissions':
         specifier: workspace:*
         version: link:../../modules/permissions
-      '@blixis/spaces':
+      '@blixis-io/spaces':
         specifier: workspace:*
         version: link:../../modules/spaces
-      '@blixis/testing':
+      '@blixis-io/testing':
         specifier: workspace:*
         version: link:../testing
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
-      '@blixis/users':
+      '@blixis-io/users':
         specifier: workspace:*
         version: link:../../modules/users
-      '@blixis/webhooks':
+      '@blixis-io/webhooks':
         specifier: workspace:*
         version: link:../../modules/webhooks
       '@types/node':
@@ -1133,7 +1133,7 @@ importers:
 
   packages/shared:
     devDependencies:
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       typescript:
@@ -1145,26 +1145,26 @@ importers:
 
   packages/testing:
     dependencies:
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@blixis/database':
+      '@blixis-io/database':
         specifier: workspace:*
         version: link:../database
-      '@blixis/events':
+      '@blixis-io/events':
         specifier: workspace:*
         version: link:../events
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../kernel
       pg:
         specifier: 'catalog:'
         version: 8.23.0
     devDependencies:
-      '@blixis/shared':
+      '@blixis-io/shared':
         specifier: workspace:*
         version: link:../shared
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
       '@types/node':
@@ -1191,7 +1191,7 @@ importers:
 
   tooling/api-surface:
     devDependencies:
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/node':
@@ -1206,7 +1206,7 @@ importers:
 
   tooling/boundaries:
     devDependencies:
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/node':
@@ -1221,26 +1221,26 @@ importers:
 
   tooling/db:
     dependencies:
-      '@blixis/auth':
+      '@blixis-io/auth':
         specifier: workspace:*
         version: link:../../modules/auth
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@blixis/database':
+      '@blixis-io/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@blixis/events':
+      '@blixis-io/events':
         specifier: workspace:*
         version: link:../../packages/events
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
-      '@blixis/webhooks':
+      '@blixis-io/webhooks':
         specifier: workspace:*
         version: link:../../modules/webhooks
     devDependencies:
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/node':
@@ -1255,17 +1255,17 @@ importers:
 
   tooling/openapi:
     dependencies:
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
       zod:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/node':
@@ -1280,13 +1280,13 @@ importers:
 
   tooling/postman:
     devDependencies:
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/node':
@@ -1301,7 +1301,7 @@ importers:
 
   tooling/smoke:
     devDependencies:
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/node':
@@ -1313,43 +1313,43 @@ importers:
 
   tooling/tenant-isolation:
     devDependencies:
-      '@blixis/assets':
+      '@blixis-io/assets':
         specifier: workspace:*
         version: link:../../modules/assets
-      '@blixis/auth':
+      '@blixis-io/auth':
         specifier: workspace:*
         version: link:../../modules/auth
-      '@blixis/content':
+      '@blixis-io/content':
         specifier: workspace:*
         version: link:../../modules/content
-      '@blixis/contracts':
+      '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@blixis/database':
+      '@blixis-io/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@blixis/events':
+      '@blixis-io/events':
         specifier: workspace:*
         version: link:../../packages/events
-      '@blixis/kernel':
+      '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
-      '@blixis/permissions':
+      '@blixis-io/permissions':
         specifier: workspace:*
         version: link:../../modules/permissions
-      '@blixis/spaces':
+      '@blixis-io/spaces':
         specifier: workspace:*
         version: link:../../modules/spaces
-      '@blixis/testing':
+      '@blixis-io/testing':
         specifier: workspace:*
         version: link:../../packages/testing
-      '@blixis/tsconfig':
+      '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
-      '@blixis/users':
+      '@blixis-io/users':
         specifier: workspace:*
         version: link:../../modules/users
-      '@blixis/webhooks':
+      '@blixis-io/webhooks':
         specifier: workspace:*
         version: link:../../modules/webhooks
       '@types/node':

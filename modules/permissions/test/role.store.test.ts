@@ -1,15 +1,20 @@
-import { ConflictError, definePermission, NotFoundError, ValidationError } from '@blixis/contracts'
-import { DATABASE, databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { defineModule } from '@blixis/kernel'
-import { newId } from '@blixis/shared'
-import { captureEvents, createTestBlixis } from '@blixis/testing'
+import {
+  ConflictError,
+  definePermission,
+  NotFoundError,
+  ValidationError,
+} from '@blixis-io/contracts'
+import { DATABASE, databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { defineModule } from '@blixis-io/kernel'
+import { newId } from '@blixis-io/shared'
+import { captureEvents, createTestBlixis } from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { MEMBERSHIP_SERVICE, USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { MEMBERSHIP_SERVICE, USER_SERVICE, usersModule } from '@blixis-io/users'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { ROLE_STORE, type RoleStore } from '../src/application/role.store.ts'

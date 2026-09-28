@@ -1,5 +1,5 @@
 {
-  "name": "@blixis/api-surface",
+  "name": "@blixis-io/api-surface",
   "version": "0.0.0",
   "private": true,
   "description": "Snapshots of the public API surface of Blixis packages, checked in CI (plan 018.004)",
@@ -8,7 +8,7 @@
     "test": "vitest run --root ../.. tooling/api-surface"
   },
   "devDependencies": {
-    "@blixis/tsconfig": "workspace:*",
+    "@blixis-io/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

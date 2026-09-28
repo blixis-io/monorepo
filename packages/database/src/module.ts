@@ -3,8 +3,8 @@ import {
   createServiceToken,
   InfrastructureError,
   type ServiceToken,
-} from '@blixis/contracts'
-import { defineModule, HEALTH_CHECKS } from '@blixis/kernel'
+} from '@blixis-io/contracts'
+import { defineModule, HEALTH_CHECKS } from '@blixis-io/kernel'
 import { sql } from 'drizzle-orm'
 import { createDatabase, type Database } from './create-database.ts'
 

@@ -1,4 +1,4 @@
-import { BlixisApiError, type ContentType, type Entry, type Locale } from '@blixis/sdk'
+import { BlixisApiError, type ContentType, type Entry, type Locale } from '@blixis-io/sdk'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useBlocker, useNavigate } from '@tanstack/react-router'
 import { ArrowLeft, History, Trash2 } from 'lucide-react'

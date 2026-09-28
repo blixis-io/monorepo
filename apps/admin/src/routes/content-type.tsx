@@ -1,4 +1,4 @@
-import { BlixisApiError, type ContentType, type FieldType } from '@blixis/sdk'
+import { BlixisApiError, type ContentType, type FieldType } from '@blixis-io/sdk'
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { createRoute, Link, useBlocker } from '@tanstack/react-router'
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react'

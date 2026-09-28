@@ -6,9 +6,9 @@ import {
   type ServiceToken,
   ValidationError,
   validate,
-} from '@blixis/contracts'
-import { type Database, isId } from '@blixis/database'
-import type { MembershipService } from '@blixis/users'
+} from '@blixis-io/contracts'
+import { type Database, isId } from '@blixis-io/database'
+import type { MembershipService } from '@blixis-io/users'
 import {
   type CreateRoleInput,
   createRoleSchema,

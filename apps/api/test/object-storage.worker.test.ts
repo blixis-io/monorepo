@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:test'
-import { r2ObjectStorage } from '@blixis/cloudflare'
+import { r2ObjectStorage } from '@blixis-io/cloudflare'
 import { describe, expect, it } from 'vitest'
 
 const MiB = 1024 * 1024

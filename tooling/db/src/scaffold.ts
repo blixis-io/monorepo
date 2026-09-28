@@ -27,7 +27,7 @@ export function scaffoldMigration(moduleDir: string, name: string): { file: stri
   mkdirSync(dir, { recursive: true })
   writeFileSync(
     file,
-    `import { defineMigration } from '@blixis/contracts'
+    `import { defineMigration } from '@blixis-io/contracts'
 
 /**
  * ${name.replaceAll('_', ' ')}. Paste reviewed SQL (e.g. proposed by \`drizzle-kit generate\`).

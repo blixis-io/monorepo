@@ -1,6 +1,6 @@
 {
-  "extends": "@blixis/tsconfig/library.json",
-  // @blixis/database's pg typings reference Node built-ins.
+  "extends": "@blixis-io/tsconfig/library.json",
+  // @blixis-io/database's pg typings reference Node built-ins.
   "compilerOptions": { "lib": ["es2023", "webworker"], "types": ["node"] },
   "references": [
     { "path": "../../packages/contracts" },

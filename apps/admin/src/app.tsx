@@ -1,4 +1,4 @@
-import type { BrowserSession } from '@blixis/sdk'
+import type { BrowserSession } from '@blixis-io/sdk'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { type RouterHistory, RouterProvider } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'

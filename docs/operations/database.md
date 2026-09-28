@@ -118,7 +118,7 @@ Hyperdrive pools connections in **transaction mode**: between transactions, a Wo
 
 - **Session state does not survive a transaction.** Inside a transaction use `SET LOCAL` (for example `SET LOCAL statement_timeout = '5s'`), never `SET`. Don't rely on session-level advisory locks, `LISTEN`/`NOTIFY`, temporary tables, or named prepared statements (`pg` uses unnamed ones by default).
 - **Keep transactions short** and never wait on outside I/O (`fetch`, queues) inside one. `blixis_app` aborts transactions that are idle for more than 60 s.
-- **Use `withTransaction(db, fn)`** from `@blixis/database`. It defaults to `read committed`, translates driver errors, and does not nest; explicit savepoints are available through `tx.transaction(...)`.
+- **Use `withTransaction(db, fn)`** from `@blixis-io/database`. It defaults to `read committed`, translates driver errors, and does not nest; explicit savepoints are available through `tx.transaction(...)`.
 - **Use `withRetryableTransaction`** for `serializable` work. It reruns `fn` (up to three times by default) only after a serialisation failure (`40001`) or deadlock (`40P01`). It never retries a lost connection, because the commit outcome is unknown.
 - **Pass `toTransactionScope(tx)`** to other packages (for example the outbox in plan 006), and turn it back into a transaction with `fromTransactionScope`. A scope is rejected once its transaction has ended.
 
@@ -126,7 +126,7 @@ Hyperdrive pools connections in **transaction mode**: between transactions, a Wo
 
 ```bash
 docker compose up -d postgres     # Postgres 18 on localhost:5432 (blixis/blixis/blixis)
-pnpm --filter @blixis/api dev     # HYPERDRIVE → localConnectionString in wrangler.jsonc
+pnpm --filter @blixis-io/api dev     # HYPERDRIVE → localConnectionString in wrangler.jsonc
 ```
 
 - The host port is **5432**. If another Postgres already uses it, stop that one or set `BLIXIS_POSTGRES_PORT` (for example `55432`) and point the Worker at the new port with `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`.

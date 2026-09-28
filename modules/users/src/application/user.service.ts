@@ -6,13 +6,13 @@ import {
   type ServiceToken,
   type TransactionScope,
   validate,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import {
   type Database,
   fromTransactionScope,
   toTransactionScope,
   withTransaction,
-} from '@blixis/database'
+} from '@blixis-io/database'
 import {
   preferencesSchema,
   type UpdatePreferencesInput,

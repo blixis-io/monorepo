@@ -1,5 +1,5 @@
-import { databaseModule } from '@blixis/database'
-import { READY_PATH } from '@blixis/kernel'
+import { databaseModule } from '@blixis-io/database'
+import { READY_PATH } from '@blixis-io/kernel'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createTestBlixis } from './create-test-blixis.ts'
 import { createTestDatabase, databaseTestsEnabled, type TestDatabase } from './database.ts'

@@ -3,7 +3,7 @@ import {
   type PermissionId,
   SYSTEM_ROLES,
   type SystemRoleKey,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import { z } from 'zod'
 import type { CatalogPermission } from '../application/catalog.ts'
 

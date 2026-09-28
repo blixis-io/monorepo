@@ -1,5 +1,5 @@
-import type { EventBus, EventEnvelope } from '@blixis/contracts'
-import { type Database, toTransactionScope, withTransaction } from '@blixis/database'
+import type { EventBus, EventEnvelope } from '@blixis-io/contracts'
+import { type Database, toTransactionScope, withTransaction } from '@blixis-io/database'
 import { webhookBody } from '../domain/payload.ts'
 import { matchesEventType } from '../domain/webhook.ts'
 import { webhookDeliveryRequested } from '../events.ts'

@@ -1,4 +1,4 @@
-import type { Entry } from '@blixis/sdk'
+import type { Entry } from '@blixis-io/sdk'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, Plus, X } from 'lucide-react'
 import { type ReactNode, useState } from 'react'

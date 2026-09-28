@@ -1,4 +1,4 @@
-import type { ContentType } from '@blixis/sdk'
+import type { ContentType } from '@blixis-io/sdk'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'

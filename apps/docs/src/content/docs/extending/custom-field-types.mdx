@@ -15,7 +15,7 @@ The built-in field types cover most content. When you need a value with its own 
 ## Define a type
 
 ```ts title="src/color-field.ts"
-import { defineFieldType } from '@blixis/content'
+import { defineFieldType } from '@blixis-io/content'
 import { z } from 'zod'
 
 export const colorField = defineFieldType({
@@ -89,7 +89,7 @@ Zod issue paths become part of the error path, so a nested error inside your val
 Pass your types to the content module in the app's module list:
 
 ```ts title="apps/api/src/blixis.config.ts"
-import { contentModule } from '@blixis/content'
+import { contentModule } from '@blixis-io/content'
 import { colorField } from '@acme/blixis-fields'
 
 export const modules = [
@@ -101,7 +101,7 @@ export const modules = [
 Content types can then use `"type": "acme.color"`. Registration fails at startup if an id is not namespaced, or if two types share an id.
 
 <Aside type="tip">
-Ship reusable field types as a package, e.g. `@acme/blixis-fields`, exporting the definitions. Keep `@blixis/content` and `zod` as peer dependencies, so the app decides the versions.
+Ship reusable field types as a package, e.g. `@acme/blixis-fields`, exporting the definitions. Keep `@blixis-io/content` and `zod` as peer dependencies, so the app decides the versions.
 </Aside>
 
 ## In the admin
@@ -145,7 +145,7 @@ it('validates hex colors and palettes', () => {
 To test a whole entry, compile a schema like the API does:
 
 ```ts
-import { BUILT_IN_FIELD_TYPES, compileEntrySchema, createFieldTypeRegistry } from '@blixis/content'
+import { BUILT_IN_FIELD_TYPES, compileEntrySchema, createFieldTypeRegistry } from '@blixis-io/content'
 
 const registry = createFieldTypeRegistry(BUILT_IN_FIELD_TYPES, [colorField])
 const schema = compileEntrySchema({ contentType, types: [contentType], locales: ['en-US'],

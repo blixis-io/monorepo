@@ -1,5 +1,5 @@
-import type { ApiFields } from '@blixis/content-api'
-import type { ValidationIssue } from '@blixis/contracts'
+import type { ApiFields } from '@blixis-io/content-api'
+import type { ValidationIssue } from '@blixis-io/contracts'
 import { z } from 'zod'
 import type { ContentType, FieldDefinition } from '../domain/content-type.ts'
 import {

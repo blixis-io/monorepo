@@ -1,4 +1,4 @@
-import { definePermission } from '@blixis/contracts'
+import { definePermission } from '@blixis-io/contracts'
 
 /**
  * Permissions of the tenant hierarchy (architecture §30). Organization-scoped permissions are

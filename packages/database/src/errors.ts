@@ -3,7 +3,7 @@ import {
   ConflictError,
   InfrastructureError,
   isBlixisError,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 
 /** SQLSTATE codes Blixis maps explicitly (https://www.postgresql.org/docs/current/errcodes-appendix.html). */
 const UNIQUE_VIOLATION = '23505'

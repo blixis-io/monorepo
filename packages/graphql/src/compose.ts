@@ -1,5 +1,5 @@
-import type { GraphQLResolverMap } from '@blixis/contracts'
-import { type ModuleProblem, ModuleValidationError } from '@blixis/kernel'
+import type { GraphQLResolverMap } from '@blixis-io/contracts'
+import { type ModuleProblem, ModuleValidationError } from '@blixis-io/kernel'
 import { type DocumentNode, type GraphQLSchema, isObjectType, isScalarType, parse } from 'graphql'
 import { createSchema } from 'graphql-yoga'
 import { SCALAR_TYPE_DEFS, SCALARS } from './scalars.ts'

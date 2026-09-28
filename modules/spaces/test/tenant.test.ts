@@ -4,19 +4,25 @@ import {
   EVENT_BUS,
   type ModuleHonoEnv,
   REQUEST_CONTEXT,
-} from '@blixis/contracts'
-import { databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { defineModule } from '@blixis/kernel'
-import { permissionsModule } from '@blixis/permissions'
-import { newId } from '@blixis/shared'
-import { asAnonymous, asApiToken, asUser, captureEvents, createTestBlixis } from '@blixis/testing'
+} from '@blixis-io/contracts'
+import { databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { defineModule } from '@blixis-io/kernel'
+import { permissionsModule } from '@blixis-io/permissions'
+import { newId } from '@blixis-io/shared'
+import {
+  asAnonymous,
+  asApiToken,
+  asUser,
+  captureEvents,
+  createTestBlixis,
+} from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { USER_SERVICE, usersModule } from '@blixis-io/users'
 import { Hono } from 'hono'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'

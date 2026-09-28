@@ -7,13 +7,13 @@ sidebar:
 
 import { Aside } from '@astrojs/starlight/components'
 
-Blixis serves **one** GraphQL endpoint, `/graphql`, powered by GraphQL Yoga inside the API Worker. Modules never create their own server. They contribute a schema fragment and resolvers, and `@blixis/graphql` composes them into one schema.
+Blixis serves **one** GraphQL endpoint, `/graphql`, powered by GraphQL Yoga inside the API Worker. Modules never create their own server. They contribute a schema fragment and resolvers, and `@blixis-io/graphql` composes them into one schema.
 
 ## Contribute a fragment
 
 ```ts
-import { defineModule } from '@blixis/kernel'
-import type { GraphQLContext } from '@blixis/graphql'
+import { defineModule } from '@blixis-io/kernel'
+import type { GraphQLContext } from '@blixis-io/graphql'
 
 export const seoModule = defineModule({
   meta: { name: '@acme/seo', version: '1.0.0' },
@@ -74,21 +74,21 @@ Always available, without declaring them:
 Use `loader(context, key, create)` to share one batching loader per request, so that resolving 50 entries costs one query, not 50:
 
 ```ts
-import { loader } from '@blixis/graphql'
+import { loader } from '@blixis-io/graphql'
 
 const authors = loader(context, '@acme/seo.authors', () => createAuthorLoader(context.services))
 ```
 
 ## Per-request schemas
 
-A module can extend the schema for one request, for example with types generated from a space's content model. Provide `GRAPHQL_SCHEMA_EXTENSION` from `@blixis/graphql`: a function that returns `{ key, parts }`. Composed schemas are cached per `key`, so the same key must always describe the same parts. `@blixis/content` uses this for typed delivery schemas.
+A module can extend the schema for one request, for example with types generated from a space's content model. Provide `GRAPHQL_SCHEMA_EXTENSION` from `@blixis-io/graphql`: a function that returns `{ key, parts }`. Composed schemas are cached per `key`, so the same key must always describe the same parts. `@blixis-io/content` uses this for typed delivery schemas.
 
 ## Response caching
 
-`graphqlModule` caches whole responses, but only for requests a **cache policy** allows. Provide `GRAPHQL_CACHE_POLICY` from `@blixis/graphql`, request-scoped: a function that receives the resolver context plus the `request`, and returns a **scope** string or `undefined` (bypass).
+`graphqlModule` caches whole responses, but only for requests a **cache policy** allows. Provide `GRAPHQL_CACHE_POLICY` from `@blixis-io/graphql`, request-scoped: a function that receives the resolver context plus the `request`, and returns a **scope** string or `undefined` (bypass).
 
 ```ts
-import { GRAPHQL_CACHE_POLICY, type CachePolicy } from '@blixis/graphql'
+import { GRAPHQL_CACHE_POLICY, type CachePolicy } from '@blixis-io/graphql'
 
 ctx.services.provideFactory(
   GRAPHQL_CACHE_POLICY,
@@ -109,7 +109,7 @@ ctx.services.provideFactory(
 ```
 
 - **The scope must change whenever the answer could change**, and must separate everything that tells callers apart (the space, the environment). The cache key is the scope plus the normalised operation and variables, never the credentials.
-- **Only one policy** is active; `@blixis/content` provides it for delivery queries.
+- **Only one policy** is active; `@blixis-io/content` provides it for delivery queries.
 - **A resolver can keep its response out of the cache** by setting `context.responseHeaders.set('cache-control', 'private, no-store')`. Responses with `errors` are never stored.
 
 The operations guide explains layers, headers and troubleshooting: `docs/operations/caching.md`.

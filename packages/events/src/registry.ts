@@ -1,4 +1,4 @@
-import { type EventDefinition, ModuleError } from '@blixis/contracts'
+import { type EventDefinition, ModuleError } from '@blixis-io/contracts'
 
 const key = (type: string, version: number) => `${type}@${version}`
 

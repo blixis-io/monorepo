@@ -1,4 +1,4 @@
-import type { LogFields, Logger } from '@blixis/contracts'
+import type { LogFields, Logger } from '@blixis-io/contracts'
 
 /** Log levels in increasing severity. */
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'

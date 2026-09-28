@@ -6,7 +6,7 @@
 
 ## Context
 
-The admin UI (§3, §50) is a browser client of the Management API. It signs in with ADR 0009: the access token lives in memory, the refresh token in an `HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth` cookie set by the API. A `SameSite=Strict` cookie is only sent when the page and the API are the **same site** (same registrable domain). The admin must use only `@blixis/sdk` (boundary rule since 003), so it can't reach into server packages.
+The admin UI (§3, §50) is a browser client of the Management API. It signs in with ADR 0009: the access token lives in memory, the refresh token in an `HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth` cookie set by the API. A `SameSite=Strict` cookie is only sent when the page and the API are the **same site** (same registrable domain). The admin must use only `@blixis-io/sdk` (boundary rule since 003), so it can't reach into server packages.
 
 Hosting options:
 
@@ -24,7 +24,7 @@ The owner chose **(b)**.
    - **React 19 + Vite 8** (`@vitejs/plugin-react`). Vite bundles TypeScript itself; `tsc -b` type-checks the admin like every other package (TS 7 has no issue with a no-emit browser project).
    - **shadcn/ui** components copied into `src/components/ui` (Radix primitives via `radix-ui`, `class-variance-authority`, `lucide-react`), styled with **Tailwind CSS v4** (`@tailwindcss/vite`). Theme tokens are CSS variables for light and dark; the theme follows the system unless the user picks one.
    - **TanStack Router** (code-based routes, typed params and search), **TanStack Query** for server state, **TanStack Form** for forms (it accepts Standard Schema validators, so the Zod schemas of ADR 0004 fit).
-   - **Data access only through `@blixis/sdk`**: the generated Management API types keep the admin in step with the OpenAPI document (ADR 0015).
+   - **Data access only through `@blixis-io/sdk`**: the generated Management API types keep the admin in step with the OpenAPI document (ADR 0015).
 4. **Build configuration.** The API origin is fixed per build mode in `vite.config.ts` (public, so committed), overridable by `VITE_BLIXIS_API_URL`. The build emits `_headers` with a strict CSP (`script-src 'self'`, `connect-src` limited to the API, `frame-ancestors 'none'`) and `nosniff`.
 5. **Testing.** Vitest (`admin` project, jsdom) with Testing Library for components; Playwright smoke tests against a running admin and API from 019.002 on.
 

@@ -1,4 +1,4 @@
-import type { Theme } from '@blixis/sdk'
+import type { Theme } from '@blixis-io/sdk'
 
 /**
  * Theme tokens: the shadcn/ui variable set as tweakcn (https://tweakcn.com) edits it. Each token

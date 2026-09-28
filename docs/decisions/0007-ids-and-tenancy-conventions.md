@@ -12,7 +12,7 @@
 
 The project owner chose the ID format; the rest follows the roadmap's recommendations.
 
-1. **Primary keys are UUIDv7** (RFC 9562), generated **in the application** with Web Crypto: `newId()` in `@blixis/shared` (re-exported by `@blixis/database`; moved in 006.001 so packages such as `@blixis/events` don't depend on the database driver).
+1. **Primary keys are UUIDv7** (RFC 9562), generated **in the application** with Web Crypto: `newId()` in `@blixis-io/shared` (re-exported by `@blixis-io/database`; moved in 006.001 so packages such as `@blixis-io/events` don't depend on the database driver).
    - Column: `id uuid primary key` (`idColumn()`).
    - The same value is used everywhere: database, REST/GraphQL, URLs, events. There are **no type prefixes** and no second public ID format.
    - UUIDv7 is time-ordered, so B-tree inserts stay local and IDs sort by creation. `newId()` is strictly monotonic per isolate. Workers freeze `Date.now()` within a request, so a 12-bit counter orders IDs within a millisecond, and a clock that goes backwards never produces a smaller ID.
@@ -30,7 +30,7 @@ The project owner chose the ID format; the rest follows the roadmap's recommenda
    - Every query on tenant data combines `tenantScope` with the ID condition.
    - The tenant isolation test suite (plan 008.006) proves this per route.
 6. **Row-level security is not used in the MVP.** App-level scoping plus the isolation suite is the control. RLS would need a per-transaction `SET LOCAL` of the tenant on every query through Hyperdrive, which is revisited in plan 020.
-7. **Namespacing:** one Postgres schema per module (ADR 0006), named after the module without scope (`@blixis/content` → `content`). Only the module's migrations create or change objects in it. Platform tables live in schema `blixis` (for example `blixis.migrations`).
+7. **Namespacing:** one Postgres schema per module (ADR 0006), named after the module without scope (`@blixis-io/content` → `content`). Only the module's migrations create or change objects in it. Platform tables live in schema `blixis` (for example `blixis.migrations`).
 8. **Cross-module foreign keys** are allowed **only toward modules the referencing module lists in `meta.requires`**. The kernel guarantees such a module is installed and migrated first (bootstrap order). They reference the other module's primary key and use `on delete restrict`, unless that module documents a cascade contract. References to optional modules or to capabilities are plain `uuid` columns without an FK, kept consistent through events.
 
 ## Alternatives considered

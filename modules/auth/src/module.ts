@@ -5,16 +5,16 @@ import {
   type ModuleHonoEnv,
   REQUEST_CONTEXT,
   subscribe,
-} from '@blixis/contracts'
-import { DATABASE } from '@blixis/database'
+} from '@blixis-io/contracts'
+import { DATABASE } from '@blixis-io/database'
 import {
   ACTOR_RESOLVERS,
   BACKGROUND_HANDLERS,
   defineModule,
   KERNEL_CONTRIBUTIONS,
-} from '@blixis/kernel'
-import { spaceDeleted } from '@blixis/spaces'
-import { USER_SERVICE, userDisabled } from '@blixis/users'
+} from '@blixis-io/kernel'
+import { spaceDeleted } from '@blixis-io/spaces'
+import { USER_SERVICE, userDisabled } from '@blixis-io/users'
 import { Hono } from 'hono'
 import { API_TOKEN_SERVICE, createApiTokenService } from './application/api-tokens.ts'
 import {

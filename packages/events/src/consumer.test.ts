@@ -1,5 +1,10 @@
-import { defineEvent, type EventEnvelope, subscribe } from '@blixis/contracts'
-import { createBlixis, createJsonLogger, defineModule, type QueueMessageLike } from '@blixis/kernel'
+import { defineEvent, type EventEnvelope, subscribe } from '@blixis-io/contracts'
+import {
+  createBlixis,
+  createJsonLogger,
+  defineModule,
+  type QueueMessageLike,
+} from '@blixis-io/kernel'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { retryDelaySeconds } from './consumer.ts'

@@ -6,7 +6,7 @@
 
 ## Context
 
-[Code standards](../conventions/code-standards.md) require: automated formatting; no deep imports into other packages (§24, §25); no relative imports across package roots; no circular package dependencies (§48 Packages.7); no Node built-ins in Worker/library code; no floating promises; no `console.*`; `@blixis/testing` only in tests; `modules/*` must not depend on `@blixis/cloudflare`. TypeScript 7 has no JavaScript compiler API, so tools built on it cannot be used.
+[Code standards](../conventions/code-standards.md) require: automated formatting; no deep imports into other packages (§24, §25); no relative imports across package roots; no circular package dependencies (§48 Packages.7); no Node built-ins in Worker/library code; no floating promises; no `console.*`; `@blixis-io/testing` only in tests; `modules/*` must not depend on `@blixis-io/cloudflare`. TypeScript 7 has no JavaScript compiler API, so tools built on it cannot be used.
 
 Spike (2026-09-24):
 
@@ -32,8 +32,8 @@ Spike (2026-09-24):
    - relative imports whose resolved path leaves the importing package's root;
    - **workspace package dependency cycles** computed from `package.json` (`dependencies`, `peerDependencies`, `devDependencies` of workspace packages);
    - imports of `@blixis/*` packages not declared in the importer's `package.json`;
-   - `@blixis/testing` imported from non-test files;
-   - forbidden edges: `modules/*` → `@blixis/cloudflare`; `apps/admin` → anything but `@blixis/sdk` (+ UI libs); `@blixis/contracts` → any runtime dependency.
+   - `@blixis-io/testing` imported from non-test files;
+   - forbidden edges: `modules/*` → `@blixis-io/cloudflare`; `apps/admin` → anything but `@blixis-io/sdk` (+ UI libs); `@blixis-io/contracts` → any runtime dependency.
    Import specifiers are extracted with a conservative parser (static `import`/`export … from`/dynamic `import()`); the checker has its own unit tests.
 3. **Commit messages:** optional local `commit-msg` hook via lefthook + commitlint (`@commitlint/config-conventional`, scopes from [commit messages](../conventions/commit-messages.md)); CI PR-title check is authoritative (001.007).
 4. **Markdown** is not linted in MVP (formatting of docs stays manual); link checking is added in 022.003.

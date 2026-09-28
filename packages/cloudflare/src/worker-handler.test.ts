@@ -1,4 +1,4 @@
-import { BACKGROUND_HANDLERS, createBlixis, defineModule, noopLogger } from '@blixis/kernel'
+import { BACKGROUND_HANDLERS, createBlixis, defineModule, noopLogger } from '@blixis-io/kernel'
 import { describe, expect, it } from 'vitest'
 import { createWorkerHandler } from './worker-handler.ts'
 
@@ -50,7 +50,7 @@ describe('createWorkerHandler env validation', () => {
     const { z } = await import('zod')
     z.config({ jitless: true })
     const lines: string[] = []
-    const { createJsonLogger } = await import('@blixis/kernel')
+    const { createJsonLogger } = await import('@blixis-io/kernel')
     let parses = 0
     const schema = z
       .object({ BLIXIS_ENV: z.enum(['local', 'staging']), SECRET: z.string().min(20) })

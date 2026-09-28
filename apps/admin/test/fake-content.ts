@@ -1,4 +1,4 @@
-import type { Asset, ContentType, Entry, EntryVersion } from '@blixis/sdk'
+import type { Asset, ContentType, Entry, EntryVersion } from '@blixis-io/sdk'
 
 const stamp = '2026-01-01T00:00:00.000Z'
 const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`

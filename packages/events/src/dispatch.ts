@@ -3,8 +3,8 @@ import {
   type EventSubscription,
   InfrastructureError,
   type Logger,
-} from '@blixis/contracts'
-import type { Attributed, RunInScope } from '@blixis/kernel'
+} from '@blixis-io/contracts'
+import type { Attributed, RunInScope } from '@blixis-io/kernel'
 import { parseEnvelope } from './envelope.ts'
 import { PROCESSED_EVENTS } from './processed.ts'
 import type { EventRegistry } from './registry.ts'

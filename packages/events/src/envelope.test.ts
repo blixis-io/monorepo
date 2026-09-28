@@ -1,5 +1,5 @@
-import { defineEvent, ValidationError } from '@blixis/contracts'
-import { idTimestamp } from '@blixis/shared'
+import { defineEvent, ValidationError } from '@blixis-io/contracts'
+import { idTimestamp } from '@blixis-io/shared'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { actorIdOf, createEnvelope, parseEnvelope } from './envelope.ts'

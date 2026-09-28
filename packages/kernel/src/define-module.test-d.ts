@@ -1,4 +1,4 @@
-import type { BlixisModule } from '@blixis/contracts'
+import type { BlixisModule } from '@blixis-io/contracts'
 import { expectTypeOf, test } from 'vitest'
 import { z } from 'zod'
 import { defineModule } from './define-module.ts'

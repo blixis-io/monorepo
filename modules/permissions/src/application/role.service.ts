@@ -5,7 +5,7 @@ import {
   type PermissionId,
   type ServiceToken,
   ValidationError,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import type { CreateRoleInput, Role, UpdateRoleInput } from '../domain/role.ts'
 import { ROLE_PERMISSIONS } from '../permissions.ts'
 import type { Authorizer, Tenant } from './authorization.service.ts'

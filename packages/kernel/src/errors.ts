@@ -1,4 +1,4 @@
-import { ModuleError } from '@blixis/contracts'
+import { ModuleError } from '@blixis-io/contracts'
 
 /** One problem found while validating the module set, attributed to a module. */
 export interface ModuleProblem {

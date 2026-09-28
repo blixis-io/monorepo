@@ -1,4 +1,4 @@
-import type { Database, Transaction } from '@blixis/database'
+import type { Database, Transaction } from '@blixis-io/database'
 import { sql } from 'drizzle-orm'
 
 type Queryable = Database | Transaction

@@ -7,22 +7,22 @@ sidebar:
 
 import { Aside } from '@astrojs/starlight/components'
 
-[`@blixis/testing`](/api/testing/readme/) boots real modules in a real kernel, without a server or Cloudflare account. Use it for module integration tests (architecture §36).
+[`@blixis-io/testing`](/api/testing/readme/) boots real modules in a real kernel, without a server or Cloudflare account. Use it for module integration tests (architecture §36).
 
 ```bash
-pnpm add -D @blixis/testing vitest
+pnpm add -D @blixis-io/testing vitest
 ```
 
 <Aside type="caution">
-Import `@blixis/testing` from test files only. Blixis's own repository enforces this with a lint rule.
+Import `@blixis-io/testing` from test files only. Blixis's own repository enforces this with a lint rule.
 </Aside>
 
 ## Boot a module
 
 ```ts
-import { asUser, createTestBlixis } from '@blixis/testing'
+import { asUser, createTestBlixis } from '@blixis-io/testing'
 import { expect, it } from 'vitest'
-import { contentModule } from '@blixis/content'
+import { contentModule } from '@blixis-io/content'
 import seo from '../src/index.ts'
 
 it('returns the SEO title', async () => {
@@ -62,8 +62,8 @@ await t.request('/api/v1/seo/entries/42', { method: 'PUT', json: { title: 'New' 
 Swap a dependency for a fake with [`serviceOverride`](/api/testing/functions/serviceoverride/). The value is type-checked against the token; the real module still runs, but its registration of that token is skipped.
 
 ```ts
-import { CONTENT_SERVICE } from '@blixis/content-api'
-import { serviceOverride } from '@blixis/testing'
+import { CONTENT_SERVICE } from '@blixis-io/content-api'
+import { serviceOverride } from '@blixis-io/testing'
 
 const t = await createTestBlixis({
   modules: [contentModule(), seo()],
@@ -84,11 +84,11 @@ expect(t.logs.entries).toContainEqual(
 
 ## Database tests
 
-Use a real Postgres, never a mocked one. `createTestDatabase` from `@blixis/testing/database` creates a fresh database for your test file and applies your modules' migrations with the production runner. Pass it to `createTestBlixis` to serve the `DATABASE` service from it:
+Use a real Postgres, never a mocked one. `createTestDatabase` from `@blixis-io/testing/database` creates a fresh database for your test file and applies your modules' migrations with the production runner. Pass it to `createTestBlixis` to serve the `DATABASE` service from it:
 
 ```ts
-import { createTestBlixis } from '@blixis/testing'
-import { createTestDatabase, databaseTestsEnabled, type TestDatabase } from '@blixis/testing/database'
+import { createTestBlixis } from '@blixis-io/testing'
+import { createTestDatabase, databaseTestsEnabled, type TestDatabase } from '@blixis-io/testing/database'
 
 describe.skipIf(!databaseTestsEnabled())('notes', () => {
   let db: TestDatabase
@@ -114,7 +114,7 @@ For modules that store binaries, override `OBJECT_STORAGE` with [`createMemoryOb
 [`captureEvents()`](/api/testing/functions/captureevents/) records every emitted event and delivers it to subscribers in-process, through the same dispatch path as the queue consumer: payload re-validation, one scope per handler, and isolated failures.
 
 ```ts
-import { captureEvents, createTestBlixis } from '@blixis/testing'
+import { captureEvents, createTestBlixis } from '@blixis-io/testing'
 
 const events = captureEvents({ mode: 'deferred' })   // or 'immediate' (default)
 const t = await createTestBlixis({ modules: [events.module(), notesModule(), searchModule()] })

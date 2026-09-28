@@ -1,6 +1,6 @@
-import { AUTH_CONFIG } from '@blixis/auth'
-import { InfrastructureError } from '@blixis/contracts'
-import { defineModule } from '@blixis/kernel'
+import { AUTH_CONFIG } from '@blixis-io/auth'
+import { InfrastructureError } from '@blixis-io/contracts'
+import { defineModule } from '@blixis-io/kernel'
 
 /**
  * Provides `AUTH_CONFIG` from the Worker environment (ADR 0009): the `AUTH_SIGNING_KEYS` secret

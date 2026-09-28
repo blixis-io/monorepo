@@ -1,4 +1,4 @@
-import type { BlixisClient, BrowserSession, User } from '@blixis/sdk'
+import type { BlixisClient, BrowserSession, User } from '@blixis-io/sdk'
 import { createContext, useContext, useSyncExternalStore } from 'react'
 
 const SessionContext = createContext<BrowserSession | null>(null)

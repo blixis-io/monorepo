@@ -1,4 +1,4 @@
-import type { BlixisModule } from '@blixis/contracts'
+import type { BlixisModule } from '@blixis-io/contracts'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { createBlixis } from '../create-blixis.ts'

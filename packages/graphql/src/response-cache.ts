@@ -1,4 +1,4 @@
-import { createServiceToken, type ServiceToken } from '@blixis/contracts'
+import { createServiceToken, type ServiceToken } from '@blixis-io/contracts'
 import { stripIgnoredCharacters } from 'graphql'
 import type { CachedResponse, ResponseCacheStore } from './cache.ts'
 import type { GraphQLContext } from './context.ts'

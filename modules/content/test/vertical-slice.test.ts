@@ -1,17 +1,17 @@
-import { type EventEnvelope, subscribe } from '@blixis/contracts'
-import { databaseModule } from '@blixis/database'
-import { idempotencyModule } from '@blixis/database/idempotency'
-import { eventsModule } from '@blixis/events'
-import { defineModule } from '@blixis/kernel'
-import { permissionsModule } from '@blixis/permissions'
-import { spacesModule } from '@blixis/spaces'
-import { asUser, captureEvents, createTestBlixis } from '@blixis/testing'
+import { type EventEnvelope, subscribe } from '@blixis-io/contracts'
+import { databaseModule } from '@blixis-io/database'
+import { idempotencyModule } from '@blixis-io/database/idempotency'
+import { eventsModule } from '@blixis-io/events'
+import { defineModule } from '@blixis-io/kernel'
+import { permissionsModule } from '@blixis-io/permissions'
+import { spacesModule } from '@blixis-io/spaces'
+import { asUser, captureEvents, createTestBlixis } from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { USER_SERVICE, usersModule } from '@blixis-io/users'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { contentModule, type EntryView, entryPublished, entryUnpublished } from '../src/index.ts'

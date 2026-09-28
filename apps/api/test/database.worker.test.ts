@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:test'
-import { createDatabase } from '@blixis/database'
+import { createDatabase } from '@blixis-io/database'
 import { sql } from 'drizzle-orm'
 import { describe, expect, it } from 'vitest'
 

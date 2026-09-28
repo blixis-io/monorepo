@@ -1,5 +1,5 @@
 {
-  "extends": "@blixis/tsconfig/library.json",
+  "extends": "@blixis-io/tsconfig/library.json",
   // Runtime-neutral: fetch, URL, Headers, streams (Workers, browsers, Node, Deno, Bun). No Node types.
   "compilerOptions": { "lib": ["es2023", "webworker"] }
 }

@@ -3,7 +3,7 @@ import {
   isBlixisError,
   toPublicErrorShape,
   type ValidationIssue,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 
 /** HTTP status per public error code (docs: manual → concepts/errors). */
 const STATUS: Readonly<Record<ErrorCode, number>> = {

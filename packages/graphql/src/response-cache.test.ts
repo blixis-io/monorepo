@@ -1,5 +1,5 @@
-import { defineModule } from '@blixis/kernel'
-import { asUser, createTestBlixis, type TestBlixis } from '@blixis/testing'
+import { defineModule } from '@blixis-io/kernel'
+import { asUser, createTestBlixis, type TestBlixis } from '@blixis-io/testing'
 import { describe, expect, it } from 'vitest'
 import type { GraphQLContext } from './context.ts'
 import { graphqlModule } from './module.ts'

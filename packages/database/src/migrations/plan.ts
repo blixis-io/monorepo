@@ -1,4 +1,4 @@
-import type { MigrationDefinition } from '@blixis/contracts'
+import type { MigrationDefinition } from '@blixis-io/contracts'
 
 /** A migration contributed by a module (the kernel's `contributions.migrations` entries). */
 export interface ModuleMigration {

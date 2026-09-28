@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /**
  * Sign-in throttling counters (007.006). Keys are SHA-256 hashes of `email:<normalized>` and

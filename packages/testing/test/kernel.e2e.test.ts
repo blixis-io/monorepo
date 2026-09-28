@@ -1,6 +1,6 @@
 // End-to-end proof of the kernel with fixture modules (architectural checkpoint CP1).
-import type { BlixisModule } from '@blixis/contracts'
-import { defineModule, ModuleValidationError } from '@blixis/kernel'
+import type { BlixisModule } from '@blixis-io/contracts'
+import { defineModule, ModuleValidationError } from '@blixis-io/kernel'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { asAnonymous, asUser, createTestBlixis, serviceOverride } from '../src/index.ts'

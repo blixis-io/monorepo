@@ -1,4 +1,4 @@
-import { createServiceToken } from '@blixis/contracts'
+import { createServiceToken } from '@blixis-io/contracts'
 
 /** Context attached to a reported error. Never contains secrets or request bodies. */
 export interface ErrorReportContext {

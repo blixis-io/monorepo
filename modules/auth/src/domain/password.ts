@@ -1,4 +1,4 @@
-import { ValidationError } from '@blixis/contracts'
+import { ValidationError } from '@blixis-io/contracts'
 import { scryptAsync } from '@noble/hashes/scrypt.js'
 import { COMMON_PASSWORDS } from './common-passwords.ts'
 import { fromBase64Url, randomBytes, timingSafeEqual, toBase64Url } from './encoding.ts'

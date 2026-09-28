@@ -107,7 +107,7 @@ export default {
 
 - Use the **raw** body: re-serializing parsed JSON changes the bytes and the signature.
 - During a secret rotation, accept both the old and the new secret for a short while.
-- `@blixis/webhooks` exports the same logic as `verifyWebhookSignature` (tested against real deliveries).
+- `@blixis-io/webhooks` exports the same logic as `verifyWebhookSignature` (tested against real deliveries).
 
 ## Retries
 

@@ -42,7 +42,7 @@ jobs:
       - name: Lint and boundaries
         run: pnpm lint
       - name: Generated Worker types are up to date
-        run: pnpm --filter @blixis/api types:check
+        run: pnpm --filter @blixis-io/api types:check
       - name: Typecheck
         run: pnpm typecheck
       - name: Test
@@ -59,7 +59,7 @@ jobs:
           MAX_GZIP_KIB: 1024
         run: |
           for e in staging production; do
-            out=$(pnpm --filter @blixis/api exec wrangler deploy --dry-run --outdir "dist/$e" --env "$e" 2>&1) || { echo "$out"; exit 1; }
+            out=$(pnpm --filter @blixis-io/api exec wrangler deploy --dry-run --outdir "dist/$e" --env "$e" 2>&1) || { echo "$out"; exit 1; }
             line=$(echo "$out" | grep "Total Upload")
             echo "$e: $line" | tee -a "$GITHUB_STEP_SUMMARY"
             size=$(echo "$line" | sed -E 's/.*gzip: ([0-9.]+) (KiB|MiB).*/\1 \2/')
@@ -68,10 +68,10 @@ jobs:
           done
       - name: Build admin (ADR 0017)
         run: |
-          pnpm --filter @blixis/admin build:staging
-          pnpm --filter @blixis/admin exec wrangler deploy --dry-run --env staging
+          pnpm --filter @blixis-io/admin build:staging
+          pnpm --filter @blixis-io/admin exec wrangler deploy --dry-run --env staging
       - name: Build docs site
-        run: pnpm --filter @blixis/docs build
+        run: pnpm --filter @blixis-io/docs build
 
   e2e:
     name: e2e (admin)
@@ -104,9 +104,9 @@ jobs:
       - name: Local API secrets (throwaway signing key)
         run: echo "AUTH_SIGNING_KEYS=$(node tooling/db/src/cli.ts generate-signing-key ci)" > apps/api/.dev.vars
       - name: Install Chromium
-        run: pnpm --filter @blixis/admin exec playwright install --with-deps chromium
+        run: pnpm --filter @blixis-io/admin exec playwright install --with-deps chromium
       - name: Playwright
-        run: pnpm --filter @blixis/admin e2e
+        run: pnpm --filter @blixis-io/admin e2e
       - name: Traces of failed tests
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

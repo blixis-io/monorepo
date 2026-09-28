@@ -1,5 +1,5 @@
-import type { EventBus, Logger } from '@blixis/contracts'
-import { type Database, newId } from '@blixis/database'
+import type { EventBus, Logger } from '@blixis-io/contracts'
+import { type Database, newId } from '@blixis-io/database'
 import type { WebhooksConfig } from '../config.ts'
 import { DISABLE_AFTER_FAILURES, MAX_ATTEMPTS, nextAttemptAt, outcomeOf } from '../domain/retry.ts'
 import { signWebhook } from '../domain/signature.ts'

@@ -72,8 +72,8 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
-      - run: pnpm --filter @blixis/api exec wrangler deploy --dry-run --env staging --outdir dist/staging
-      - run: pnpm --filter @blixis/api exec wrangler deploy --dry-run --env production --outdir dist/production
+      - run: pnpm --filter @blixis-io/api exec wrangler deploy --dry-run --env staging --outdir dist/staging
+      - run: pnpm --filter @blixis-io/api exec wrangler deploy --dry-run --env production --outdir dist/production
 
   deploy-staging:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -87,7 +87,7 @@ jobs:
       - run: pnpm build
       - run: pnpm db:migrate
         env: { DATABASE_URL: '${{ secrets.DATABASE_URL }}' }
-      - run: pnpm --filter @blixis/api exec wrangler deploy --env staging --var BLIXIS_VERSION:${{ github.sha }}
+      - run: pnpm --filter @blixis-io/api exec wrangler deploy --env staging --var BLIXIS_VERSION:${{ github.sha }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
@@ -150,7 +150,7 @@ jobs:
       - run: pnpm db:migrate
         env: { DATABASE_URL: '${{ secrets.DATABASE_URL }}' }
       - run: >-
-          pnpm --filter @blixis/api exec wrangler deploy --env production --outdir dist
+          pnpm --filter @blixis-io/api exec wrangler deploy --env production --outdir dist
           --var BLIXIS_VERSION:${{ env.TAG }} --var SENTRY_RELEASE:blixis-api@${{ env.TAG }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -1,6 +1,6 @@
-import { InfrastructureError } from '@blixis/contracts'
-import { defineModule } from '@blixis/kernel'
-import { WEBHOOKS_CONFIG } from '@blixis/webhooks'
+import { InfrastructureError } from '@blixis-io/contracts'
+import { defineModule } from '@blixis-io/kernel'
+import { WEBHOOKS_CONFIG } from '@blixis-io/webhooks'
 
 /**
  * Provides `WEBHOOKS_CONFIG` from the Worker environment (plan 015): the `WEBHOOK_SECRET_KEYS`

@@ -1,4 +1,4 @@
-import { defineMigration } from '@blixis/contracts'
+import { defineMigration } from '@blixis-io/contracts'
 
 /**
  * Delivery and preview keys (plan 012.004): space-scoped credentials for reading content through

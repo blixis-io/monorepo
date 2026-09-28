@@ -1,4 +1,4 @@
-import { createServiceToken, type ServiceToken } from '@blixis/contracts'
+import { createServiceToken, type ServiceToken } from '@blixis-io/contracts'
 import { importSigningKeys, type SigningKeys } from '../domain/jwt.ts'
 
 /**

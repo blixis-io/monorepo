@@ -1,4 +1,4 @@
-import { ValidationError } from '@blixis/contracts'
+import { ValidationError } from '@blixis-io/contracts'
 
 /**
  * Throws `ValidationError` unless `value` survives `JSON.stringify` unchanged: plain objects,

@@ -4,8 +4,8 @@ import {
   type EventEnvelope,
   InfrastructureError,
   type TransactionScope,
-} from '@blixis/contracts'
-import { createBlixis, noopLogger } from '@blixis/kernel'
+} from '@blixis-io/contracts'
+import { createBlixis, noopLogger } from '@blixis-io/kernel'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import type { EventTransport } from './bus.ts'

@@ -21,7 +21,7 @@ The complete module is compiled and tested with every Blixis build: [`packages/t
 
 ## What you need
 
-- A package that depends on `@blixis/contracts`, `@blixis/kernel`, `@blixis/database`, `drizzle-orm`, `hono`, and `zod`.
+- A package that depends on `@blixis-io/contracts`, `@blixis-io/kernel`, `@blixis-io/database`, `drizzle-orm`, `hono`, and `zod`.
 - Local Postgres, started with `docker compose up -d postgres` in the Blixis repository.
 
 <Steps>
@@ -31,7 +31,7 @@ The complete module is compiled and tested with every Blixis build: [`packages/t
    Every module owns a Postgres **schema** named after it. The [database conventions](/concepts/database/#ids-and-tenancy) give you the ID and timestamp columns:
 
    ```ts title="src/schema.ts"
-   import { idColumn, timestamps } from '@blixis/database'
+   import { idColumn, timestamps } from '@blixis-io/database'
    import { integer, pgSchema, text, uuid } from 'drizzle-orm/pg-core'
 
    export const notesSchema = pgSchema('notes')
@@ -57,7 +57,7 @@ The complete module is compiled and tested with every Blixis build: [`packages/t
    Migrations are plain SQL. `pnpm db:new <module-dir> create_notes` scaffolds the file, and `drizzle-kit generate` can propose the SQL from your schema for you to review:
 
    ```ts title="src/migrations/0001_create_notes.ts"
-   import { defineMigration } from '@blixis/contracts'
+   import { defineMigration } from '@blixis-io/contracts'
 
    export const createNotes = defineMigration({
      id: '0001_create_notes',
@@ -87,8 +87,8 @@ The complete module is compiled and tested with every Blixis build: [`packages/t
    Validate input at the boundary, and never load a row by ID alone: combine the ID with `tenantScope`.
 
    ```ts title="src/routes.ts"
-   import { type ModuleHonoEnv, NotFoundError, validate } from '@blixis/contracts'
-   import { DATABASE, isId, tenantScope } from '@blixis/database'
+   import { type ModuleHonoEnv, NotFoundError, validate } from '@blixis-io/contracts'
+   import { DATABASE, isId, tenantScope } from '@blixis-io/database'
    import { and, eq } from 'drizzle-orm'
    import { Hono } from 'hono'
    import { z } from 'zod'
@@ -128,7 +128,7 @@ The complete module is compiled and tested with every Blixis build: [`packages/t
 4. **Define the module.**
 
    ```ts title="src/index.ts"
-   import { defineModule } from '@blixis/kernel'
+   import { defineModule } from '@blixis-io/kernel'
    import { createNotes } from './migrations/0001_create_notes.ts'
    import { routes } from './routes.ts'
 

@@ -1,4 +1,4 @@
-import { createServiceToken, type ServiceToken } from '@blixis/contracts'
+import { createServiceToken, type ServiceToken } from '@blixis-io/contracts'
 
 /** Deployment settings of webhooks, from the app (only platform code reads bindings, §19). */
 export interface WebhooksConfig {

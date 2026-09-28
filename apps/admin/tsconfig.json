@@ -1,5 +1,5 @@
 {
-  "extends": "@blixis/tsconfig/base.json",
+  "extends": "@blixis-io/tsconfig/base.json",
   "display": "Blixis admin (browser; bundled by Vite, type-checked by tsc -b)",
   "compilerOptions": {
     "composite": true,

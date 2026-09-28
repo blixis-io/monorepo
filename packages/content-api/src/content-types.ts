@@ -1,4 +1,4 @@
-import { type Actor, createServiceToken, type ServiceToken } from '@blixis/contracts'
+import { type Actor, createServiceToken, type ServiceToken } from '@blixis-io/contracts'
 
 /** A verified environment tenant: the organization, space, and environment a request acts in. */
 export interface EnvironmentTenant {

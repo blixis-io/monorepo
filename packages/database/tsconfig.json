@@ -1,5 +1,5 @@
 {
-  "extends": "@blixis/tsconfig/library.json",
+  "extends": "@blixis-io/tsconfig/library.json",
   "compilerOptions": {
     // pg's typings reference Node built-ins (net, stream, events).
     "types": ["node"]

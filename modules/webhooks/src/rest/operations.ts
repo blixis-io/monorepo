@@ -1,4 +1,4 @@
-import type { RestOperation, SameShape } from '@blixis/contracts'
+import type { RestOperation, SameShape } from '@blixis-io/contracts'
 import { z } from 'zod'
 import type { AttemptView, DeliveryView, WebhookView } from '../application/webhook.service.ts'
 

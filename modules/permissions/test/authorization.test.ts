@@ -7,11 +7,11 @@ import {
   ModuleError,
   NotFoundError,
   UnauthorizedError,
-} from '@blixis/contracts'
-import { databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { defineModule, type ScopeSeed } from '@blixis/kernel'
-import { newId } from '@blixis/shared'
+} from '@blixis-io/contracts'
+import { databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { defineModule, type ScopeSeed } from '@blixis-io/kernel'
+import { newId } from '@blixis-io/shared'
 import {
   asAnonymous,
   asApiToken,
@@ -20,13 +20,13 @@ import {
   captureEvents,
   createTestBlixis,
   type TestBlixis,
-} from '@blixis/testing'
+} from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { MEMBERSHIP_SERVICE, USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { MEMBERSHIP_SERVICE, USER_SERVICE, usersModule } from '@blixis-io/users'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { ROLE_STORE } from '../src/application/role.store.ts'
 import { permissionsModule } from '../src/index.ts'

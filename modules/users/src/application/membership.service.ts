@@ -7,7 +7,7 @@ import {
   type ServiceToken,
   type TransactionScope,
   ValidationError,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import {
   type Database,
   fromTransactionScope,
@@ -16,7 +16,7 @@ import {
   type Transaction,
   translateDatabaseError,
   withTransaction,
-} from '@blixis/database'
+} from '@blixis-io/database'
 import { and, asc, count, eq, isNull, type SQL } from 'drizzle-orm'
 import {
   type Membership,

@@ -1,4 +1,4 @@
-import { idColumn, tenantColumns, timestamps } from '@blixis/database'
+import { idColumn, tenantColumns, timestamps } from '@blixis-io/database'
 import { boolean, pgSchema, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 export const spacesSchema = pgSchema('spaces')

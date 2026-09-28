@@ -1,20 +1,20 @@
-import { databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { permissionsModule } from '@blixis/permissions'
-import { newId } from '@blixis/shared'
+import { databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { permissionsModule } from '@blixis-io/permissions'
+import { newId } from '@blixis-io/shared'
 import {
   asAnonymous,
   asUser,
   captureEvents,
   createTestBlixis,
   type TestBlixis,
-} from '@blixis/testing'
+} from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { USER_SERVICE, usersModule } from '@blixis-io/users'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { type SpacesModuleOptions, spacesModule } from '../src/index.ts'
 

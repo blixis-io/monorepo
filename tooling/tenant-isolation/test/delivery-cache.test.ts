@@ -1,15 +1,15 @@
-import { DELIVERY_KEY_SERVICE } from '@blixis/auth'
-import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE } from '@blixis/content'
-import { QUEUE_SENDER } from '@blixis/events'
-import { serviceOverride } from '@blixis/kernel'
-import { LOCALE_SERVICE, TENANCY_SERVICE } from '@blixis/spaces'
-import { asUser, createTestBlixis, type TestBlixis } from '@blixis/testing'
+import { DELIVERY_KEY_SERVICE } from '@blixis-io/auth'
+import { CONTENT_SERVICE, CONTENT_TYPE_SERVICE } from '@blixis-io/content'
+import { QUEUE_SENDER } from '@blixis-io/events'
+import { serviceOverride } from '@blixis-io/kernel'
+import { LOCALE_SERVICE, TENANCY_SERVICE } from '@blixis-io/spaces'
+import { asUser, createTestBlixis, type TestBlixis } from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { USER_SERVICE } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { USER_SERVICE } from '@blixis-io/users'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { apiModules } from './api.ts'
 

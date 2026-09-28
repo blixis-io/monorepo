@@ -1,5 +1,5 @@
 {
-  "name": "@blixis/events",
+  "name": "@blixis-io/events",
   "version": "0.0.0",
   "description": "Blixis events: event definition registry, envelopes, and the event bus (transports: in-process, queue, outbox)",
   "type": "module",
@@ -22,14 +22,14 @@
     "test": "vitest run --root ../.. packages/events"
   },
   "dependencies": {
-    "@blixis/contracts": "workspace:*",
-    "@blixis/database": "workspace:*",
-    "@blixis/kernel": "workspace:*",
-    "@blixis/shared": "workspace:*",
+    "@blixis-io/contracts": "workspace:*",
+    "@blixis-io/database": "workspace:*",
+    "@blixis-io/kernel": "workspace:*",
+    "@blixis-io/shared": "workspace:*",
     "drizzle-orm": "catalog:"
   },
   "devDependencies": {
-    "@blixis/tsconfig": "workspace:*",
+    "@blixis-io/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "hono": "catalog:",

@@ -1,4 +1,4 @@
-import { ModuleValidationError } from '@blixis/kernel'
+import { ModuleValidationError } from '@blixis-io/kernel'
 import { graphql } from 'graphql'
 import { describe, expect, it } from 'vitest'
 import { composeSchema, type SchemaPart } from './compose.ts'

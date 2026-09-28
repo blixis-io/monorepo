@@ -10,7 +10,7 @@ import {
   NotFoundError,
   subscribe,
   validate,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import {
   DATABASE,
   fromTransactionScope,
@@ -20,9 +20,9 @@ import {
   timestamps,
   toTransactionScope,
   withTransaction,
-} from '@blixis/database'
-import { idempotent } from '@blixis/database/idempotency'
-import { defineModule } from '@blixis/kernel'
+} from '@blixis-io/database'
+import { idempotent } from '@blixis-io/database/idempotency'
+import { defineModule } from '@blixis-io/kernel'
 import { and, eq, sql } from 'drizzle-orm'
 import { integer, pgSchema, text, uuid } from 'drizzle-orm/pg-core'
 import { Hono } from 'hono'

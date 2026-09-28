@@ -1,4 +1,4 @@
-import type { Theme, UserPreferences } from '@blixis/sdk'
+import type { Theme, UserPreferences } from '@blixis-io/sdk'
 import { applyTokens, invalidValue } from './themes/tokens.ts'
 
 /** How the admin looks: the user's preferences as stored by the API (`/users/me/preferences`). */

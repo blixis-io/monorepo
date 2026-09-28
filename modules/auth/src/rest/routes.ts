@@ -3,9 +3,9 @@ import {
   type ModuleHonoEnv,
   UnauthorizedError,
   ValidationError,
-} from '@blixis/contracts'
-import { toProblemResponse } from '@blixis/kernel'
-import { USER_SERVICE } from '@blixis/users'
+} from '@blixis-io/contracts'
+import { toProblemResponse } from '@blixis-io/kernel'
+import { USER_SERVICE } from '@blixis-io/users'
 import type { Context } from 'hono'
 import { Hono } from 'hono'
 import { API_TOKEN_SERVICE } from '../application/api-tokens.ts'

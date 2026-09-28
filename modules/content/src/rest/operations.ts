@@ -1,4 +1,4 @@
-import type { RestOperation, SameShape } from '@blixis/contracts'
+import type { RestOperation, SameShape } from '@blixis-io/contracts'
 import { z } from 'zod'
 import type { EntryVersionView, EntryView } from '../application/content.service.ts'
 import type { ContentTypeView } from '../application/content-type.service.ts'

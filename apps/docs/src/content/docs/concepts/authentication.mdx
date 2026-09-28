@@ -7,7 +7,7 @@ sidebar:
 
 import { Aside } from '@astrojs/starlight/components'
 
-`@blixis/auth` answers **who is calling** (ADR 0009). What they may do is authorization, handled by `@blixis/permissions` (see [Actors and permissions](/concepts/permissions/)).
+`@blixis-io/auth` answers **who is calling** (ADR 0009). What they may do is authorization, handled by `@blixis-io/permissions` (see [Actors and permissions](/concepts/permissions/)).
 
 ## How clients authenticate
 
@@ -76,7 +76,7 @@ routes.get('/mine', async (c) => {
 })
 ```
 
-Profiles live in `@blixis/users`: `c.var.services.get(USER_SERVICE).getById(actor.userId)`, or `GET /api/v1/users/me`. UI preferences (color scheme and theme, used by the admin) are at `GET/PUT /api/v1/users/me/preferences`.
+Profiles live in `@blixis-io/users`: `c.var.services.get(USER_SERVICE).getById(actor.userId)`, or `GET /api/v1/users/me`. UI preferences (color scheme and theme, used by the admin) are at `GET/PUT /api/v1/users/me/preferences`.
 
 ## Operations
 

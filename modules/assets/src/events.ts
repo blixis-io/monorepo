@@ -1,4 +1,4 @@
-import { defineEvent } from '@blixis/contracts'
+import { defineEvent } from '@blixis-io/contracts'
 import { z } from 'zod'
 
 const payload = z.object({

@@ -1,4 +1,4 @@
-import { type ModuleHonoEnv, UnauthorizedError } from '@blixis/contracts'
+import { type ModuleHonoEnv, UnauthorizedError } from '@blixis-io/contracts'
 import { Hono } from 'hono'
 import { FIELD_TYPES } from '../field-types/define.ts'
 

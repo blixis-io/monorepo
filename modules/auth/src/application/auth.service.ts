@@ -5,9 +5,9 @@ import {
   type ServiceToken,
   UnauthorizedError,
   validate,
-} from '@blixis/contracts'
-import { type Database, newId, toTransactionScope, withTransaction } from '@blixis/database'
-import { displayNameSchema, emailSchema, type User, type UserService } from '@blixis/users'
+} from '@blixis-io/contracts'
+import { type Database, newId, toTransactionScope, withTransaction } from '@blixis-io/database'
+import { displayNameSchema, emailSchema, type User, type UserService } from '@blixis-io/users'
 import { z } from 'zod'
 import { randomBytes, sha256Hex, toBase64Url } from '../domain/encoding.ts'
 import { type AccessTokenClaims, signAccessToken, verifyAccessToken } from '../domain/jwt.ts'

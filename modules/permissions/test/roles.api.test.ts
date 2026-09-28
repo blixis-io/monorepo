@@ -1,21 +1,21 @@
-import { definePermission, ForbiddenError, ValidationError } from '@blixis/contracts'
-import { databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { defineModule } from '@blixis/kernel'
-import { newId } from '@blixis/shared'
+import { definePermission, ForbiddenError, ValidationError } from '@blixis-io/contracts'
+import { databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { defineModule } from '@blixis-io/kernel'
+import { newId } from '@blixis-io/shared'
 import {
   asApiToken,
   asUser,
   captureEvents,
   createTestBlixis,
   type TestBlixis,
-} from '@blixis/testing'
+} from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { MEMBERSHIP_SERVICE, USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { MEMBERSHIP_SERVICE, USER_SERVICE, usersModule } from '@blixis-io/users'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { permissionsModule, ROLE_SERVICE, type Tenant } from '../src/index.ts'
 

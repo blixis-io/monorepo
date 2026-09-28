@@ -7,7 +7,7 @@ import {
   type ServiceResolutionContext,
   type ServiceScope,
   type ServiceToken,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 
 /** Name used for kernel-originated errors when no module can be attributed. */
 const KERNEL = '@blixis/kernel'

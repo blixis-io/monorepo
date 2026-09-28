@@ -1,4 +1,4 @@
-import type { ContentType, Field } from '@blixis/sdk'
+import type { ContentType, Field } from '@blixis-io/sdk'
 import { Languages } from 'lucide-react'
 import { type ComponentType, lazy, Suspense, useId } from 'react'
 import { Label } from '../../components/ui/label.tsx'

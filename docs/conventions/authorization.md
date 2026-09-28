@@ -1,6 +1,6 @@
 # Authorization
 
-How modules declare permissions, check them, and prove the checks with the authorization matrix (architecture §5, §30; plan 009). Roles and evaluation are owned by `@blixis/permissions`.
+How modules declare permissions, check them, and prove the checks with the authorization matrix (architecture §5, §30; plan 009). Roles and evaluation are owned by `@blixis-io/permissions`.
 
 Related: [Tenancy](./tenancy.md) · [Testing](./testing.md) · [Manual: Actors and permissions](../../apps/docs/src/content/docs/concepts/permissions.mdx)
 
@@ -24,7 +24,7 @@ Related: [Tenancy](./tenancy.md) · [Testing](./testing.md) · [Manual: Actors a
    - `403` for members without the permission.
 
    Don't catch and remap these.
-5. **Never compare role names.** Roles are configuration. `role === 'admin'`, `eq(x.roleKey, 'owner')` and `['owner', …].includes(role)` fail `pnpm lint` (`role-name-check`) outside `@blixis/permissions`. The last-owner invariant in `@blixis/users` uses `OWNER_ROLE`, because it is a rule about ownership data, not an access decision.
+5. **Never compare role names.** Roles are configuration. `role === 'admin'`, `eq(x.roleKey, 'owner')` and `['owner', …].includes(role)` fail `pnpm lint` (`role-name-check`) outside `@blixis-io/permissions`. The last-owner invariant in `@blixis-io/users` uses `OWNER_ROLE`, because it is a rule about ownership data, not an access decision.
 6. **Guard role grants:** code that assigns, changes or removes a membership role calls `ROLE_SERVICE.assertCanGrant(actor, tenant, role)`. An actor can only grant or take away a role whose permissions it holds.
 7. **`system` actors** pass only when the call sets `allowSystem: true`. Set it only where platform code must act, such as tenant resolution for queue consumers, and say why in a comment.
 
@@ -69,6 +69,6 @@ The expected permissions come from the system roles (`systemRoles(catalog)`), so
 3. **New fixtures:** if the route needs a fixture (such as `:noteId`), create it in the `tenant()` seed and return it in `params`. Use `paramsFrom` when one parameter name means different things on different routes.
 4. **Coverage is enforced:** the suite fails for tenant-scoped routes missing from `AUTHZ_ROUTES`, and for rows that match no registered route. Register the route in the [isolation suite](./tenancy.md) too.
 
-The harness (`defineAuthzMatrix`, `checkAuthzMatrix`, `expectedAuthzStatus`) lives in `@blixis/testing` for module-level matrices as well.
+The harness (`defineAuthzMatrix`, `checkAuthzMatrix`, `expectedAuthzStatus`) lives in `@blixis-io/testing` for module-level matrices as well.
 
 **Runs in the Node pool:** the matrix runs in the Node pool against the test database, like every Postgres test. `pg` can't reach Postgres from the Workers pool (see [Testing](./testing.md)).

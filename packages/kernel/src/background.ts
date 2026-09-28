@@ -5,7 +5,7 @@ import {
   ModuleError,
   type RequestContext,
   type TenantContext,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 
 /** One queue message, structurally compatible with Cloudflare's `Message`. */
 export interface QueueMessageLike {

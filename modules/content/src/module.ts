@@ -9,10 +9,10 @@ import {
   type ModuleHonoEnv,
   type ServiceRegistry,
   subscribe,
-} from '@blixis/contracts'
-import { DATABASE } from '@blixis/database'
-import { GRAPHQL_CACHE_POLICY, GRAPHQL_SCHEMA_EXTENSION } from '@blixis/graphql'
-import { defineModule } from '@blixis/kernel'
+} from '@blixis-io/contracts'
+import { DATABASE } from '@blixis-io/database'
+import { GRAPHQL_CACHE_POLICY, GRAPHQL_SCHEMA_EXTENSION } from '@blixis-io/graphql'
+import { defineModule } from '@blixis-io/kernel'
 import {
   LOCALE_SERVICE,
   localeCreated,
@@ -20,7 +20,7 @@ import {
   localeUpdated,
   spaceDeleted,
   TENANT_RESOLVER,
-} from '@blixis/spaces'
+} from '@blixis-io/spaces'
 import { Hono } from 'hono'
 import { CONTENT_SERVICE, createContentService } from './application/content.service.ts'
 import {

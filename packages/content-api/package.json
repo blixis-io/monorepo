@@ -1,5 +1,5 @@
 {
-  "name": "@blixis/content-api",
+  "name": "@blixis-io/content-api",
   "version": "0.0.0",
   "description": "Public content capabilities for Blixis modules: service tokens, entry and content type views, and content events (ADR 0016)",
   "type": "module",
@@ -18,11 +18,11 @@
     "test": "vitest run --root ../.. packages/content-api"
   },
   "peerDependencies": {
-    "@blixis/contracts": "workspace:*"
+    "@blixis-io/contracts": "workspace:*"
   },
   "devDependencies": {
-    "@blixis/contracts": "workspace:*",
-    "@blixis/tsconfig": "workspace:*",
+    "@blixis-io/contracts": "workspace:*",
+    "@blixis-io/tsconfig": "workspace:*",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },

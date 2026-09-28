@@ -1,4 +1,4 @@
-import { type Database, type Transaction, translateDatabaseError } from '@blixis/database'
+import { type Database, type Transaction, translateDatabaseError } from '@blixis-io/database'
 import { eq, sql } from 'drizzle-orm'
 import type { User, UserStatus } from '../domain/user.ts'
 import { preferences, users } from './schema.ts'

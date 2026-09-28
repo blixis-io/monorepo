@@ -1,20 +1,20 @@
-import { databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { permissionsModule } from '@blixis/permissions'
-import { MEMBER_SERVICE, spacesModule, TENANCY_SERVICE } from '@blixis/spaces'
+import { databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { permissionsModule } from '@blixis-io/permissions'
+import { MEMBER_SERVICE, spacesModule, TENANCY_SERVICE } from '@blixis-io/spaces'
 import {
   asUser,
   captureEvents,
   createTestBlixis,
   serviceOverride,
   type TestBlixis,
-} from '@blixis/testing'
+} from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { USER_SERVICE, usersModule } from '@blixis-io/users'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import {

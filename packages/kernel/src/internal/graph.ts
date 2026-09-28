@@ -1,4 +1,4 @@
-import { type BlixisModule, type CapabilityId, isCapabilityId } from '@blixis/contracts'
+import { type BlixisModule, type CapabilityId, isCapabilityId } from '@blixis-io/contracts'
 import { type ModuleProblem, ModuleValidationError } from '../errors.ts'
 import { parseVersion, satisfies } from './semver.ts'
 

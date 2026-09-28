@@ -1,4 +1,4 @@
-import type { LogFields, Logger } from '@blixis/contracts'
+import type { LogFields, Logger } from '@blixis-io/contracts'
 
 /** One captured log entry. */
 export interface LogEntry {

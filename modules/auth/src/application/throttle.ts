@@ -1,5 +1,5 @@
-import { RateLimitError } from '@blixis/contracts'
-import type { Database } from '@blixis/database'
+import { RateLimitError } from '@blixis-io/contracts'
+import type { Database } from '@blixis-io/database'
 import { sql } from 'drizzle-orm'
 import { sha256Hex } from '../domain/encoding.ts'
 

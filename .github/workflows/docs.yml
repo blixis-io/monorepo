@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup
       - name: Build docs
-        run: pnpm --filter @blixis/docs build
+        run: pnpm --filter @blixis-io/docs build
       - name: Check deploy credentials
         id: creds
         env:

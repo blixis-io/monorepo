@@ -1,5 +1,5 @@
 {
-  "name": "@blixis/cloudflare",
+  "name": "@blixis-io/cloudflare",
   "version": "0.0.0",
   "description": "Cloudflare Workers adapters for Blixis: environment typing and validation, execution-context helpers, and (later) Queue, KV, R2, and Workflow adapters",
   "type": "module",
@@ -18,15 +18,15 @@
     "test": "vitest run --root ../.. packages/cloudflare"
   },
   "dependencies": {
-    "@blixis/contracts": "workspace:*",
-    "@blixis/events": "workspace:*",
-    "@blixis/kernel": "workspace:*"
+    "@blixis-io/contracts": "workspace:*",
+    "@blixis-io/events": "workspace:*",
+    "@blixis-io/kernel": "workspace:*"
   },
   "peerDependencies": {
     "@cloudflare/workers-types": "^5.0.0"
   },
   "devDependencies": {
-    "@blixis/tsconfig": "workspace:*",
+    "@blixis-io/tsconfig": "workspace:*",
     "@cloudflare/workers-types": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",

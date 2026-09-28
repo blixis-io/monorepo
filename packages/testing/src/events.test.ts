@@ -1,5 +1,5 @@
-import { defineEvent, EVENT_BUS, type ModuleHonoEnv, subscribe } from '@blixis/contracts'
-import { defineModule } from '@blixis/kernel'
+import { defineEvent, EVENT_BUS, type ModuleHonoEnv, subscribe } from '@blixis-io/contracts'
+import { defineModule } from '@blixis-io/kernel'
 import { Hono } from 'hono'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'

@@ -1,4 +1,4 @@
-import type { ModuleHonoEnv, ObjectRange } from '@blixis/contracts'
+import type { ModuleHonoEnv, ObjectRange } from '@blixis-io/contracts'
 import { Hono } from 'hono'
 import { ASSET_SERVICE } from '../application/asset.service.ts'
 import { ASSETS_CONFIG } from '../config.ts'

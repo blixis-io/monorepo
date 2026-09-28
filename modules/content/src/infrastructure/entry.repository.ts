@@ -1,4 +1,4 @@
-import { type Database, newId, type Transaction, tenantScope } from '@blixis/database'
+import { type Database, newId, type Transaction, tenantScope } from '@blixis-io/database'
 import { and, asc, count, desc, eq, inArray, lt, or, type SQL, sql } from 'drizzle-orm'
 import type { Entry, EntryLink, EntryState, EntryVersion } from '../domain/entry.ts'
 import type { EnvironmentTenant } from './content-type.repository.ts'

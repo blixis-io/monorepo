@@ -1,4 +1,4 @@
-import { createCacheApiStore } from '@blixis/cloudflare'
+import { createCacheApiStore } from '@blixis-io/cloudflare'
 import { describe, expect, it } from 'vitest'
 
 describe('Cache API response store (workerd)', () => {

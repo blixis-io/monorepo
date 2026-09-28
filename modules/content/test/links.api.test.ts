@@ -1,15 +1,15 @@
-import { databaseModule } from '@blixis/database'
-import { eventsModule } from '@blixis/events'
-import { permissionsModule } from '@blixis/permissions'
-import { newId } from '@blixis/shared'
-import { spacesModule, TENANCY_SERVICE } from '@blixis/spaces'
-import { asUser, captureEvents, createTestBlixis, type TestBlixis } from '@blixis/testing'
+import { databaseModule } from '@blixis-io/database'
+import { eventsModule } from '@blixis-io/events'
+import { permissionsModule } from '@blixis-io/permissions'
+import { newId } from '@blixis-io/shared'
+import { spacesModule, TENANCY_SERVICE } from '@blixis-io/spaces'
+import { asUser, captureEvents, createTestBlixis, type TestBlixis } from '@blixis-io/testing'
 import {
   createTestDatabase,
   databaseTestsEnabled,
   type TestDatabase,
-} from '@blixis/testing/database'
-import { USER_SERVICE, usersModule } from '@blixis/users'
+} from '@blixis-io/testing/database'
+import { USER_SERVICE, usersModule } from '@blixis-io/users'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CONTENT_TYPE_SERVICE, contentModule, type EntryView } from '../src/index.ts'
 import { entryRepository } from '../src/infrastructure/entry.repository.ts'

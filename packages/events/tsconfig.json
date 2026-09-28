@@ -1,6 +1,6 @@
 {
-  "extends": "@blixis/tsconfig/library.json",
-  // The outbox entry point uses @blixis/database, whose pg typings need Node types.
+  "extends": "@blixis-io/tsconfig/library.json",
+  // The outbox entry point uses @blixis-io/database, whose pg typings need Node types.
   "compilerOptions": { "lib": ["es2023", "webworker"], "types": ["node"] },
   "references": [
     { "path": "../contracts" },

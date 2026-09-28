@@ -1,4 +1,4 @@
-import { createBlixisGraphQLClient, type TypedDocument } from '@blixis/sdk'
+import { createBlixisGraphQLClient, type TypedDocument } from '@blixis-io/sdk'
 
 // Build-time only (static output): the keys never reach the browser, only the rendered HTML does.
 declare const process: { env: Record<string, string | undefined> }

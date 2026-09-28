@@ -1,5 +1,5 @@
 {
-  "name": "@blixis/tsconfig",
+  "name": "@blixis-io/tsconfig",
   "version": "0.0.0",
   "private": true,
   "type": "module",

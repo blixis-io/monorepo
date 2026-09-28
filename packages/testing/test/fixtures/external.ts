@@ -1,6 +1,6 @@
 // Fixture: written like a third-party npm package — only @blixis/contracts and hono, no kernel.
-import type { ModuleFactory, ModuleHonoEnv } from '@blixis/contracts'
-import { definePermission, UnauthorizedError } from '@blixis/contracts'
+import type { ModuleFactory, ModuleHonoEnv } from '@blixis-io/contracts'
+import { definePermission, UnauthorizedError } from '@blixis-io/contracts'
 import { Hono } from 'hono'
 import { z } from 'zod'
 import { GREETING_SERVICE } from './greeting.ts'

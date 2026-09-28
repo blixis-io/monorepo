@@ -3,7 +3,7 @@ import {
   createServiceToken,
   defineMigration,
   type ServiceToken,
-} from '@blixis/contracts'
+} from '@blixis-io/contracts'
 import { sql } from 'drizzle-orm'
 import type { Database } from '../create-database.ts'
 

@@ -4,9 +4,9 @@
  *
  * @packageDocumentation
  */
-import { BLIXIS_CAPABILITIES } from '@blixis/contracts'
-import { DATABASE } from '@blixis/database'
-import { defineModule } from '@blixis/kernel'
+import { BLIXIS_CAPABILITIES } from '@blixis-io/contracts'
+import { DATABASE } from '@blixis-io/database'
+import { defineModule } from '@blixis-io/kernel'
 import { z } from 'zod'
 import { onEntryDeleted, onEntryPublished, onSpaceDeleted } from './events.ts'
 import { seoGraphQL } from './graphql.ts'

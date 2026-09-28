@@ -98,5 +98,5 @@ A published site always reads `state=published`. Newer drafts never leak onto it
 API tokens need these as scopes. A read-only token for a website needs `content.entries.read` and `spaces.read`.
 
 <Aside type="tip">
-From your own module, use `CONTENT_SERVICE` from `@blixis/content-api` (the public API package; `@blixis/content` implements it). It is the same service the REST API uses, with the same validation, permissions, and events. Never read the content tables directly.
+From your own module, use `CONTENT_SERVICE` from `@blixis-io/content-api` (the public API package; `@blixis-io/content` implements it). It is the same service the REST API uses, with the same validation, permissions, and events. Never read the content tables directly.
 </Aside>

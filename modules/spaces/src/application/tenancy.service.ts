@@ -10,9 +10,9 @@ import {
   type ServiceToken,
   type SystemRoleKey,
   validate,
-} from '@blixis/contracts'
-import { type Database, isId, toTransactionScope, withTransaction } from '@blixis/database'
-import type { MembershipService } from '@blixis/users'
+} from '@blixis-io/contracts'
+import { type Database, isId, toTransactionScope, withTransaction } from '@blixis-io/database'
+import type { MembershipService } from '@blixis-io/users'
 import { z } from 'zod'
 import {
   DEFAULT_ENVIRONMENT_KEY,
