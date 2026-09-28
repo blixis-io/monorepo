@@ -1,6 +1,7 @@
 {
   "name": "@blixis-io/graphql",
   "version": "0.0.0",
+  "private": true,
   "description": "Blixis GraphQL: one /graphql endpoint (GraphQL Yoga) composed from module contributions",
   "type": "module",
   "sideEffects": false,

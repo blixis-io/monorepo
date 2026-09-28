@@ -2,6 +2,22 @@
   "name": "@blixis-io/events",
   "version": "0.0.0",
   "description": "Blixis events: event definition registry, envelopes, and the event bus (transports: in-process, queue, outbox)",
+  "keywords": [
+    "blixis",
+    "cms",
+    "headless-cms",
+    "cloudflare-workers"
+  ],
+  "license": "MIT",
+  "homepage": "https://blixis-docs.frosty-hill-6079.workers.dev",
+  "bugs": {
+    "url": "https://github.com/blixis-io/monorepo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/events"
+  },
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -15,32 +31,42 @@
     }
   },
   "files": [
+    "LICENSE",
+    "README.md",
     "dist"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run --root ../.. packages/events"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "dependencies": {
+    "@blixis-io/shared": "workspace:*"
+  },
+  "peerDependencies": {
+    "@blixis-io/contracts": "workspace:^",
+    "@blixis-io/database": "workspace:^",
+    "@blixis-io/kernel": "workspace:^",
+    "drizzle-orm": "~0.45.3"
+  },
+  "devDependencies": {
     "@blixis-io/contracts": "workspace:*",
     "@blixis-io/database": "workspace:*",
     "@blixis-io/kernel": "workspace:*",
-    "@blixis-io/shared": "workspace:*",
-    "drizzle-orm": "catalog:"
-  },
-  "devDependencies": {
     "@blixis-io/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
+    "drizzle-orm": "catalog:",
     "hono": "catalog:",
     "pg": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "zod": "catalog:"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/blixis-io/monorepo.git",
-    "directory": "packages/events"
   }
 }

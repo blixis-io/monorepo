@@ -2,6 +2,22 @@
   "name": "@blixis-io/testing",
   "version": "0.0.0",
   "description": "Test utilities for Blixis modules: createTestBlixis, test actors, and a capturing logger",
+  "keywords": [
+    "blixis",
+    "cms",
+    "headless-cms",
+    "cloudflare-workers"
+  ],
+  "license": "MIT",
+  "homepage": "https://blixis-docs.frosty-hill-6079.workers.dev",
+  "bugs": {
+    "url": "https://github.com/blixis-io/monorepo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/testing"
+  },
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -15,20 +31,35 @@
     }
   },
   "files": [
+    "LICENSE",
+    "README.md",
     "dist"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run --root ../.. packages/testing"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "dependencies": {
+    "pg": "catalog:"
+  },
+  "peerDependencies": {
+    "@blixis-io/contracts": "workspace:^",
+    "@blixis-io/database": "workspace:^",
+    "@blixis-io/events": "workspace:^",
+    "@blixis-io/kernel": "workspace:^"
+  },
+  "devDependencies": {
     "@blixis-io/contracts": "workspace:*",
     "@blixis-io/database": "workspace:*",
     "@blixis-io/events": "workspace:*",
     "@blixis-io/kernel": "workspace:*",
-    "pg": "catalog:"
-  },
-  "devDependencies": {
     "@blixis-io/shared": "workspace:*",
     "@blixis-io/tsconfig": "workspace:*",
     "@types/node": "catalog:",
@@ -38,10 +69,5 @@
     "typescript": "catalog:",
     "vitest": "catalog:",
     "zod": "catalog:"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/blixis-io/monorepo.git",
-    "directory": "packages/testing"
   }
 }

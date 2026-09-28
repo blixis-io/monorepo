@@ -31,6 +31,7 @@ export type RuleId =
   | 'contracts-runtime-dependency'
   | 'public-api-dependency'
   | 'plugin-internal-import'
+  | 'published-dependency'
   | 'role-name-check'
 
 export interface Violation {
@@ -187,6 +188,46 @@ export function findWorkspaceCycles(packages: readonly WorkspacePackage[]): stri
  */
 const PUBLIC_API_PACKAGES = new Set(['@blixis-io/content-api'])
 
+/** Packages published to npm (ADR 0020). Everything else in the workspace is `private`. */
+export const PUBLISHED_PACKAGES: ReadonlySet<string> = new Set([
+  '@blixis-io/contracts',
+  '@blixis-io/kernel',
+  '@blixis-io/content-api',
+  '@blixis-io/database',
+  '@blixis-io/events',
+  '@blixis-io/shared',
+  '@blixis-io/testing',
+  '@blixis-io/sdk',
+])
+
+/**
+ * Must be one copy per app, so published packages take them as peers: two copies of contracts
+ * break `instanceof` on errors, two of Drizzle break its types.
+ */
+const SINGLETONS = /^(@blixis-io\/(?!shared$).+|drizzle-orm|hono)$/
+
+/** Checks what published packages depend on (ADR 0020). */
+function checkPublished(pkg: WorkspacePackage): Violation[] {
+  if (!PUBLISHED_PACKAGES.has(pkg.name)) return []
+  const file = `${pkg.dir}/package.json`
+  const violations: Violation[] = []
+  for (const name of Object.keys(pkg.dependencies))
+    if (SINGLETONS.test(name))
+      violations.push({
+        rule: 'published-dependency',
+        file,
+        message: `${pkg.name}: make ${name} a peer dependency (one copy per app)`,
+      })
+  for (const name of [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)])
+    if (name.startsWith('@blixis-io/') && !PUBLISHED_PACKAGES.has(name))
+      violations.push({
+        rule: 'published-dependency',
+        file,
+        message: `${pkg.name} depends on ${name}, which is not published`,
+      })
+  return violations
+}
+
 /** Package-level rules that do not depend on source files. */
 export function checkPackages(packages: readonly WorkspacePackage[]): Violation[] {
   const violations: Violation[] = findWorkspaceCycles(packages).map((cycle) => ({
@@ -202,6 +243,7 @@ export function checkPackages(packages: readonly WorkspacePackage[]): Violation[
       message: `@blixis-io/contracts must have no runtime dependencies (§4); found: ${Object.keys(contracts.dependencies).join(', ')}`,
     })
   }
+  for (const pkg of packages) violations.push(...checkPublished(pkg))
   for (const pkg of packages.filter((p) => PUBLIC_API_PACKAGES.has(p.name))) {
     const extra = [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)].filter(
       (name) => name !== '@blixis-io/contracts',

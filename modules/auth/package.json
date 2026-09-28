@@ -1,6 +1,7 @@
 {
   "name": "@blixis-io/auth",
   "version": "0.0.0",
+  "private": true,
   "description": "Blixis authentication: passwords, JWT access tokens, rotating refresh tokens, and API tokens",
   "type": "module",
   "sideEffects": false,

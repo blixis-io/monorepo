@@ -1,7 +1,8 @@
 {
   "name": "@blixis-io/spaces",
   "version": "0.0.0",
-  "description": "Blixis spaces module: organizations, spaces, environments, and locales — the tenant hierarchy",
+  "private": true,
+  "description": "Blixis spaces module: organizations, spaces, environments, and locales \u2014 the tenant hierarchy",
   "type": "module",
   "sideEffects": false,
   "exports": {

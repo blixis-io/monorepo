@@ -1,6 +1,7 @@
 {
   "name": "@blixis-io/content",
   "version": "0.0.0",
+  "private": true,
   "description": "Blixis content module: content types, components, field types, and entries",
   "type": "module",
   "sideEffects": false,

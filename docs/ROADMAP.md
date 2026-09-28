@@ -71,7 +71,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [015 — Webhooks](./plans/015-webhooks/_index.md) | M7 | MVP | `completed` | 5/5 | 011 |
 | [016 — Releases & Cloudflare Workflows](./plans/016-releases-and-workflows/_index.md) | M7 | Extended | `not-started` | 0/4 | 013, 014, 015 |
 | [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md) | M8 | MVP | `completed` | 4/4 | 013, 014, 015 |
-| [018 — Extension Platform & Example Plugin](./plans/018-extension-platform/_index.md) | M8 | MVP | `in-progress` | 4/5 | 017 |
+| [018 — Extension Platform & Example Plugin](./plans/018-extension-platform/_index.md) | M8 | MVP | `completed` | 5/5 | 017 |
 | [019 — Admin UI Foundation](./plans/019-admin-ui-foundation/_index.md) | M8 | MVP | `completed` | 5/5 | 017 |
 | [020 — Observability & Security Hardening](./plans/020-observability-and-security-hardening/_index.md) | M9 | MVP | `not-started` | 0/5 | 013, 014, 015 |
 | [021 — CI/CD & Release Engineering](./plans/021-ci-cd-and-release-engineering/_index.md) | M9 | MVP | `not-started` | 0/3 | 011 |
@@ -409,7 +409,7 @@ Builds `@blixis-io/sdk` — a Workers/browser/Node-compatible client with a type
 
 #### 018 — Extension Platform & Example Plugin
 
-Status: `in-progress` · Progress: 4/5 · Scope: MVP  
+Status: `completed` · Progress: 5/5 · Scope: MVP  
 Plan: [018-extension-platform/_index.md](./plans/018-extension-platform/_index.md)  
 Depends on: [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md)
 
@@ -419,7 +419,7 @@ Proves the "internal and external modules share one contract" promise: moves sha
 - [x] [018.002 — Write the module authoring guide and security model](./plans/018-extension-platform/002-authoring-guide-and-security-model.md)
 - [x] [018.003 — Build the example external SEO plugin](./plans/018-extension-platform/003-example-external-plugin.md)
 - [x] [018.004 — Add the extension contract CI gate and API surface reports](./plans/018-extension-platform/004-extension-contract-ci-gate.md)
-- [ ] [018.005 — Version and publish public packages](./plans/018-extension-platform/005-package-versioning-and-publishing.md)
+- [x] [018.005 — Version and publish public packages](./plans/018-extension-platform/005-package-versioning-and-publishing.md)
 
 #### 019 — Admin UI Foundation
 

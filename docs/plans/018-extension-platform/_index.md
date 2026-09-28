@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 8 — Consumers & extension platform  
 Roadmap scope: MVP / initial platform  
-Progress: 4/5 tasks completed
+Progress: 5/5 tasks completed
 
 ## Objective
 
@@ -63,13 +63,13 @@ Depends on:
 - [x] [002 — Write the module authoring guide and security model](./002-authoring-guide-and-security-model.md)
 - [x] [003 — Build the example external SEO plugin](./003-example-external-plugin.md)
 - [x] [004 — Add the extension contract CI gate and API surface reports](./004-extension-contract-ci-gate.md)
-- [ ] [005 — Version and publish public packages](./005-package-versioning-and-publishing.md)
+- [x] [005 — Version and publish public packages](./005-package-versioning-and-publishing.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
+- [x] All tasks `completed`.
 - [x] The example plugin, installed from a tarball, adds an SEO REST route, a GraphQL field on entries, a permission, and an `entry.published` handler — with zero imports outside `@blixis/contracts`, `@blixis/kernel`, and the public content API package (plus `@blixis/database` for its storage, ADR 0016 addendum).
 - [x] Architectural checkpoint CP7 recorded.
 
@@ -83,7 +83,7 @@ The plan may be marked `completed` when:
 - ~~Location of public content capabilities?~~ Decided: `@blixis/content-api` ([ADR 0016](../../decisions/0016-public-capability-contracts.md)).
 - Should the example plugin live in a separate Git repository instead of `examples/` outside workspace globs? Default: `examples/` excluded from workspace, consumed via `pnpm pack` tarballs — simulates npm install while keeping CI simple.
 - Third-party field types (from 010) — expose now? Decide based on what the SEO plugin needs.
-- Is the `@blixis` npm scope owned, and which licence applies? Both must be confirmed by the project owner before 018.005 publishes anything.
+- ~~Is the `@blixis` npm scope owned, and which licence applies?~~ Decided: `@blixis-io`, MIT ([ADR 0020](../../decisions/0020-package-scope-and-licence.md)).
 - Which first-party modules are published to npm vs. workspace-only? Default: platform packages + SDK now; modules when third parties need them.
 
 ## Technical notes

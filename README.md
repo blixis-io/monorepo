@@ -120,6 +120,12 @@ The event pipeline in staging and production: outbox backlog, queue, DLQ, proces
 
 → [docs/operations/events.md](docs/operations/events.md)
 
+## Package releases
+
+The public packages are published to npm as `@blixis-io/*` (MIT, [LICENSE](LICENSE)).
+
+→ [docs/operations/package-releases.md](docs/operations/package-releases.md)
+
 ## GitHub Actions
 
 Covers the workflows, shared setup, CI, release and deploy sketches, secrets and variables per environment, and workflow conventions.

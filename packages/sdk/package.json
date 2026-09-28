@@ -2,6 +2,22 @@
   "name": "@blixis-io/sdk",
   "version": "0.0.0",
   "description": "Blixis SDK: typed clients for the Management API and the GraphQL delivery API",
+  "keywords": [
+    "blixis",
+    "cms",
+    "headless-cms",
+    "cloudflare-workers"
+  ],
+  "license": "MIT",
+  "homepage": "https://blixis-docs.frosty-hill-6079.workers.dev",
+  "bugs": {
+    "url": "https://github.com/blixis-io/monorepo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/sdk"
+  },
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -11,11 +27,20 @@
     }
   },
   "files": [
+    "LICENSE",
+    "README.md",
     "dist"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run --root ../.. packages/sdk"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "devDependencies": {
     "@blixis-io/assets": "workspace:*",
@@ -36,10 +61,5 @@
     "typescript": "catalog:",
     "vitest": "catalog:",
     "zod": "catalog:"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/blixis-io/monorepo.git",
-    "directory": "packages/sdk"
   }
 }
