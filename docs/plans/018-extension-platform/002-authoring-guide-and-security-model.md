@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -35,8 +35,9 @@ Document how to build, test, version, and publish a Blixis module, and the secur
 ### Create
 
 ```text
-docs/extensions/authoring-guide.md
-docs/extensions/security-model.md
+apps/docs/src/content/docs/extending/authoring-guide.mdx
+apps/docs/src/content/docs/extending/security-model.mdx
+docs/extensions/README.md
 ```
 
 ### Modify
@@ -44,6 +45,9 @@ docs/extensions/security-model.md
 ```text
 README.md
 docs/contracts/README.md
+apps/docs/src/content/docs/getting-started/first-module.mdx
+apps/docs/src/content/docs/concepts/testing.mdx
+docs/ROADMAP.md, docs/plans/018-extension-platform/_index.md
 ```
 
 ### Delete
@@ -66,8 +70,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Every public extension point has a documented example.
-- [ ] Security model explicitly says npm modules are not sandboxed.
+- [x] Every public extension point has a documented example.
+- [x] Security model explicitly says npm modules are not sandboxed.
 
 ## Validation
 
@@ -75,15 +79,15 @@ Requires:
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Guide reflects actual APIs (no aspirational features).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Guide reflects actual APIs (no aspirational features).
 
 ## Completion conditions
 
@@ -100,4 +104,8 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Location:** the guides live in the manual (`apps/docs`, section Extending), like all developer documentation (docs/contracts/README.md). `docs/extensions/README.md` points to them from the repository.
+- **Written after 018.003:** every example comes from `examples/blixis-example-seo`, which CI installs from tarballs and tests, instead of a tour that doesn't run.
+- **Covered:** public packages, package setup (peers), `defineModule` with options and `configSchema`, capabilities, services and tokens, storage (own schema, Drizzle, tenant scoping), migrations (immutable ids, expand/contract), REST (authorize with `resolveTenant` + `AUTHORIZATION_SERVICE`, `validate`, `operations`), permissions, GraphQL (`GraphQLResolverContext`, extending `Sys`, batching), events (idempotency, `space.deleted`, own events with `struct`), testing, versioning, forbidden patterns, a checklist.
+- **Security model:** trusted code, not sandboxed; what a module can reach (database, services, bindings and secrets, outbound requests, other traffic through patched globals); what Blixis enforces (explicit registration, startup validation, one rule set, a separate migration role); a pre-install review checklist; the §40 phases.
+- **Fixed on the way:** "Your first module" said the content module didn't exist, defined its own copy of `entry.published`, extended `Entry` (an interface), and imported `content` as a default export. Now it imports from `@blixis/content-api`, extends `Sys`, and uses `contentModule()`; the testing page too.

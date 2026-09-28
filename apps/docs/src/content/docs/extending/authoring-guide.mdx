@@ -1,0 +1,342 @@
+---
+title: Writing a module
+description: Build, test, version, and ship a Blixis module with services, storage, REST, GraphQL, permissions, and events, using only public packages.
+sidebar:
+  order: 0
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+A module adds a feature to a Blixis app: services, database tables, REST routes, GraphQL fields, permissions, and event handlers. First-party modules (content, assets, webhooks) and third-party ones use the **same public contracts**, so everything below works for your own packages.
+
+Every example on this page comes from [`examples/blixis-example-seo`](https://github.com/blixis-io/monorepo/tree/main/examples/blixis-example-seo), a working module that stores SEO metadata for entries. CI installs it from packed tarballs and runs its tests, so the examples stay correct.
+
+<Aside type="caution">
+Modules are **trusted code**. Once installed, a module runs inside the API Worker with full access to its database, storage, and secrets. Read the [security model](/extending/security-model/) before installing modules from others.
+</Aside>
+
+## Public packages
+
+Import only these Blixis packages in a module's source. The repository's boundary check enforces it for the example plugin (`plugin-internal-import`).
+
+| Package | For |
+|---|---|
+| `@blixis/contracts` | tokens, errors, events, permissions, validation, request context, the module contract |
+| `@blixis/kernel` | `defineModule` |
+| `@blixis/content-api` | `CONTENT_SERVICE`, `CONTENT_TYPE_SERVICE`, entry and content type types, `entry.*` and `content-type.*` events |
+| `@blixis/database` | the `DATABASE` token, tenancy helpers, and transactions, for modules that store data |
+| `@blixis/testing` | tests only: `createTestBlixis`, fake actors, a test database, captured events |
+
+Never import a first-party implementation such as `@blixis/content` in a module's source: depend on its capability package instead.
+
+## 1. Set up the package
+
+```json title="package.json"
+{
+  "name": "@acme/blixis-seo",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "files": ["dist"],
+  "peerDependencies": {
+    "@blixis/content-api": "^1.0.0",
+    "@blixis/contracts": "^1.0.0",
+    "@blixis/database": "^1.0.0",
+    "@blixis/kernel": "^1.0.0",
+    "drizzle-orm": "^0.45.3",
+    "hono": "^4.13.0"
+  },
+  "dependencies": { "zod": "^4.6.5" }
+}
+```
+
+- **Blixis packages, Drizzle, and Hono are peer dependencies.** The app provides one copy of each, so service tokens (`Symbol.for`) and error classes match.
+- **Your own libraries are dependencies.** Any [Standard Schema](/concepts/validation/) library works for validation; Blixis uses Zod.
+- **Build with `tsc`** to ESM plus `.d.ts`, and keep the code Worker-compatible: no Node built-ins, no filesystem, no I/O at import time.
+
+## 2. Define the module
+
+`defineModule` returns a factory, so apps always write `seo()` or `seo({ … })`. Options are validated with `configSchema` at startup and reach `setup` as `ctx.config`.
+
+```ts title="src/index.ts"
+import { BLIXIS_CAPABILITIES } from '@blixis/contracts'
+import { DATABASE } from '@blixis/database'
+import { defineModule } from '@blixis/kernel'
+import { z } from 'zod'
+
+export interface SeoOptions {
+  readonly defaultTitle?: string
+}
+
+const configSchema = z.object({ defaultTitle: z.string().min(1).max(70).default('Untitled') })
+
+const seo = defineModule<SeoOptions, z.output<typeof configSchema>>((options = {}) => ({
+  meta: {
+    name: '@acme/blixis-seo',
+    version: '1.0.0',
+    capabilities: ['acme.seo'],
+    requiresCapabilities: [
+      BLIXIS_CAPABILITIES.database,
+      BLIXIS_CAPABILITIES.content,
+      BLIXIS_CAPABILITIES.permissions,
+    ],
+  },
+  config: options,
+  configSchema,
+  migrations: [createSeo],
+  permissions: Object.values(SEO_PERMISSIONS),
+  setup(ctx) {
+    const { defaultTitle } = ctx.config
+    ctx.services.provideFactory(
+      SEO_SERVICE,
+      ({ services }) => createSeoService(services.get(DATABASE), defaultTitle),
+      { scope: 'request' },
+    )
+  },
+  rest: { path: '/entries', app: seoRoutes, operations: SEO_OPERATIONS },
+  graphql: seoGraphQL,
+  events: [onEntryPublished, onEntryDeleted, onSpaceDeleted],
+}))
+
+export default seo
+```
+
+- **Capabilities** name what you provide and need. Startup fails with a clear message when a required capability is missing.
+- **`setup` only registers.** No database queries or fetches there: Workers forbid I/O outside a request. See [Modules](/concepts/modules/) for the lifecycle.
+
+Apps register modules explicitly; Blixis never scans `node_modules`:
+
+```ts title="apps/api/src/blixis.config.ts"
+import seo from '@acme/blixis-seo'
+
+export const modules = [/* first-party modules */, seo({ defaultTitle: 'My site' })]
+```
+
+## 3. Services
+
+Expose your logic as a service behind a token. Other modules use the token, never your internals; tests can replace it with `serviceOverride`.
+
+```ts title="src/service.ts"
+import type { EnvironmentTenant } from '@blixis/content-api'
+import { createServiceToken, type ServiceToken } from '@blixis/contracts'
+
+export interface SeoService {
+  get(tenant: EnvironmentTenant, entryId: string): Promise<SeoMetadata>
+  set(tenant: EnvironmentTenant, entryId: string, input: SeoInput): Promise<SeoMetadata>
+}
+
+export const SEO_SERVICE: ServiceToken<SeoService> = createServiceToken<SeoService>('@acme/blixis-seo.service')
+```
+
+Prefix token ids with your package name. Request-scoped factories (`{ scope: 'request' }`) get the request's services; see [Services and capabilities](/concepts/services-and-capabilities/).
+
+## 4. Storage and migrations
+
+Each module owns its tables, in **its own Postgres schema**. Nobody else reads them, and there are no foreign keys to other modules' tables.
+
+```ts title="src/schema.ts"
+import { tenantColumns, timestamps } from '@blixis/database'
+import { pgSchema, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+
+export const seoSchema = pgSchema('acme_seo')
+
+export const seoEntries = seoSchema.table('entries', {
+  entryId: uuid('entry_id').primaryKey(),
+  ...tenantColumns({ environment: true }),
+  title: text('title'),
+  description: text('description'),
+  lastPublishedAt: timestamp('last_published_at', { withTimezone: true }),
+  ...timestamps(),
+})
+```
+
+```ts title="src/migrations.ts"
+import { defineMigration } from '@blixis/contracts'
+
+export const createSeo = defineMigration({
+  id: '0001_create_seo',
+  up: /* sql */ `
+    create schema acme_seo;
+    create table acme_seo.entries (
+      entry_id uuid primary key,
+      organization_id uuid not null,
+      space_id uuid not null,
+      environment_id uuid not null,
+      title text,
+      description text,
+      last_published_at timestamptz,
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now()
+    );
+  `,
+})
+```
+
+- **Migration ids never change**, and a shipped migration is never edited: add a new one. `pnpm db:migrate` records them per module.
+- **Change schemas in two steps (expand, then contract):** add the new column and write both; ship; then stop using and drop the old one. Deploys run migrations before the new code starts.
+- **Scope every query by tenant.** `tenantScope(table, tenant)` adds the organization, space, and environment conditions (and fails if the tenant is missing). Never trust an id alone: see [Tenancy](/concepts/tenancy/).
+
+```ts
+const [row] = await db
+  .select()
+  .from(seoEntries)
+  .where(and(eq(seoEntries.entryId, entryId), tenantScope(seoEntries, tenant)))
+```
+
+## 5. REST routes
+
+Routes are Hono apps typed with `ModuleHonoEnv`: `c.var.requestContext` (actor, tenant, logger) and `c.var.services`. They are mounted under `/api/v1` plus your `path`; several modules may share a prefix.
+
+```ts title="src/routes.ts"
+import { CONTENT_SERVICE } from '@blixis/content-api'
+import { AUTHORIZATION_SERVICE, type ModuleHonoEnv, validate } from '@blixis/contracts'
+import { Hono } from 'hono'
+
+export const seoRoutes = new Hono<ModuleHonoEnv>()
+  .get('/:entryId/seo', async (c) => {
+    const { tenant, entryId } = await authorize(c, SEO_PERMISSIONS.read)
+    return c.json(await c.var.services.get(SEO_SERVICE).get(tenant, entryId))
+  })
+  .put('/:entryId/seo', async (c) => {
+    const { tenant, entryId } = await authorize(c, SEO_PERMISSIONS.write)
+    const input = await validate(seoInput, await c.req.json(), { message: 'Invalid SEO metadata' })
+    return c.json(await c.var.services.get(SEO_SERVICE).set(tenant, entryId, input))
+  })
+```
+
+**Authorize before you act.** For an entry, resolve its tenant through the content service first (entries the actor can't read are a `404`), then check your permission on that space (members without it get a `403`):
+
+```ts
+async function authorize(c: Context<ModuleHonoEnv>, permission: PermissionDefinition) {
+  const { actor } = c.var.requestContext
+  const entryId = c.req.param('entryId') ?? ''
+  const tenant = await c.var.services.get(CONTENT_SERVICE).resolveTenant(actor, entryId)
+  await c.var.services.get(AUTHORIZATION_SERVICE).require({
+    actor,
+    action: permission.id,
+    resource: { type: 'entry', id: entryId, organizationId: tenant.organizationId, spaceId: tenant.spaceId },
+  })
+  return { tenant, entryId }
+}
+```
+
+- **Validate every body** with `validate()`; invalid input becomes a `400` with field paths. Throw the [public errors](/concepts/errors/) (`NotFoundError`, `ConflictError`, …): they map to problem responses.
+- **Describe your routes** with `operations` (method, path, request and response schemas) so they appear in OpenAPI documents and SDKs; see the example's `SEO_OPERATIONS`.
+
+## 6. Permissions
+
+```ts title="src/permissions.ts"
+import { definePermission } from '@blixis/contracts'
+
+export const SEO_PERMISSIONS = {
+  read: definePermission({ id: 'seo.read', description: 'Read SEO metadata of entries', defaultRoles: ['admin', 'editor', 'viewer'] }),
+  write: definePermission({ id: 'seo.write', description: 'Change SEO metadata of entries', defaultRoles: ['admin', 'editor'] }),
+} as const
+```
+
+Permissions are `<module>.<action>` (or `<module>.<resource>.<action>`), granted per space by default, and given to system roles through `defaultRoles`; organizations can grant them through custom roles too. **Check permissions, never role names.** See [Permissions](/concepts/permissions/).
+
+## 7. GraphQL
+
+Contribute SDL and resolvers. Resolvers receive a `GraphQLResolverContext` (request context, services, per-request loaders, response headers).
+
+```ts title="src/graphql.ts"
+import type { GraphQLContribution, GraphQLResolverContext } from '@blixis/contracts'
+
+export const seoGraphQL: GraphQLContribution<GraphQLResolverContext> = {
+  typeDefs: /* GraphQL */ `
+    type Seo {
+      title: String!
+      description: String
+    }
+    extend type Sys {
+      seo: Seo!
+    }
+  `,
+  resolvers: {
+    Sys: {
+      seo: (parent: unknown, _args: unknown, context: GraphQLResolverContext) =>
+        loader(context).load((parent as { id: string }).id),
+    },
+  },
+}
+```
+
+- **Extend `Sys`** to add a field to every delivered entry: each content type's GraphQL type has `sys`, while `Entry` is an interface.
+- **Batch lookups per request.** A query for 50 entries must not run 50 queries: collect ids and load them once, keeping the loader in `context.loaders` under your package's key (the example's `loader()` does this in about 20 lines).
+- Delivered entries are already authorized by the content module; look up your data by their ids.
+
+## 8. Events
+
+React to other modules' events with `subscribe`, and list the subscriptions in `events`:
+
+```ts title="src/events.ts"
+import { entryDeleted, entryPublished } from '@blixis/content-api'
+import { spaceDeleted, subscribe } from '@blixis/contracts'
+
+export const onEntryPublished = subscribe(entryPublished, 'record-published', async (envelope, ctx) => {
+  const { entryId, organizationId, spaceId, environmentId } = envelope.payload
+  await ctx.services.get(SEO_SERVICE).markPublished({ organizationId, spaceId, environmentId }, entryId, envelope.timestamp)
+})
+
+export const onSpaceDeleted = subscribe(spaceDeleted, 'delete-space-seo', async (envelope, ctx) => {
+  await ctx.services.get(SEO_SERVICE).deleteSpace(envelope.payload.organizationId, envelope.payload.spaceId)
+})
+```
+
+- **Handlers must be idempotent:** events can arrive more than once. Prefer upserts and deletes, or `{ idempotency: 'transactional' }` for exactly-once effects. See [Events](/concepts/events/).
+- **Handle `space.deleted`** whenever you store per-space data: delete your rows for that space. Blixis has no cross-module foreign keys, so nothing else cleans up for you.
+- **Define your own events** with `defineEvent` and a payload schema (`struct` from contracts keeps them dependency-free), and choose a delivery class: `transactional` when caches or webhooks must not miss it.
+
+## 9. Test it
+
+Boot your module with the first-party modules it needs, on a real Postgres database:
+
+```ts title="test/seo.test.ts"
+import { contentModule } from '@blixis/content'
+import { databaseModule } from '@blixis/database'
+import { graphqlModule } from '@blixis/graphql'
+import { permissionsModule } from '@blixis/permissions'
+import { spacesModule } from '@blixis/spaces'
+import { captureEvents, createTestBlixis } from '@blixis/testing'
+import { createTestDatabase } from '@blixis/testing/database'
+import { usersModule } from '@blixis/users'
+import seo from '../src/index.ts'
+
+const firstParty = () => [databaseModule(), usersModule(), spacesModule(), permissionsModule(), contentModule(), graphqlModule()]
+
+const events = captureEvents({ mode: 'deferred' })
+const t = await createTestBlixis({ modules: [...firstParty(), events.module(), seo({ defaultTitle: 'My site' })], database: db })
+const res = await t.request(`/api/v1/entries/${entryId}/seo`, { actor: owner })
+await events.flush() // deliver captured events to subscribers, as after commit
+```
+
+Tests may import first-party modules to boot a realistic app; the module's source may not. Test each role (`200`, `403`, `404`), invalid input (`400`), your GraphQL fields, and every event handler. See [Testing](/concepts/testing/).
+
+## 10. Version and publish
+
+- **Semantic versioning.** Breaking changes to your service interface, REST responses, GraphQL schema, event payloads, or options are major versions.
+- **Peer ranges** follow the Blixis packages you tested with (`^1.0.0`).
+- **Migrations are forever:** once published, never rename, edit, or delete one. Users may skip versions, so each migration must run on any earlier state of your schema.
+- **Removing a field or table** takes two releases: stop using it, then drop it.
+
+## Don't
+
+- Import `@blixis/content` or other implementation packages in a module's source, or reach into another package's files.
+- Read or join another module's tables. Use its service.
+- Compare role names (`role === 'admin'`). Check permissions.
+- Trust ids from requests without a tenant check.
+- Do I/O at import time or in `setup`, or keep request data in module-level variables (isolates serve many tenants).
+- Swallow errors: throw public errors, and let Blixis log and report the rest.
+
+## Checklist
+
+- [ ] Only public Blixis packages in `src/`, as peer dependencies.
+- [ ] Options validated with `configSchema`; capabilities declared.
+- [ ] Own Postgres schema; every query scoped by tenant; `space.deleted` handled.
+- [ ] Routes authorize first, validate bodies, and are described with `operations`.
+- [ ] Permissions with sensible `defaultRoles`; no role-name checks.
+- [ ] GraphQL resolvers batched per request.
+- [ ] Event handlers idempotent.
+- [ ] Tests for each role, invalid input, GraphQL, and events.
+- [ ] README with installation and the permissions and data your module adds.
