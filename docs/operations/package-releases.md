@@ -8,6 +8,8 @@ The public packages (`@blixis-io/contracts`, `kernel`, `content-api`, `database`
 2. release-please keeps one PR, **`chore(release): release X.Y.Z`**, with the new shared version, `package.json` bumps, and a `CHANGELOG.md` per package.
 3. Merging it tags each changed package (`contracts-v0.2.0`, …) and runs the `publish` job: `pnpm build`, `pnpm pack` per package (turns `workspace:`/`catalog:` into versions), `npm publish --provenance --access public`.
 
+**Retry a failed publish:** Actions → release-packages → Run workflow (on `main`). It publishes every package whose current version isn't on npm yet and skips the rest.
+
 Check before merging: the PR's version bump matches the API surface changes (`docs/api-surface`) and the extension-contract job is green.
 
 ## One-time setup (owner)
