@@ -13,6 +13,8 @@ The developer documentation for `@blixis/contracts` lives in the **developer man
 | Events, delivery classes, idempotency | [concepts/events.mdx](../../apps/docs/src/content/docs/concepts/events.mdx) |
 | Actors and permissions | [concepts/permissions.mdx](../../apps/docs/src/content/docs/concepts/permissions.mdx) |
 | Request context, logging, migrations | [concepts/context-and-migrations.mdx](../../apps/docs/src/content/docs/concepts/context-and-migrations.mdx) |
+| Writing a module (authoring guide) | [extending/authoring-guide.mdx](../../apps/docs/src/content/docs/extending/authoring-guide.mdx) |
+| Security model (modules are trusted code) | [extending/security-model.mdx](../../apps/docs/src/content/docs/extending/security-model.mdx) |
 
 ## Package rules (for maintainers)
 

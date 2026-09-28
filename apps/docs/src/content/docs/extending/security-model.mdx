@@ -1,0 +1,63 @@
+---
+title: Security model
+description: Modules are trusted code, not sandboxed. What a module can reach, how to review one before installing it, and what isolation is planned.
+sidebar:
+  order: 3
+---
+
+import { Aside } from '@astrojs/starlight/components'
+
+<Aside type="danger">
+**Modules from npm are not sandboxed.** A module you install runs inside the API Worker, with the same access as Blixis itself. Install only modules you would trust with your database and secrets.
+</Aside>
+
+## How modules run
+
+Blixis supports **build-time modules** (architecture §40, phase 1). You add a package with `pnpm add`, import it in `blixis.config.ts`, build, and deploy. The module's code is bundled into the same Worker as the first-party modules. There is no runtime loading of code and no separate process.
+
+The public contracts and the boundary checks shape how modules *should* talk to each other: through services, permissions, and events. They are design rules checked at development time, **not a security boundary at runtime.** JavaScript in the same isolate can do whatever any other code there can do.
+
+## What a module can reach
+
+A module's code can:
+
+- **Read and write the whole database** through the `DATABASE` service: every tenant, every module's tables. Tenant scoping and permission checks are conventions the module follows, not restrictions it is placed under.
+- **Call every service** in the app, with any actor, including system actors that skip permission checks.
+- **Use every binding and secret** of the Worker: the Hyperdrive database connection, R2 buckets, queues, signing keys, the webhook secret keys, the Sentry DSN.
+- **Make outbound requests** to anywhere the Worker can reach.
+- **See other traffic**: its own routes get headers and bodies, and code in the isolate can patch globals such as `fetch` to observe everything else, access tokens included.
+- **Run migrations** with the migration role's rights when you run `pnpm db:migrate`.
+
+What Blixis *does* enforce is correct behavior of honest modules: a module that follows the contracts can't accidentally skip tenancy or permissions, because its services and routes use the same checks as the first-party ones.
+
+## Before you install a module
+
+Treat a module like any dependency with production access:
+
+- [ ] **Who publishes it?** A known vendor or maintainer, with a history and a way to report security issues.
+- [ ] **Read the code**, or at least: the routes (do they authorize before acting?), the migrations (which schema, which tables?), the event handlers, and every outbound `fetch`.
+- [ ] **Imports:** only public Blixis packages (`@blixis/contracts`, `@blixis/kernel`, `@blixis/content-api`, `@blixis/database`). Imports of implementation packages or deep paths mean it depends on internals.
+- [ ] **Permissions it adds**, and which roles get them by default. Is that what you want your editors to have?
+- [ ] **Data it stores**, and whether it deletes it with the space (`space.deleted`).
+- [ ] **Dependencies:** few, maintained, and pinned by your lockfile. Run your usual audit.
+- [ ] **Version pinning:** commit the lockfile, review upgrades like code changes, and read migrations in every new version.
+- [ ] **Staging first:** deploy to staging, run your tests, then production.
+
+## What Blixis does for you
+
+- **Explicit registration.** Only modules listed in `blixis.config.ts` run; nothing is discovered from `node_modules`.
+- **Startup validation.** Missing capabilities, invalid options, and conflicting routes stop the app before it serves requests.
+- **One set of rules for everyone.** First-party modules use the same contracts, so a well-behaved module gets tenancy, permissions, validation, and error handling right by following the same patterns.
+- **Separate credentials for migrations.** The runtime database role can't change the schema; only `pnpm db:migrate` can.
+
+## What comes later
+
+Running untrusted code, such as plugins written by your customers, needs real isolation. The architecture plans it in phases (§40):
+
+| Phase | What | Status |
+|---|---|---|
+| 1. Build-time modules | Trusted packages bundled into the Worker. | **Supported** |
+| 2. Runtime enable/disable | Bundled modules switched on or off per tenant, configured in the database. | Planned |
+| 3. Isolated plugins | Untrusted code in separate Workers (Workers for Platforms, dispatch namespaces) with capability-based APIs, restricted bindings, manifests, usage limits, and per-tenant versions. | Research |
+
+Until phase 3, do not run code you don't trust, and do not let customers upload modules.

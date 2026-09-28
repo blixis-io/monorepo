@@ -7,10 +7,10 @@ sidebar:
 
 import { Aside, Steps } from '@astrojs/starlight/components'
 
-This walkthrough builds `@acme/blixis-seo`, a module that stores SEO titles for content entries. It uses every part of the module contract. The code compiles against `@blixis/contracts` today — it mirrors a type test in the Blixis repository.
+This walkthrough is a quick tour of `@acme/blixis-seo`, a module that stores SEO titles for content entries. It touches every part of the module contract in a few steps.
 
-<Aside type="note">
-This SEO module depends on `@blixis/content`, which doesn't exist yet, so this page is a **tour of the contract**. To build and run a real module today, follow the [tutorials](/tutorials/01-database-module/).
+<Aside type="tip">
+For the complete version, with storage, authorization, batching, and tests, read [Writing a module](/extending/authoring-guide/). It follows a working example that CI installs from packed tarballs and tests.
 </Aside>
 
 ## 1. Create the package
@@ -22,7 +22,9 @@ This SEO module depends on `@blixis/content`, which doesn't exist yet, so this p
   "type": "module",
   "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
   "peerDependencies": {
-    "@blixis/contracts": "^0.1.0",
+    "@blixis/content-api": "^1.0.0",
+    "@blixis/contracts": "^1.0.0",
+    "@blixis/kernel": "^1.0.0",
     "hono": "^4.13.0"
   },
   "dependencies": {
@@ -31,7 +33,7 @@ This SEO module depends on `@blixis/content`, which doesn't exist yet, so this p
 }
 ```
 
-`@blixis/contracts` and `hono` are **peer dependencies**: the Blixis app provides exactly one copy of each. Use any [Standard Schema](/concepts/validation/) library; Blixis itself uses Zod.
+Blixis packages and `hono` are **peer dependencies**: the Blixis app provides exactly one copy of each. `@blixis/content-api` is the content module's public API: its services and events. Use any [Standard Schema](/concepts/validation/) library; Blixis itself uses Zod.
 
 ## 2. Write the module
 
@@ -66,16 +68,8 @@ This SEO module depends on `@blixis/content`, which doesn't exist yet, so this p
 3. **Handle an event.** Keep handlers idempotent — events can be delivered more than once.
 
    ```ts title="src/events.ts"
-   import { defineEvent, subscribe } from '@blixis/contracts'
-   import { z } from 'zod'
-
-   // Defined by the content module; shown here for completeness.
-   export const entryPublished = defineEvent({
-     type: 'entry.published',
-     version: 1,
-     delivery: 'transactional',
-     schema: z.object({ entryId: z.string(), spaceId: z.string() }),
-   })
+   import { entryPublished } from '@blixis/content-api'
+   import { subscribe } from '@blixis/contracts'
 
    export const refreshSeo = subscribe(entryPublished, 'refresh-seo', async (envelope, ctx) => {
      ctx.logger.info('refreshing seo', { entryId: envelope.payload.entryId })
@@ -85,7 +79,8 @@ This SEO module depends on `@blixis/content`, which doesn't exist yet, so this p
 4. **Put it together with a factory.** The factory takes typed options; the kernel validates them with `configSchema` and hands the result to `setup` as `ctx.config`.
 
    ```ts title="src/index.ts"
-   import { defineMigration, definePermission, type ModuleFactory } from '@blixis/contracts'
+   import { defineMigration, definePermission } from '@blixis/contracts'
+   import { defineModule } from '@blixis/kernel'
    import { z } from 'zod'
    import { refreshSeo } from './events.ts'
    import { routes } from './routes.ts'
@@ -93,9 +88,7 @@ This SEO module depends on `@blixis/content`, which doesn't exist yet, so this p
 
    const SeoConfig = z.object({ defaultTitle: z.string().default('Untitled') })
 
-   const seo: ModuleFactory<{ defaultTitle?: string }, z.infer<typeof SeoConfig>> = (
-     options = {},
-   ) => ({
+   const seo = defineModule<{ defaultTitle?: string }, z.infer<typeof SeoConfig>>((options = {}) => ({
      meta: {
        name: '@acme/blixis-seo',
        version: '1.0.0',
@@ -108,13 +101,15 @@ This SEO module depends on `@blixis/content`, which doesn't exist yet, so this p
        ctx.services.provide(SEO_SERVICE, { titleFor: async () => ctx.config.defaultTitle })
      },
      rest: { path: '/seo', app: routes },
-     graphql: { typeDefs: 'extend type Entry { seoTitle: String }' },
-     permissions: [definePermission({ id: 'seo.read', description: 'Read SEO metadata' })],
+     graphql: { typeDefs: 'extend type Sys { seoTitle: String }' },
+     permissions: [
+       definePermission({ id: 'seo.read', description: 'Read SEO metadata', defaultRoles: ['admin', 'editor', 'viewer'] }),
+     ],
      events: [refreshSeo],
      migrations: [
-       defineMigration({ id: '0001_create_seo', up: 'create table seo (entry_id text primary key, title text)' }),
+       defineMigration({ id: '0001_create_seo', up: 'create schema acme_seo; create table acme_seo.entries (entry_id uuid primary key, title text)' }),
      ],
-   })
+   }))
 
    export default seo
    export { SEO_SERVICE, type SeoService } from './service.ts'
@@ -125,10 +120,10 @@ This SEO module depends on `@blixis/content`, which doesn't exist yet, so this p
 ## 3. Register it in an app
 
 ```ts title="apps/api/src/blixis.config.ts"
-import content from '@blixis/content'
+import { contentModule } from '@blixis/content'
 import seo from '@acme/blixis-seo'
 
-export const modules = [content(), seo({ defaultTitle: 'My site' })]
+export const modules = [/* database, users, spaces, permissions, … */ contentModule(), seo({ defaultTitle: 'My site' })]
 ```
 
 Modules are registered **explicitly** — Blixis never scans `node_modules`. At startup the kernel checks that `blixis.content` is provided, validates your config, runs `setup`, and mounts your routes at `/api/v1/seo`.
@@ -138,11 +133,11 @@ Modules are registered **explicitly** — Blixis never scans `node_modules`. At 
 ```ts title="test/seo.test.ts"
 import { asUser, createTestBlixis } from '@blixis/testing'
 
-const t = await createTestBlixis({ modules: [content(), seo({ defaultTitle: 'Home' })], actor: asUser('u1') })
-const res = await t.request('/api/v1/seo/entries/42')
+const t = await createTestBlixis({ modules: [...firstParty(), seo({ defaultTitle: 'Home' })], database: db })
+const res = await t.request('/api/v1/seo/entries/42', { actor: asUser(ownerId) })
 ```
 
-See [Testing modules](/concepts/testing/).
+`firstParty()` lists the modules you depend on (database, users, spaces, permissions, content); see [Writing a module](/extending/authoring-guide/#9-test-it) and [Testing modules](/concepts/testing/).
 
 ## What to read next
 
