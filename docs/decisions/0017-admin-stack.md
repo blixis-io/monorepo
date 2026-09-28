@@ -28,6 +28,12 @@ The owner chose **(b)**.
 4. **Build configuration.** The API origin is fixed per build mode in `vite.config.ts` (public, so committed), overridable by `VITE_BLIXIS_API_URL`. The build emits `_headers` with a strict CSP (`script-src 'self'`, `connect-src` limited to the API, `frame-ancestors 'none'`) and `nosniff`.
 5. **Testing.** Vitest (`admin` project, jsdom) with Testing Library for components; Playwright smoke tests against a running admin and API from 019.002 on.
 
+## Addendum (019.004): rich-text editor
+
+The rich-text field uses **Tiptap 3** (MIT, on ProseMirror). Its JSON uses the same node and mark names as the stored format (ADR 0010 §5), so documents go to the API as the editor produces them. The editor is configured from each field's settings (allowed nodes, marks, heading levels), so it can't produce content the server would reject, pasting included; embedded entries and assets are small custom nodes with an `id` attribute. Tiptap loads on demand with the first rich-text field (about 140 kB gzip), not with the admin.
+
+Entries are saved explicitly (button or ⌘/Ctrl+S). There is no autosave: every save is a new immutable version (plan 011), and a timer would multiply them.
+
 ## Consequences
 
 - Admin and API deploy independently; the admin can be rolled back without touching the API.

@@ -30,6 +30,7 @@ import {
   newField,
   removeField,
   renameApiId,
+  renameField,
   toApiId,
   toUpdateBody,
   uniqueApiId,
@@ -336,7 +337,18 @@ function Editor({ spaceId, type }: { spaceId: string; type: ContentType }) {
                     fields: d.fields.map((f) => (f.key === next.key ? next : f)),
                   }))
                 }
-                onApiIdChange={(apiId) => setDraft((d) => renameApiId(d, field.key, apiId))}
+                onApiIdChange={(apiId) =>
+                  setDraft((d) => {
+                    const next = renameApiId(d, field.key, apiId)
+                    return {
+                      ...next,
+                      fields: next.fields.map((f) =>
+                        f.key === field.key ? { ...f, autoApiId: false } : f,
+                      ),
+                    }
+                  })
+                }
+                onNameChange={(name) => setDraft((d) => renameField(d, field.key, name))}
                 onMove={(by) =>
                   setDraft((d) => ({ ...d, fields: moveField(d.fields, field.key, by) }))
                 }

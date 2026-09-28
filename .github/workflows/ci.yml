@@ -70,3 +70,45 @@ jobs:
           pnpm --filter @blixis/admin exec wrangler deploy --dry-run --env staging
       - name: Build docs site
         run: pnpm --filter @blixis/docs build
+
+  e2e:
+    name: e2e (admin)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # The admin's Playwright tests against the real API (wrangler dev) on a fresh database.
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: blixis
+          POSTGRES_PASSWORD: blixis
+          POSTGRES_DB: blixis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U blixis -d blixis"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+    env:
+      DATABASE_URL: postgres://blixis:blixis@localhost:5432/blixis
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - name: Build
+        run: pnpm build
+      - name: Migrate
+        run: pnpm db:migrate
+      - name: Local API secrets (throwaway signing key)
+        run: echo "AUTH_SIGNING_KEYS=$(node tooling/db/src/cli.ts generate-signing-key ci)" > apps/api/.dev.vars
+      - name: Install Chromium
+        run: pnpm --filter @blixis/admin exec playwright install --with-deps chromium
+      - name: Playwright
+        run: pnpm --filter @blixis/admin e2e
+      - name: Traces of failed tests
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-results
+          path: apps/admin/test-results
+          retention-days: 7

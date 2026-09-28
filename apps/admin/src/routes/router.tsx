@@ -3,6 +3,8 @@ import { appRoute } from './app-layout.tsx'
 import { appearanceRoute } from './appearance.tsx'
 import { contentTypeRoute } from './content-type.tsx'
 import { contentTypesRoute } from './content-types.tsx'
+import { entriesRoute } from './entries.tsx'
+import { entryRoute, newEntryRoute } from './entry.tsx'
 import { homeRoute } from './home.tsx'
 import { type RouterContext, rootRoute } from './root.tsx'
 import { signInRoute } from './sign-in.tsx'
@@ -12,7 +14,14 @@ const routeTree = rootRoute.addChildren([
   signInRoute,
   appRoute.addChildren([
     homeRoute,
-    spaceRoute.addChildren([spaceOverviewRoute, contentTypesRoute, contentTypeRoute]),
+    spaceRoute.addChildren([
+      spaceOverviewRoute,
+      entriesRoute,
+      newEntryRoute,
+      entryRoute,
+      contentTypesRoute,
+      contentTypeRoute,
+    ]),
     appearanceRoute,
   ]),
 ])

@@ -18,7 +18,7 @@ pnpm --filter @blixis/admin e2e                # Playwright smoke test against t
 
 Sign in with a local user (`pnpm auth:create-user`, see getting started). Sessions follow ADR 0009: `createBrowserSession` from the SDK keeps the access token in memory and the refresh token in an `HttpOnly` cookie, so a reload resumes the session and nothing sensitive is in `localStorage`.
 
-The **e2e test** needs Docker Postgres, migrated (`DATABASE_URL=postgres://blixis:blixis@localhost:5432/blixis pnpm db:migrate`), `apps/api/.dev.vars` with `AUTH_SIGNING_KEYS`, and Playwright's Chromium (`pnpm --filter @blixis/admin exec playwright install chromium`). It starts the API (`:8787`) and the admin (`:5173`) unless they already run, and creates a throwaway user per run.
+The **e2e test** needs Docker Postgres, migrated (`DATABASE_URL=postgres://blixis:blixis@localhost:5432/blixis pnpm db:migrate`), `apps/api/.dev.vars` with `AUTH_SIGNING_KEYS`, and Playwright's Chromium (`pnpm --filter @blixis/admin exec playwright install chromium`). It starts the API (`:8787`) and the admin (`:5173`) unless they already run, and creates a throwaway user per run. CI runs it in the `e2e (admin)` job on a fresh database (traces of failed tests are uploaded).
 
 ## Structure
 
@@ -30,6 +30,17 @@ The **e2e test** needs Docker Postgres, migrated (`DATABASE_URL=postgres://blixi
 ## Configuration
 
 The API origin is chosen per build mode in `vite.config.ts` (`development`, `staging`, `production`); set `VITE_BLIXIS_API_URL` (environment or an ignored `.env.local`) to point a build elsewhere. The build writes `dist/_headers` with the Content-Security-Policy: scripts and styles from the admin itself, connections only to that API, no framing.
+
+## Entries
+
+`/spaces/:spaceId/entries` lists entries (filter by content type, "Load more" pages through the cursor); `…/entries/:id` edits one and `…/entries/new/:contentTypeId` starts one (`src/features/entries/`, task 019.004). The editor route is code-split, and the rich-text editor (Tiptap) loads with the first rich-text field.
+
+- **Widgets per field type** (`features/entries/widgets/`): text, long text, rich text, number, boolean, date, date-time (local input, stored with the offset), select (one or several), reference and asset pickers (with upload), link (entry, URL, email, phone, text, new tab), blocks (components with their own fields, nested), and JSON. Unknown plugin types fall back to the JSON editor.
+- **Locales:** tabs switch localized fields; the others are shared by all locales. Validation errors land on their field and locale (`fields.title.nl-NL`), and the editor switches to the first locale with a problem.
+- **Saving:** explicit only (button or ⌘/Ctrl+S), no autosave: every save is a new version. Saves send the version you edited (`If-Match`); a conflict offers to load the latest version. Leaving with unsaved changes asks first.
+- **Publishing:** "Publish" saves pending changes first. Unpublishing an entry that other published entries link to offers "Unpublish anyway" (`force`).
+- **Versions:** the side panel lists versions; restoring one saves it as a new version.
+- **Assets:** the picker filters by the field's MIME types and uploads new files (one request up to 64 MiB, in parts above), publishing them right away unless unticked.
 
 ## Content model editor
 

@@ -1,4 +1,5 @@
 import type { ContentType, Organization, Space, User, UserPreferences } from '@blixis/sdk'
+import { createContentFake } from './fake-content.ts'
 import fieldTypes from './fixtures/field-types.json' with { type: 'json' }
 
 const stamp = '2026-01-01T00:00:00.000Z'
@@ -19,7 +20,8 @@ const problem = (status: number, code: string, detail: string, requestId = 'req-
  * An in-memory Management API for component tests: sign-in with a cookie jar, organizations,
  * spaces. Only what the admin shell calls; everything else answers 404.
  */
-export function createFakeApi(options: { signedIn?: boolean } = {}) {
+export function createFakeApi(options: { signedIn?: boolean; locales?: string[] } = {}) {
+  const localeCodes = options.locales ?? ['en-US']
   let cookie: string | undefined = options.signedIn ? 'rt-0' : undefined
   let issued = 0
   const live = new Set<string>()
@@ -50,6 +52,11 @@ export function createFakeApi(options: { signedIn?: boolean } = {}) {
   const contentTypeBodies: unknown[] = []
   let unsafeChange: string | undefined
   let fieldCounter = 0
+  const content = createContentFake({
+    contentTypes,
+    problem: (status, code, detail, requestId) => problem(status, code, detail, requestId),
+    defaultLocale: () => localeCodes[0] ?? 'en-US',
+  })
   let failNext: Response | undefined
 
   const session = () => {
@@ -75,18 +82,16 @@ export function createFakeApi(options: { signedIn?: boolean } = {}) {
         createdAt: stamp,
       },
     ],
-    locales: [
-      {
-        id: `${space.id}-loc`,
-        organizationId: space.organizationId,
-        spaceId: space.id,
-        code: 'en-US',
-        name: 'en-US',
-        isDefault: true,
-        fallbackCode: null,
-        createdAt: stamp,
-      },
-    ],
+    locales: localeCodes.map((code, index) => ({
+      id: `${space.id}-loc-${code}`,
+      organizationId: space.organizationId,
+      spaceId: space.id,
+      code,
+      name: code,
+      isDefault: index === 0,
+      fallbackCode: null,
+      createdAt: stamp,
+    })),
   })
 
   type FieldInput = Partial<ContentType['fields'][number]> & {
@@ -228,6 +233,8 @@ export function createFakeApi(options: { signedIn?: boolean } = {}) {
     }
 
     if (path === '/field-types') return Response.json(fieldTypes)
+    const handled = await content.handle(request, path)
+    if (handled !== undefined) return handled
     const typesPath = path.match(/^\/spaces\/([^/]+)\/content-types(?:\/([^/]+))?$/)
     if (typesPath !== null) return contentTypeRoute(request, typesPath[2])
     if (path === '/users/me/preferences') {
@@ -287,6 +294,7 @@ export function createFakeApi(options: { signedIn?: boolean } = {}) {
     },
     preferences: () => preferences,
     contentTypes,
+    content,
     /** Bodies of every content type update, in order. */
     contentTypeBodies,
     /** The next saves answer 409 "Unsafe content type change: …" until reset. */

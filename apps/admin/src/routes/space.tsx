@@ -55,6 +55,9 @@ function SpaceLayout() {
           >
             Overview
           </Link>
+          <Link to="/spaces/$spaceId/entries" params={{ spaceId }} className={tabClass}>
+            Entries
+          </Link>
           <Link to="/spaces/$spaceId/content-types" params={{ spaceId }} className={tabClass}>
             Content model
           </Link>

@@ -24,6 +24,7 @@ export function FieldCard({
   onToggle,
   onChange,
   onApiIdChange,
+  onNameChange,
   onMove,
   onRemove,
 }: {
@@ -38,6 +39,7 @@ export function FieldCard({
   onToggle: () => void
   onChange: (next: FieldDraft) => void
   onApiIdChange: (apiId: string) => void
+  onNameChange: (name: string) => void
   onMove: (by: -1 | 1) => void
   onRemove: () => void
 }) {
@@ -131,7 +133,7 @@ export function FieldCard({
                 id={`${id}-name`}
                 value={field.name}
                 maxLength={100}
-                onChange={(event) => set('name', event.target.value)}
+                onChange={(event) => onNameChange(event.target.value)}
               />
             </div>
             <div className="grid gap-2">

@@ -73,7 +73,8 @@ for await (const entry of blixis.entries.iterate(spaceId, { contentType: 'page' 
 }
 ```
 
-- **Versions:** `update` takes the version you edited; if someone saved in between, it throws a `409` (`CONFLICT`). Reload and retry.
+- **Versions:** `update` takes the version you edited; if someone saved in between, it throws a `409` (`CONFLICT`). Reload and retry. `entries.versions(id)` lists the history and `entries.restore(id, versionId, version)` makes an old version current again (as a new version).
+- **Field types:** `fieldTypes.list()` returns every field type of the app (plugins included) with its settings JSON Schema. `me.get()`, `me.update()`, `me.preferences()`, and `me.updatePreferences()` cover the signed-in user.
 - **Commands are safe to retry:** `publish`, `unpublish`, and redeliveries send an `Idempotency-Key` automatically, the same on every retry. Pass `{ idempotencyKey }` to deduplicate across processes.
 
 ## Upload files

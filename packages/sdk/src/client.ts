@@ -233,6 +233,13 @@ export function createBlixisClient(options: BlixisClientOptions) {
         ),
       versions: (entryId: string, query?: Operations['listEntryVersions']['query']) =>
         call('listEntryVersions', { params: { entryId }, query }),
+      /** Makes an earlier version current again (as a new version); `version` is the current one. */
+      restore: (entryId: string, versionId: string, version?: number) =>
+        call(
+          'restoreEntryVersion',
+          { params: { entryId, versionId }, body: {} },
+          version === undefined ? {} : { ifMatch: version },
+        ),
     },
 
     assets: {

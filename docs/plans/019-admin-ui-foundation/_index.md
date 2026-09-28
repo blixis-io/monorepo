@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 Milestone: Milestone 8 — Consumers & extension platform  
 Roadmap scope: MVP / initial platform  
-Progress: 4/5 tasks completed
+Progress: 5/5 tasks completed
 
 ## Objective
 
@@ -59,16 +59,16 @@ Depends on:
 - [x] [001 — Decide the admin stack and scaffold apps/admin](./001-admin-stack-and-scaffold.md)
 - [x] [002 — Implement admin authentication and navigation shell](./002-admin-auth-and-shell.md)
 - [x] [003 — Implement the content type editor](./003-content-type-editor.md)
-- [ ] [004 — Implement the entry list and editor with publishing](./004-entry-editor-and-publishing.md)
+- [x] [004 — Implement the entry list and editor with publishing](./004-entry-editor-and-publishing.md)
 - [x] [005 — Let users choose and import themes (tweakcn)](./005-user-themes.md)
 
 ## Completion criteria
 
 The plan may be marked `completed` when:
 
-- [ ] All tasks `completed`.
-- [ ] Playwright smoke test of the editorial flow passes in CI against a local API.
-- [ ] No imports from server packages (boundary check).
+- [x] All tasks `completed`.
+- [x] Playwright smoke test of the editorial flow passes in CI against a local API.
+- [x] No imports from server packages (boundary check).
 
 ## Risks
 
@@ -79,7 +79,7 @@ The plan may be marked `completed` when:
 ## Open questions
 
 - ~~Hosting: same Worker (static assets) vs. separate Worker/Pages project on a subdomain?~~ Decided: separate Worker at `admin.<domain>` ([ADR 0017](../../decisions/0017-admin-stack.md)).
-- Rich text editor library consistent with ADR 0010 format (e.g. Tiptap/ProseMirror)? Decide in 019.004.
+- ~~Rich text editor library consistent with ADR 0010 format?~~ Decided in 019.004: Tiptap 3 ([ADR 0017 addendum](../../decisions/0017-admin-stack.md)).
 - Is admin localisation (UI language) required for MVP? Default: English only, i18n-ready string handling.
 
 ## Technical notes
