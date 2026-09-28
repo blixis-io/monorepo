@@ -1,6 +1,6 @@
 {
   "name": "@blixis-io/events",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Blixis events: event definition registry, envelopes, and the event bus (transports: in-process, queue, outbox)",
   "keywords": [
     "blixis",
