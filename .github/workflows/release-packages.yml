@@ -1,0 +1,63 @@
+name: release-packages
+
+# Versions and publishes the public packages (plan 018.005, ADR 0020). release-please keeps a
+# release PR per the Conventional Commits touching packages/<name>; merging it tags each changed
+# package (`contracts-v0.2.0`) and publishes it to npm. Never runs for platform tags (`vX.Y.Z`).
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-packages
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: release PR and tags
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      paths_released: ${{ steps.release.outputs.paths_released }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    name: publish to npm
+    needs: release-please
+    if: needs.release-please.outputs.releases_created == 'true'
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      # npm trusted publishing (OIDC) and provenance.
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+      - name: Build
+        run: pnpm build
+      - name: Pack and publish the released packages
+        env:
+          PATHS: ${{ needs.release-please.outputs.paths_released }}
+          # Only for the first publish of a package: trusted publishing needs the package to
+          # exist. Afterwards remove the secret; OIDC is used when it is empty.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          # pnpm pack resolves workspace: and catalog: versions; npm publishes with provenance.
+          mkdir -p .publish
+          for path in $(echo "$PATHS" | jq -r '.[]'); do
+            (cd "$path" && pnpm pack --pack-destination "$GITHUB_WORKSPACE/.publish")
+          done
+          for tarball in .publish/*.tgz; do
+            npm publish "$tarball" --access public --provenance
+          done

@@ -2,6 +2,22 @@
   "name": "@blixis-io/contracts",
   "version": "0.0.0",
   "description": "Public contracts for Blixis modules: module definition, services, capabilities, errors, events, permissions, and context",
+  "keywords": [
+    "blixis",
+    "cms",
+    "headless-cms",
+    "cloudflare-workers"
+  ],
+  "license": "MIT",
+  "homepage": "https://blixis-docs.frosty-hill-6079.workers.dev",
+  "bugs": {
+    "url": "https://github.com/blixis-io/monorepo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/contracts"
+  },
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -11,11 +27,20 @@
     }
   },
   "files": [
+    "LICENSE",
+    "README.md",
     "dist"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run --root ../.. packages/contracts"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "peerDependencies": {
     "hono": "^4.13.0"
@@ -26,10 +51,5 @@
     "typescript": "catalog:",
     "vitest": "catalog:",
     "zod": "catalog:"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/blixis-io/monorepo.git",
-    "directory": "packages/contracts"
   }
 }

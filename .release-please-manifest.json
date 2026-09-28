@@ -1,0 +1,10 @@
+{
+  "packages/contracts": "0.0.0",
+  "packages/kernel": "0.0.0",
+  "packages/content-api": "0.0.0",
+  "packages/database": "0.0.0",
+  "packages/events": "0.0.0",
+  "packages/shared": "0.0.0",
+  "packages/testing": "0.0.0",
+  "packages/sdk": "0.0.0"
+}

@@ -14,8 +14,9 @@ Related: [Release & deployment](./deployment.md) · [Environments](./environment
 | `pr-title.yml` | `pull_request` (opened, edited, synchronize) | `pr-title` | Enforce Conventional Commit PR titles |
 | `release.yml` | `push: main`, `workflow_dispatch` (input `tag`) | `release` → `deploy-production` | release-please release PR/tag; production deploy of new or given tag |
 | `preview.yml` *(021.002)* | `pull_request` | `preview`, `cleanup` | Per-PR preview environment |
-| `extension-contract.yml` *(018.004)* | `pull_request` on `packages/**`, `modules/**` | `extension-contract` | Example plugin installed from tarballs still works |
-| `admin-e2e` job *(019.004)* | `pull_request` on `apps/admin/**` | `admin-e2e` | Playwright editorial smoke |
+| `extension contract` job in `ci.yml` *(018.004)* | every PR and push | `extension-contract` | Example plugin installed from tarballs still works; Worker bundle |
+| `e2e (admin)` job in `ci.yml` *(019.004)* | every PR and push | `e2e` | Playwright editorial flow against the local API |
+| `release-packages.yml` *(018.005)* | `push: main` | `release-please` → `publish` (environment `npm`) | Package release PR, `<package>-vX.Y.Z` tags, npm publish with provenance ([package releases](./package-releases.md)) |
 
 ## Shared setup (composite action)
 
@@ -180,6 +181,7 @@ Configured per GitHub **environment** so staging jobs can never read production 
 | `SENTRY_AUTH_TOKEN` | secret (repo) | — | — | source-map upload + release creation (004.007, 021.001) |
 | `SENTRY_ORG` | variable (repo) | `private-m57` | `private-m57` | Sentry CLI |
 | `SENTRY_PROJECT` | variable (repo) | `blixis-api` | `blixis-api` | Sentry CLI |
+| `NPM_TOKEN` | secret (environment `npm`) | — | — | first npm publish only; then trusted publishing (OIDC), see [package releases](./package-releases.md) |
 
 Pull-request workflows use no secrets (forks and Dependabot PRs cannot access them anyway). The repository is public, so this rule is essential.
 

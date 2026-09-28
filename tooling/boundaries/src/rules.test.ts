@@ -132,6 +132,23 @@ describe('checkPackages', () => {
       'contracts-runtime-dependency',
     ])
   })
+  it('keeps published packages on peers and published dependencies (ADR 0020)', () => {
+    const ok = pkg('@blixis-io/kernel', 'packages/kernel', {
+      dependencies: { '@blixis-io/shared': '*', pg: '*' },
+      peerDependencies: { '@blixis-io/contracts': '*', hono: '*' },
+    })
+    expect(checkPackages([ok])).toEqual([])
+    const bad = pkg('@blixis-io/kernel', 'packages/kernel', {
+      dependencies: { '@blixis-io/contracts': '*', 'drizzle-orm': '*' },
+      peerDependencies: { '@blixis-io/graphql': '*' },
+    })
+    expect(checkPackages([bad]).map((v) => v.message)).toEqual([
+      '@blixis-io/kernel: make @blixis-io/contracts a peer dependency (one copy per app)',
+      '@blixis-io/kernel: make drizzle-orm a peer dependency (one copy per app)',
+      '@blixis-io/kernel depends on @blixis-io/graphql, which is not published',
+    ])
+  })
+
   it('keeps public API packages on @blixis-io/contracts alone (ADR 0016)', () => {
     const ok = pkg('@blixis-io/content-api', 'packages/content-api', {
       peerDependencies: { '@blixis-io/contracts': '*' },
@@ -141,7 +158,11 @@ describe('checkPackages', () => {
       dependencies: { zod: '*' },
       peerDependencies: { '@blixis-io/contracts': '*', '@blixis-io/content': '*' },
     })
-    expect(checkPackages([heavy]).map((v) => v.message)).toEqual([
+    expect(
+      checkPackages([heavy])
+        .filter((v) => v.rule === 'public-api-dependency')
+        .map((v) => v.message),
+    ).toEqual([
       '@blixis-io/content-api may only peer-depend on @blixis-io/contracts (ADR 0016); found: zod, @blixis-io/content',
     ])
   })

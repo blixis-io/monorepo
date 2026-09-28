@@ -2,6 +2,22 @@
   "name": "@blixis-io/database",
   "version": "0.0.0",
   "description": "Postgres access for Blixis on Workers + Hyperdrive: per-request Drizzle database service, error translation, transactions, and module migrations",
+  "keywords": [
+    "blixis",
+    "cms",
+    "headless-cms",
+    "cloudflare-workers"
+  ],
+  "license": "MIT",
+  "homepage": "https://blixis-docs.frosty-hill-6079.workers.dev",
+  "bugs": {
+    "url": "https://github.com/blixis-io/monorepo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/database"
+  },
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -19,33 +35,40 @@
     }
   },
   "files": [
+    "LICENSE",
+    "README.md",
     "dist"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run --root ../.. packages/database"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "dependencies": {
-    "@blixis-io/contracts": "workspace:*",
-    "@blixis-io/kernel": "workspace:*",
     "@blixis-io/shared": "workspace:*",
-    "drizzle-orm": "catalog:",
     "pg": "catalog:"
   },
+  "peerDependencies": {
+    "@blixis-io/contracts": "workspace:^",
+    "@blixis-io/kernel": "workspace:^",
+    "drizzle-orm": "~0.45.3",
+    "hono": "^4.0.0"
+  },
   "devDependencies": {
+    "@blixis-io/contracts": "workspace:*",
+    "@blixis-io/kernel": "workspace:*",
     "@blixis-io/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
+    "drizzle-orm": "catalog:",
     "hono": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/blixis-io/monorepo.git",
-    "directory": "packages/database"
-  },
-  "peerDependencies": {
-    "hono": "^4.0.0"
   }
 }

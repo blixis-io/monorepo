@@ -1,0 +1,60 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "node",
+  "include-component-in-tag": true,
+  "tag-separator": "-",
+  "bump-minor-pre-major": true,
+  "separate-pull-requests": false,
+  "group-pull-request-title-pattern": "chore(release): publish packages",
+  "pull-request-header": "Package releases. The public packages share one version (their peer ranges must match). Merging this PR tags each package (`<package>-vX.Y.Z`) and publishes it to npm under `@blixis-io` (ADR 0020). Platform releases (`vX.Y.Z`) are separate (plan 021).",
+  "packages": {
+    "packages/contracts": {
+      "component": "contracts",
+      "package-name": "@blixis-io/contracts"
+    },
+    "packages/kernel": {
+      "component": "kernel",
+      "package-name": "@blixis-io/kernel"
+    },
+    "packages/content-api": {
+      "component": "content-api",
+      "package-name": "@blixis-io/content-api"
+    },
+    "packages/database": {
+      "component": "database",
+      "package-name": "@blixis-io/database"
+    },
+    "packages/events": {
+      "component": "events",
+      "package-name": "@blixis-io/events"
+    },
+    "packages/shared": {
+      "component": "shared",
+      "package-name": "@blixis-io/shared"
+    },
+    "packages/testing": {
+      "component": "testing",
+      "package-name": "@blixis-io/testing"
+    },
+    "packages/sdk": {
+      "component": "sdk",
+      "package-name": "@blixis-io/sdk"
+    }
+  },
+  "plugins": [
+    {
+      "type": "linked-versions",
+      "groupName": "blixis-io packages",
+      "components": [
+        "contracts",
+        "kernel",
+        "content-api",
+        "database",
+        "events",
+        "shared",
+        "testing",
+        "sdk"
+      ]
+    }
+  ]
+}

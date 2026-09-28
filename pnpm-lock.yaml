@@ -940,22 +940,19 @@ importers:
 
   packages/database:
     dependencies:
+      '@blixis-io/shared':
+        specifier: workspace:*
+        version: link:../shared
+      pg:
+        specifier: 'catalog:'
+        version: 8.23.0
+    devDependencies:
       '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../contracts
       '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../kernel
-      '@blixis-io/shared':
-        specifier: workspace:*
-        version: link:../shared
-      drizzle-orm:
-        specifier: 'catalog:'
-        version: 0.45.3(@cloudflare/workers-types@5.20260924.1)(@opentelemetry/api@1.9.1)(@types/pg@8.23.0)(pg@8.23.0)
-      pg:
-        specifier: 'catalog:'
-        version: 8.23.0
-    devDependencies:
       '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
@@ -965,6 +962,9 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.23.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.3(@cloudflare/workers-types@5.20260924.1)(@opentelemetry/api@1.9.1)(@types/pg@8.23.0)(pg@8.23.0)
       hono:
         specifier: 'catalog:'
         version: 4.13.9
@@ -977,6 +977,10 @@ importers:
 
   packages/events:
     dependencies:
+      '@blixis-io/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
       '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../contracts
@@ -986,13 +990,6 @@ importers:
       '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../kernel
-      '@blixis-io/shared':
-        specifier: workspace:*
-        version: link:../shared
-      drizzle-orm:
-        specifier: 'catalog:'
-        version: 0.45.3(@cloudflare/workers-types@5.20260924.1)(@opentelemetry/api@1.9.1)(@types/pg@8.23.0)(pg@8.23.0)
-    devDependencies:
       '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
@@ -1002,6 +999,9 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.23.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.3(@cloudflare/workers-types@5.20260924.1)(@opentelemetry/api@1.9.1)(@types/pg@8.23.0)(pg@8.23.0)
       hono:
         specifier: 'catalog:'
         version: 4.13.9
@@ -1053,17 +1053,16 @@ importers:
         version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@24.13.6)(@vitest/coverage-v8@4.1.11)(esbuild@0.28.2)(jiti@2.6.1)(jsdom@30.1.0(@noble/hashes@2.4.0))(yaml@2.9.1)
 
   packages/kernel:
-    dependencies:
+    devDependencies:
       '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../contracts
-      hono:
-        specifier: 'catalog:'
-        version: 4.13.9
-    devDependencies:
       '@blixis-io/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/tsconfig
+      hono:
+        specifier: 'catalog:'
+        version: 4.13.9
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
@@ -1145,6 +1144,10 @@ importers:
 
   packages/testing:
     dependencies:
+      pg:
+        specifier: 'catalog:'
+        version: 8.23.0
+    devDependencies:
       '@blixis-io/contracts':
         specifier: workspace:*
         version: link:../contracts
@@ -1157,10 +1160,6 @@ importers:
       '@blixis-io/kernel':
         specifier: workspace:*
         version: link:../kernel
-      pg:
-        specifier: 'catalog:'
-        version: 8.23.0
-    devDependencies:
       '@blixis-io/shared':
         specifier: workspace:*
         version: link:../shared

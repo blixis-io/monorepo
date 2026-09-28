@@ -43,5 +43,6 @@
     "lefthook": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
-  }
+  },
+  "license": "MIT"
 }

@@ -1,6 +1,7 @@
 {
   "name": "@blixis-io/webhooks",
   "version": "0.0.0",
+  "private": true,
   "description": "Blixis webhooks module: signed HTTP notifications for domain events",
   "type": "module",
   "sideEffects": false,

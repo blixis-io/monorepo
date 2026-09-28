@@ -2,6 +2,22 @@
   "name": "@blixis-io/content-api",
   "version": "0.0.0",
   "description": "Public content capabilities for Blixis modules: service tokens, entry and content type views, and content events (ADR 0016)",
+  "keywords": [
+    "blixis",
+    "cms",
+    "headless-cms",
+    "cloudflare-workers"
+  ],
+  "license": "MIT",
+  "homepage": "https://blixis-docs.frosty-hill-6079.workers.dev",
+  "bugs": {
+    "url": "https://github.com/blixis-io/monorepo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/content-api"
+  },
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -11,24 +27,28 @@
     }
   },
   "files": [
+    "LICENSE",
+    "README.md",
     "dist"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run --root ../.. packages/content-api"
   },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "peerDependencies": {
-    "@blixis-io/contracts": "workspace:*"
+    "@blixis-io/contracts": "workspace:^"
   },
   "devDependencies": {
     "@blixis-io/contracts": "workspace:*",
     "@blixis-io/tsconfig": "workspace:*",
     "typescript": "catalog:",
     "vitest": "catalog:"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/blixis-io/monorepo.git",
-    "directory": "packages/content-api"
   }
 }

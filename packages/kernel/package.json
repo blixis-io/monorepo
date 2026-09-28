@@ -2,6 +2,22 @@
   "name": "@blixis-io/kernel",
   "version": "0.0.0",
   "description": "Blixis module kernel: composes modules, validates the module graph, registers services, and mounts routes",
+  "keywords": [
+    "blixis",
+    "cms",
+    "headless-cms",
+    "cloudflare-workers"
+  ],
+  "license": "MIT",
+  "homepage": "https://blixis-docs.frosty-hill-6079.workers.dev",
+  "bugs": {
+    "url": "https://github.com/blixis-io/monorepo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blixis-io/monorepo.git",
+    "directory": "packages/kernel"
+  },
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -11,25 +27,31 @@
     }
   },
   "files": [
+    "LICENSE",
+    "README.md",
     "dist"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run --root ../.. packages/kernel"
   },
-  "dependencies": {
-    "@blixis-io/contracts": "workspace:*",
-    "hono": "catalog:"
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "peerDependencies": {
+    "@blixis-io/contracts": "workspace:^",
+    "hono": "^4.13.0"
   },
   "devDependencies": {
+    "@blixis-io/contracts": "workspace:*",
     "@blixis-io/tsconfig": "workspace:*",
+    "hono": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "zod": "catalog:"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/blixis-io/monorepo.git",
-    "directory": "packages/kernel"
   }
 }
