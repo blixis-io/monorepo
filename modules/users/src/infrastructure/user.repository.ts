@@ -1,7 +1,7 @@
 import { type Database, type Transaction, translateDatabaseError } from '@blixis/database'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import type { User, UserStatus } from '../domain/user.ts'
-import { users } from './schema.ts'
+import { preferences, users } from './schema.ts'
 
 type Queryable = Database | Transaction
 type Row = typeof users.$inferSelect
@@ -44,5 +44,20 @@ export const userRepository = {
   ): Promise<User | undefined> {
     const [row] = await db.update(users).set(values).where(eq(users.id, id)).returning()
     return row === undefined ? undefined : toUser(row)
+  },
+}
+
+/** Data access for `users.preferences` (one JSON document per user). */
+export const preferencesRepository = {
+  async find(db: Queryable, userId: string): Promise<unknown> {
+    const [row] = await db.select().from(preferences).where(eq(preferences.userId, userId))
+    return row?.data
+  },
+
+  async upsert(db: Queryable, userId: string, data: unknown): Promise<void> {
+    await db
+      .insert(preferences)
+      .values({ userId, data })
+      .onConflictDoUpdate({ target: preferences.userId, set: { data, updatedAt: sql`now()` } })
   },
 }

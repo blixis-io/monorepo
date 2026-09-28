@@ -76,7 +76,7 @@ routes.get('/mine', async (c) => {
 })
 ```
 
-Profiles live in `@blixis/users`: `c.var.services.get(USER_SERVICE).getById(actor.userId)`, or `GET /api/v1/users/me`.
+Profiles live in `@blixis/users`: `c.var.services.get(USER_SERVICE).getById(actor.userId)`, or `GET /api/v1/users/me`. UI preferences (color scheme and theme, used by the admin) are at `GET/PUT /api/v1/users/me/preferences`.
 
 ## Operations
 

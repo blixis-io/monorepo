@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
-import { LogOut, UserRound } from 'lucide-react'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { LogOut, Palette, UserRound } from 'lucide-react'
 import { describeError } from '../lib/errors.ts'
 import { useSession, useUser } from '../lib/session.tsx'
 import { toast } from '../lib/toast.ts'
@@ -46,6 +46,12 @@ export function UserMenu() {
           <span className="text-xs font-normal text-muted-foreground">{user.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/settings/appearance">
+            <Palette aria-hidden />
+            Appearance
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => void signOut()}>
           <LogOut aria-hidden />
           Sign out

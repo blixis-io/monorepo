@@ -1,5 +1,6 @@
 import type { RestOperation, SameShape } from '@blixis/contracts'
 import { z } from 'zod'
+import { preferencesSchema, type UserPreferences } from '../domain/preferences.ts'
 import { type User, updateProfileSchema } from '../domain/user.ts'
 
 export const userSchema = z
@@ -13,8 +14,11 @@ export const userSchema = z
   })
   .meta({ id: 'User', description: 'A user account' })
 
-const check: SameShape<z.output<typeof userSchema>, User> = true
-void check
+const checks: [
+  SameShape<z.output<typeof userSchema>, User>,
+  SameShape<z.output<typeof preferencesSchema>, UserPreferences>,
+] = [true, true]
+void checks
 
 /** Operations of `@blixis/users` (ADR 0015). */
 export const USERS_OPERATIONS: readonly RestOperation[] = [
@@ -34,5 +38,22 @@ export const USERS_OPERATIONS: readonly RestOperation[] = [
     summary: 'Change your display name',
     request: { body: updateProfileSchema },
     responses: { 200: { description: 'OK', schema: userSchema } },
+  },
+  {
+    method: 'GET',
+    path: '/me/preferences',
+    id: 'getPreferences',
+    tag: 'Users',
+    summary: 'Your UI preferences (color scheme and theme)',
+    responses: { 200: { description: 'OK', schema: preferencesSchema } },
+  },
+  {
+    method: 'PUT',
+    path: '/me/preferences',
+    id: 'updatePreferences',
+    tag: 'Users',
+    summary: 'Replace your UI preferences; omitted fields reset to their defaults',
+    request: { body: preferencesSchema },
+    responses: { 200: { description: 'OK', schema: preferencesSchema } },
   },
 ]

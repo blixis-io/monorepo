@@ -428,6 +428,72 @@
               }
             }
           ]
+        },
+        {
+          "name": "Update my preferences",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/me/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "me", "preferences"]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colorScheme\": \"dark\",\n  \"theme\": {\n    \"name\": \"Postman\",\n    \"preset\": null,\n    \"light\": { \"primary\": \"#3b82f6\", \"radius\": \"0.5rem\" },\n    \"dark\": { \"primary\": \"oklch(0.7 0.15 250)\" }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('theme saved', () => pm.expect(pm.response.json().theme.name).to.eql('Postman'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get my preferences",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/me/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "me", "preferences"]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('color scheme', () => pm.expect(pm.response.json().colorScheme).to.be.oneOf(['system', 'light', 'dark']));"
+                ]
+              }
+            }
+          ]
         }
       ]
     },

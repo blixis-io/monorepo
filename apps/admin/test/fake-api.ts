@@ -1,4 +1,4 @@
-import type { Organization, Space, User } from '@blixis/sdk'
+import type { Organization, Space, User, UserPreferences } from '@blixis/sdk'
 
 const stamp = '2026-01-01T00:00:00.000Z'
 export const PASSWORD = 'correct horse battery'
@@ -44,6 +44,7 @@ export function createFakeApi(options: { signedIn?: boolean } = {}) {
     },
   ]
   const calls: string[] = []
+  let preferences: UserPreferences = { colorScheme: 'system', theme: null }
   let failNext: Response | undefined
 
   const session = () => {
@@ -109,6 +110,10 @@ export function createFakeApi(options: { signedIn?: boolean } = {}) {
       return response
     }
 
+    if (path === '/users/me/preferences') {
+      if (request.method === 'PUT') preferences = (await request.json()) as UserPreferences
+      return Response.json(preferences)
+    }
     if (path === '/organizations' && request.method === 'GET')
       return Response.json({ organizations })
     if (path === '/organizations' && request.method === 'POST') {
@@ -159,6 +164,10 @@ export function createFakeApi(options: { signedIn?: boolean } = {}) {
     /** Answers the next authenticated call with this response. */
     failNextWith(response: Response) {
       failNext = response
+    },
+    preferences: () => preferences,
+    setPreferences(next: UserPreferences) {
+      preferences = next
     },
     /** Server-side session end (e.g. revoked elsewhere). */
     revoke() {

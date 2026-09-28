@@ -31,6 +31,17 @@ The **e2e test** needs Docker Postgres, migrated (`DATABASE_URL=postgres://blixi
 
 The API origin is chosen per build mode in `vite.config.ts` (`development`, `staging`, `production`); set `VITE_BLIXIS_API_URL` (environment or an ignored `.env.local`) to point a build elsewhere. The build writes `dist/_headers` with the Content-Security-Policy: scripts and styles from the admin itself, connections only to that API, no framing.
 
+## Appearance and themes
+
+Every user picks a color scheme (system, light, dark) and a theme under **Account → Appearance**. Themes use the shadcn/ui variable set that [tweakcn](https://tweakcn.com) edits:
+
+- **Presets:** the 42 tweakcn presets (`src/lib/themes/tweakcn-presets.ts`, Apache-2.0, see `THIRD_PARTY_NOTICES.md`), loaded only on the Appearance page. Refresh them with `scripts/import-tweakcn-presets.ts` (instructions in the file).
+- **Your own theme:** design it in the [tweakcn editor](https://tweakcn.com/editor/theme), choose Code, and paste the CSS. `parseThemeCss` reads the `:root` and `.dark` blocks (Tailwind v4 or v3 exports), ignores derived variables, and skips unsafe values.
+- **Storage:** `GET/PUT /api/v1/users/me/preferences` (`@blixis/users`), so the theme follows the user to every device. This device caches it in `localStorage` (`blixis.appearance`, no secrets) to paint the right theme before the API answers.
+- **Applying:** tokens are set on `<html>` with `style.setProperty` for the current mode, plus derived shadows (tweakcn's shadow model, via `color-mix`) and letter spacing. The CSP (`style-src 'self'`) allows this but not injected `<style>` elements. The API and the admin accept only plain values (colors, lengths, numbers, font lists), never `url(…)`, `;` or braces.
+- **Fonts** in a theme apply when they're installed on the device. Web fonts aren't loaded: that would need third-party font hosts in the CSP.
+- `styles.css` holds the default theme (tweakcn's default) and maps every token to Tailwind (`bg-card`, `bg-popover`, `shadow-md`, `rounded-lg`, `font-sans`, …). Use these tokens in components, never fixed colors.
+
 ## Adding UI components
 
 Components follow [shadcn/ui](https://ui.shadcn.com/docs/components): copy a component's source into `src/components/ui` and change its imports to relative paths with extensions (`../../lib/utils.ts`), as in `button.tsx`; the repository uses no `@/` path alias. `components.json` records the style and paths for reference.

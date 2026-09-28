@@ -6,12 +6,13 @@ import { createUserService, USER_SERVICE } from './application/user.service.ts'
 import { createUsers } from './infrastructure/migrations/0001_create_users.ts'
 import { createMemberships } from './infrastructure/migrations/0002_create_memberships.ts'
 import { systemRoleKeys } from './infrastructure/migrations/0003_system_role_keys.ts'
+import { createPreferences } from './infrastructure/migrations/0004_create_preferences.ts'
 import { USERS_OPERATIONS } from './rest/operations.ts'
 import { usersRoutes } from './rest/routes.ts'
 
 /**
  * The users module (roadmap 007.002): owns `users.users`, provides `USER_SERVICE` and the
- * `blixis.users` capability, and serves `GET/PATCH /api/v1/users/me`. No authentication logic —
+ * `blixis.users` capability, and serves `GET/PATCH /api/v1/users/me` and `GET/PUT /api/v1/users/me/preferences`. No authentication logic —
  * `@blixis/auth` resolves actors and creates users through `USER_SERVICE`.
  */
 export const usersModule = defineModule({
@@ -21,7 +22,7 @@ export const usersModule = defineModule({
     capabilities: [BLIXIS_CAPABILITIES.users],
     requiresCapabilities: [BLIXIS_CAPABILITIES.database, BLIXIS_CAPABILITIES.events],
   },
-  migrations: [createUsers, createMemberships, systemRoleKeys],
+  migrations: [createUsers, createMemberships, systemRoleKeys, createPreferences],
   setup(ctx) {
     ctx.services.provideFactory(
       USER_SERVICE,

@@ -16,7 +16,7 @@ export function Toaster() {
             if (!open) dismissToast(t.id)
           }}
           className={cn(
-            'relative grid gap-1 rounded-md border bg-background p-4 pr-8 shadow-lg data-[state=open]:animate-in data-[state=open]:slide-in-from-right',
+            'relative grid gap-1 rounded-md border bg-popover p-4 pr-8 text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=open]:slide-in-from-right',
             t.variant === 'destructive' ? 'border-destructive/50' : 'border-border',
           )}
         >

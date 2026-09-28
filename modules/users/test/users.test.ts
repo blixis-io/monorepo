@@ -7,6 +7,7 @@ import {
   databaseTestsEnabled,
   type TestDatabase,
 } from '@blixis/testing/database'
+import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { USER_SERVICE, type User, type UserService, usersModule } from '../src/index.ts'
 
@@ -122,6 +123,87 @@ describe.skipIf(!databaseTestsEnabled())('users module', () => {
         json: { displayName: '' },
       })
       expect(bad.status).toBe(400)
+    })
+  })
+
+  describe('REST /api/v1/users/me/preferences', () => {
+    const theme = {
+      name: 'Violet',
+      preset: 'violet-bloom',
+      light: {
+        primary: '#7033ff',
+        'font-sans': '"Plus Jakarta Sans", sans-serif',
+        radius: '0.5rem',
+      },
+      dark: { primary: 'oklch(0.7 0.2 290)', 'shadow-color': 'hsl(0 0% 0% / 0.1)' },
+    }
+
+    it('returns defaults, then saves and returns the theme per user', async () => {
+      const { t, users } = await setup()
+      const ada = await users((s) => s.create({ email: 'ada@example.com', displayName: 'Ada' }))
+      const bob = await users((s) => s.create({ email: 'bob@example.com', displayName: 'Bob' }))
+      const get = (id: string) => t.request('/api/v1/users/me/preferences', { actor: asUser(id) })
+
+      expect(await (await get(ada.id)).json()).toEqual({ colorScheme: 'system', theme: null })
+      const put = await t.request('/api/v1/users/me/preferences', {
+        method: 'PUT',
+        actor: asUser(ada.id),
+        json: { colorScheme: 'dark', theme },
+      })
+      expect(put.status).toBe(200)
+      expect(await put.json()).toEqual({ colorScheme: 'dark', theme })
+      expect(await (await get(ada.id)).json()).toEqual({ colorScheme: 'dark', theme })
+      expect(await (await get(bob.id)).json()).toEqual({ colorScheme: 'system', theme: null })
+
+      // PUT replaces: omitted fields reset.
+      await t.request('/api/v1/users/me/preferences', {
+        method: 'PUT',
+        actor: asUser(ada.id),
+        json: { colorScheme: 'light' },
+      })
+      expect(await (await get(ada.id)).json()).toEqual({ colorScheme: 'light', theme: null })
+    })
+
+    it('rejects token values that could load resources or break out of a declaration', async () => {
+      const { t, users } = await setup()
+      const user = await users((s) => s.create({ email: 'x@example.com', displayName: 'X' }))
+      for (const value of [
+        'url(https://evil.example/x.png)',
+        'red; background: blue',
+        'red } body { display: none',
+        'image-set("x.png" 1x)',
+        '<script>',
+        'x'.repeat(201),
+      ]) {
+        const response = await t.request('/api/v1/users/me/preferences', {
+          method: 'PUT',
+          actor: asUser(user.id),
+          json: { theme: { ...theme, light: { primary: value } } },
+        })
+        expect(response.status, value).toBe(400)
+      }
+      const badName = await t.request('/api/v1/users/me/preferences', {
+        method: 'PUT',
+        actor: asUser(user.id),
+        json: { theme: { ...theme, dark: { 'Primary;': '#fff' } } },
+      })
+      expect(badName.status).toBe(400)
+      expect(
+        (await t.request('/api/v1/users/me/preferences', { actor: asAnonymous() })).status,
+      ).toBe(401)
+    })
+
+    it('removes preferences with the user', async () => {
+      const { users } = await setup()
+      const user = await users((s) => s.create({ email: 'gone@example.com', displayName: 'Gone' }))
+      await users((s) => s.updatePreferences(user.id, { colorScheme: 'dark' }))
+      await db.db.execute(sql`delete from users.users where id = ${user.id}`)
+      await expect(
+        users((s) => s.updatePreferences(user.id, { colorScheme: 'dark' })),
+      ).rejects.toBeInstanceOf(NotFoundError)
+      const { rows } = await db.db.execute(sql`select count(*)::int as n from users.preferences`)
+      const [row] = rows as { n: number }[]
+      expect(row?.n).toBe(0)
     })
   })
 })

@@ -66,3 +66,41 @@ test('sign in, create and switch spaces, survive a reload, sign out', async ({ p
   await signIn(page)
   await expect(page.getByRole('heading', { name: `Alpha ${suffix}`, level: 1 })).toBeVisible()
 })
+
+test('a chosen theme is saved to the account and survives a new device', async ({
+  page,
+  browser,
+}) => {
+  await page.goto('/sign-in')
+  await signIn(page)
+  await page.getByRole('button', { name: 'Account: E2E Editor' }).click()
+  await page.getByRole('menuitem', { name: 'Appearance' }).click()
+  await page
+    .getByRole('list', { name: 'Themes' })
+    .getByRole('button', { name: /Violet Bloom/ })
+    .click()
+  await page.getByRole('button', { name: 'Dark', exact: true }).click()
+  const primary = () =>
+    page.evaluate(() => document.documentElement.style.getPropertyValue('--primary'))
+  await expect.poll(primary).not.toBe('')
+  const saved = await primary()
+
+  // Another browser: nothing cached locally, so the theme comes from the API after sign-in.
+  const other = await browser.newContext()
+  const fresh = await other.newPage()
+  await fresh.goto('/sign-in')
+  await signIn(fresh)
+  await expect(fresh.getByRole('heading', { name: 'Welcome, E2E Editor' })).toBeVisible()
+  await expect
+    .poll(() => fresh.evaluate(() => document.documentElement.style.getPropertyValue('--primary')))
+    .toBe(saved)
+  expect(await fresh.evaluate(() => document.documentElement.classList.contains('dark'))).toBe(true)
+  await other.close()
+
+  // Back to the default for the next run.
+  await page
+    .getByRole('list', { name: 'Themes' })
+    .getByRole('button', { name: /Default/ })
+    .click()
+  await page.getByRole('button', { name: 'System', exact: true }).click()
+})

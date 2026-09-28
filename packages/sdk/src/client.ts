@@ -141,6 +141,16 @@ export function createBlixisClient(options: BlixisClientOptions) {
   return {
     call,
 
+    /** The signed-in user: profile and UI preferences. */
+    me: {
+      get: () => call('getProfile', {}),
+      update: (body: Operations['updateProfile']['body']) => call('updateProfile', { body }),
+      preferences: () => call('getPreferences', {}),
+      /** Replaces the preferences; omitted fields reset to their defaults. */
+      updatePreferences: (body: Operations['updatePreferences']['body']) =>
+        call('updatePreferences', { body }),
+    },
+
     organizations: {
       list: async () => (await call('listOrganizations', {})).organizations,
       create: (body: Operations['createOrganization']['body']) =>

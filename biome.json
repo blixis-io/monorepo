@@ -68,6 +68,7 @@
         "tooling/**",
         "apps/example-site/**",
         "apps/admin/e2e/**",
+        "apps/admin/scripts/**",
         "**/*.config.ts",
         "**/*.config.js",
         "**/*.config.mjs"

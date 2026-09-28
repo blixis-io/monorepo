@@ -14,6 +14,11 @@ import {
   withTransaction,
 } from '@blixis/database'
 import {
+  preferencesSchema,
+  type UpdatePreferencesInput,
+  type UserPreferences,
+} from '../domain/preferences.ts'
+import {
   type CreateUserInput,
   createUserSchema,
   normalizeEmail,
@@ -22,7 +27,7 @@ import {
   updateProfileSchema,
 } from '../domain/user.ts'
 import { userCreated, userDisabled, userUpdated } from '../events.ts'
-import { userRepository } from '../infrastructure/user.repository.ts'
+import { preferencesRepository, userRepository } from '../infrastructure/user.repository.ts'
 
 /** Users of the platform (architecture §30). Resolve per request: `services.get(USER_SERVICE)`. */
 export interface UserService {
@@ -42,6 +47,13 @@ export interface UserService {
   ): Promise<User>
   /** @throws ValidationError, NotFoundError */
   updateProfile(id: string, input: UpdateProfileInput): Promise<User>
+  /** The user's UI preferences; defaults when none were saved. */
+  getPreferences(id: string): Promise<UserPreferences>
+  /**
+   * Replaces the user's UI preferences (omitted fields reset to their defaults).
+   * @throws ValidationError, NotFoundError
+   */
+  updatePreferences(id: string, input: UpdatePreferencesInput): Promise<UserPreferences>
   /**
    * Disables a user and emits the transactional `user.disabled` (credentials are revoked by
    * `@blixis/auth`) plus `user.updated`. @throws NotFoundError
@@ -96,6 +108,17 @@ export function createUserService(deps: {
       if (user === undefined) throw notFound()
       await events.emit(userUpdated, { userId: id, changed: ['displayName'] })
       return user
+    },
+
+    async getPreferences(id) {
+      return preferencesSchema.parse((await preferencesRepository.find(db, id)) ?? {})
+    },
+
+    async updatePreferences(id, input) {
+      const values = await validate(preferencesSchema, input, { message: 'Invalid preferences' })
+      if ((await userRepository.findById(db, id)) === undefined) throw notFound()
+      await preferencesRepository.upsert(db, id, values)
+      return values
     },
 
     async disable(id) {
