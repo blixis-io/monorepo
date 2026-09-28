@@ -1,7 +1,8 @@
-import { ValidationError, validateSync } from '@blixis/contracts'
 import { describe, expect, it } from 'vitest'
-import { entryPublished, entryUpdated } from './events.ts'
-import { struct } from './schema.ts'
+import { ValidationError } from './errors.ts'
+import { struct } from './struct.ts'
+import { spaceDeleted } from './tenancy.ts'
+import { validateSync } from './validation.ts'
 
 describe('dependency-free event schemas', () => {
   const schema = struct({ id: 'string', note: 'string?', count: 'int', kind: ['a', 'b'] })
@@ -33,21 +34,13 @@ describe('dependency-free event schemas', () => {
     expect(() => validateSync(schema, null)).toThrow(ValidationError)
   })
 
-  it('validates the content events as before', () => {
-    const payload = {
-      entryId: 'e',
-      organizationId: 'o',
+  it('validates space.deleted', () => {
+    expect(validateSync(spaceDeleted.schema, { spaceId: 's', organizationId: 'o', x: 1 })).toEqual({
       spaceId: 's',
-      environmentId: 'env',
-      contentTypeId: 't',
-      versionId: 'v',
-    }
-    expect(validateSync(entryPublished.schema, payload)).toEqual(payload)
-    expect(validateSync(entryUpdated.schema, { ...payload, restoredFrom: 'v0' })).toMatchObject({
-      restoredFrom: 'v0',
+      organizationId: 'o',
     })
-    expect(entryPublished).toMatchObject({
-      type: 'entry.published',
+    expect(spaceDeleted).toMatchObject({
+      type: 'space.deleted',
       version: 1,
       delivery: 'transactional',
     })

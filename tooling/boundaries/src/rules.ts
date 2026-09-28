@@ -30,6 +30,7 @@ export type RuleId =
   | 'workspace-cycle'
   | 'contracts-runtime-dependency'
   | 'public-api-dependency'
+  | 'plugin-internal-import'
   | 'role-name-check'
 
 export interface Violation {
@@ -253,6 +254,59 @@ export function checkRoleNames(files: readonly SourceFile[]): Violation[] {
         })
       }
     })
+  }
+  return violations
+}
+
+/**
+ * Packages third-party modules may import (§25, ADR 0016): the public contracts, the kernel's
+ * `defineModule`, public capability packages, and the database toolkit for modules that store data.
+ */
+export const PLUGIN_PUBLIC_PACKAGES: ReadonlySet<string> = new Set([
+  '@blixis/contracts',
+  '@blixis/kernel',
+  '@blixis/content-api',
+  '@blixis/database',
+])
+
+/**
+ * Example plugins (`examples/*`, outside the workspace) prove the extension contract (§42 Stage 8):
+ * their source may import only public Blixis packages, and never reach into other directories.
+ * Their tests may boot first-party modules.
+ */
+export function checkPluginImports(files: readonly SourceFile[]): Violation[] {
+  const violations: Violation[] = []
+  for (const file of files) {
+    const [, plugin, area] = file.path.split('/')
+    if (plugin === undefined || area !== 'src') continue
+    for (const ref of extractImports(file.content)) {
+      const at = { file: file.path, line: ref.line }
+      if (ref.specifier.startsWith('@blixis/')) {
+        const name = ref.specifier.split('/').slice(0, 2).join('/')
+        if (!PLUGIN_PUBLIC_PACKAGES.has(name))
+          violations.push({
+            rule: 'plugin-internal-import',
+            ...at,
+            message: `${ref.specifier} is not a public package: plugins use ${[...PLUGIN_PUBLIC_PACKAGES].join(', ')}`,
+          })
+        else if (ref.specifier !== name)
+          violations.push({
+            rule: 'plugin-internal-import',
+            ...at,
+            message: `deep import ${ref.specifier}`,
+          })
+      } else if (ref.specifier.startsWith('.')) {
+        const target = path.posix.normalize(
+          path.posix.join(path.posix.dirname(file.path), ref.specifier),
+        )
+        if (!target.startsWith(`examples/${plugin}/src/`))
+          violations.push({
+            rule: 'plugin-internal-import',
+            ...at,
+            message: `${ref.specifier} leaves the plugin's src`,
+          })
+      }
+    }
   }
   return violations
 }

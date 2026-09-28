@@ -27,6 +27,17 @@ Options:
 
 Out of scope: field type authoring (`defineFieldType`) stays in `@blixis/content`, because field types are registered through `contentModule({ fieldTypes })` and depend on Zod-based validation (ADR 0010 §4).
 
+## Addendum (018.003): gaps found by the example plugin
+
+Building `examples/blixis-example-seo` against packed tarballs found four gaps, fixed in the contracts rather than worked around in the plugin:
+
+1. **`space.deleted` is public.** Its description obliges every module that stores per-space data to delete it, so third-party modules must be able to subscribe. The definition moved to `@blixis/contracts`; `@blixis/spaces` emits and re-exports it.
+2. **`struct` moved to `@blixis/contracts`.** Public event definitions in more than one package need the same dependency-free Standard Schema helper.
+3. **`GraphQLResolverContext` is public** (`@blixis/contracts`). Resolvers contributed by modules receive it; `@blixis/graphql`'s context extends it.
+4. **`@blixis/database` is a public platform package** for modules that store data (the `DATABASE` token, `tenantColumns`, `tenantScope`, transactions). Modules that don't store data don't need it.
+
+Third-party modules may import `@blixis/contracts`, `@blixis/kernel`, `@blixis/content-api`, and `@blixis/database`; the boundary check `plugin-internal-import` enforces it for `examples/*/src`.
+
 ## Consequences
 
 - A plugin that reacts to entries depends on `@blixis/contracts`, `@blixis/kernel` (for `defineModule`), and `@blixis/content-api`: a few kilobytes of types, tokens, and schemas.

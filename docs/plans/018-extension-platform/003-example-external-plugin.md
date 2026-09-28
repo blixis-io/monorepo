@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,27 +37,30 @@ Create `examples/blixis-example-seo` — `@blixis-example/seo` — outside the w
 ### Create
 
 ```text
-examples/blixis-example-seo/package.json
-examples/blixis-example-seo/tsconfig.json
-examples/blixis-example-seo/src/index.ts
-examples/blixis-example-seo/src/seo.service.ts
-examples/blixis-example-seo/src/routes.ts
-examples/blixis-example-seo/src/graphql.ts
-examples/blixis-example-seo/src/migrations/0001_create_seo.sql
+examples/blixis-example-seo/{package.json,pnpm-workspace.yaml,tsconfig.json,tsconfig.test.json,vitest.config.ts,README.md}
+examples/blixis-example-seo/src/{index.ts,service.ts,routes.ts,graphql.ts,events.ts,permissions.ts,schema.ts,migrations.ts}
 examples/blixis-example-seo/test/seo.test.ts
-examples/blixis-example-seo/README.md
+packages/contracts/src/{struct.ts (moved from content-api),struct.test.ts,tenancy.ts}
+packages/content-api/src/events.test.ts
 ```
 
 ### Modify
 
 ```text
-.gitignore (tarball artifacts)
+packages/contracts/src/{index.ts,module.ts (GraphQLResolverContext)}
+packages/content-api/src/{events.ts,index.ts}
+packages/graphql/src/context.ts (extends the contract)
+modules/spaces/src/events.ts (space.deleted re-exported from contracts)
+tooling/boundaries/src/{rules.ts,rules.test.ts,workspace.ts,cli.ts} (plugin-internal-import)
+package.json (pack:public), .gitignore (example lockfile)
+docs/decisions/0016-public-capability-contracts.md (addendum), docs/contracts/{README.md,events.md}
+docs/ROADMAP.md, docs/plans/018-extension-platform/_index.md
 ```
 
 ### Delete
 
 ```text
-None.
+packages/content-api/src/schema.ts, schema.test.ts (moved to contracts as struct.ts)
 ```
 
 ## Implementation steps
@@ -75,8 +78,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Plugin tests pass using tarball-installed packages.
-- [ ] Any required internal import is treated as a contract gap: fix the contract, not the plugin (record gaps in Technical notes).
+- [x] Plugin tests pass using tarball-installed packages.
+- [x] Any required internal import is treated as a contract gap: fix the contract, not the plugin (record gaps in Technical notes).
 
 ## Validation
 
@@ -87,15 +90,15 @@ cd examples/blixis-example-seo && pnpm install && pnpm test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Contract gaps found and resolved are listed.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Contract gaps found and resolved are listed.
 
 ## Completion conditions
 
@@ -112,4 +115,11 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Done before 018.002** (swapped with the owner's go-ahead to "do what's best"): the authoring guide is written from this working plugin, so its examples are real code rather than a tour.
+- **What it covers:** options with `configSchema` (typed `defineModule<Options, Config>`), capability requirements, a request-scoped service with a public token, REST routes with `operations`, a GraphQL extension of `Sys` with a per-request batching loader, two permissions with default roles, three event subscriptions, a Drizzle table in its own Postgres schema, and a migration.
+- **Contract gaps found and fixed** (ADR 0016 addendum): `space.deleted` moved to contracts (every module must clean up per-space data); `struct` moved to contracts; `GraphQLResolverContext` added to contracts (`@blixis/graphql`'s context extends it); `@blixis/database` counts as a public platform package for modules that store data.
+- **Authorization pattern for entry routes:** `CONTENT_SERVICE.resolveTenant(actor, entryId)` (404 for entries the actor can't read), then `AUTHORIZATION_SERVICE.require` with the plugin's permission on the entry's space (403 for members without it).
+- **GraphQL:** the field goes on `Sys` because every delivered entry type has `sys`; `Entry` is an interface that each type implements. Delivery doesn't bind the tenant, but `Sys` parents come only from entries the delivery layer already authorized, and entry ids are unique UUIDs, so lookups by entry id are safe.
+- **Tarball install:** `pnpm pack:public` builds and packs twelve packages into `.artifacts/`. The example is its own pnpm project (its own `pnpm-workspace.yaml` with `overrides` to the tarballs), so pnpm doesn't treat it as part of the monorepo. Its lockfile is ignored (tarball hashes change on every pack). `skipLibCheck` is needed, as in the monorepo: a dependency pulls in `lib.dom` alongside `webworker`.
+- **Boundary rule `plugin-internal-import`:** `examples/*/src` may import only `@blixis/contracts`, `@blixis/kernel`, `@blixis/content-api`, `@blixis/database` (no deep imports, no escapes from `src`); tests may boot first-party modules.
+- **Tests:** 3 Postgres tests: REST with per-role permissions (200/403/404/400), the GraphQL field for a delivery key, and the event handlers (publish time, entry deletion, space deletion). They run in CI with 018.004's gate.

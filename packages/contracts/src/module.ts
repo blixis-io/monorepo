@@ -102,6 +102,29 @@ export type GraphQLResolverMap<TContext = unknown> = Readonly<
 >
 
 /**
+ * What every GraphQL resolver receives as its context (provided by `@blixis/graphql`, §10).
+ * Resolvers stay thin: read the actor and tenant from `requestContext` and call services.
+ *
+ * @example
+ * const resolvers: GraphQLResolverMap<GraphQLResolverContext> = {
+ *   Sys: { seo: (parent, _args, context) => context.services.get(SEO_SERVICE).forEntry((parent as { id: string }).id) },
+ * }
+ */
+export interface GraphQLResolverContext {
+  /** Actor, tenant, request id, logger — the same context REST handlers get. */
+  readonly requestContext: RequestContext
+  /** Services of this request's scope. */
+  readonly services: ServiceRegistry
+  /**
+   * Per-request memo for batching loaders, keyed by the owning module (e.g. `@acme/seo.loader`).
+   * Dropped with the request.
+   */
+  readonly loaders: Map<string, unknown>
+  /** Headers to add to the HTTP response, e.g. `Cache-Control: private, no-store`. */
+  readonly responseHeaders: Headers
+}
+
+/**
  * GraphQL schema fragment and resolvers contributed by a module (§10). The platform composes
  * all contributions into one schema; modules never create their own server.
  */

@@ -30,4 +30,6 @@ Contracts stay small and domain-free. What other modules need from a first-party
 |---|---|---|
 | [`@blixis/content-api`](../../packages/content-api/src/index.ts) | `CONTENT_SERVICE`, `CONTENT_TYPE_SERVICE`, entry and content type views and inputs, the `entry.*` and `content-type.*` event definitions | `@blixis/content` (re-exports everything) |
 
-Modules, first-party or not, import these capabilities from the API package, never from the implementation: `import { CONTENT_SERVICE, entryPublished } from '@blixis/content-api'`. Token ids and event types are the implementation's (`@blixis/content.entries`, `entry.published`), so the move is invisible at runtime. Event payload schemas are dependency-free Standard Schemas (`struct`), so the package needs no schema library.
+Modules, first-party or not, import these capabilities from the API package, never from the implementation: `import { CONTENT_SERVICE, entryPublished } from '@blixis/content-api'`. Token ids and event types are the implementation's (`@blixis/content.entries`, `entry.published`), so the move is invisible at runtime. Event payload schemas are dependency-free Standard Schemas (`struct` from `@blixis/contracts`), so the package needs no schema library.
+
+Platform events every module must handle live in contracts too: `spaceDeleted` (`space.deleted`: delete your data for the space). Resolvers contributed through `graphql` receive a `GraphQLResolverContext`.
