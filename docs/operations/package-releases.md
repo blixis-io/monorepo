@@ -5,7 +5,7 @@ The public packages (`@blixis-io/contracts`, `kernel`, `content-api`, `database`
 ## How a release happens
 
 1. Conventional Commits that touch `packages/<name>/` land on `main` (`feat` → minor, `fix` → patch before 1.0; `feat!`/`BREAKING CHANGE:` → minor before 1.0, major after).
-2. release-please keeps one PR, **`chore(release): publish packages`**, with the new shared version, `package.json` bumps, and a `CHANGELOG.md` per package.
+2. release-please keeps one PR, **`chore(release): release X.Y.Z`**, with the new shared version, `package.json` bumps, and a `CHANGELOG.md` per package.
 3. Merging it tags each changed package (`contracts-v0.2.0`, …) and runs the `publish` job: `pnpm build`, `pnpm pack` per package (turns `workspace:`/`catalog:` into versions), `npm publish --provenance --access public`.
 
 Check before merging: the PR's version bump matches the API surface changes (`docs/api-surface`) and the extension-contract job is green.
