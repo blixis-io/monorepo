@@ -19,6 +19,7 @@ minimumReleaseAgeExclude:
   - hono@4.13.9
   - wrangler@4.137.0
 
+# Install scripts allowed, as in the monorepo (pnpm 12 refuses unapproved ones in CI).
 allowBuilds:
-  esbuild: set this to true or false
-  workerd: set this to true or false
+  esbuild: true
+  workerd: true

@@ -16,5 +16,10 @@ overrides:
   '@blixis/permissions': file:../../.artifacts/blixis-permissions-0.0.0.tgz
   '@blixis/content': file:../../.artifacts/blixis-content-0.0.0.tgz
 
+# Install scripts allowed, as in the monorepo (pnpm 12 refuses unapproved ones in CI).
+allowBuilds:
+  esbuild: true
+  workerd: true
+
 minimumReleaseAgeExclude:
   - hono@4.13.9
