@@ -150,6 +150,7 @@ jobs:
           pnpm test
           pnpm build
           pnpm pack --pack-destination ../../.artifacts
+          mv ../../.artifacts/blixis-example-seo-*.tgz ../../.artifacts/blixis-example-seo.tgz
       - name: Worker bundle with the plugin installed
         working-directory: examples/extension-smoke
         run: |
