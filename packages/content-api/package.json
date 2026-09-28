@@ -1,6 +1,6 @@
 {
   "name": "@blixis-io/content-api",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Public content capabilities for Blixis modules: service tokens, entry and content type views, and content events (ADR 0016)",
   "keywords": [
     "blixis",
