@@ -73,7 +73,7 @@ The checkbox marker is visual; the textual status inside each task file is autho
 | [017 — SDK & Example Astro Consumer](./plans/017-sdk-and-example-consumer/_index.md) | M8 | MVP | `completed` | 4/4 | 013, 014, 015 |
 | [018 — Extension Platform & Example Plugin](./plans/018-extension-platform/_index.md) | M8 | MVP | `completed` | 5/5 | 017 |
 | [019 — Admin UI Foundation](./plans/019-admin-ui-foundation/_index.md) | M8 | MVP | `completed` | 5/5 | 017 |
-| [020 — Observability & Security Hardening](./plans/020-observability-and-security-hardening/_index.md) | M9 | MVP | `in-progress` | 1/5 | 013, 014, 015 |
+| [020 — Observability & Security Hardening](./plans/020-observability-and-security-hardening/_index.md) | M9 | MVP | `in-progress` | 2/5 | 013, 014, 015 |
 | [021 — CI/CD & Release Engineering](./plans/021-ci-cd-and-release-engineering/_index.md) | M9 | MVP | `not-started` | 0/3 | 011 |
 | [022 — Production Readiness & Launch](./plans/022-production-readiness/_index.md) | M9 | MVP | `not-started` | 0/5 | 013, 014, 015, 018, 019, 020, 021 |
 
@@ -439,14 +439,14 @@ Creates `apps/admin` (React + shadcn/ui) as a pure client of the Management REST
 
 #### 020 — Observability & Security Hardening
 
-Status: `in-progress` · Progress: 1/5 · Scope: MVP  
+Status: `in-progress` · Progress: 2/5 · Scope: MVP  
 Plan: [020-observability-and-security-hardening/_index.md](./plans/020-observability-and-security-hardening/_index.md)  
 Depends on: [013 — Delivery Caching & Invalidation](./plans/013-delivery-caching/_index.md), [014 — Assets on R2](./plans/014-assets/_index.md), [015 — Webhooks](./plans/015-webhooks/_index.md)
 
 Hardens the platform: structured logging with correlation IDs across requests, events, and Workflows with secret redaction; Workers observability (logs/traces) configuration; rate limiting for public and management APIs; a security review (headers, CORS, secrets, dependencies, SSRF, tenancy); and a Service Binding adapter plus Worker-extraction playbook for future splits.
 
 - [x] [020.001 — Implement structured logging, redaction, and correlation propagation](./plans/020-observability-and-security-hardening/001-structured-logging-and-correlation.md)
-- [ ] [020.002 — Configure Workers observability and write the observability runbook](./plans/020-observability-and-security-hardening/002-workers-observability-configuration.md)
+- [x] [020.002 — Configure Workers observability and write the observability runbook](./plans/020-observability-and-security-hardening/002-workers-observability-configuration.md)
 - [ ] [020.003 — Implement API rate limiting](./plans/020-observability-and-security-hardening/003-rate-limiting.md)
 - [ ] [020.004 — Perform the platform security review and fixes](./plans/020-observability-and-security-hardening/004-security-review.md)
 - [ ] [020.005 — Add the Service Binding adapter and Worker extraction playbook](./plans/020-observability-and-security-hardening/005-service-binding-adapter-and-extraction-playbook.md)
