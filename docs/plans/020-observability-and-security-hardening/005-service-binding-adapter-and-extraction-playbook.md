@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -37,6 +37,8 @@ Provide a typed Service Binding adapter (RPC via `WorkerEntrypoint` or fetch-bas
 ```text
 packages/cloudflare/src/service-binding.ts
 packages/cloudflare/src/service-binding.test.ts
+apps/api/test/service-binding.worker.test.ts
+apps/api/test/fixtures/notes-service.worker.ts
 docs/architecture/worker-extraction.md
 ```
 
@@ -45,6 +47,9 @@ docs/architecture/worker-extraction.md
 ```text
 packages/cloudflare/src/index.ts
 apps/api/vitest.config.ts (auxiliary worker)
+apps/api/package.json (esbuild dev dependency for the fixture bundle)
+pnpm-lock.yaml
+docs/plans/021-ci-cd-and-release-engineering/001-staging-and-production-deploy-pipelines.md (smoke cleanup)
 ```
 
 ### Delete
@@ -67,8 +72,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Fixture service called through the proxy in tests with identical results to in-process calls.
-- [ ] Playbook reviewed against §18/§45/§46.
+- [x] Fixture service called through the proxy in tests with identical results to in-process calls.
+- [x] Playbook reviewed against §18/§45/§46.
 
 ## Validation
 
@@ -78,15 +83,15 @@ pnpm --filter @blixis/cloudflare test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Request context (actor, tenant, correlation) propagation across the binding is explicit.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Request context (actor, tenant, correlation) propagation across the binding is explicit.
 
 ## Completion conditions
 
@@ -103,4 +108,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **One generic RPC method** (`call({ service, method, args, context })`) instead of mirroring each service method on a `WorkerEntrypoint`: the calling side can be a plain `Proxy` typed as the service interface, and the caller's request context (correlation id, actor, tenant) travels with every call, so the serving Worker authorizes and scopes as if local.
+- `createServiceBindingProxy(binding, token, context)` takes a context function (the task sketch had `(binding, token)`), because the context is per request; `serviceBindingModule()` wires it from `REQUEST_CONTEXT` and the invocation's bindings.
+- The package can't import `cloudflare:workers` (its tests run in Node), so the serving side is a function (`handleServiceCall`) that the Worker's own `WorkerEntrypoint` class calls.
+- Errors cross as `PublicErrorShape` and are rebuilt by code (`errorFromShape`); unexpected errors are logged on the serving side and arrive as `InfrastructureError`. `RateLimitError.retryAfterSeconds` does not survive (not part of the public shape).
+- Tests: Node (`service-binding.test.ts`, fake binding that structured-clones like RPC; includes an in-process equivalence check) and real Workers RPC (`apps/api/test/service-binding.worker.test.ts`) against an auxiliary Worker bundled with esbuild in `apps/api/vitest.config.ts` (auxiliary Workers must be JavaScript).
+- Playbook reviewed against §18 (Service Bindings for internal calls), §45 (Delivery split as the worked example), §46 (extraction criteria table, monolith first). No Worker was split.
+- Also added (from the Codex staging review): smoke runs must clean up after themselves (021.001).

@@ -35,6 +35,7 @@
     "@blixis-io/sdk": "workspace:*",
     "@blixis-io/tsconfig": "workspace:*",
     "@cloudflare/vitest-pool-workers": "catalog:",
+    "esbuild": "0.28.1",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "wrangler": "catalog:"

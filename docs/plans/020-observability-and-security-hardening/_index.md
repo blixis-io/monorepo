@@ -8,7 +8,7 @@ in-progress
 
 Milestone: Milestone 9 — Production readiness  
 Roadmap scope: MVP / initial platform  
-Progress: 2/5 tasks completed
+Progress: 3/5 tasks completed
 
 ## Objective
 
@@ -64,7 +64,7 @@ Depends on:
 - [x] [002 — Configure Workers observability and write the observability runbook](./002-workers-observability-configuration.md)
 - [ ] [003 — Implement API rate limiting](./003-rate-limiting.md)
 - [ ] [004 — Perform the platform security review and fixes](./004-security-review.md)
-- [ ] [005 — Add the Service Binding adapter and Worker extraction playbook](./005-service-binding-adapter-and-extraction-playbook.md)
+- [x] [005 — Add the Service Binding adapter and Worker extraction playbook](./005-service-binding-adapter-and-extraction-playbook.md)
 
 ## Completion criteria
 

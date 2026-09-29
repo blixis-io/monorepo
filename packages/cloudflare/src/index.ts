@@ -32,6 +32,17 @@ export {
   workersRateLimiters,
 } from './rate-limiter.ts'
 export {
+  createServiceBindingProxy,
+  errorFromShape,
+  handleServiceCall,
+  type ServiceBindingLike,
+  type ServiceBindingModuleOptions,
+  type ServiceCall,
+  type ServiceCallContext,
+  type ServiceCallResult,
+  serviceBindingModule,
+} from './service-binding.ts'
+export {
   createWorkerHandler,
   type WorkerHandler,
   type WorkerHandlerOptions,
