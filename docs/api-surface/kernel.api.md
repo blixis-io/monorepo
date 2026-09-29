@@ -167,6 +167,7 @@ import { type ErrorReporter } from './error-reporter.ts';
 import type { BlixisHonoEnv } from './hono-env.ts';
 import type { CorsOptions } from './internal/cors.ts';
 import { type ActorResolver } from './internal/rest.ts';
+import type { RateLimitOptions } from './rate-limit.ts';
 /** Minimal execution context accepted by {@link BlixisApp.fetch} (compatible with Workers). */
 export interface ExecutionContextLike {
     waitUntil(promise: Promise<unknown>): void;
@@ -194,6 +195,11 @@ export interface CreateBlixisOptions {
     readonly errorReporter?: ErrorReporter;
     /** Cross-origin access for browser clients such as the admin (ADR 0017). Default: none. */
     readonly cors?: CorsOptions;
+    /**
+     * Rate limits per route class and limiters for {@link rateLimit} (plan 020.003). Default: none.
+     * On Cloudflare, build the limiters with `workersRateLimiters` from `@blixis/cloudflare`.
+     */
+    readonly rateLimits?: RateLimitOptions;
 }
 /**
  * A service replacement (see `CreateBlixisOptions.overrides`). Create it with
@@ -427,6 +433,7 @@ export type { CorsOptions } from './internal/cors.ts';
 export { httpStatusFor, type ProblemDetails, toProblemResponse } from './internal/errors-http.ts';
 export { type ActorResolver, API_PREFIX, HEALTH_PATH, READY_PATH } from './internal/rest.ts';
 export { createJsonLogger, isLogLevel, type JsonLoggerOptions, type LogLevel, noopLogger, REDACTED, redactString, sanitize, } from './logger.ts';
+export { clientIp, enforceRateLimit, RATE_LIMITERS, type RateLimitClass, type RateLimiter, type RateLimitMiddlewareOptions, type RateLimitOptions, rateLimit, rateLimitClassOf, } from './rate-limit.ts';
 ```
 
 ## `dist/internal/cors.d.ts`
@@ -484,6 +491,7 @@ import type { ErrorReporter } from '../error-reporter.ts';
 import { type ModuleProblem } from '../errors.ts';
 import { type HealthCheck } from '../health.ts';
 import type { BlixisHonoEnv } from '../hono-env.ts';
+import { type RateLimitOptions } from '../rate-limit.ts';
 import { type CorsOptions } from './cors.ts';
 import type { ServiceContainer } from './services.ts';
 /** Prefix of all module REST routes (architecture §9). */
@@ -508,6 +516,8 @@ export interface RestOptions {
     readonly healthChecks?: readonly HealthCheck[];
     /** Cross-origin access (ADR 0017); none by default. */
     readonly cors?: CorsOptions;
+    /** Rate limiting (plan 020.003); none by default. */
+    readonly rateLimits?: RateLimitOptions;
 }
 /**
  * Detects identical method + path registrations across modules (§26). Middleware (`ALL`) routes
@@ -604,4 +614,76 @@ export declare function sanitize(value: unknown, stacks?: boolean, depth?: numbe
 export declare function createJsonLogger(options?: JsonLoggerOptions): Logger;
 /** A logger that discards everything. */
 export declare const noopLogger: Logger;
+```
+
+## `dist/rate-limit.d.ts`
+
+```ts
+import { type Actor, type Logger, type ModuleHonoEnv } from '@blixis-io/contracts';
+import type { Context, MiddlewareHandler } from 'hono';
+/**
+ * One fixed-window limiter, such as a Workers Rate Limiting binding (`@blixis/cloudflare`
+ * `workersRateLimiters`). The limit and window are part of the limiter, not of the call.
+ */
+export interface RateLimiter {
+    /** Counts one request for `key`. Resolves `false` when the key is over its limit. */
+    limit(key: string): Promise<boolean>;
+    /** Length of the window in seconds; limited clients get it as `Retry-After`. */
+    readonly periodSeconds: number;
+}
+/**
+ * Route classes the kernel limits by default (architecture §28):
+ *
+ * - `anonymous`: requests without credentials, keyed by client IP (`cf-connecting-ip`);
+ * - `delivery`: requests with a delivery or preview key, keyed by the key;
+ * - `actor`: everything else authenticated (users, API tokens, system), keyed by the actor.
+ */
+export type RateLimitClass = 'anonymous' | 'delivery' | 'actor';
+/** Rate limiting of every request (`createBlixis({ rateLimits })`). */
+export interface RateLimitOptions {
+    /**
+     * The limiters of this invocation by name. Receives the Worker environment, where platform
+     * bindings live. A name without a limiter (e.g. a binding missing locally) is not limited.
+     */
+    readonly limiters: (env: Readonly<Record<string, unknown>>) => Readonly<Record<string, RateLimiter | undefined>>;
+    /**
+     * Limiter name per route class, applied to every request after authentication. Health checks
+     * are never limited. A class without a name is not limited by default.
+     */
+    readonly defaults?: Readonly<Partial<Record<RateLimitClass, string>>>;
+}
+/**
+ * The limiters of the current request by name (request-scoped), when rate limiting is
+ * configured. Used by {@link rateLimit}; modules rarely need it directly.
+ */
+export declare const RATE_LIMITERS: import("@blixis-io/contracts").ServiceToken<(name: string) => RateLimiter | undefined>;
+/** The client IP Cloudflare reports, or `unknown` (e.g. in tests). */
+export declare function clientIp(request: Request): string;
+/** Route class and key of a request for the default policies. */
+export declare function rateLimitClassOf(actor: Actor, request: Request): [RateLimitClass, string];
+/**
+ * Counts one request and throws `RateLimitError` (429 with `Retry-After`) when `key` is over the
+ * limit. Fails open: a limiter that errors is logged and the request continues, so an outage of
+ * the counter never takes the API down.
+ */
+export declare function enforceRateLimit(limiter: RateLimiter, key: string, logger: Logger, name: string): Promise<void>;
+/** Options for {@link rateLimit}. */
+export interface RateLimitMiddlewareOptions {
+    /** Name of the limiter (`RateLimitOptions.limiters`), e.g. `'expensive'`. */
+    readonly limiter: string;
+    /**
+     * The key to count, e.g. the actor or the IP. Defaults to the actor, or the client IP for
+     * anonymous requests. Return `undefined` to skip limiting for this request.
+     */
+    readonly key?: (c: Context<ModuleHonoEnv>) => string | undefined;
+}
+/**
+ * Middleware for module routes that need a tighter limit than the defaults, on top of them:
+ *
+ * @example
+ * app.post('/exports', rateLimit({ limiter: 'expensive' }), handler)
+ *
+ * Does nothing when the app has no rate limiting or no limiter of that name.
+ */
+export declare function rateLimit(options: RateLimitMiddlewareOptions): MiddlewareHandler<ModuleHonoEnv>;
 ```

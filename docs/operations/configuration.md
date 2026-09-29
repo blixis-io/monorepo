@@ -26,6 +26,9 @@ Related: [Environments](./environments.md) · [Cloudflare Workers](./cloudflare.
 | `EVENTS` | binding (Queue producer) | yes | `blixis-events-local` (simulated) | `blixis-events-staging` | `blixis-events-production` | Events queue. Used only through `@blixis-io/events` (`eventsQueueModule()` → `QUEUE_SENDER`), never directly (§15) |
 | `WEBHOOK_SECRET_KEYS` | **secret** | for webhooks | `.dev.vars` (`pnpm webhooks:generate-key local`) | per-env secret | per-env secret | `kid:base64key[,…]` AES-GCM keys encrypting webhook signing secrets; the first encrypts, all decrypt. Missing → only webhook routes fail. See [Cloudflare → Secrets](./cloudflare.md#secrets) |
 | `ASSETS` | binding (R2 bucket) | yes | `blixis-assets-local` (simulated) | `blixis-assets-staging` | `blixis-assets-production` | Asset binaries (ADR 0013). Used only through `OBJECT_STORAGE` (`r2StorageModule()`), never directly |
+| `RATE_LIMIT_ANONYMOUS` | binding (Rate Limiting) | no | 300 / 60 s (simulated) | 300 / 60 s | 300 / 60 s | Requests without credentials, per client IP. Missing → not limited. See [rate limits](./observability.md#rate-limits) |
+| `RATE_LIMIT_MANAGEMENT` | binding (Rate Limiting) | no | 600 / 60 s | 600 / 60 s | 600 / 60 s | Authenticated requests (users, API tokens), per actor |
+| `RATE_LIMIT_DELIVERY` | binding (Rate Limiting) | no | 1200 / 60 s | 1200 / 60 s | 1200 / 60 s | Requests with a delivery or preview key, per key |
 | `CF_VERSION_METADATA` | binding (version metadata) | — | ✓ | ✓ | ✓ | Id/tag of the running Worker version; the release fallback |
 
 Staging and production values are set in `env.staging` / `env.production` of `wrangler.jsonc` (task 004.006). Secrets are set with `wrangler secret put <NAME> --env <env>` and locally in `apps/api/.dev.vars` (git-ignored).

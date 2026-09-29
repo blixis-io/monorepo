@@ -1,4 +1,4 @@
-import { createWorkerHandler } from '@blixis-io/cloudflare'
+import { createWorkerHandler, workersRateLimiters } from '@blixis-io/cloudflare'
 import { createBlixis } from '@blixis-io/kernel'
 import * as Sentry from '@sentry/cloudflare'
 import { z } from 'zod'
@@ -23,6 +23,15 @@ const app = createBlixis({
         .split(',')
         .map((origin) => origin.trim())
         .filter((origin) => origin !== ''),
+  },
+  // Limits and windows live in wrangler.jsonc per environment (docs/operations/observability.md).
+  rateLimits: {
+    limiters: workersRateLimiters({
+      anonymous: { binding: 'RATE_LIMIT_ANONYMOUS', periodSeconds: 60 },
+      management: { binding: 'RATE_LIMIT_MANAGEMENT', periodSeconds: 60 },
+      delivery: { binding: 'RATE_LIMIT_DELIVERY', periodSeconds: 60 },
+    }),
+    defaults: { anonymous: 'anonymous', actor: 'management', delivery: 'delivery' },
   },
 })
 

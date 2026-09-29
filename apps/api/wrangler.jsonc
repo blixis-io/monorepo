@@ -48,6 +48,25 @@
       "localConnectionString": "postgres://blixis:blixis@localhost:5432/blixis"
     }
   ],
+  // Rate limits (020.003, docs/operations/observability.md#rate-limits): per Cloudflare location,
+  // per key, per minute. namespace_id is unique per account and environment.
+  "ratelimits": [
+    {
+      "name": "RATE_LIMIT_ANONYMOUS",
+      "namespace_id": "1001",
+      "simple": { "limit": 300, "period": 60 }
+    },
+    {
+      "name": "RATE_LIMIT_MANAGEMENT",
+      "namespace_id": "1002",
+      "simple": { "limit": 600, "period": 60 }
+    },
+    {
+      "name": "RATE_LIMIT_DELIVERY",
+      "namespace_id": "1003",
+      "simple": { "limit": 1200, "period": 60 }
+    }
+  ],
   // Asset binaries (ADR 0013), simulated locally. Used only through OBJECT_STORAGE.
   "r2_buckets": [{ "binding": "ASSETS", "bucket_name": "blixis-assets-local" }],
 
@@ -75,6 +94,25 @@
       // Hyperdrive blixis-staging → Neon branch staging, role blixis_app (DML only).
       "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "2140b66bf63640059dc89b926d10ca3a" }],
       "r2_buckets": [{ "binding": "ASSETS", "bucket_name": "blixis-assets-staging" }],
+      // Rate limits (020.003, docs/operations/observability.md#rate-limits): per Cloudflare location,
+      // per key, per minute. namespace_id is unique per account and environment.
+      "ratelimits": [
+        {
+          "name": "RATE_LIMIT_ANONYMOUS",
+          "namespace_id": "1101",
+          "simple": { "limit": 300, "period": 60 }
+        },
+        {
+          "name": "RATE_LIMIT_MANAGEMENT",
+          "namespace_id": "1102",
+          "simple": { "limit": 600, "period": 60 }
+        },
+        {
+          "name": "RATE_LIMIT_DELIVERY",
+          "namespace_id": "1103",
+          "simple": { "limit": 1200, "period": 60 }
+        }
+      ],
       "queues": {
         "producers": [{ "binding": "EVENTS", "queue": "blixis-events-staging" }],
         "consumers": [
@@ -109,6 +147,25 @@
       // Hyperdrive blixis-production → Neon branch production, role blixis_app (DML only).
       "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "01eefb16f5004d80addedcfe9e69f430" }],
       "r2_buckets": [{ "binding": "ASSETS", "bucket_name": "blixis-assets-production" }],
+      // Rate limits (020.003, docs/operations/observability.md#rate-limits): per Cloudflare location,
+      // per key, per minute. namespace_id is unique per account and environment.
+      "ratelimits": [
+        {
+          "name": "RATE_LIMIT_ANONYMOUS",
+          "namespace_id": "1201",
+          "simple": { "limit": 300, "period": 60 }
+        },
+        {
+          "name": "RATE_LIMIT_MANAGEMENT",
+          "namespace_id": "1202",
+          "simple": { "limit": 600, "period": 60 }
+        },
+        {
+          "name": "RATE_LIMIT_DELIVERY",
+          "namespace_id": "1203",
+          "simple": { "limit": 1200, "period": 60 }
+        }
+      ],
       "queues": {
         "producers": [{ "binding": "EVENTS", "queue": "blixis-events-production" }],
         "consumers": [

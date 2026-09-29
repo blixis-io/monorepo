@@ -15,6 +15,12 @@ import type { ErrorReporter } from '../error-reporter.ts'
 import { type ModuleProblem, ModuleValidationError } from '../errors.ts'
 import { type HealthCheck, runHealthChecks } from '../health.ts'
 import type { BlixisHonoEnv } from '../hono-env.ts'
+import {
+  enforceRateLimit,
+  RATE_LIMITERS,
+  type RateLimitOptions,
+  rateLimitClassOf,
+} from '../rate-limit.ts'
 import { type CorsOptions, installCors } from './cors.ts'
 import { toProblemResponse } from './errors-http.ts'
 import type { ServiceContainer } from './services.ts'
@@ -47,6 +53,8 @@ export interface RestOptions {
   readonly healthChecks?: readonly HealthCheck[]
   /** Cross-origin access (ADR 0017); none by default. */
   readonly cors?: CorsOptions
+  /** Rate limiting (plan 020.003); none by default. */
+  readonly rateLimits?: RateLimitOptions
 }
 
 function joinPath(prefix: string, path: string): string {
@@ -185,6 +193,17 @@ export function installRest(
       provideRequestContext(scope, context)
       c.set('requestContext', context)
       c.set('services', scope.services)
+      if (options.rateLimits !== undefined) {
+        const limiters = options.rateLimits.limiters(
+          (c.env ?? {}) as Readonly<Record<string, unknown>>,
+        )
+        scope.provideValue(RATE_LIMITERS, (name: string) => limiters[name])
+        const [routeClass, key] = rateLimitClassOf(actor, c.req.raw)
+        const name = options.rateLimits.defaults?.[routeClass]
+        const limiter = name === undefined ? undefined : limiters[name]
+        if (limiter !== undefined && name !== undefined)
+          await enforceRateLimit(limiter, key, logger, name)
+      }
       await next()
     } finally {
       // One line per request (§35): the route pattern, never the URL with its query string.
