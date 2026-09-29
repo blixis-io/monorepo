@@ -6,7 +6,7 @@ import {
   type ServiceToken,
 } from '@blixis-io/contracts'
 import { DATABASE, fromTransactionScope, translateDatabaseError } from '@blixis-io/database'
-import { BACKGROUND_HANDLERS, defineModule } from '@blixis-io/kernel'
+import { BACKGROUND_HANDLERS, defineModule, ERROR_REPORTER } from '@blixis-io/kernel'
 import { sql } from 'drizzle-orm'
 import type { EventTransport } from '../bus.ts'
 import { PROCESSED_EVENTS } from '../processed.ts'
@@ -112,6 +112,7 @@ export const outboxModule = defineModule((options: OutboxModuleOptions) => ({
   migrations: [createOutbox, createProcessed],
   setup(ctx) {
     const batchSize = options.batchSize ?? 100
+    const reporter = ctx.services.getOptional(ERROR_REPORTER)
     ctx.services.provideFactory(
       OUTBOX_PENDING,
       ({ services }) => {
@@ -133,6 +134,7 @@ export const outboxModule = defineModule((options: OutboxModuleOptions) => ({
                 {
                   limit: batchSize,
                   logger,
+                  reporter,
                 },
               )
             }
@@ -182,6 +184,7 @@ export const outboxModule = defineModule((options: OutboxModuleOptions) => ({
                 minAgeSeconds: options.minAgeSeconds ?? 5,
                 retentionDays: options.retentionDays ?? 7,
                 logger: background.logger,
+                reporter,
               })
               await services.get(DATABASE).execute(sql`
                 delete from events.processed

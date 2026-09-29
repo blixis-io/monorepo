@@ -94,6 +94,17 @@ export async function attemptDelivery(
       statusCode: result.statusCode ?? null,
       error: result.error ?? null,
     })
+    // Never the URL: it may carry credentials the receiver put in it.
+    deps.logger[final === 'succeeded' ? 'info' : 'warn']('webhooks.attempt', {
+      webhookId: webhook.id,
+      deliveryId: delivery.id,
+      eventId: delivery.eventId,
+      eventType: delivery.eventType,
+      attempt: delivery.attempts,
+      status: final,
+      statusCode: result.statusCode,
+      duration: Math.max(0, Math.round(now() - started)),
+    })
     if (final === 'succeeded') await deliveryRepository.resetFailures(deps.db, webhook.id)
     else if (endpoint) {
       const failures = await deliveryRepository.countFailure(deps.db, webhook.id)

@@ -15,7 +15,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { eventsModule } from '../module.ts'
 import { QUEUE_SENDER, type QueueSender, queueTransport } from '../queue.ts'
-import { sweepOutbox } from './dispatch.ts'
+import { OUTBOX_ALERT_ATTEMPTS, sweepOutbox } from './dispatch.ts'
 import { outboxModule, outboxTransport } from './module.ts'
 
 z.config({ jitless: true })
@@ -178,5 +178,28 @@ describe.skipIf(baseUrl === undefined)('transactional outbox (Postgres)', () => 
     await db.execute(sql`update events.outbox set dispatched_at = now() - interval '8 days'`)
     await sweepOutbox(db, up.sender, options)
     expect(await outbox()).toEqual([])
+  })
+  it('reports a row once when it reaches the alert threshold', async () => {
+    const down = recordingSender({ fail: true })
+    await saveNote(app(down.sender), 80)
+    await db.execute(sql`update events.outbox set attempts = ${OUTBOX_ALERT_ATTEMPTS - 1}`)
+    const reports: { error: Error; context: object }[] = []
+    const options = {
+      batchSize: 100,
+      maxBatches: 1,
+      minAgeSeconds: 0,
+      retentionDays: 7,
+      logger: noopLogger,
+      reporter: {
+        captureException: (error: unknown, context: object) =>
+          void reports.push({ error: error as Error, context }),
+      },
+    }
+    await sweepOutbox(db, down.sender, options)
+    expect(reports).toHaveLength(1)
+    expect(reports[0]?.error.name).toBe('OutboxStuck')
+    expect(reports[0]?.context).toMatchObject({ eventType: 'note.saved' })
+    await sweepOutbox(db, down.sender, options)
+    expect(reports).toHaveLength(1)
   })
 })

@@ -225,9 +225,7 @@ Resource creation (queues, buckets, Hyperdrive configs) is done once, manually o
     - Sentry's server also infers the sender's IP for JavaScript events. Keep **Project Settings → Security & Privacy → Prevent Storing of IP Addresses** on.
 - **Alert rules:**
   - Sentry's default *"Send a notification for high priority issues"* is active (all environments; email).
-  - Add in the Sentry UI when production goes live (fine-tuned in 020.002):
-    - *new issue in `production`* → notify;
-    - *more than 10 events in 1 h in `staging`* → notify.
+  - Full alert set (Sentry UI rules, cron monitor `blixis-api-cron`, uptime monitor on readiness, `EventDeadLettered` and `OutboxStuck` issues): [observability runbook](./observability.md#alerts).
 - **Source maps:**
   - `upload_source_maps: true` uploads maps to Cloudflare (dashboard stack traces).
   - The bundle is not minified, so Sentry frames are readable without maps (bundle file and line).
@@ -241,10 +239,10 @@ Resource creation (queues, buckets, Hyperdrive configs) is done once, manually o
     This needs `SENTRY_AUTH_TOKEN` (GitHub secret, scope `project:releases`).
 
 - **Outbox sweep:** the cron `* * * * *` (in `triggers` for every environment) dispatches pending `events.outbox` rows and deletes rows dispatched more than 7 days ago. Log lines: `outbox.swept`, `outbox.send_failed`, `outbox.stuck` (≥ 10 failed attempts, logged every sweep), `outbox.post_commit_failed`. **Run `db:migrate` before deploying code that sweeps.**
-- **Events queue:** the API Worker consumes `blixis-events-<env>` (batch 10, timeout 5 s, 5 retries), with exponential per-message backoff, into `blixis-events-<env>-dlq`. Log lines: `event.consumed` (status, failed subscriptions, duration), `event.invalid`, and `event.unrouted` (debug). Anything in the DLQ means a handler kept failing or an envelope was invalid. Alerting on DLQ depth follows in 020.002.
-- **Health endpoints:** `GET /api/v1/health` is liveness (no I/O). `GET /api/v1/health/ready` is readiness: it runs `select 1` through Hyperdrive and returns 503 with per-check status when the database is unreachable, without hosts or error messages. Point uptime monitors (020.002) at readiness.
-- Workers Logs/Traces enabled via `observability` (sampling per environment set in task 020.002).
-- Also watch (Workers dashboard / Sentry alerts): 5xx rate, CPU time, queue backlog and DLQ depth, outbox backlog age, Hyperdrive errors. Runbook: `docs/operations/observability.md` (020.002).
+- **Events queue:** the API Worker consumes `blixis-events-<env>` (batch 10, timeout 5 s, 5 retries), with exponential per-message backoff, into `blixis-events-<env>-dlq`. Log lines: `event.consumed` (status, failed subscriptions, duration), `event.invalid`, and `event.unrouted` (debug). Anything in the DLQ means a handler kept failing or an envelope was invalid. The last failed attempt before the DLQ is logged as `event.dead_lettered` and reported to Sentry (`EventDeadLettered`).
+- **Health endpoints:** `GET /api/v1/health` is liveness (no I/O). `GET /api/v1/health/ready` is readiness: it runs `select 1` through Hyperdrive and returns 503 with per-check status when the database is unreachable, without hosts or error messages. Point uptime monitors at readiness ([observability](./observability.md#alerts)).
+- Workers Logs and traces: `observability` per environment in `wrangler.jsonc`. Logs unsampled everywhere; traces 100 % in staging, 10 % in production ([sampling](./observability.md#sampling)).
+- Also watch (Workers dashboard / Sentry alerts): 5xx rate, CPU time, queue backlog and DLQ depth, outbox backlog age, Hyperdrive errors. Runbook: [observability](./observability.md).
 
 ## Rollback
 

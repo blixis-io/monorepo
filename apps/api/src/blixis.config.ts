@@ -26,6 +26,8 @@ export const modules: readonly BlixisModule[] = [
   eventsModule({
     transport: queueTransport({ transactional: outboxTransport() }),
     queues: ['blixis-events-local', 'blixis-events-staging', 'blixis-events-production'],
+    // max_retries of the consumers in wrangler.jsonc: detects deliveries that are dead-lettered.
+    maxRetries: 5,
   }),
   eventsQueueModule(),
   // OBJECT_STORAGE on the ASSETS R2 bucket (ADR 0013).
