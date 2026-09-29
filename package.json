@@ -33,7 +33,9 @@
     "test:watch": "vitest",
     "pack:public": "pnpm build && rm -rf .artifacts && pnpm --filter @blixis-io/contracts --filter @blixis-io/kernel --filter @blixis-io/content-api --filter @blixis-io/database --filter @blixis-io/events --filter @blixis-io/graphql --filter @blixis-io/shared --filter @blixis-io/testing --filter @blixis-io/users --filter @blixis-io/spaces --filter @blixis-io/permissions --filter @blixis-io/content pack --pack-destination .artifacts && for f in .artifacts/*.tgz; do mv \"$f\" \"$(echo \"$f\" | sed -E 's/-[0-9]+[.][0-9]+[.][0-9]+[^/]*[.]tgz$/.tgz/')\"; done",
     "api-surface:update": "node tooling/api-surface/src/cli.ts",
-    "api-surface:check": "node tooling/api-surface/src/cli.ts --check"
+    "api-surface:check": "node tooling/api-surface/src/cli.ts --check",
+    "licenses:check": "node tooling/licenses/src/cli.ts",
+    "audit:check": "pnpm audit --prod --audit-level high"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",

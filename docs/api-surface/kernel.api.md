@@ -200,6 +200,11 @@ export interface CreateBlixisOptions {
      * On Cloudflare, build the limiters with `workersRateLimiters` from `@blixis/cloudflare`.
      */
     readonly rateLimits?: RateLimitOptions;
+    /**
+     * Largest JSON request body in bytes; larger ones get `400 VALIDATION_FAILED` before any
+     * handler parses them. Default 1 MiB. Raw uploads (assets) and GraphQL have their own limits.
+     */
+    readonly maxJsonBodyBytes?: number;
 }
 /**
  * A service replacement (see `CreateBlixisOptions.overrides`). Create it with
@@ -518,6 +523,8 @@ export interface RestOptions {
     readonly cors?: CorsOptions;
     /** Rate limiting (plan 020.003); none by default. */
     readonly rateLimits?: RateLimitOptions;
+    /** Largest JSON request body in bytes. Default 1 MiB. */
+    readonly maxJsonBodyBytes?: number;
 }
 /**
  * Detects identical method + path registrations across modules (§26). Middleware (`ALL`) routes

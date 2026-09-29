@@ -45,6 +45,13 @@ jobs:
         run: pnpm --filter @blixis-io/api types:check
       - name: Typecheck
         run: pnpm typecheck
+      # Security review 020.004: fail on high/critical advisories in production dependencies (allow
+      # list: `auditConfig.ignoreGhsas` in pnpm-workspace.yaml, with a reason) and on licences
+      # outside the policy (tooling/licenses/src/policy.ts).
+      - name: Dependency audit
+        run: pnpm audit:check
+      - name: Licences
+        run: pnpm licenses:check
       - name: Test
         run: pnpm test
       - name: Build

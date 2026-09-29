@@ -1,0 +1,16 @@
+{
+  "name": "@blixis-io/licenses",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Licence policy for production dependencies, checked in CI (plan 020.004)",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run --root ../.. tooling/licenses"
+  },
+  "devDependencies": {
+    "@blixis-io/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

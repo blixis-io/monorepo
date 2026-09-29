@@ -68,6 +68,11 @@ export interface CreateBlixisOptions {
    * On Cloudflare, build the limiters with `workersRateLimiters` from `@blixis/cloudflare`.
    */
   readonly rateLimits?: RateLimitOptions
+  /**
+   * Largest JSON request body in bytes; larger ones get `400 VALIDATION_FAILED` before any
+   * handler parses them. Default 1 MiB. Raw uploads (assets) and GraphQL have their own limits.
+   */
+  readonly maxJsonBodyBytes?: number
 }
 
 /**
@@ -256,6 +261,9 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
     healthChecks: health.checks,
     ...(options.cors === undefined ? {} : { cors: options.cors }),
     ...(options.rateLimits === undefined ? {} : { rateLimits: options.rateLimits }),
+    ...(options.maxJsonBodyBytes === undefined
+      ? {}
+      : { maxJsonBodyBytes: options.maxJsonBodyBytes }),
   })
 
   const runInScope = async <T>(
