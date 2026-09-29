@@ -46,7 +46,7 @@ Keep infrastructure-specific tests separate from domain tests (§36).
 
 Strategy (roadmap 005.006): **Docker Postgres 18**, the same major version as Neon. Locally it comes from `docker-compose.yml`, and in CI from a service container. Neon is never used by `pnpm test`, so no credentials are needed; Neon branches are only for staging smoke tests.
 
-- **Opt-in by `BLIXIS_TEST_DATABASE_URL`**, the URL of a server where tests may create databases. `pnpm test:db` sets it to the local compose database; `pnpm test` without it skips database tests. **In CI the variable is required**: `databaseTestsEnabled()` throws when `CI=true` and it's missing, so database tests can't be skipped silently.
+- **Opt-in by `BLIXIS_TEST_DATABASE_URL`**, the URL of a server where tests may create databases. `pnpm test:db` sets it to the local compose database; `pnpm test` without it skips database tests (about a third of the suite) and prints a warning; a green `pnpm test` is a partial run, `pnpm test:db` is the full one. **In CI the variable is required**: `databaseTestsEnabled()` throws when `CI=true` and it's missing, so database tests can't be skipped silently.
 - **Isolation: one database per test file.** `createTestDatabase({ modules })` from `@blixis-io/testing/database` creates `blixis_test_<random>`, applies the modules' migrations with the real runner (same order and checks as production), and returns `{ db, url, reset, drop }`. Parallel Vitest workers never share a database.
 - **Between tests:** `reset()` truncates every module table (`restart identity cascade`) and keeps applied migrations. It's faster and more reliable than per-test transaction rollback, because services use their own pooled connections.
 - **App tests:** `createTestBlixis({ modules, database: t })` serves `DATABASE` from the test database. It's shared by all requests and never closed per request.
@@ -74,13 +74,15 @@ describe.skipIf(!databaseTestsEnabled())('entries', () => {
 
 - **`pg` in the Vitest Workers pool:** the pool resolves `pg`'s `require('pg-cloudflare')` without the `workerd` export condition. It loads the empty Node stub, and queries fail with `CloudflareSocket is not a constructor`. Aliases and Vite resolve conditions don't reach this code path. Deployed Workers are unaffected, because Wrangler's bundler applies `workerd`.
   - Until the pool is fixed, database behaviour is tested in the Node pool, and `apps/api/test/database.worker.test.ts` is quarantined (`describe.skip`).
-  - Real Worker plus Hyperdrive queries are verified by the staging readiness check (005.008).
+  - **The bundled Worker does run `pg` + Drizzle in `workerd` in CI:** the `e2e (admin)` job starts the API with `wrangler dev` (Wrangler's bundle, `workerd`, local Hyperdrive → the CI Postgres) and every sign-in, content-type, and entry flow of the Playwright suite queries through it. A regression in that path fails the job.
+  - Real Worker plus Hyperdrive queries against Neon are verified by the staging readiness check (005.008) and, once 021.001 exists, by the post-deploy smoke.
+  - Re-check the pool when upgrading `@cloudflare/vitest-pool-workers` (and at least every quarter); lift the quarantine when `require()` honours `workerd`.
 
 ## Commands
 
 ```bash
 pnpm test                          # tsc -b, then all Vitest projects (database tests skipped)
-pnpm test:db                       # same, with database tests against local Docker Postgres
+pnpm test:db                       # the FULL suite: database tests against local Docker Postgres
 pnpm test packages/kernel          # only tests under a path (args go to `vitest run`)
 pnpm --filter @blixis-io/kernel test  # same, via the package's own script
 pnpm test:watch                    # watch mode (run `tsc -b --watch` alongside for cross-package changes)
@@ -92,21 +94,18 @@ pnpm typecheck                     # type tests and all packages (authoritative 
 
 ## Coverage
 
-Coverage is a signal, not a goal. Targets once the relevant packages exist:
+Coverage is a signal, not a goal. `pnpm test:coverage` runs the Node and admin projects with a database and V8 coverage; the CI `coverage` job runs it on every pull request and uploads the HTML/LCOV report as the `coverage` artifact.
 
-| Area | Line coverage target |
-|---|---|
-| `@blixis-io/contracts`, `@blixis-io/kernel`, `@blixis-io/events`, `@blixis-io/permissions` | ≥ 90% |
-| Domain modules (services, domain) | ≥ 80% |
-| Adapters / infrastructure | best effort, plus Workers-pool and staging smoke tests |
+**Thresholds are floors** (`vitest.config.ts`), set just below the level measured on 2026-09-29 (overall about 86 % statements, 77 % branches). They catch a large untested change, not a missing test here and there. Stricter floors apply where regressions hurt most: kernel, events (outbox, dispatch, consumer), database (tenant scoping, transactions, idempotency), auth (tokens, refresh rotation and reuse), permissions, content (publishing, versions), and webhooks. Raise a floor when coverage rises; never lower one to make a change pass without saying why in the PR.
 
-CI reports coverage; it does not fail on a percentage until thresholds are agreed in roadmap plan 022.
+**Not measured:** `apps/api` (its tests run in the Workers pool, which V8 coverage can't instrument, and in the admin e2e job), generated code, and the vendored shadcn primitives. `tooling/smoke` and `tooling/db` are exercised against real environments, not by unit tests.
 
 ## What CI runs
 
 | Trigger | Tests |
 |---|---|
 | Pull request, push to `main` | format check, lint, typecheck, `pnpm test` (with Postgres service), Workers dry-run build |
+| Pull request, push to `main` | `coverage` job: `pnpm test:coverage` with thresholds, report as artifact |
 | Pull request touching `packages/**` or `modules/**` | extension-contract gate (roadmap 018.004) |
 | Pull request touching `apps/admin/**` | admin Playwright smoke (roadmap 019.004) |
 | Deploy to staging / production | post-deploy smoke (`tooling/smoke`) |

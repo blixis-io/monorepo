@@ -28,9 +28,9 @@
     "format:check": "biome format .",
     "check": "biome check --write .",
     "test": "tsc -b && vitest run",
+    "test:coverage": "tsc -b && BLIXIS_TEST_DATABASE_URL=${BLIXIS_TEST_DATABASE_URL:-postgres://blixis:blixis@localhost:5432/blixis} vitest run --project node --project admin --coverage --testTimeout=60000",
     "test:db": "BLIXIS_TEST_DATABASE_URL=${BLIXIS_TEST_DATABASE_URL:-postgres://blixis:blixis@localhost:5432/blixis} pnpm test",
     "test:watch": "vitest",
-    "test:coverage": "tsc -b && vitest run --coverage",
     "pack:public": "pnpm build && rm -rf .artifacts && pnpm --filter @blixis-io/contracts --filter @blixis-io/kernel --filter @blixis-io/content-api --filter @blixis-io/database --filter @blixis-io/events --filter @blixis-io/graphql --filter @blixis-io/shared --filter @blixis-io/testing --filter @blixis-io/users --filter @blixis-io/spaces --filter @blixis-io/permissions --filter @blixis-io/content pack --pack-destination .artifacts && for f in .artifacts/*.tgz; do mv \"$f\" \"$(echo \"$f\" | sed -E 's/-[0-9]+[.][0-9]+[.][0-9]+[^/]*[.]tgz$/.tgz/')\"; done",
     "api-surface:update": "node tooling/api-surface/src/cli.ts",
     "api-surface:check": "node tooling/api-surface/src/cli.ts --check"

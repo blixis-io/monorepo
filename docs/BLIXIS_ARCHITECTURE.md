@@ -2,7 +2,7 @@
 
 > Purpose: implementation guide for Claude Code, Codex, and human contributors.
 >
-> Namespace: `@blixis/*`
+> Namespace: npm packages are published as `@blixis-io/*`; runtime module ids, service-token ids, and migration keys keep `@blixis/…` ([ADR 0020](decisions/0020-package-scope-and-licence.md)). In prose below, `@blixis/<name>` names the module; code imports use the package name `@blixis-io/<name>`.
 >
 > Primary runtime: Cloudflare Workers
 >
@@ -92,10 +92,10 @@ The application kernel must not special-case first-party modules.
 Example:
 
 ```ts
-import { createBlixis } from '@blixis/kernel'
-import auth from '@blixis/auth'
-import content from '@blixis/content'
-import assets from '@blixis/assets'
+import { createBlixis } from '@blixis-io/kernel'
+import auth from '@blixis-io/auth'
+import content from '@blixis-io/content'
+import assets from '@blixis-io/assets'
 import seo from '@vendor/blixis-seo'
 
 export default createBlixis({
@@ -123,9 +123,9 @@ apps/api/src/blixis.config.ts
 ```
 
 ```ts
-import auth from '@blixis/auth'
-import content from '@blixis/content'
-import assets from '@blixis/assets'
+import auth from '@blixis-io/auth'
+import content from '@blixis-io/content'
+import assets from '@blixis-io/assets'
 
 export const modules = [
   auth(),
@@ -180,7 +180,7 @@ Modules must not import internal implementation files from other modules.
 Bad:
 
 ```ts
-import { ContentRepositoryImpl } from '@blixis/content/src/internal/repository'
+import { ContentRepositoryImpl } from '@blixis-io/content/src/internal/repository'
 ```
 
 Good:
@@ -452,7 +452,7 @@ Potential exports:
 import {
   createBlixisClient,
   createBlixisGraphQLClient,
-} from '@blixis/sdk'
+} from '@blixis-io/sdk'
 ```
 
 The SDK should be independent from the admin UI.
@@ -466,7 +466,7 @@ Use a helper such as `defineModule()`.
 Example target API:
 
 ```ts
-import { defineModule } from '@blixis/kernel'
+import { defineModule } from '@blixis-io/kernel'
 
 export default defineModule({
   meta: {
@@ -854,7 +854,7 @@ The public API runs on Cloudflare Workers.
 Main entry:
 
 ```ts
-import { createBlixis } from '@blixis/kernel'
+import { createBlixis } from '@blixis-io/kernel'
 import { modules } from './blixis.config'
 
 const app = createBlixis({
@@ -1383,7 +1383,7 @@ A plugin must not rely on undocumented internal imports.
 Forbidden example:
 
 ```ts
-import x from '@blixis/kernel/src/internal/registry'
+import x from '@blixis-io/kernel/src/internal/registry'
 ```
 
 ---
@@ -1708,7 +1708,7 @@ Example target utility:
 ```ts
 import {
   createTestBlixis,
-} from '@blixis/testing'
+} from '@blixis-io/testing'
 
 const app = await createTestBlixis({
   modules: [
@@ -2048,13 +2048,13 @@ Desired developer experience:
 ```ts
 import {
   createBlixis,
-} from '@blixis/kernel'
+} from '@blixis-io/kernel'
 
-import auth from '@blixis/auth'
-import users from '@blixis/users'
-import spaces from '@blixis/spaces'
-import content from '@blixis/content'
-import assets from '@blixis/assets'
+import auth from '@blixis-io/auth'
+import users from '@blixis-io/users'
+import spaces from '@blixis-io/spaces'
+import content from '@blixis-io/content'
+import assets from '@blixis-io/assets'
 
 const app = createBlixis({
   modules: [
@@ -2098,11 +2098,11 @@ Package:
 ```ts
 import {
   defineModule,
-} from '@blixis/kernel'
+} from '@blixis-io/kernel'
 
 import {
   CONTENT_SERVICE,
-} from '@blixis/content'
+} from '@blixis-io/content'
 
 export interface SeoOptions {
   defaultTitle?: string

@@ -628,6 +628,8 @@ Not scheduled. Items move into a new plan only through a roadmap update with a s
 
 **Identity:** OAuth/SSO, MFA, email verification, password reset, email invitations (requires D11).
 
+**Maintainability (code review 2026-09-29, `docs/CODE_REVIEW.md`):** split the largest services and screens by use case when their next feature change arrives — not as a standalone refactor: `modules/assets/src/application/asset.service.ts` (upload lifecycle / mutation and cleanup / queries and delivery), `modules/content/src/application/content.service.ts` (draft lifecycle / publishing and versions), `modules/content/src/graphql/delivery.ts`, `modules/webhooks/src/application/webhook.service.ts`, and the admin entry editor and content-type screens (editor state vs field rendering). Keep the public service facades.
+
 **Topology:** splitting Delivery or other workloads into separate Workers via Service Bindings — only when a §46 reason exists (playbook in 020.005).
 
 **Non-goals for v1 (§47):** arbitrary runtime package loading, untrusted plugin sandboxing, microservices per module, custom GraphQL/database/queue/object-storage engines, real-time collaborative editing, visual page builder, AI features.
