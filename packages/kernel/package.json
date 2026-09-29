@@ -1,6 +1,6 @@
 {
   "name": "@blixis-io/kernel",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Blixis module kernel: composes modules, validates the module graph, registers services, and mounts routes",
   "keywords": [
     "blixis",

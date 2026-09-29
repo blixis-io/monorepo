@@ -1,6 +1,6 @@
 {
   "name": "@blixis-io/contracts",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Public contracts for Blixis modules: module definition, services, capabilities, errors, events, permissions, and context",
   "keywords": [
     "blixis",

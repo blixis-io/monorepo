@@ -1,6 +1,6 @@
 {
   "name": "@blixis-io/testing",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Test utilities for Blixis modules: createTestBlixis, test actors, and a capturing logger",
   "keywords": [
     "blixis",

@@ -1,6 +1,6 @@
 {
   "name": "@blixis-io/sdk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Blixis SDK: typed clients for the Management API and the GraphQL delivery API",
   "keywords": [
     "blixis",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/blixis-io/monorepo/compare/contracts-v0.1.0...contracts-v0.2.0) (2026-09-29)
+
+
+### Miscellaneous Chores
+
+* **contracts:** Synchronize blixis-io packages versions
+
 ## 0.1.0 (2026-09-28)
 
 
