@@ -23,6 +23,7 @@ Aggregates all previous readiness work into one executable procedure.
 - `docs/operations/launch-checklist.md` with owner, evidence link, and status per item.
 - Production resources verified (Hyperdrive, Queues, DLQ, KV, R2, crons, Workflows if 016 shipped).
 - Production deploy via 021.001 workflow; post-deploy smoke; monitoring watch period.
+- WAF rate limiting rules on the production zone (per IP; one for `/api/v1/auth/*`, one for the rest) and verified with a burst test: the Workers Rate Limiting binding did not enforce on staging (020.003, [rate limits](../../operations/observability.md#rate-limits)).
 - Update ROADMAP milestone M9 and MVP status.
 
 ## Architectural constraints
