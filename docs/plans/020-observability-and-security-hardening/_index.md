@@ -3,12 +3,12 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 Milestone: Milestone 9 — Production readiness  
 Roadmap scope: MVP / initial platform  
-Progress: 0/5 tasks completed
+Progress: 1/5 tasks completed
 
 ## Objective
 
@@ -60,7 +60,7 @@ Depends on:
 
 ## Tasks
 
-- [ ] [001 — Implement structured logging, redaction, and correlation propagation](./001-structured-logging-and-correlation.md)
+- [x] [001 — Implement structured logging, redaction, and correlation propagation](./001-structured-logging-and-correlation.md)
 - [ ] [002 — Configure Workers observability and write the observability runbook](./002-workers-observability-configuration.md)
 - [ ] [003 — Implement API rate limiting](./003-rate-limiting.md)
 - [ ] [004 — Perform the platform security review and fixes](./004-security-review.md)

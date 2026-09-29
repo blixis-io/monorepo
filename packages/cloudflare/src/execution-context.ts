@@ -18,7 +18,7 @@ export function waitUntilSafe(
   ctx.waitUntil(
     promise.catch((error: unknown) => {
       logger.error(`${label} failed`, {
-        error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+        error,
       })
     }),
   )

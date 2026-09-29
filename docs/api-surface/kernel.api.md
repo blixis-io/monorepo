@@ -175,7 +175,10 @@ export interface ExecutionContextLike {
 export interface CreateBlixisOptions {
     /** Modules in registration order, e.g. `[auth(), content(), seo()]` (explicit, §2.3). */
     readonly modules: readonly BlixisModule[];
-    /** Platform logger. Defaults to a JSON logger at level `info`. */
+    /**
+     * Platform logger. Defaults to a JSON logger whose level follows the `LOG_LEVEL` variable
+     * (default `info`; stacks only at `debug`), with redaction of secrets (§35).
+     */
     readonly logger?: Logger;
     /** Resolves the actor of each request (authentication). Defaults to the anonymous actor. */
     readonly actorResolver?: ActorResolver;
@@ -420,7 +423,7 @@ export type { BlixisHonoEnv } from './hono-env.ts';
 export type { CorsOptions } from './internal/cors.ts';
 export { httpStatusFor, type ProblemDetails, toProblemResponse } from './internal/errors-http.ts';
 export { type ActorResolver, API_PREFIX, HEALTH_PATH, READY_PATH } from './internal/rest.ts';
-export { createJsonLogger, type JsonLoggerOptions, type LogLevel, noopLogger } from './logger.ts';
+export { createJsonLogger, isLogLevel, type JsonLoggerOptions, type LogLevel, noopLogger, REDACTED, redactString, sanitize, } from './logger.ts';
 ```
 
 ## `dist/internal/cors.d.ts`
@@ -561,18 +564,39 @@ export declare class ServiceContainer implements ServiceRegistry {
 import type { LogFields, Logger } from '@blixis-io/contracts';
 /** Log levels in increasing severity. */
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+/** Whether `value` is a log level (e.g. from the `LOG_LEVEL` variable). */
+export declare function isLogLevel(value: unknown): value is LogLevel;
 /** Options for {@link createJsonLogger}. */
 export interface JsonLoggerOptions {
-    /** Minimum level to emit. Defaults to `info`. */
-    readonly level?: LogLevel;
+    /**
+     * Minimum level to emit. Defaults to `info`. A function is read on every call, so the level can
+     * follow `LOG_LEVEL`, which Workers only provide per request.
+     */
+    readonly level?: LogLevel | (() => LogLevel);
+    /**
+     * Include error stacks. Defaults to `true` when the level is `debug`, otherwise `false`: stacks
+     * are noise in production info logs (§35) and may reveal paths.
+     */
+    readonly stacks?: boolean | (() => boolean);
     /** Fields added to every entry. */
     readonly fields?: LogFields;
     /** Where lines go. Defaults to the platform console (captured by Workers Logs). */
     readonly write?: (level: LogLevel, line: string) => void;
 }
+/** Replacement for redacted values. */
+export declare const REDACTED = "[redacted]";
+/** Redacts secret-shaped substrings of a string and caps its length. */
+export declare function redactString(value: string): string;
 /**
- * Minimal structured logger writing one JSON object per line (architecture §35). Redaction,
- * sampling, and richer serialisation are added in roadmap task 020.001.
+ * Makes a value safe and compact to log: secrets redacted by key and by shape, errors serialized
+ * (stack only when `stacks`), long strings, big arrays, and deep objects cut short.
+ */
+export declare function sanitize(value: unknown, stacks?: boolean, depth?: number): unknown;
+/**
+ * The platform logger: one JSON object per line (architecture §35), with level filtering, child
+ * bindings, redaction of secrets by field name and by shape, error serialization, and size limits.
+ * Standard field names: `requestId`, `correlationId`, `organizationId`, `spaceId`, `actorId`,
+ * `module`, `eventType`, `eventId`, `duration` (ms), `status`.
  */
 export declare function createJsonLogger(options?: JsonLoggerOptions): Logger;
 /** A logger that discards everything. */

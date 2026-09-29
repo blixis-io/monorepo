@@ -121,7 +121,7 @@ export async function dispatchEnvelope(
           eventType: envelope.type,
           subscription,
           attempt,
-          error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+          error,
         })
         return { subscription, status: 'failed', error }
       }

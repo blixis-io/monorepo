@@ -80,7 +80,7 @@ async function consumeMessage(message: QueueMessageLike, options: ConsumeOptions
       status: 'retrying',
       durationMs: Date.now() - started,
       issues: error instanceof ValidationError ? error.issues : undefined,
-      error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+      error,
     })
     message.retry({ delaySeconds })
   }

@@ -132,7 +132,7 @@ export const graphqlModule = defineModule((options: GraphqlModuleOptions) => {
           )
           if (mapped.unexpected || !(error instanceof BlixisError)) {
             requestContext.logger.error('graphql schema selection failed', {
-              error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+              error,
             })
             try {
               services.getOptional(ERROR_REPORTER)?.captureException(error, {

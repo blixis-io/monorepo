@@ -6,7 +6,7 @@ import type {
   ServiceRegistry,
   ServiceToken,
 } from '@blixis-io/contracts'
-import { ModuleError, type RequestContext } from '@blixis-io/contracts'
+import { actorId, ModuleError, type RequestContext } from '@blixis-io/contracts'
 import { Hono } from 'hono'
 import { ACTOR_RESOLVERS, ActorResolverRegistry } from './actors.ts'
 import {
@@ -32,7 +32,7 @@ import { validateModuleGraph } from './internal/graph.ts'
 import { type ActorResolver, installRest } from './internal/rest.ts'
 import { ServiceContainer } from './internal/services.ts'
 import { provideRequestContext } from './internal/tenant-binder.ts'
-import { createJsonLogger } from './logger.ts'
+import { createJsonLogger, isLogLevel, type LogLevel } from './logger.ts'
 
 /** Minimal execution context accepted by {@link BlixisApp.fetch} (compatible with Workers). */
 export interface ExecutionContextLike {
@@ -43,7 +43,10 @@ export interface ExecutionContextLike {
 export interface CreateBlixisOptions {
   /** Modules in registration order, e.g. `[auth(), content(), seo()]` (explicit, §2.3). */
   readonly modules: readonly BlixisModule[]
-  /** Platform logger. Defaults to a JSON logger at level `info`. */
+  /**
+   * Platform logger. Defaults to a JSON logger whose level follows the `LOG_LEVEL` variable
+   * (default `info`; stacks only at `debug`), with redaction of secrets (§35).
+   */
   readonly logger?: Logger
   /** Resolves the actor of each request (authentication). Defaults to the anonymous actor. */
   readonly actorResolver?: ActorResolver
@@ -151,7 +154,13 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
   const metas = Object.freeze(ordered.map((m) => m.meta))
   const { contributions, problems } = collectContributions(ordered)
   if (problems.length > 0) throw new ModuleValidationError(problems)
-  const logger = options.logger ?? createJsonLogger()
+  // Workers pass the environment per invocation, so the level follows `LOG_LEVEL` from there.
+  let logLevel: LogLevel = 'info'
+  const configureLogging = (env: unknown): void => {
+    const level = (env as { LOG_LEVEL?: unknown } | undefined)?.LOG_LEVEL
+    if (isLogLevel(level)) logLevel = level
+  }
+  const logger = options.logger ?? createJsonLogger({ level: () => logLevel })
   const container = new ServiceContainer()
   const hono = new Hono<BlixisHonoEnv>()
   const background = new BackgroundRegistry()
@@ -250,7 +259,15 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
     const requestId = crypto.randomUUID()
     const correlationId = seed.correlationId ?? requestId
     const scope = container.createRequestScope(seed.bindings ?? {})
-    const scopedLogger = logger.child({ requestId, correlationId })
+    const tenantFields = Object.fromEntries(
+      Object.entries(seed.tenant ?? {}).filter(([, value]) => value !== undefined),
+    )
+    const scopedLogger = logger.child({
+      requestId,
+      correlationId,
+      ...(seed.actor === undefined ? {} : { actorId: actorId(seed.actor) }),
+      ...tenantFields,
+    })
     const context: RequestContext = {
       requestId,
       correlationId,
@@ -265,7 +282,7 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
       return await fn(context)
     } finally {
       await scope.dispose().catch((error: unknown) => {
-        scopedLogger.error('request scope disposal failed', { error: String(error) })
+        scopedLogger.error('request scope disposal failed', { error })
       })
     }
   }
@@ -289,10 +306,12 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
     contributions,
     ready,
     async fetch(request, env, executionContext) {
+      configureLogging(env)
       return hono.fetch(request, env as Record<string, unknown>, executionContext as never)
     },
     runInScope,
     async queue(batch, env) {
+      configureLogging(env)
       await ready()
       const handler = background.queues.get(batch.queue)
       if (handler === undefined) {
@@ -303,6 +322,7 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
       await handler(batch, backgroundContext(env))
     },
     async scheduled(event, env) {
+      configureLogging(env)
       await ready()
       const handlers = background.crons.get(event.cron) ?? []
       if (handlers.length === 0) {
@@ -315,7 +335,7 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
       const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected')
       if (failures.length > 0) {
         for (const f of failures)
-          logger.error('scheduled job failed', { cron: event.cron, error: String(f.reason) })
+          logger.error('scheduled job failed', { cron: event.cron, error: f.reason })
         throw new AggregateError(
           failures.map((f) => f.reason),
           `${failures.length} scheduled job(s) failed for ${event.cron}`,

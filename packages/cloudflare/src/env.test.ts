@@ -55,6 +55,6 @@ describe('waitUntilSafe', () => {
       'scope disposal',
     )
     await expect(registered[0]).resolves.toBeUndefined()
-    expect(errors).toEqual([['scope disposal failed', { error: 'Error: boom' }]])
+    expect(errors).toEqual([['scope disposal failed', { error: new Error('boom') }]])
   })
 })

@@ -1,6 +1,7 @@
 import {
   type Actor,
   ANONYMOUS_ACTOR,
+  actorId,
   type BlixisModule,
   type Logger,
   ModuleError,
@@ -114,7 +115,7 @@ export function installRest(
     try {
       await options.ready()
     } catch (error) {
-      options.logger.warn('readiness: boot failed', { error: String(error) })
+      options.logger.warn('readiness: boot failed', { error })
       return c.json(
         { status: 'unavailable', checks: { boot: { status: 'fail', latencyMs: 0 } } },
         503,
@@ -128,13 +129,12 @@ export function installRest(
       const report = await runHealthChecks(
         options.healthChecks ?? [],
         scope.services,
-        (name, error) =>
-          options.logger.warn('readiness: check failed', { check: name, error: String(error) }),
+        (name, error) => options.logger.warn('readiness: check failed', { check: name, error }),
       )
       return c.json(report, report.status === 'ok' ? 200 : 503, noStore)
     } finally {
       const disposal = scope.dispose().catch((error: unknown) => {
-        options.logger.error('request scope disposal failed', { error: String(error) })
+        options.logger.error('request scope disposal failed', { error })
       })
       let executionCtx: { waitUntil(p: Promise<unknown>): void } | undefined
       try {
@@ -165,11 +165,13 @@ export function installRest(
     const scope = options.container.createRequestScope(
       (c.env ?? {}) as Readonly<Record<string, unknown>>,
     )
-    const logger = options.logger.child({ requestId, correlationId })
+    const started = Date.now()
+    let logger = options.logger.child({ requestId, correlationId })
     try {
       const actor = options.actorResolver
         ? await options.actorResolver(c.req.raw, scope.services)
         : ANONYMOUS_ACTOR
+      logger = logger.child({ actorId: actorId(actor) })
       const context: RequestContext = {
         requestId,
         correlationId,
@@ -185,10 +187,19 @@ export function installRest(
       c.set('services', scope.services)
       await next()
     } finally {
+      // One line per request (§35): the route pattern, never the URL with its query string.
+      // Health probes are answered before this middleware and are not logged.
+      const latest = (c.get('requestContext') as RequestContext | undefined)?.logger ?? logger
+      latest.info('request', {
+        method: c.req.method,
+        route: c.req.routePath,
+        status: c.res.status,
+        duration: Date.now() - started,
+      })
       c.header('x-request-id', requestId)
       c.header('x-correlation-id', correlationId)
       const disposal = scope.dispose().catch((error: unknown) => {
-        logger.error('request scope disposal failed', { error: String(error) })
+        logger.error('request scope disposal failed', { error })
       })
       let executionCtx: { waitUntil(p: Promise<unknown>): void } | undefined
       try {
@@ -242,7 +253,7 @@ export function installRest(
       ;(context?.logger ?? options.logger).error('request failed', {
         requestId,
         status: response.status,
-        error: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+        error,
       })
     }
     response.headers.set('x-request-id', requestId)
