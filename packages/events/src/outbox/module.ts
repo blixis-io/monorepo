@@ -159,7 +159,7 @@ export const outboxModule = defineModule((options: OutboxModuleOptions) => ({
             )
             .catch((error: unknown) => {
               // The sweep delivers whatever the post-commit attempt could not.
-              collector.logger.warn('outbox.post_commit_failed', { error: String(error) })
+              collector.logger.warn('outbox.post_commit_failed', { error })
             })
         },
       },

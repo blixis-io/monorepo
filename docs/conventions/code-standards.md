@@ -89,6 +89,9 @@ No `I` prefix on interfaces, no `Impl` suffix on classes.
 - Use the injected `Logger` (`ctx.logger`), never `console.*` in source code.
 - Structured fields per §35 (`requestId`, `correlationId`, `spaceId`, `actorId`, `module`, `eventType`, …).
 - **Never log** tokens, passwords, secrets, cookies, connection strings, or sensitive personal data.
+- Pass errors as objects (`logger.error('x failed', { error })`), never `String(error)`: the kernel logger serializes `name`, `message`, `code`, `status`, and `cause`, and adds the stack only at `debug` level.
+- The kernel logger (`createJsonLogger`) redacts as a safety net: values of secret-named fields (`password`, `token`, `secret`, `authorization`, `cookie`, `connectionString`, `apiKey`, `signature`, …) and secret-shaped strings (`blx_…` tokens, credentials in URLs, `Bearer`/`Basic` values, JWTs, `npm_`/`ghp_`/`sk_…` tokens). It also caps strings (2,000 chars), arrays (50 items), and depth (5). Redaction is not a licence to log secrets.
+- The level comes from `LOG_LEVEL`. The kernel writes one `request` line per HTTP request (method, route pattern, status, duration), never the URL with its query string.
 
 ## 10. Database
 

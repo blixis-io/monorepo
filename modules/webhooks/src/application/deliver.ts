@@ -127,7 +127,7 @@ export async function attemptDelivery(
     // Configuration problem on our side: keep the delivery and try again later.
     deps.logger.error('webhooks.secret_unavailable', {
       webhookId: webhook.id,
-      error: String(error),
+      error,
     })
     return record('retry', { error: 'Signing secret unavailable (server configuration)' }, false)
   }

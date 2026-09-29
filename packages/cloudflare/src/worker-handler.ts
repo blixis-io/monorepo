@@ -52,7 +52,7 @@ export function createWorkerHandler<TEnv = unknown>(
       validated.set(env, true)
     } catch (error) {
       app.logger.error('invalid Worker environment', {
-        error: error instanceof Error ? error.message : String(error),
+        error,
       })
       throw error
     }

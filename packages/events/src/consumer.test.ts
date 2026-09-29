@@ -113,7 +113,7 @@ describe('queue consumer', () => {
     expect(handled).toEqual([])
     const invalid = lines.filter((l) => l['message'] === 'event.invalid')
     expect(invalid).toHaveLength(3)
-    expect(invalid.some((l) => /Unknown event/.test(String(l['error'])))).toBe(true)
+    expect(invalid.some((l) => /Unknown event/.test((l['error'] as Error).message))).toBe(true)
   })
 
   it('backs off exponentially up to 10 minutes', () => {

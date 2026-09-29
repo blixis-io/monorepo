@@ -157,22 +157,22 @@ describe('createBlixis', () => {
   })
 })
 
-describe('root routes', () => {
-  const rootModule = (name: string) =>
-    defineModule({
-      meta: { name, version: '1.0.0' },
-      rest: {
-        path: '/graphql',
-        root: true,
-        app: new Hono().get('/', (c) =>
-          c.json({
-            requestId: (c.var as { requestContext?: { requestId: string } }).requestContext
-              ?.requestId,
-          }),
-        ) as never,
-      },
-    })()
+const rootModule = (name: string) =>
+  defineModule({
+    meta: { name, version: '1.0.0' },
+    rest: {
+      path: '/graphql',
+      root: true,
+      app: new Hono().get('/', (c) =>
+        c.json({
+          requestId: (c.var as { requestContext?: { requestId: string } }).requestContext
+            ?.requestId,
+        }),
+      ) as never,
+    },
+  })()
 
+describe('root routes', () => {
   it('mounts root routes outside /api/v1 behind the kernel middleware', async () => {
     const app = createBlixis({ modules: [rootModule('@acme/root')], logger: noopLogger })
     const res = await app.fetch(new Request('http://x/graphql'), {}, undefined as never)
@@ -210,5 +210,35 @@ describe('createJsonLogger', () => {
       requestId: 'r1',
       spaceId: 's',
     })
+  })
+})
+
+describe('request logging', () => {
+  it('writes one request line per request with the route pattern and correlation fields', async () => {
+    const lines: Record<string, unknown>[] = []
+    const logger = createJsonLogger({
+      level: 'debug',
+      write: (_level, line) => void lines.push(JSON.parse(line)),
+    })
+    const app = createBlixis({ modules: [rootModule('@acme/root')], logger })
+    const res = await app.fetch(
+      new Request('http://x/graphql?token=blx_pat_abcdefgh12345678', {
+        headers: { 'x-correlation-id': 'corr-http' },
+      }),
+      {},
+      undefined as never,
+    )
+    const request = lines.filter((line) => line['message'] === 'request')
+    expect(request).toHaveLength(1)
+    expect(request[0]).toMatchObject({
+      level: 'info',
+      method: 'GET',
+      route: '/graphql',
+      status: res.status,
+      correlationId: 'corr-http',
+      requestId: res.headers.get('x-request-id'),
+    })
+    expect(typeof request[0]?.['duration']).toBe('number')
+    expect(JSON.stringify(lines)).not.toContain('blx_pat_')
   })
 })

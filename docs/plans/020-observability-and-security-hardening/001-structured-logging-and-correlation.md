@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+completed
 ```
 
 ## Parent plan
@@ -38,20 +38,28 @@ Implement the platform logger (JSON, level filtering, child fields, redaction) a
 ### Create
 
 ```text
-packages/kernel/src/logger.ts
 packages/kernel/src/logger.test.ts
 ```
 
 ### Modify
 
 ```text
+packages/kernel/src/logger.ts
+packages/kernel/src/index.ts
 packages/kernel/src/internal/rest.ts
 packages/kernel/src/create-blixis.ts
+packages/kernel/src/create-blixis.test.ts
 packages/events/src/dispatch.ts
-packages/events/src/queue-consumer.ts
+packages/events/src/consumer.ts
+packages/events/src/consumer.test.ts
+packages/events/src/outbox/module.ts
 packages/cloudflare/src/worker-handler.ts
-packages/cloudflare/src/workflows.ts (if plan 016 implemented)
-modules/*/src/**/*.ts (logging call sites as needed)
+packages/cloudflare/src/execution-context.ts
+packages/cloudflare/src/env.test.ts
+packages/graphql/src/module.ts
+modules/webhooks/src/application/deliver.ts
+docs/conventions/code-standards.md
+docs/api-surface/kernel.api.md
 ```
 
 ### Delete
@@ -77,8 +85,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Redaction tests pass for all listed keys/patterns.
-- [ ] Consumer logs for an event carry the originating request's `correlationId`.
+- [x] Redaction tests pass for all listed keys/patterns.
+- [x] Consumer logs for an event carry the originating request's `correlationId`.
 
 ## Validation
 
@@ -88,15 +96,15 @@ pnpm test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Grep for `console.` in source outside the logger returns nothing (lint rule added).
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Grep for `console.` in source outside the logger returns nothing (lint rule added).
 
 ## Completion conditions
 
@@ -113,4 +121,9 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- The logger already existed in `@blixis/kernel` (JSON lines, levels, child bindings) but `LOG_LEVEL` was never applied, nothing was redacted, and errors were logged as `"Name: message"` strings. It now takes a level *function*: Workers only expose `env` per invocation, so `createBlixis` reads `LOG_LEVEL` in `fetch`, `queue`, and `scheduled` and the default logger reads it on every call.
+- Redaction runs on every entry: by field name (case-insensitive, ignoring `_`/`-`, suffix match so `refreshToken`, `clientSecret`, `set-cookie` are caught) and by value shape (`blx_` tokens, `scheme://user:pass@`, Bearer/Basic, JWTs, `npm_`/`gh?_`/`sk_live_`/`sk_test_`). The message string is redacted too.
+- Errors are serialized to `name`, `message`, `code`, `status`, `cause`; the stack only when stacks are on (default: at `debug` level). All `String(error)` call sites in packages and modules now pass the error object.
+- One `request` line per HTTP request (method, route pattern from Hono, status, duration) bound to `requestId`, `correlationId`, and `actorId`. Health and readiness probes are answered before the request middleware and produce no line.
+- Background scopes (`runInScope`: queue, scheduled) bind `requestId`, `correlationId`, `actorId`, and tenant fields. Existing dispatch and consumer tests already assert that the envelope's `correlationId` reaches handler contexts and consumer logs.
+- No dependency added; the Biome `noConsole` rule already enforces no `console.*` outside the logger sink.
