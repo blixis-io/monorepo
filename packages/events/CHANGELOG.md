@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/blixis-io/monorepo/compare/events-v0.1.0...events-v0.2.0) (2026-09-29)
+
+
+### Features
+
+* **api:** configure observability sampling and alert signals ([#149](https://github.com/blixis-io/monorepo/issues/149)) ([3c8c869](https://github.com/blixis-io/monorepo/commit/3c8c8691bda3133e5429f4f3b038cf9ffe8a0277))
+* **kernel:** redact logs and propagate correlation fields ([#147](https://github.com/blixis-io/monorepo/issues/147)) ([bcd4cb5](https://github.com/blixis-io/monorepo/commit/bcd4cb530ee2796988720888658bc462b531b86f))
+
 ## 0.1.0 (2026-09-28)
 
 

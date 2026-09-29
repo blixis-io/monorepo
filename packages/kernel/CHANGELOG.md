@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.2.0](https://github.com/blixis-io/monorepo/compare/kernel-v0.1.0...kernel-v0.2.0) (2026-09-29)
+
+
+### Features
+
+* **api:** configure observability sampling and alert signals ([#149](https://github.com/blixis-io/monorepo/issues/149)) ([3c8c869](https://github.com/blixis-io/monorepo/commit/3c8c8691bda3133e5429f4f3b038cf9ffe8a0277))
+* **kernel:** add security headers and a JSON body limit ([#155](https://github.com/blixis-io/monorepo/issues/155)) ([47a06c9](https://github.com/blixis-io/monorepo/commit/47a06c94668df6af66be8d42492a384b63f17f3f))
+* **kernel:** rate limit requests by route class ([#151](https://github.com/blixis-io/monorepo/issues/151)) ([849bebe](https://github.com/blixis-io/monorepo/commit/849bebe16767cbda26be6d185e524cead8c53646))
+* **kernel:** redact logs and propagate correlation fields ([#147](https://github.com/blixis-io/monorepo/issues/147)) ([bcd4cb5](https://github.com/blixis-io/monorepo/commit/bcd4cb530ee2796988720888658bc462b531b86f))
+
+
+### Bug Fixes
+
+* **kernel:** report rate limit classes without a limiter ([#152](https://github.com/blixis-io/monorepo/issues/152)) ([63d2449](https://github.com/blixis-io/monorepo/commit/63d244941b20429ce934e5667118e693d84b48ca))
+
 ## 0.1.0 (2026-09-28)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/blixis-io/monorepo/compare/testing-v0.1.0...testing-v0.2.0) (2026-09-29)
+
+
+### Miscellaneous Chores
+
+* **testing:** Synchronize blixis-io packages versions
+
 ## 0.1.0 (2026-09-28)
 
 
