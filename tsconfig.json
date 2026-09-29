@@ -20,6 +20,9 @@
       "path": "tooling/api-surface"
     },
     {
+      "path": "tooling/licenses"
+    },
+    {
       "path": "tooling/tenant-isolation"
     },
     {

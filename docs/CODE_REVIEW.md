@@ -157,6 +157,34 @@ I also inspected the workspace/package topology, source and test inventory, API 
 
 Not performed as part of this review: starting Postgres to run the skipped integration suite, running Playwright browsers, deploying to Cloudflare, probing live environments, dependency-vulnerability/network audit, or a formal penetration test. Conclusions about those areas are therefore based on code and repository evidence, not a fresh live-system verification.
 
+## Staging verification addendum
+
+Live checks were performed on 2026-09-29 against `blixis-api-staging.frosty-hill-6079.workers.dev`, after the initial repository review. The supplied test account was used only for authentication and read-only management requests. Sessions used for rotation/domain checks were signed out; a few short-lived access tokens from isolated probes were allowed to expire. No organizations, spaces, content, assets, keys, or webhooks were created or modified.
+
+Passed checks:
+
+- Liveness returned `200`.
+- Database-backed readiness returned `200`, with `database.status = ok` and a measured latency of 69 ms.
+- Sign-in returned `200`, an active user, access token, and refresh token with `Cache-Control: no-store`.
+- `GET /auth/me` returned the expected authenticated account.
+- Refresh-token rotation returned `200`, produced a different refresh token, and remained `no-store`.
+- Authenticated organization, space, environment, locale, content-type, entry, asset, member, delivery-key, and webhook list/read operations all returned `200`.
+- Public sign-up returned `403` as configured.
+- A wrong password and an unknown email both returned the same generic `401` response (`Invalid email or password`), avoiding account enumeration through response text. Observed timings were in the same broad range but this small sample is not a timing-attack assessment.
+- A preflight from an untrusted origin returned no `Access-Control-Allow-Origin` header and included `Vary: Origin`.
+- The deployed OpenAPI document canonically matched `apps/api/openapi.json`: 57 paths, 27 schemas, and an identical sorted-JSON SHA-256.
+- Anonymous GraphQL `{ __typename }` returned only the root type. This confirms endpoint availability; it does not expose content.
+
+Confirmed failure:
+
+- The anonymous API rate limiter still did not enforce. A bounded 330-request burst produced 315 HTTP `401` responses and 15 client/network errors, but no `429`; 30 immediate sequential follow-ups all returned `401`. No response contained `Retry-After`. The follow-up's lack of network errors indicates the 15 burst failures were connection/concurrency noise rather than rate-limit responses. This independently confirms the high-priority finding above.
+
+Operational observations:
+
+- The test account can see ten organizations. Nine appear to be old `Cache probe` or `Postman Org` test records; only `Smoke tests` had a space. This is harmless in staging but suggests test-data cleanup or per-run teardown would improve signal.
+- The admin Worker is documented as not deployed, and staging has no configured browser origin. Browser-admin behavior was therefore not tested live.
+- The correct readiness path is `/api/v1/health/ready`; `/api/v1/readiness` correctly returned `404` but is easy to guess incorrectly.
+
 ## Bottom line
 
 Blixis has a better foundation than most projects of comparable age. Its main risk is not sloppy code; it is the gap between a carefully designed/tested platform and the remaining proof that those controls work in the deployed environment. Close the runtime and operations gaps before broadening scope, and the project is on a credible path to production.

@@ -23,6 +23,11 @@ import {
 } from '../rate-limit.ts'
 import { type CorsOptions, installCors } from './cors.ts'
 import { toProblemResponse } from './errors-http.ts'
+import {
+  DEFAULT_MAX_JSON_BODY_BYTES,
+  installSecurityHeaders,
+  jsonBodyLimit,
+} from './security-headers.ts'
 import type { ServiceContainer } from './services.ts'
 import { provideRequestContext } from './tenant-binder.ts'
 
@@ -55,6 +60,8 @@ export interface RestOptions {
   readonly cors?: CorsOptions
   /** Rate limiting (plan 020.003); none by default. */
   readonly rateLimits?: RateLimitOptions
+  /** Largest JSON request body in bytes. Default 1 MiB. */
+  readonly maxJsonBodyBytes?: number
 }
 
 function joinPath(prefix: string, path: string): string {
@@ -112,7 +119,9 @@ export function installRest(
 ): void {
   const conflicts = findRouteConflicts(modules)
   if (conflicts.length > 0) throw new ModuleValidationError(conflicts)
+  installSecurityHeaders(app)
   if (options.cors !== undefined) installCors(app, options.cors)
+  const limitJsonBody = jsonBodyLimit(options.maxJsonBodyBytes ?? DEFAULT_MAX_JSON_BODY_BYTES)
 
   app.get(HEALTH_PATH, (c) => c.json({ status: 'ok' }))
 
@@ -211,7 +220,7 @@ export function installRest(
           logger.warn('rate_limit.not_configured', { limiter: name, class: routeClass })
         }
       }
-      await next()
+      await limitJsonBody(c, next)
     } finally {
       // One line per request (§35): the route pattern, never the URL with its query string.
       // Health probes are answered before this middleware and are not logged.

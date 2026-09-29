@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 ## Parent plan
@@ -36,16 +36,25 @@ Run a structured security review of the whole platform, fix findings, and leave 
 ### Create
 
 ```text
-docs/security/review-YYYY-MM-DD.md
+docs/security/review-2026-09-29.md
 docs/security/checklist.md
+packages/kernel/src/internal/security-headers.ts
+packages/kernel/src/internal/security-headers.test.ts
+tooling/licenses/ (package.json, tsconfig.json, src/policy.ts, src/policy.test.ts, src/cli.ts)
 ```
 
 ### Modify
 
 ```text
-packages/kernel/src/internal/rest.ts (headers/CORS, if needed)
+packages/kernel/src/internal/rest.ts
+packages/kernel/src/create-blixis.ts
 .github/workflows/ci.yml
-docs/extensions/authoring-guide.md
+package.json
+tsconfig.json
+pnpm-lock.yaml
+apps/docs/src/content/docs/extending/authoring-guide.mdx
+docs/extensions/README.md
+docs/api-surface/kernel.api.md
 ```
 
 ### Delete
@@ -68,8 +77,8 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Review document lists every area with status.
-- [ ] No open high-severity findings.
+- [x] Review document lists every area with status.
+- [ ] No open high-severity findings. *(Finding 1, rate limiting, is open: see Technical notes.)*
 
 ## Validation
 
@@ -80,15 +89,15 @@ pnpm test
 
 ## Review checklist
 
-- [ ] Implementation matches this task specification (requirements and constraints).
-- [ ] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
-- [ ] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
-- [ ] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
-- [ ] Tests added for new behavior; validation commands pass.
-- [ ] Documentation matches the implementation.
-- [ ] `Files and folders` reflects the actual change set.
-- [ ] `Technical notes` updated with relevant findings.
-- [ ] Accepted risks have owners and follow-up tasks.
+- [x] Implementation matches this task specification (requirements and constraints).
+- [x] Package boundaries respected: no cross-package relative imports, no imports of another package's internals.
+- [x] No unnecessary or Workers-incompatible dependencies introduced; every new dependency is justified in Technical notes.
+- [x] TypeScript is strict; no unjustified `any`, no unchecked casts at untrusted boundaries.
+- [x] Tests added for new behavior; validation commands pass.
+- [x] Documentation matches the implementation.
+- [x] `Files and folders` reflects the actual change set.
+- [x] `Technical notes` updated with relevant findings.
+- [x] Accepted risks have owners and follow-up tasks.
 
 ## Completion conditions
 
@@ -105,4 +114,8 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- Report: [docs/security/review-2026-09-29.md](../../security/review-2026-09-29.md). 9 findings: 1 high (open, blocking), 2 medium (fixed), 2 low (1 fixed, 1 accepted), 2 low accepted, 2 info.
+- **High, open:** API rate limiting doesn't enforce on staging (020.003). It blocks plan 020 completion and launch (architectural constraint); resolution is WAF rules on the custom domain (022.005) plus the promotion gate (021.001). The review, fixes, checklist, and CI gates are done; the task stays `in-progress` until finding 1 is closed, because its acceptance criteria require no open high findings.
+- **Fixed:** baseline security headers from the kernel on every response (handlers keep their own CSP; HTML pages get no default CSP so GraphiQL works outside production); JSON body limit 1 MiB via Hono `bodyLimit`, also for bodies without `Content-Length`, returned as `400 VALIDATION_FAILED` per the project's error convention (no 413 code exists).
+- **CI:** `pnpm audit:check` (`pnpm audit --prod --audit-level high`; allow list via `auditConfig.ignoreGhsas` with a reason) and `pnpm licenses:check` (`tooling/licenses`, allow list + recorded exceptions).
+- The route inventory was taken from the composed API app (`app.hono.routes`); tenant routes are guarded by the isolation and authz suites, the global routes were reviewed by hand (listed in the report).
