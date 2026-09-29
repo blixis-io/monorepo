@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-in-progress
+completed
 ```
 
 ## Parent plan
@@ -54,6 +54,7 @@ packages/events/src/outbox/module.ts
 packages/events/src/outbox/outbox.test.ts
 modules/webhooks/src/application/deliver.ts
 docs/operations/cloudflare.md
+docs/operations/observability.md (Record)
 docs/api-surface/kernel.api.md
 ```
 
@@ -77,7 +78,7 @@ Requires:
 
 ## Acceptance criteria
 
-- [ ] Staging trace exercise documented with log excerpts (redacted).
+- [x] Staging trace exercise documented with log excerpts (redacted).
 
 ## Validation
 
@@ -119,4 +120,5 @@ Change the status to `completed` only when all of the following hold:
 - `ErrorReportContext` gained `eventId` and `eventType` (kernel API surface).
 - For the trace exercise the path needed two more log facts: `event.consumed` now lists the `ok` subscriptions (so the cache-invalidation and webhook fan-out subscriptions are visible), and webhooks log one `webhooks.attempt` line per attempt (never the URL).
 - Metrics endpoint: decided against (reasons in the runbook, "Why no metrics endpoint").
-- **Open:** the staging trace exercise needs a staging deploy (owner). The procedure is in the runbook; the acceptance criterion is checked when its Record section is filled in.
+- Staging trace exercise run 2026-09-29 (runbook, Record): request → outbox → queue → delivery-stamp + fan-out → webhook attempt, all under one `correlationId`; the receiver got the event and delivery served the new content. `wrangler tail` works from a background shell writing to a file.
+- Sentry UI rules and the uptime monitor are owner setup (runbook, Owner setup); the cron monitor is upserted by code.

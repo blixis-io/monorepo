@@ -159,4 +159,25 @@ Procedure (owner, after deploying `main` to staging):
 
 ### Record
 
-*Not yet run on staging.* Pending the first staging deploy that includes 020.001 and 020.002.
+**2026-09-29, staging** (deploy of `main` at `3c8c869`, 020.001 + 020.002). Publish of a `traceNote` entry in the Smoke space with `x-correlation-id: trace-1790667625`; logs captured with `wrangler tail --format json`. Ids shortened, `actorId` is the throwaway trace token.
+
+```text
+07:40:26.126  POST /api/v1/entries/:entryId/publish
+  request                  status 200, duration 181 ms, correlationId trace-1790667625
+  outbox.dispatched        events 1                      (post-commit dispatch, same request)
+07:40:34.308  queue blixis-events-staging
+  event.consumed           entry.published, eventId 01a0ec1b-966a…, status delivered, 2168 ms
+                           ok: @blixis/content#delivery-stamp.entry.published,
+                               @blixis/webhooks#fan-out.entry.published
+  outbox.dispatched        events 1                      (fan-out emitted webhook.delivery.requested)
+07:40:40.685  queue blixis-events-staging
+  webhooks.attempt         webhookId 01a0ec1b-232e…, attempt 1, status succeeded, statusCode 200
+  event.consumed           webhook.delivery.requested, status delivered, ok: @blixis/webhooks#deliver
+```
+
+Every line carries `correlationId: trace-1790667625`. The receiver (webhook.site) answered 200 to the signed POST (`blixis-event-id` = the `entry.published` event id), and the delivery API (`/graphql?space=…`) returned the published title right after. Request to webhook: about 14.5 s, most of it queue batching (`max_batch_timeout` 5 s, twice).
+
+Notes from the run:
+
+- `wrangler tail` redacts ids in the request path itself (`/api/v1/entries/REDACTED/publish`); the `route` field of the `request` line is the reliable source.
+- `event.consumed` is logged by the consumer before a scope exists, so it has `correlationId` and `eventId` but no `requestId` or tenant fields; filter on `correlationId` or `eventId`, not `requestId`.
