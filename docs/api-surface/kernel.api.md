@@ -306,6 +306,9 @@ export interface ErrorReportContext {
     readonly spaceId?: string;
     /** Module that raised the error, when known (`ModuleError`). */
     readonly module?: string;
+    /** Event the error concerns (dead-lettered deliveries, stuck outbox rows). */
+    readonly eventId?: string;
+    readonly eventType?: string;
 }
 /**
  * Receives unexpected errors (5xx) for an error-tracking service such as Sentry (roadmap

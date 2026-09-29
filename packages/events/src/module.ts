@@ -6,7 +6,12 @@ import {
   REQUEST_CONTEXT,
   type ServiceToken,
 } from '@blixis-io/contracts'
-import { BACKGROUND_HANDLERS, defineModule, KERNEL_CONTRIBUTIONS } from '@blixis-io/kernel'
+import {
+  BACKGROUND_HANDLERS,
+  defineModule,
+  ERROR_REPORTER,
+  KERNEL_CONTRIBUTIONS,
+} from '@blixis-io/kernel'
 import { createEventBus, type EventTransport } from './bus.ts'
 import { consumeEventBatch } from './consumer.ts'
 import { EventRegistry } from './registry.ts'
@@ -28,6 +33,11 @@ export interface EventsModuleOptions {
    * batches of queues it consumes (`wrangler.jsonc`).
    */
   readonly queues?: readonly string[]
+  /**
+   * `max_retries` of those queues in `wrangler.jsonc` (Cloudflare's default is 3). Used to
+   * detect, log, and report deliveries that move to the dead-letter queue.
+   */
+  readonly maxRetries?: number
 }
 
 const noTransport: EventTransport = {
@@ -61,12 +71,18 @@ export const eventsModule = defineModule((options: EventsModuleOptions) => ({
     const transport = options.transport ?? noTransport
     ctx.services.provide(EVENT_REGISTRY, registry)
     const { subscriptions } = ctx.services.get(KERNEL_CONTRIBUTIONS)
+    const reporter = ctx.services.getOptional(ERROR_REPORTER)
+    const maxRetries = options.maxRetries ?? 3
     for (const queue of options.queues ?? []) {
-      ctx.services
-        .get(BACKGROUND_HANDLERS)
-        .onQueue(queue, (batch, background) =>
-          consumeEventBatch(batch, { subscriptions, registry, ...background }),
-        )
+      ctx.services.get(BACKGROUND_HANDLERS).onQueue(queue, (batch, background) =>
+        consumeEventBatch(batch, {
+          subscriptions,
+          registry,
+          maxRetries,
+          ...(reporter === undefined ? {} : { reporter }),
+          ...background,
+        }),
+      )
     }
     ctx.services.provideFactory(
       EVENT_BUS,

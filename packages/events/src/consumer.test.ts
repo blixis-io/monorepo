@@ -44,6 +44,7 @@ function message(body: unknown, attempts = 1) {
 function setup(failFor: string[] = []) {
   const handled: string[] = []
   const lines: Record<string, unknown>[] = []
+  const reports: { error: Error; context: object }[] = []
   const notes = defineModule({
     meta: { name: '@acme/notes', version: '1.0.0' },
     events: [
@@ -55,7 +56,10 @@ function setup(failFor: string[] = []) {
     ],
   })
   const app = createBlixis({
-    modules: [eventsModule({ queues: ['blixis-events-test'] }), notes()],
+    modules: [eventsModule({ queues: ['blixis-events-test'], maxRetries: 2 }), notes()],
+    errorReporter: {
+      captureException: (error, context) => void reports.push({ error: error as Error, context }),
+    },
     logger: createJsonLogger({
       level: 'debug',
       write: (_l, line) => void lines.push(JSON.parse(line)),
@@ -63,7 +67,7 @@ function setup(failFor: string[] = []) {
   })
   const run = (messages: QueueMessageLike[]) =>
     app.queue({ queue: 'blixis-events-test', messages, ackAll() {}, retryAll() {} }, {})
-  return { handled, lines, run }
+  return { handled, lines, reports, run }
 }
 
 const envelope = async (noteId: string): Promise<unknown> =>
@@ -114,6 +118,23 @@ describe('queue consumer', () => {
     const invalid = lines.filter((l) => l['message'] === 'event.invalid')
     expect(invalid).toHaveLength(3)
     expect(invalid.some((l) => /Unknown event/.test((l['error'] as Error).message))).toBe(true)
+  })
+
+  it('logs and reports a failure on the last attempt as dead-lettered', async () => {
+    const { lines, reports, run } = setup(['d'])
+    const early = message(await envelope('d'), 2)
+    await run([early.msg])
+    expect(reports).toEqual([])
+    const last = message(await envelope('d'), 3)
+    await run([last.msg])
+    expect(last.outcome.retried).toBeDefined()
+    expect(lines.filter((l) => l['message'] === 'event.dead_lettered')).toEqual([
+      expect.objectContaining({ eventType: 'note.created', attempt: 3, correlationId: 'corr-q' }),
+    ])
+    expect(reports).toHaveLength(1)
+    expect(reports[0]?.error.name).toBe('EventDeadLettered')
+    expect(reports[0]?.error.message).toBe('Event note.created moved to the dead-letter queue')
+    expect(reports[0]?.context).toMatchObject({ eventType: 'note.created' })
   })
 
   it('backs off exponentially up to 10 minutes', () => {

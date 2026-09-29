@@ -1,5 +1,6 @@
 import type { EventEnvelope, Logger } from '@blixis-io/contracts'
 import { type Database, withTransaction } from '@blixis-io/database'
+import type { ErrorReporter } from '@blixis-io/kernel'
 import { sql } from 'drizzle-orm'
 import type { QueueSender } from '../queue.ts'
 
@@ -32,7 +33,12 @@ export async function dispatchOutboxBatch(
   db: Database,
   sender: QueueSender,
   filter: { readonly ids: readonly string[] } | { readonly olderThanSeconds: number },
-  options: { readonly limit: number; readonly logger: Logger },
+  options: {
+    readonly limit: number
+    readonly logger: Logger
+    /** Receives rows that reach {@link OUTBOX_ALERT_ATTEMPTS} (once per row). */
+    readonly reporter?: ErrorReporter | undefined
+  },
 ): Promise<OutboxBatchResult> {
   return withTransaction(db, async (tx) => {
     const condition =
@@ -65,6 +71,20 @@ export async function dispatchOutboxBatch(
             eventType: row.envelope.type,
             attempts: row.attempts + 1,
           })
+          if (row.attempts + 1 === OUTBOX_ALERT_ATTEMPTS) {
+            const stuck = new Error(`Outbox event ${row.envelope.type} cannot be sent`, {
+              cause: error,
+            })
+            stuck.name = 'OutboxStuck'
+            try {
+              options.reporter?.captureException(stuck, {
+                eventId: row.id,
+                eventType: row.envelope.type,
+              })
+            } catch {
+              // Reporting must never break the sweep.
+            }
+          }
         }
       }
       options.logger.warn('outbox.send_failed', { events: rows.length, error: message })
@@ -86,6 +106,7 @@ export interface SweepOptions {
   readonly maxBatches: number
   readonly retentionDays: number
   readonly logger: Logger
+  readonly reporter?: ErrorReporter | undefined
 }
 
 /**
@@ -104,7 +125,7 @@ export async function sweepOutbox(
       db,
       sender,
       { olderThanSeconds: options.minAgeSeconds },
-      { limit: options.batchSize, logger: options.logger },
+      { limit: options.batchSize, logger: options.logger, reporter: options.reporter },
     )
     sent += result.sent
     if (result.failed || result.selected < options.batchSize) break

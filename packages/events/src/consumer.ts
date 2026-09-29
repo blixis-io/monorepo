@@ -1,5 +1,11 @@
 import { type EventSubscription, type Logger, ValidationError } from '@blixis-io/contracts'
-import type { Attributed, QueueBatchLike, QueueMessageLike, RunInScope } from '@blixis-io/kernel'
+import type {
+  Attributed,
+  ErrorReporter,
+  QueueBatchLike,
+  QueueMessageLike,
+  RunInScope,
+} from '@blixis-io/kernel'
 import { dispatchEnvelope } from './dispatch.ts'
 import type { EventRegistry } from './registry.ts'
 
@@ -14,6 +20,14 @@ export interface ConsumeOptions {
   readonly registry: EventRegistry
   readonly runInScope: RunInScope
   readonly logger: Logger
+  /**
+   * The queue's `max_retries` (`wrangler.jsonc`). A message that fails on attempt
+   * `maxRetries + 1` moves to the dead-letter queue: it is logged as `event.dead_lettered` and
+   * reported. Without it, dead-lettering is not detected.
+   */
+  readonly maxRetries?: number
+  /** Receives dead-lettered deliveries (e.g. Sentry). */
+  readonly reporter?: ErrorReporter
 }
 
 const field = (body: unknown, name: string): unknown =>
@@ -69,11 +83,16 @@ async function consumeMessage(message: QueueMessageLike, options: ConsumeOptions
       ...base,
       status,
       subscriptions: results.length,
+      // Which subscriptions ran now (`ok`); `skipped` ones already succeeded on an earlier attempt.
+      ok: results.filter((result) => result.status === 'ok').map((result) => result.subscription),
       failed: failed.map((result) => result.subscription),
       durationMs: Date.now() - started,
     })
     if (failed.length === 0) message.ack()
-    else message.retry({ delaySeconds })
+    else {
+      deadLettered(message, base, failed[0]?.error, options)
+      message.retry({ delaySeconds })
+    }
   } catch (error) {
     options.logger.error('event.invalid', {
       ...base,
@@ -82,6 +101,31 @@ async function consumeMessage(message: QueueMessageLike, options: ConsumeOptions
       issues: error instanceof ValidationError ? error.issues : undefined,
       error,
     })
+    deadLettered(message, base, error, options)
     message.retry({ delaySeconds })
+  }
+}
+
+/** Logs and reports a failure on the last attempt, after which the queue dead-letters it. */
+function deadLettered(
+  message: QueueMessageLike,
+  base: { readonly eventId?: string | undefined; readonly eventType?: string | undefined },
+  cause: unknown,
+  options: ConsumeOptions,
+): void {
+  if (options.maxRetries === undefined || message.attempts <= options.maxRetries) return
+  const error = new Error(
+    `Event ${base.eventType ?? '(unknown type)'} moved to the dead-letter queue`,
+    { cause },
+  )
+  error.name = 'EventDeadLettered'
+  options.logger.error('event.dead_lettered', { ...base, attempt: message.attempts, error: cause })
+  try {
+    options.reporter?.captureException(error, {
+      ...(base.eventId === undefined ? {} : { eventId: base.eventId }),
+      ...(base.eventType === undefined ? {} : { eventType: base.eventType }),
+    })
+  } catch {
+    // Reporting must never break consumption.
   }
 }
