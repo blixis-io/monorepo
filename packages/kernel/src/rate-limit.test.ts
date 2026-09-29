@@ -104,6 +104,10 @@ describe('rate limiting', () => {
     expect(lines.some((line) => line['message'] === 'rate_limit.unavailable')).toBe(true)
     const none = setup({})
     expect((await none.call('/api/v1/things')).status).toBe(200)
+    expect((await none.call('/api/v1/things')).status).toBe(200)
+    expect(none.lines.filter((line) => line['message'] === 'rate_limit.not_configured')).toEqual([
+      expect.objectContaining({ level: 'warn', limiter: 'anonymous', class: 'anonymous' }),
+    ])
   })
 
   it('applies a module route limiter on top of the defaults', async () => {

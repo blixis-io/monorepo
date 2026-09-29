@@ -82,6 +82,7 @@ export async function enforceRateLimit(
     logger.warn('rate_limit.unavailable', { limiter: name, error })
     return
   }
+  logger.debug('rate_limit.checked', { limiter: name, allowed })
   if (allowed) return
   // Never the key: it may be an IP address.
   logger.info('rate_limit.exceeded', { limiter: name })

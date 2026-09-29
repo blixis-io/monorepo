@@ -107,6 +107,8 @@ Secrets are redacted by field name and by shape (see [code standards](../convent
 | `scheduled job failed` | error | A cron job threw (also a failed Sentry check-in). |
 | `rate_limit.exceeded` | info | A request got `429`; field `limiter`. Many of them from one class may be abuse or a limit set too low. |
 | `rate_limit.unavailable` | warn | A limiter errored; the request was let through. |
+| `rate_limit.not_configured` | warn | A route class names a limiter the environment doesn't have (binding missing); that class is not limited. Once per isolate. |
+| `rate_limit.checked` | debug | Each check: `limiter`, `allowed`. |
 
 ## Finding things
 
