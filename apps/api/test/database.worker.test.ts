@@ -11,8 +11,10 @@ const enabled = (env as { BLIXIS_TEST_DATABASE?: string }).BLIXIS_TEST_DATABASE 
 // QUARANTINED (known issue, docs/conventions/testing.md#known-issues): the Vitest Workers pool
 // resolves pg's `require('pg-cloudflare')` without the `workerd` export condition and loads its
 // empty Node stub ("CloudflareSocket is not a constructor"). Wrangler's bundler applies
-// `workerd`, so deployed Workers are unaffected; staging is verified by 005.008. Re-enable
-// (`describe.skipIf(!enabled)`) when the pool honours `workerd` for require().
+// `workerd`, so deployed Workers are unaffected. The bundled path is covered in CI by the
+// `e2e (admin)` job (wrangler dev → workerd → local Hyperdrive → Postgres) and on staging by the
+// readiness check (005.008). Re-enable (`describe.skipIf(!enabled)`) when the pool honours
+// `workerd` for require(); re-check on every pool upgrade.
 describe.skip('database in the Workers runtime', () => {
   it('queries Postgres through HYPERDRIVE and runs a transaction', async () => {
     const db = createDatabase({ connectionString: env.HYPERDRIVE.connectionString })

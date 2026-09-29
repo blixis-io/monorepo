@@ -4,7 +4,7 @@
 
 Blixis is a modular, extensible **headless CMS** built for **Cloudflare Workers**. It is written in **TypeScript 7** with **Hono**, and exposes **REST** (management) and **GraphQL Yoga** (delivery) APIs. **Neon Postgres**, reached through **Hyperdrive**, is the source of truth. Queues, KV, R2, and Workflows provide the platform infrastructure. First-party and third-party modules implement the same public contract.
 
-> **Status:** early implementation — Milestone 1 (workspace & public contracts). Progress is tracked in [docs/ROADMAP.md](docs/ROADMAP.md).
+> **Status:** pre-production. Milestones 1–8 are done (kernel, content, delivery, assets, webhooks, SDK, admin, extension contract; public packages on npm as `@blixis-io/*`). Milestone 9 (observability, security hardening, CI/CD, launch) is in progress. Progress is tracked in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ---
 
@@ -20,7 +20,7 @@ The architecture covers the design principles, module contract, kernel, and Clou
 
 ## Roadmap
 
-The roadmap contains 23 plans and 132 tasks across 9 milestones. It also includes the dependency graph, architectural checkpoints, the register of open decisions, and deferred work. Each plan has its own specification and task files.
+The roadmap lists every plan and task across 9 milestones. It also includes the dependency graph, architectural checkpoints, the register of open decisions, and deferred work. Each plan has its own specification and task files.
 
 → [docs/ROADMAP.md](docs/ROADMAP.md) · plans in [docs/plans/](docs/plans/)
 

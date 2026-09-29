@@ -48,6 +48,14 @@ Over the limit: `429` problem response with `code: RATE_LIMITED` and `Retry-Afte
 
 > **Status on staging (2026-09-29): not enforcing.** The deployed Worker has the three bindings and finds them (no `rate_limit.not_configured`), yet the binding answered `success: true` to 1,500 anonymous requests from one IP in 31 s (limit 300/min, colo AMS). The same code limits exactly under `wrangler dev`. Others report the same behaviour on the [Cloudflare Community](https://community.cloudflare.com/t/workers-rate-limiting-binding-always-returns-success-true-for-the-same-key-and-colo/953250). Until the binding enforces, the only effective limit is the sign-in throttle; WAF rate limiting rules are required before launch (plan 022.005). Re-run the check below after Cloudflare changes or a support answer.
 
+**Which controls are strict:**
+
+| Control | Scope | Accuracy | On failure |
+|---|---|---|---|
+| Sign-in throttle (Postgres, plan 007) | per email and per IP | exact | closed: no sign-in without the database |
+| API rate limits (Workers binding, this section) | per route class and key | approximate, per location | open: request continues |
+| WAF rate limiting rules (after launch, 022.005) | per IP at the edge | approximate, per location | Cloudflare edge |
+
 **Mechanism:** the Workers Rate Limiting binding (`ratelimits` in `wrangler.jsonc`, per environment). Counters live in each Cloudflare location and are eventually consistent, and they add no network round trip. That makes them right for abuse protection, not for exact quotas. The window is 10 or 60 seconds.
 
 **Changing a limit:** edit `simple.limit` for the environment in `apps/api/wrangler.jsonc` and deploy; no code change. Each binding's `namespace_id` must stay unique per account and environment (local `100x`, staging `110x`, production `120x`). A missing binding means that class is not limited.
