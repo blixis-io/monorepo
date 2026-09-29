@@ -46,6 +46,8 @@ Every request except the health checks is counted once, after authentication, by
 
 Over the limit: `429` problem response with `code: RATE_LIMITED` and `Retry-After: 60`, logged as `rate_limit.exceeded` (limiter name, never the key or IP). Sign-in keeps its own stricter Postgres throttle per email and IP (plan 007).
 
+> **Status on staging (2026-09-29): not enforcing.** The deployed Worker has the three bindings and finds them (no `rate_limit.not_configured`), yet the binding answered `success: true` to 1,500 anonymous requests from one IP in 31 s (limit 300/min, colo AMS). The same code limits exactly under `wrangler dev`. Others report the same behaviour on the [Cloudflare Community](https://community.cloudflare.com/t/workers-rate-limiting-binding-always-returns-success-true-for-the-same-key-and-colo/953250). Until the binding enforces, the only effective limit is the sign-in throttle; WAF rate limiting rules are required before launch (plan 022.005). Re-run the check below after Cloudflare changes or a support answer.
+
 **Mechanism:** the Workers Rate Limiting binding (`ratelimits` in `wrangler.jsonc`, per environment). Counters live in each Cloudflare location and are eventually consistent, and they add no network round trip. That makes them right for abuse protection, not for exact quotas. The window is 10 or 60 seconds.
 
 **Changing a limit:** edit `simple.limit` for the environment in `apps/api/wrangler.jsonc` and deploy; no code change. Each binding's `namespace_id` must stay unique per account and environment (local `100x`, staging `110x`, production `120x`). A missing binding means that class is not limited.
@@ -54,7 +56,7 @@ Over the limit: `429` problem response with `code: RATE_LIMITED` and `Retry-Afte
 
 **Tighter limits for one route:** modules add `rateLimit({ limiter: '<name>' })` from `@blixis-io/kernel` on the route; the app configures a limiter with that name in `createBlixis({ rateLimits: { limiters } })`.
 
-**Not used (yet): WAF rate limiting rules.** They need a zone, and the Workers run on `workers.dev` until the custom domain exists (plan 021). Once it does, add a coarse WAF rule per IP in front of the Worker as a second layer: it blocks floods before they cost Worker invocations.
+**WAF rate limiting rules (required before launch).** They need a zone, and the Workers run on `workers.dev` until the custom domain exists. Once it does, add WAF rules per IP in front of the Worker: at least one for `/api/v1/auth/*` and one for everything else. They block floods before they cost Worker invocations and don't depend on the binding. Tracked in the launch checklist (022.005).
 
 **Checking on staging:**
 

@@ -81,7 +81,7 @@ The plan may be marked `completed` when:
 
 ## Open questions
 
-- Is Cloudflare WAF/zone-level rate limiting available (custom domain + plan), or only the Workers Rate Limiting binding? Decide in 020.003.
+- ~~Is Cloudflare WAF/zone-level rate limiting available (custom domain + plan), or only the Workers Rate Limiting binding? Decide in 020.003.~~ Decided in 020.003: binding in code now; WAF rules required at launch (022.005) because the binding didn't enforce on staging.
 - Should an audit log of management actions be part of MVP for compliance? Default: deferred to `@blixis/audit`; events already capture most actions.
 
 ## Technical notes

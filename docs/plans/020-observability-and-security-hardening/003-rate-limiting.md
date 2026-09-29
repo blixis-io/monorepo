@@ -80,7 +80,7 @@ Requires:
 ## Acceptance criteria
 
 - [ ] Exceeding the delivery limit returns 429 with `Retry-After`.
-- [ ] Health endpoints never limited.
+- [x] Health endpoints never limited (test; staging health stayed 200 during the bursts).
 
 ## Validation
 
@@ -122,4 +122,8 @@ Change the status to `completed` only when all of the following hold:
 - **Fails open** on limiter errors (`rate_limit.unavailable`), and a missing binding disables that class, so local tools and tests without bindings keep working.
 - **No GraphQL or auth changes needed:** GraphQL and asset delivery are root routes behind the same middleware; the sign-in throttle (Postgres, per email and IP) stays as the strict layer for credentials.
 - `apps/api/src/env.ts` unchanged: bindings are typed by `wrangler types` (`worker-configuration.d.ts`), not by the env schema.
-- **Open:** staging verification after the owner deploys (runbook, Rate limits → Checking on staging).
+- **Staging verification (2026-09-29): the binding does not enforce.** Deployed with the bindings (versions `18b3a869…`, `d72ba3f4…`); 330 sequential, 500 parallel, 450 and 1,500 sustained anonymous requests from one stable IPv4 (colo AMS) all got `401`, never `429`. No `rate_limit.not_configured` and no `rate_limit.unavailable`, so the limiter was found and `limit()` resolved `success: true`. Locally (`wrangler dev`, with and without a Sentry DSN) the same code answers `429` from request 301. Same symptom reported on the Cloudflare Community (binding always returns `success=true` for the same key and colo).
+- **Decision (owner: "do what you think is best"):** keep the binding code (correct, tested, costs nothing), don't add Durable Object or Postgres counters for now (a round trip on every request for abuse protection). Require WAF rate limiting rules once the custom domain exists: added to the launch checklist (022.005). Optional owner action: Cloudflare support ticket (Worker `blixis-api-staging`, namespaces 1101–1103).
+- #152 added `rate_limit.not_configured` (warn once) and `rate_limit.checked` (debug), which is how the cause was narrowed down.
+- Note: `wrangler deploy --var LOG_LEVEL:debug` did not change `LOG_LEVEL` for the deployed version (`vars` in `wrangler.jsonc` won); set it in the file temporarily when debug logs are needed.
+- **Status:** stays `in-progress`: the acceptance criterion (limits verified on staging) can't be met until the binding enforces or the WAF rules exist.
