@@ -56,3 +56,14 @@ export {
   redactString,
   sanitize,
 } from './logger.ts'
+export {
+  clientIp,
+  enforceRateLimit,
+  RATE_LIMITERS,
+  type RateLimitClass,
+  type RateLimiter,
+  type RateLimitMiddlewareOptions,
+  type RateLimitOptions,
+  rateLimit,
+  rateLimitClassOf,
+} from './rate-limit.ts'

@@ -3,7 +3,7 @@
 ## Status
 
 ```text
-not-started
+in-progress
 ```
 
 ## Parent plan
@@ -36,19 +36,26 @@ Apply rate limits to delivery (per delivery key), management (per actor/token), 
 ### Create
 
 ```text
+packages/kernel/src/rate-limit.ts
+packages/kernel/src/rate-limit.test.ts
 packages/cloudflare/src/rate-limiter.ts
-packages/kernel/src/internal/rate-limit.ts
-packages/kernel/src/internal/rate-limit.test.ts
+packages/cloudflare/src/rate-limiter.test.ts
 ```
 
 ### Modify
 
 ```text
+packages/kernel/src/create-blixis.ts
+packages/kernel/src/index.ts
+packages/kernel/src/internal/rest.ts
+packages/cloudflare/src/index.ts
 apps/api/wrangler.jsonc
-apps/api/src/env.ts
-packages/graphql/src/module.ts
-modules/auth/src/application/throttle.ts
+apps/api/worker-configuration.d.ts
+apps/api/src/index.ts
+apps/docs/src/content/docs/extending/authoring-guide.mdx
 docs/operations/configuration.md
+docs/operations/observability.md
+docs/api-surface/kernel.api.md
 ```
 
 ### Delete
@@ -109,4 +116,10 @@ Change the status to `completed` only when all of the following hold:
 
 ## Technical notes
 
-No technical notes yet.
+- **Mechanism: Workers Rate Limiting binding.** Per-location, eventually consistent counters with no extra round trip; limits live in `wrangler.jsonc` per environment. WAF rate limiting rules need a zone and the Workers still run on `workers.dev`, so they are deferred to plan 021 (custom domain) as a coarse per-IP second layer. Durable Objects (exact global counters) were not needed for abuse protection and would add latency to every request.
+- **Kernel API:** `createBlixis({ rateLimits: { limiters(env), defaults } })` applies one limiter per route class (`anonymous` per IP, `actor` per `actorId`, `delivery` per key) in the request middleware after authentication; `rateLimit({ limiter, key? })` adds a tighter limiter on a module route. The binding fixes limit and period, so the hook takes a limiter *name* instead of `{ limit, period }` as the task sketch had it.
+- **Health checks** are answered before the request middleware, so they are never limited (test). CORS preflights are answered before it too.
+- **Fails open** on limiter errors (`rate_limit.unavailable`), and a missing binding disables that class, so local tools and tests without bindings keep working.
+- **No GraphQL or auth changes needed:** GraphQL and asset delivery are root routes behind the same middleware; the sign-in throttle (Postgres, per email and IP) stays as the strict layer for credentials.
+- `apps/api/src/env.ts` unchanged: bindings are typed by `wrangler types` (`worker-configuration.d.ts`), not by the env schema.
+- **Open:** staging verification after the owner deploys (runbook, Rate limits → Checking on staging).

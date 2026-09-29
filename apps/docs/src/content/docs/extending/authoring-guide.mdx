@@ -222,6 +222,13 @@ async function authorize(c: Context<ModuleHonoEnv>, permission: PermissionDefini
 
 - **Validate every body** with `validate()`; invalid input becomes a `400` with field paths. Throw the [public errors](/concepts/errors/) (`NotFoundError`, `ConflictError`, …): they map to problem responses.
 - **Describe your routes** with `operations` (method, path, request and response schemas) so they appear in OpenAPI documents and SDKs; see the example's `SEO_OPERATIONS`.
+- **Rate limits** apply to every route already: the app limits each request by class (anonymous per IP, authenticated per actor, delivery per key) and answers `429` with `Retry-After`. For an expensive route, add a tighter limiter on top with `rateLimit()` from `@blixis-io/kernel`. It counts per actor (or per IP for anonymous requests) unless you pass `key`, and does nothing when the app has no limiter of that name, so tell users which limiter name to configure:
+
+  ```ts
+  import { rateLimit } from '@blixis-io/kernel'
+
+  seoRoutes.post('/:entryId/seo/regenerate', rateLimit({ limiter: 'seo-regenerate' }), handler)
+  ```
 
 ## 6. Permissions
 

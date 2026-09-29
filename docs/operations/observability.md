@@ -34,6 +34,36 @@ Configured in `apps/api/wrangler.jsonc` (`observability`, per environment) and `
 
 Traces are sampled in production because they cost more than logs and are only needed for timing questions. Errors never depend on trace sampling: Sentry captures every error event.
 
+## Rate limits
+
+Every request except the health checks is counted once, after authentication, by route class (plan 020.003):
+
+| Class | Who | Key | Binding | Default |
+|---|---|---|---|---|
+| `anonymous` | no credentials: sign-in, refresh, public asset URLs, anonymous GraphQL | client IP (`cf-connecting-ip`) | `RATE_LIMIT_ANONYMOUS` | 300 / min |
+| `actor` | users, API tokens, system | `actorId` | `RATE_LIMIT_MANAGEMENT` | 600 / min |
+| `delivery` | delivery and preview keys | key id | `RATE_LIMIT_DELIVERY` | 1200 / min |
+
+Over the limit: `429` problem response with `code: RATE_LIMITED` and `Retry-After: 60`, logged as `rate_limit.exceeded` (limiter name, never the key or IP). Sign-in keeps its own stricter Postgres throttle per email and IP (plan 007).
+
+**Mechanism:** the Workers Rate Limiting binding (`ratelimits` in `wrangler.jsonc`, per environment). Counters live in each Cloudflare location and are eventually consistent, and they add no network round trip. That makes them right for abuse protection, not for exact quotas. The window is 10 or 60 seconds.
+
+**Changing a limit:** edit `simple.limit` for the environment in `apps/api/wrangler.jsonc` and deploy; no code change. Each binding's `namespace_id` must stay unique per account and environment (local `100x`, staging `110x`, production `120x`). A missing binding means that class is not limited.
+
+**Fails open:** if a limiter errors, the request continues and `rate_limit.unavailable` is logged (warn). A counter outage must not take the API down.
+
+**Tighter limits for one route:** modules add `rateLimit({ limiter: '<name>' })` from `@blixis-io/kernel` on the route; the app configures a limiter with that name in `createBlixis({ rateLimits: { limiters } })`.
+
+**Not used (yet): WAF rate limiting rules.** They need a zone, and the Workers run on `workers.dev` until the custom domain exists (plan 021). Once it does, add a coarse WAF rule per IP in front of the Worker as a second layer: it blocks floods before they cost Worker invocations.
+
+**Checking on staging:**
+
+```bash
+for i in $(seq 1 320); do curl -s -o /dev/null -w '%{http_code}\n' "$API_URL/api/v1/permissions"; done | sort | uniq -c
+```
+
+Anonymous, so the first ~300 answers are `401`, then `429` for the rest of the minute (one IP, one location; other locations count separately).
+
 ## Log format
 
 One JSON object per line (architecture §35), written by the kernel logger (`createJsonLogger`):
@@ -75,6 +105,8 @@ Secrets are redacted by field name and by shape (see [code standards](../convent
 | `webhooks.disabled` | warn | A webhook was switched off after consecutive failures. |
 | `readiness: check failed` | warn | `/api/v1/health/ready` answered 503. |
 | `scheduled job failed` | error | A cron job threw (also a failed Sentry check-in). |
+| `rate_limit.exceeded` | info | A request got `429`; field `limiter`. Many of them from one class may be abuse or a limit set too low. |
+| `rate_limit.unavailable` | warn | A limiter errored; the request was let through. |
 
 ## Finding things
 

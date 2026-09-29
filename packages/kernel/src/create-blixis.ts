@@ -33,6 +33,7 @@ import { type ActorResolver, installRest } from './internal/rest.ts'
 import { ServiceContainer } from './internal/services.ts'
 import { provideRequestContext } from './internal/tenant-binder.ts'
 import { createJsonLogger, isLogLevel, type LogLevel } from './logger.ts'
+import type { RateLimitOptions } from './rate-limit.ts'
 
 /** Minimal execution context accepted by {@link BlixisApp.fetch} (compatible with Workers). */
 export interface ExecutionContextLike {
@@ -62,6 +63,11 @@ export interface CreateBlixisOptions {
   readonly errorReporter?: ErrorReporter
   /** Cross-origin access for browser clients such as the admin (ADR 0017). Default: none. */
   readonly cors?: CorsOptions
+  /**
+   * Rate limits per route class and limiters for {@link rateLimit} (plan 020.003). Default: none.
+   * On Cloudflare, build the limiters with `workersRateLimiters` from `@blixis/cloudflare`.
+   */
+  readonly rateLimits?: RateLimitOptions
 }
 
 /**
@@ -249,6 +255,7 @@ export function createBlixis(options: CreateBlixisOptions): BlixisApp {
     ...(options.errorReporter === undefined ? {} : { errorReporter: options.errorReporter }),
     healthChecks: health.checks,
     ...(options.cors === undefined ? {} : { cors: options.cors }),
+    ...(options.rateLimits === undefined ? {} : { rateLimits: options.rateLimits }),
   })
 
   const runInScope = async <T>(

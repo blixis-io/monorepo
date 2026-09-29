@@ -26,6 +26,12 @@ export {
   r2StorageModule,
 } from './r2-object-storage.ts'
 export {
+  type RateLimitBindingLike,
+  type WorkersRateLimiterConfig,
+  workersRateLimiter,
+  workersRateLimiters,
+} from './rate-limiter.ts'
+export {
   createWorkerHandler,
   type WorkerHandler,
   type WorkerHandlerOptions,
