@@ -25,6 +25,7 @@ Add the `deploy-staging` job (every merge to `main`) and the release workflow (r
 - `release.yml`: `release` job (release-please) → `deploy-production` job when `release_created` (environment `production`, optional required reviewer), checking out the new tag; same steps against production with `BLIXIS_VERSION:vX.Y.Z`; `workflow_dispatch` input `tag` redeploys an existing tag (rollback path).
 - Expose `BLIXIS_VERSION` in `GET /api/v1/health` and GraphQL `_platform.version`.
 - Post-deploy smoke performs a **real database transaction through the deployed Worker** (create and delete a throwaway entry in a smoke space) and fails the job on error: the Workers-pool database test is quarantined (`docs/conventions/testing.md#known-issues`), so this is the deployed-runtime proof (code review 2026-09-29).
+- Smoke runs clean up after themselves (per-run organization or space, deleted at the end, even on failure); leftover probe/Postman organizations on staging are removed once (staging API review 2026-09-29).
 - **Rate-limit promotion gate:** before production promotion, a burst against staging must observe `429` with a valid `Retry-After`; fail the promotion otherwise. The Workers Rate Limiting binding did not enforce on staging (020.003), so this gate passes only once it does or WAF rules exist (022.005).
 - Secrets management documented (CLOUDFLARE_API_TOKEN scoped minimally, DATABASE_URL per env, smoke tokens).
 - `docs/operations/deployment.md`.
