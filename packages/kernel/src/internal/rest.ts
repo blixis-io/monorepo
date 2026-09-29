@@ -155,6 +155,8 @@ export function installRest(
     }
   })
 
+  /** Limiter names already reported as missing (once per isolate). */
+  const missingLimiters = new Set<string>()
   app.use('*', async (c, next) => {
     const incomingRequestId = c.req.header('x-request-id')
     const requestId =
@@ -203,6 +205,11 @@ export function installRest(
         const limiter = name === undefined ? undefined : limiters[name]
         if (limiter !== undefined && name !== undefined)
           await enforceRateLimit(limiter, key, logger, name)
+        else if (name !== undefined && !missingLimiters.has(name)) {
+          // A class configured without a limiter (e.g. binding missing) is not limited: say so once.
+          missingLimiters.add(name)
+          logger.warn('rate_limit.not_configured', { limiter: name, class: routeClass })
+        }
       }
       await next()
     } finally {
